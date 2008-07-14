@@ -1,0 +1,16 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+  <f:entry title="Sonar Version">
+
+  <select class="setting-input" name="sonar.installationName">
+        <option value="">(Default)</option>
+        <j:forEach var="inst" items="${descriptor.installations}">
+          <f:option selected="${inst.name==instance.getInstallation().name}">${inst.name}</f:option>
+        </j:forEach>
+      </select>
+  </f:entry>
+
+  <f:entry title="Additional properties" help="${rootURL}/plugin/sonar/help-projectConfig.html">
+    <f:textbox name="sonar.jobAdditionalProperties" value="${instance.getJobAdditionalProperties()}" />
+	</f:entry>
+</j:jelly>
