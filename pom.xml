@@ -13,11 +13,24 @@
   <name>Hudson Sonar plugin</name>
   <url>http://hudson.gotdns.com/wiki/display/HUDSON/Sonar+Plugin</url>
 
+  <dependencies>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.1</version>
+    </dependency>
+  </dependencies>
+
   <developers>
     <developer>
       <id>sbrandhof</id>
       <name>Simon Brandhof</name>
       <email>simon.brandhof@gmail.com</email>
+    </developer>
+    <developer>
+      <id>cjelmini</id>
+      <name>Carlo Jelmini</name>
+      <email>cjelmini@gmail.com</email>
     </developer>
   </developers>
 </project>

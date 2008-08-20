@@ -1,5 +1,6 @@
 package hudson.plugins.sonar;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public final class SonarInstallation {
@@ -62,6 +63,33 @@ public final class SonarInstallation {
 
   public String getAdditionalProperties() {
     return additionalProperties;
+  }
+
+  public String getPluginCallArgs() {
+    StringBuilder builder = new StringBuilder(100);
+    builder.append("org.codehaus.sonar:sonar-maven-plugin:");
+    builder.append(version);
+    builder.append(":sonar");
+    appendUnlessEmpty(builder, "sonar.jdbc.driver", databaseDriver);
+    appendUnlessEmpty(builder, "sonar.jdbc.username", databaseLogin);
+    appendUnlessEmpty(builder, "sonar.jdbc.password", databasePassword);
+    appendUnlessEmpty(builder, "sonar.jdbc.url", databaseUrl);
+    appendUnlessEmpty(builder, "sonar.host.url", serverUrl);
+    appendUnlessEmpty(builder, "sonar.skipInstall", "true");
+    if (StringUtils.isNotBlank(additionalProperties)) {
+      builder.append(' ');
+      builder.append(additionalProperties);
+    }
+    return builder.toString();
+  }
+
+  private static void appendUnlessEmpty(StringBuilder builder, String key, String value) {
+    if (!"".equals(StringUtils.defaultString(value))) {
+      builder.append(" -D");
+      builder.append(key);
+      builder.append('=');
+      builder.append(value);
+    }
   }
 }
 
