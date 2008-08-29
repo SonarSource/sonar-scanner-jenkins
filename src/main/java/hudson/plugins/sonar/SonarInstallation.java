@@ -14,9 +14,9 @@ public final class SonarInstallation {
   private final String databasePassword;
   private final String additionalProperties;
 
-
   @DataBoundConstructor
-  public SonarInstallation(String name, boolean disabled, String version, String serverUrl, String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword, String additionalProperties) {
+  public SonarInstallation(String name, boolean disabled, String version, String serverUrl, String databaseUrl,
+                           String databaseDriver, String databaseLogin, String databasePassword, String additionalProperties) {
     this.name = name;
     this.disabled = disabled;
     this.version = version;
@@ -31,7 +31,6 @@ public final class SonarInstallation {
   public String getName() {
     return name;
   }
-
 
   public boolean isDisabled() {
     return disabled;
