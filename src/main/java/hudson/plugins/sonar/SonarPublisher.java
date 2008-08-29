@@ -7,13 +7,11 @@ import hudson.tasks.Maven;
 import hudson.tasks.Publisher;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormFieldValidator;
-import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.*;
 
 import javax.servlet.ServletException;
 import java.io.*;
-import java.util.List;
 import java.util.Map;
 
 public class SonarPublisher extends Publisher {
@@ -215,9 +213,9 @@ public class SonarPublisher extends Publisher {
     }
 
     @Override
-    public boolean configure(StaplerRequest req, JSONObject jsonObject) {
-      List<SonarInstallation> installationList = req.bindJSONToList(SonarInstallation.class, jsonObject);
-      installations = installationList.toArray(new SonarInstallation[installationList.size()]);
+    public boolean configure(StaplerRequest req) {
+      installations = req.bindParametersToList(
+          SonarInstallation.class, "sonar.").toArray(new SonarInstallation[0]);
       save();
       return true;
     }
