@@ -20,23 +20,23 @@
                   <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}" />
                 </f:entry>
 
-                <f:entry title="Database URL" help="${rootURL}/plugin/sonar/help-globalConfig.html">
+                <f:entry title="Database URL" help="${rootURL}/plugin/sonar/help-global-dburl.html">
                   <f:textbox name="sonar.databaseUrl" value="${inst.getDatabaseUrl()}" />
                 </f:entry>
 
-                <f:entry title="Database login" help="${rootURL}/plugin/sonar/help-globalConfig.html">
+                <f:entry title="Database login" help="${rootURL}/plugin/sonar/help-global-dblogin.html">
                   <f:textbox name="sonar.databaseLogin" value="${inst.getDatabaseLogin()}" />
                 </f:entry>
 
-                <f:entry title="Database password" help="${rootURL}/plugin/sonar/help-globalConfig.html">
+                <f:entry title="Database password" help="${rootURL}/plugin/sonar/help-global-dbpwd.html">
                   <f:textbox name="sonar.databasePassword" value="${inst.getDatabasePassword()}" />
                 </f:entry>
 
-                <f:entry title="Database driver" help="${rootURL}/plugin/sonar/help-globalConfig.html">
+                <f:entry title="Database driver" help="${rootURL}/plugin/sonar/help-global-dbdriver.html">
                   <f:textbox name="sonar.databaseDriver" value="${inst.getDatabaseDriver()}" />
                 </f:entry>
 
-                <f:entry title="Additional properties" help="${rootURL}/plugin/sonar/help-globalConfig.html">
+                <f:entry title="Additional properties" help="${rootURL}/plugin/sonar/help-additional.html">
                   <f:textbox name="sonar.additionalProperties" value="${inst.getAdditionalProperties()}" />
                 </f:entry>
               </f:advanced>
