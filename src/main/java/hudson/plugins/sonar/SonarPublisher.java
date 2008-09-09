@@ -22,11 +22,14 @@ public class SonarPublisher extends Publisher {
   private final String artifactId;
   private final String projectName;
   private final String projectVersion;
+  private final String projectDescription;
+  private final String javaVersion;
   private final String projectSrcDir;
 
   @DataBoundConstructor
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
-                        String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir) {
+                        String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
+                        String projectDescription) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
     this.useSonarLight = useSonarLight;
@@ -34,7 +37,9 @@ public class SonarPublisher extends Publisher {
     this.artifactId = artifactId;
     this.projectName = projectName;
     this.projectVersion = projectVersion;
+    this.javaVersion = javaVersion;
     this.projectSrcDir = projectSrcDir;
+    this.projectDescription = projectDescription;
   }
 
   public String getJobAdditionalProperties() {
@@ -65,8 +70,16 @@ public class SonarPublisher extends Publisher {
     return StringUtils.isBlank(projectVersion) ? "1.0" : projectVersion;
   }
 
+  public String getJavaVersion() {
+    return StringUtils.isBlank(javaVersion) ? "1.5" : javaVersion;
+  }
+
   public String getProjectSrcDir() {
     return projectSrcDir;
+  }
+
+  public String getProjectDescription() {
+    return StringUtils.isBlank(projectDescription) ? "" : projectDescription;
   }
 
   public SonarInstallation getInstallation() {
@@ -150,6 +163,8 @@ public class SonarPublisher extends Publisher {
     pomTemplate.setAttribute("projectName", getProjectName());
     pomTemplate.setAttribute("projectVersion", getProjectVersion());
     pomTemplate.setAttribute("projectSrcDir", getProjectSrcDir());
+    pomTemplate.setAttribute("javaVersion", getJavaVersion());
+    pomTemplate.setAttribute("projectDescription", getProjectDescription());
     pomTemplate.write(root);
   }
 
