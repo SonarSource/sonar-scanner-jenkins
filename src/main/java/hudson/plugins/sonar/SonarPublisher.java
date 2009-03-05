@@ -1,6 +1,9 @@
 package hudson.plugins.sonar;
 
-import hudson.*;
+import hudson.CopyOnWrite;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Util;
 import hudson.model.*;
 import hudson.plugins.sonar.template.SimpleTemplate;
 import hudson.tasks.Maven;
@@ -8,10 +11,13 @@ import hudson.tasks.Publisher;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormFieldValidator;
 import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.*;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 
 import javax.servlet.ServletException;
-import java.io.*;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Map;
 
 public class SonarPublisher extends Publisher {
@@ -28,8 +34,8 @@ public class SonarPublisher extends Publisher {
 
   @DataBoundConstructor
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
-                        String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
-                        String projectDescription) {
+      String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
+      String projectDescription) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
     this.useSonarLight = useSonarLight;
@@ -115,7 +121,8 @@ public class SonarPublisher extends Publisher {
     Maven.MavenInstallation mavenInstallation = null;
     AbstractProject<?, ?> project = build.getProject();
     if (project instanceof Maven.ProjectWithMaven) {
-      mavenInstallation = ((Maven.ProjectWithMaven) project).inferMavenInstallation();
+      Node myNode = build.getBuiltOn();
+      mavenInstallation = ((Maven.ProjectWithMaven) project).inferMavenInstallation().forNode(myNode);
     }
     if (mavenInstallation == null && Maven.DESCRIPTOR.getInstallations().length > 0) {
       mavenInstallation = Maven.DESCRIPTOR.getInstallations()[0];
@@ -130,7 +137,7 @@ public class SonarPublisher extends Publisher {
   }
 
   private boolean executeSonar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener,
-                               SonarInstallation sonarInstallation, Maven.MavenInstallation mavenInstallation) {
+      SonarInstallation sonarInstallation, Maven.MavenInstallation mavenInstallation) {
     try {
       FilePath root = build.getProject().getModuleRoot();
       if (useSonarLight) {
@@ -141,7 +148,7 @@ public class SonarPublisher extends Publisher {
       String executable = buildExecName(launcher, mavenInstallation);
       String[] command = buildCommand(build, sonarInstallation, executable);
       Map<String, String> environmentVars = addM2HomeToEnvironmentVars(build, mavenInstallation);
-    
+
       int r = launcher.launch(command, environmentVars, listener.getLogger(), root).join();
       return r == 0;
     }
@@ -178,10 +185,12 @@ public class SonarPublisher extends Publisher {
 
   private static String buildExecName(Launcher launcher, Maven.MavenInstallation mavenInstallation) {
     String execName = launcher.isUnix() ? "mvn" : "mvn.bat";
+    String separator = launcher.isUnix() ? "/" : "\\";
+
     String executable = execName;
     if (mavenInstallation != null) {
       String mavenHome = mavenInstallation.getMavenHome();
-      executable = mavenHome + File.separatorChar + "bin" + File.separatorChar + execName;
+      executable = mavenHome + separator + "bin" + separator + execName;
     }
     return executable;
   }
@@ -290,6 +299,5 @@ public class SonarPublisher extends Publisher {
         }
       }.process();
     }
-
   }
 }
