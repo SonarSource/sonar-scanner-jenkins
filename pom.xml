@@ -11,7 +11,7 @@
   <version>0.3-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>Hudson Sonar plugin</name>
-  <url>http://hudson.gotdns.com/wiki/display/HUDSON/Sonar+Plugin</url>
+  <url>http://wiki.hudson-ci.org/display/HUDSON/Sonar+Plugin</url>
 
   <dependencies>
     <dependency>
