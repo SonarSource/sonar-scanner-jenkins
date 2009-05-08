@@ -10,49 +10,73 @@
       </j:forEach>
     </select>
   </f:entry>
+  
+  <f:entry title="Maven Opts" description="MAVEN_OPTS env var to provide, if not set the plugin will use the MAVEN_OPTS defined by the maven builder config">
+    <f:textbox name="sonar.mavenOpts" value="${instance.getMavenOpts()}"/>
+  </f:entry>
 
   <f:entry title="Additional properties" description="Additional properties to be passed to the mvn executable (example : -Dsome.property=some.value).">
     <f:textbox name="sonar.jobAdditionalProperties" value="${instance.getJobAdditionalProperties()}"/>
   </f:entry>
-
-  <f:nested>
-    <table>
-      <f:optionalBlock name="sonar.useSonarLight" title="Check if this project is NOT built with maven2"
-                       checked="${instance.getUseSonarLight()}" help="${rootURL}/plugin/sonar/help-project-light.html">
-        <f:entry title="Organisation id" description="without spaces (example : com.myorganization).">
-          <f:textbox name="sonar.groupId" value="${instance.getGroupId()}"
-                     checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
-        </f:entry>
-
-        <f:entry title="Project id" description="without spaces (example : myproject).">
-          <f:textbox name="sonar.artifactId" value="${instance.getArtifactId()}"
-                     checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
-        </f:entry>
-
-        <f:entry title="Project name" description="spaces allowed (example : My Project).">
-          <f:textbox name="sonar.projectName" value="${instance.getProjectName()}"
-                     checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
-        </f:entry>
-
-        <f:entry title="Project description">
-          <f:textbox name="sonar.projectDescription" value="${instance.getProjectDescription()}" />
-        </f:entry>
-
-        <f:entry title="Project version" description="Default is 1.0">
-          <f:textbox name="sonar.projectVersion" value="${instance.getProjectVersion()}"/>
-        </f:entry>
-
-        <f:entry title="Source directory" description="The relative path to the sources directory (example : src/java).">
-          <f:textbox name="sonar.projectSrcDir" value="${instance.getProjectSrcDir()}"
-                     checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
-        </f:entry>
-
-        <f:entry title="Java version" description="Default is 1.5">
-          <f:textbox name="sonar.javaVersion" value="${instance.getJavaVersion()}"
-                     checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
-        </f:entry>
-      </f:optionalBlock>
-    </table>
-  </f:nested>
+  
+  <f:entry title="Skip when SCM" description="Do not run Sonar when the trigger is SCM changes." help="${rootURL}/plugin/sonar/help-skip-on-scm.html">
+    <f:checkbox name="sonar.skipOnScm" checked="${instance.isSkipOnScm()}" default="true"/>
+   </f:entry>
+   
+  <j:invokeStatic var="isMavenBuilder" className="hudson.plugins.sonar.SonarPublisher" method="isMavenBuilder">
+    <j:arg value="${it}" type="hudson.model.AbstractProject"/>
+  </j:invokeStatic>
+  
+  <j:if test="${!isMavenBuilder}">
+    <f:nested>
+      <table>
+        <f:optionalBlock name="sonar.useSonarLight" title="Check if this project is NOT built with maven2"
+                         checked="${instance.isUseSonarLight()}" help="${rootURL}/plugin/sonar/help-project-light.html">
+          
+          <f:entry title="Sonar maven runtime to use">
+            <select class="setting-input" name="sonar.mavenInstallationName">
+              <option value="">(Default)</option>
+              <j:forEach var="inst" items="${instance.mavenInstallations}">
+                <f:option selected="${inst.name==instance.getMavenInstallation().name}">${inst.name}</f:option>
+              </j:forEach>
+            </select>
+          </f:entry>
+                    
+          <f:entry title="Organisation id" description="without spaces (example : com.myorganization).">
+            <f:textbox name="sonar.groupId" value="${instance.getGroupId()}"
+                       checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
+          </f:entry>
+  
+          <f:entry title="Project id" description="without spaces (example : myproject).">
+            <f:textbox name="sonar.artifactId" value="${instance.getArtifactId()}"
+                       checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
+          </f:entry>
+  
+          <f:entry title="Project name" description="spaces allowed (example : My Project).">
+            <f:textbox name="sonar.projectName" value="${instance.getProjectName()}"
+                       checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
+          </f:entry>
+  
+          <f:entry title="Project description">
+            <f:textbox name="sonar.projectDescription" value="${instance.getProjectDescription()}" />
+          </f:entry>
+  
+          <f:entry title="Project version" description="Default is 1.0">
+            <f:textbox name="sonar.projectVersion" value="${instance.getProjectVersion()}"/>
+          </f:entry>
+  
+          <f:entry title="Source directory" description="The relative path to the sources directory (example : src/java).">
+            <f:textbox name="sonar.projectSrcDir" value="${instance.getProjectSrcDir()}"
+                       checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
+          </f:entry>
+  
+          <f:entry title="Java version" description="Default is 1.5">
+            <f:textbox name="sonar.javaVersion" value="${instance.getJavaVersion()}"
+                       checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
+          </f:entry>
+        </f:optionalBlock>
+      </table>
+    </f:nested>
+  </j:if>
 
 </j:jelly>

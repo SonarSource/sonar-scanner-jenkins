@@ -19,12 +19,15 @@
  */
 package hudson.plugins.sonar.template;
 
-import hudson.FilePath;
-import org.apache.commons.io.IOUtils;
 import static org.apache.commons.io.IOUtils.closeQuietly;
-import org.apache.commons.lang.StringUtils;
+import hudson.FilePath;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 public class SimpleTemplate {
   private String template;
@@ -33,10 +36,10 @@ public class SimpleTemplate {
     InputStream stream = null;
     try {
       stream = getClass().getClassLoader().getResourceAsStream(path);
+      if (stream == null) {
+        throw new TemplateException("Template not found in classloader: " + path);
+      }
       template = IOUtils.toString(stream);
-    }
-    catch (FileNotFoundException e) {
-      throw new TemplateException("Template not found: " + path, e);
     }
     catch (IOException e) {
       throw new TemplateException("Could not read template: " + path, e);

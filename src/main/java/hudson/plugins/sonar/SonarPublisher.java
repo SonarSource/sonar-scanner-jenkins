@@ -1,28 +1,43 @@
 package hudson.plugins.sonar;
 
 import hudson.CopyOnWrite;
+import hudson.EnvVars;
+import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.*;
+import hudson.maven.MavenModuleSet;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.BuildListener;
+import hudson.model.Cause;
+import hudson.model.CauseAction;
+import hudson.model.Hudson;
+import hudson.model.Result;
 import hudson.plugins.sonar.template.SimpleTemplate;
+import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Maven;
+import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
+import hudson.tasks.Maven.MavenInstallation;
+import hudson.triggers.SCMTrigger.SCMTriggerCause;
 import hudson.util.ArgumentListBuilder;
-import hudson.util.FormFieldValidator;
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import hudson.util.FormValidation;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 
-public class SonarPublisher extends Publisher {
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
+
+public class SonarPublisher extends Notifier {
   private final String jobAdditionalProperties;
   private final String installationName;
+  private final String mavenInstallationName;
   private final boolean useSonarLight;
   private final String groupId;
   private final String artifactId;
@@ -31,11 +46,13 @@ public class SonarPublisher extends Publisher {
   private final String projectDescription;
   private final String javaVersion;
   private final String projectSrcDir;
+  private final String mavenOpts;
+  private boolean skipOnScm = true;
 
   @DataBoundConstructor
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
       String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
-      String projectDescription) {
+      String projectDescription, String mavenOpts, String mavenInstallationName, boolean skipOnScm) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
     this.useSonarLight = useSonarLight;
@@ -46,6 +63,9 @@ public class SonarPublisher extends Publisher {
     this.javaVersion = javaVersion;
     this.projectSrcDir = projectSrcDir;
     this.projectDescription = projectDescription;
+    this.mavenOpts = mavenOpts;
+    this.skipOnScm = skipOnScm;
+    this.mavenInstallationName = mavenInstallationName;
   }
 
   public String getJobAdditionalProperties() {
@@ -56,10 +76,14 @@ public class SonarPublisher extends Publisher {
     return installationName;
   }
 
-  public boolean getUseSonarLight() {
+  public boolean isUseSonarLight() {
     return useSonarLight;
   }
-
+  
+  public boolean isSkipOnScm() {
+    return skipOnScm;
+  }
+  
   public String getGroupId() {
     return groupId;
   }
@@ -87,14 +111,40 @@ public class SonarPublisher extends Publisher {
   public String getProjectDescription() {
     return StringUtils.isBlank(projectDescription) ? "" : projectDescription;
   }
+  
+  public String getMavenOpts() {
+    return mavenOpts;
+  }
+  
+  public static boolean isMavenBuilder(AbstractProject currentProject) {
+    return (currentProject instanceof MavenModuleSet);
+  }
+  
+  public List<MavenInstallation> getMavenInstallations() {
+    return Arrays.asList(Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations());
+  }
+  
+  public MavenInstallation getMavenInstallation() {
+    Maven.DescriptorImpl mavenDescriptor = Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class);
+    
+    if (StringUtils.isEmpty(mavenInstallationName) && mavenDescriptor.getInstallations().length > 0) {
+      return mavenDescriptor.getInstallations()[0];
+    }
+    for (MavenInstallation si : getMavenInstallations()) {
+      if (StringUtils.equals(mavenInstallationName, si.getName())) {
+        return si;
+      }
+    }
+    return null;
+  }
 
   public SonarInstallation getInstallation() {
-    if ("".equals(StringUtils.defaultString(installationName)) && DESCRIPTOR.getInstallations().length > 0) {
-      return DESCRIPTOR.getInstallations()[0];
+    DescriptorImpl sonarDescriptor = Hudson.getInstance().getDescriptorByType(DescriptorImpl.class);
+    if (StringUtils.isEmpty(installationName) && sonarDescriptor.getInstallations().length > 0) {
+      return sonarDescriptor.getInstallations()[0];
     }
-
-    for (SonarInstallation si : DESCRIPTOR.getInstallations()) {
-      if (installationName != null && si.getName().equals(installationName)) {
+    for (SonarInstallation si : sonarDescriptor.getInstallations()) {
+      if (StringUtils.equals(installationName, si.getName())) {
         return si;
       }
     }
@@ -105,39 +155,57 @@ public class SonarPublisher extends Publisher {
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
     SonarInstallation sonarInstallation = getInstallation();
-    if (sonarInstallation == null) {
-      listener.getLogger().println("No Sonar installation on this job. " + installationName + ',' + DESCRIPTOR.getInstallations().length);
+    String skipLaunchMsg = null;
+    if (build.getResult().isWorseThan(Result.SUCCESS)) {
+      skipLaunchMsg = "Skipping sonar analysis due to bad build status " + build.getResult().toString();
+    } else if (sonarInstallation == null) {
+      skipLaunchMsg = "No Sonar installation on this job. " + installationName + ',' + Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations().length;
+    } else if (sonarInstallation.isDisabled()) {
+      skipLaunchMsg = "Sonar is disabled (version " + sonarInstallation.getName() + "). See Hudson global configuration.";
+    } else if (isSkipOnScm() && isSCMTrigger(build)) {
+      skipLaunchMsg = "Skipping sonar analysis due to SCM build trigger";
+    }
+    if (skipLaunchMsg != null) {
+      listener.getLogger().println(skipLaunchMsg);
       return true;
     }
-    if (sonarInstallation.isDisabled()) {
-      listener.getLogger().println("Sonar is disabled (version " + sonarInstallation.getName() + "). See Hudson global configuration.");
-      return true;
+    boolean sonarSuccess = executeSonar(build, launcher, listener, sonarInstallation);
+    if (!sonarSuccess) {
+      // returning false has no effect on the global build status so need to do it manually
+      build.setResult(Result.FAILURE);
     }
-    Maven.MavenInstallation mavenInstallation = inferMavenInstallation(build, listener.getLogger());
-    return executeSonar(build, launcher, listener, sonarInstallation, mavenInstallation);
+    return sonarSuccess;
+  }
+  
+  private boolean isSCMTrigger(AbstractBuild<?,?> build) {
+    CauseAction buildCause = build.getAction(CauseAction.class);
+    List<Cause> buildCauses = buildCause.getCauses();
+    for (Cause cause : buildCauses) {
+      if (cause instanceof SCMTriggerCause) {
+        return true;
+      }
+    }
+    return false;
   }
 
-  private static Maven.MavenInstallation inferMavenInstallation(AbstractBuild<?, ?> build, PrintStream logger) {
+  private Maven.MavenInstallation getMavenInstallationForSonar(AbstractBuild build, PrintStream logger) {
     Maven.MavenInstallation mavenInstallation = null;
-    AbstractProject<?, ?> project = build.getProject();
-    if (project instanceof Maven.ProjectWithMaven) {
-      Node myNode = build.getBuiltOn();
-      mavenInstallation = ((Maven.ProjectWithMaven) project).inferMavenInstallation().forNode(myNode);
+    if (build.getProject() instanceof Maven.ProjectWithMaven) {
+      mavenInstallation = ((Maven.ProjectWithMaven) build.getProject()).inferMavenInstallation();
     }
-    if (mavenInstallation == null && Maven.DESCRIPTOR.getInstallations().length > 0) {
-      mavenInstallation = Maven.DESCRIPTOR.getInstallations()[0];
-      if (mavenInstallation != null) {
-        logger.println("No Maven installation configured for this job. Using the first one configured in Hudson...");
-      }
+    if (mavenInstallation == null) {
+      mavenInstallation = getMavenInstallation();
     }
     if (mavenInstallation == null) {
       logger.println("No Maven installation found. We'll try to call the 'mvn' executable anyway, hoping is in the path...");
+    } else {
+      mavenInstallation = mavenInstallation.forNode(build.getBuiltOn());
     }
     return mavenInstallation;
   }
 
-  private boolean executeSonar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener,
-      SonarInstallation sonarInstallation, Maven.MavenInstallation mavenInstallation) {
+  private boolean executeSonar(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
+    Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build, listener.getLogger());
     try {
       FilePath root = build.getProject().getModuleRoot();
       if (useSonarLight) {
@@ -147,8 +215,8 @@ public class SonarPublisher extends Publisher {
 
       String executable = buildExecName(launcher, mavenInstallation);
       String[] command = buildCommand(build, sonarInstallation, executable);
-      Map<String, String> environmentVars = addM2HomeToEnvironmentVars(build, mavenInstallation);
 
+      EnvVars environmentVars = getMavenEnvironmentVars(build, mavenInstallation, sonarInstallation);
       int r = launcher.launch(command, environmentVars, listener.getLogger(), root).join();
       return r == 0;
     }
@@ -158,7 +226,6 @@ public class SonarPublisher extends Publisher {
       return false;
     }
     catch (InterruptedException e) {
-      e.printStackTrace();
       return false;
     }
   }
@@ -175,10 +242,18 @@ public class SonarPublisher extends Publisher {
     pomTemplate.write(root);
   }
 
-  private static Map<String, String> addM2HomeToEnvironmentVars(AbstractBuild<?, ?> build, Maven.MavenInstallation mavenInstallation) {
-    Map<String, String> environmentVars = build.getEnvVars();
+  private EnvVars getMavenEnvironmentVars(AbstractBuild build, Maven.MavenInstallation mavenInstallation, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
+    EnvVars environmentVars = build.getEnvironment();
     if (mavenInstallation != null) {
       environmentVars.put("M2_HOME", mavenInstallation.getMavenHome());
+    }
+    MavenModuleSet mavenModuleProject = (build.getProject() instanceof MavenModuleSet) ? (MavenModuleSet)build.getProject() : null;
+    String envMavenOpts = getMavenOpts();
+    if (StringUtils.isEmpty(envMavenOpts) && mavenModuleProject != null && StringUtils.isNotEmpty(mavenModuleProject.getMavenOpts())) {
+      envMavenOpts = mavenModuleProject.getMavenOpts();
+    }
+    if (StringUtils.isNotEmpty(envMavenOpts)) {
+      environmentVars.put("MAVEN_OPTS", envMavenOpts);
     }
     return environmentVars;
   }
@@ -197,27 +272,23 @@ public class SonarPublisher extends Publisher {
 
   private String[] buildCommand(AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable) {
     ArgumentListBuilder args = new ArgumentListBuilder();
-    args.add(executable);
-    args.addKeyValuePairs("-D", build.getBuildVariables());
-    args.addTokenized(sonarInstallation.getPluginCallArgs());
-    args.addTokenized(getJobAdditionalProperties());
+    args.add(executable).add("-e").add("-B")
+      .addKeyValuePairs("-D", build.getBuildVariables())
+      .addTokenized(sonarInstallation.getPluginCallArgs())
+      .addTokenized(getJobAdditionalProperties());
     if (useSonarLight) {
       args.addTokenized("--file sonar-pom.xml");
     }
     return args.toCommandArray();
   }
 
-  public Descriptor<Publisher> getDescriptor() {
-    return DESCRIPTOR;
-  }
+  @Extension
+  public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
-  public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
-
-  public static final class DescriptorImpl extends Descriptor<Publisher> {
     @CopyOnWrite
     private volatile SonarInstallation[] installations = new SonarInstallation[0];
 
-    DescriptorImpl() {
+    public DescriptorImpl() {
       super(SonarPublisher.class);
       load();
     }
@@ -238,66 +309,35 @@ public class SonarPublisher extends Publisher {
 
     @Override
     public boolean configure(StaplerRequest req) {
-      installations = req.bindParametersToList(
-          SonarInstallation.class, "sonar.").toArray(new SonarInstallation[0]);
+      installations = req.bindParametersToList(SonarInstallation.class, "sonar.").toArray(new SonarInstallation[0]);
       save();
       return true;
     }
 
     @Override
-    public Publisher newInstance(StaplerRequest req) {
+    public Notifier newInstance(StaplerRequest req) {
       return req.bindParameters(SonarPublisher.class, "sonar.");
     }
 
     // web methods
-
-    public void doCheckSonarVersion(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-      final String version = req.getParameter("value");
-      // this can be used to check the existence of a file on the server, so needs to be protected
-      new FormFieldValidator(req, rsp, true) {
-        @Override
-        public void check() throws IOException, ServletException {
-          if (version == null || !version.contains(".")) {
-            error("Sonar version is not valid.");
-            return;
-          }
-
-          ok();
-        }
-      }.process();
+    public FormValidation doCheckMandatory(@QueryParameter String value) {
+      if (StringUtils.isBlank(value)) {
+        return FormValidation.error("This property is mandatory.");
+      }
+      return FormValidation.ok();
     }
 
-    public void doCheckMandatory(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-      final String value = req.getParameter("value");
-      // this can be used to check the existence of a file on the server, so needs to be protected
-      new FormFieldValidator(req, rsp, true) {
-        @Override
-        public void check() throws IOException, ServletException {
-          if (StringUtils.isBlank(value)) {
-            error("This property is mandatory.");
-            return;
-          }
-
-          ok();
-        }
-      }.process();
+    public FormValidation doCheckMandatoryAndNoSpaces(@QueryParameter String value) {
+      if (StringUtils.isBlank(value) || value.contains(" ")) {
+        return FormValidation.error("This property is mandatory and cannot contain spaces.");
+      }
+      return FormValidation.ok();
     }
 
-
-    public void doCheckMandatoryAndNoSpaces(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-      final String value = req.getParameter("value");
-      // this can be used to check the existence of a file on the server, so needs to be protected
-      new FormFieldValidator(req, rsp, true) {
-        @Override
-        public void check() throws IOException, ServletException {
-          if (StringUtils.isBlank(value) || value.contains(" ")) {
-            error("This property is mandatory and cannot contain spaces.");
-            return;
-          }
-
-          ok();
-        }
-      }.process();
+    @Override
+    public boolean isApplicable(Class<? extends AbstractProject> jobType) {
+      // eventually check if job type of FreeStyleProject.class || MavenModuleSet.class
+      return true;
     }
   }
 }

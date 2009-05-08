@@ -11,10 +11,6 @@
                 <f:checkbox name="sonar.disabled" checked="${inst.isDisabled()}" />
               </f:entry>
 
-              <f:entry title="Version" description="Must match the Sonar server version (displayed into the footer).">
-                <f:textbox name="sonar.version" value="${inst.getVersion()}" checkUrl="'publisher/SonarPublisher/checkSonarVersion?value='+escape(this.value)" />
-              </f:entry>
-
               <f:advanced>
                 <f:entry title="Server URL" description="Default is http://localhost:9000">
                   <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}" />
