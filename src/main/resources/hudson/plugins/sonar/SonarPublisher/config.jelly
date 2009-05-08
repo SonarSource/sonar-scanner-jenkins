@@ -1,7 +1,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  <f:entry title="Sonar installation">
+  <f:entry title="${%SonarInstallation}">
 
     <select class="setting-input" name="sonar.installationName">
       <option value="">(Default)</option>
@@ -11,15 +11,15 @@
     </select>
   </f:entry>
   
-  <f:entry title="Maven Opts" description="MAVEN_OPTS env var to provide, if not set the plugin will use the MAVEN_OPTS defined by the maven builder config">
+  <f:entry title="${%MavenOpts}" description="${%MavenOptsDescr}">
     <f:textbox name="sonar.mavenOpts" value="${instance.getMavenOpts()}"/>
   </f:entry>
 
-  <f:entry title="Additional properties" description="Additional properties to be passed to the mvn executable (example : -Dsome.property=some.value).">
+  <f:entry title="${%AdditonalProps}" description="${%AdditonalPropsDescr}">
     <f:textbox name="sonar.jobAdditionalProperties" value="${instance.getJobAdditionalProperties()}"/>
   </f:entry>
   
-  <f:entry title="Skip when SCM" description="Do not run Sonar when the trigger is SCM changes." help="${rootURL}/plugin/sonar/help-skip-on-scm.html">
+  <f:entry title="${%SkipScm}" description="${%SkipScmDescr}" help="${rootURL}/plugin/sonar/help-skip-on-scm.html">
     <f:checkbox name="sonar.skipOnScm" checked="${instance.isSkipOnScm()}" default="true"/>
    </f:entry>
    
@@ -30,7 +30,7 @@
   <j:if test="${!isMavenBuilder}">
     <f:nested>
       <table>
-        <f:optionalBlock name="sonar.useSonarLight" title="Check if this project is NOT built with maven2"
+        <f:optionalBlock name="sonar.useSonarLight" title="${%SonarLight}"
                          checked="${instance.isUseSonarLight()}" help="${rootURL}/plugin/sonar/help-project-light.html">
           
           <f:entry title="Sonar maven runtime to use">
@@ -42,35 +42,35 @@
             </select>
           </f:entry>
                     
-          <f:entry title="Organisation id" description="without spaces (example : com.myorganization).">
+          <f:entry title="${%Org}" description="${%OrgDescr}">
             <f:textbox name="sonar.groupId" value="${instance.getGroupId()}"
                        checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
           </f:entry>
   
-          <f:entry title="Project id" description="without spaces (example : myproject).">
+          <f:entry title="${%ProjectId}" description="${%ProjectIdDescr}">
             <f:textbox name="sonar.artifactId" value="${instance.getArtifactId()}"
                        checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
           </f:entry>
   
-          <f:entry title="Project name" description="spaces allowed (example : My Project).">
+          <f:entry title="${%ProjectName}" description="${%ProjectNameDescr}">
             <f:textbox name="sonar.projectName" value="${instance.getProjectName()}"
                        checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
           </f:entry>
   
-          <f:entry title="Project description">
+          <f:entry title="${%ProjectDescr}">
             <f:textbox name="sonar.projectDescription" value="${instance.getProjectDescription()}" />
           </f:entry>
   
-          <f:entry title="Project version" description="Default is 1.0">
+          <f:entry title="${%ProjectVersion}" description="${%ProjectVersionDescr}">
             <f:textbox name="sonar.projectVersion" value="${instance.getProjectVersion()}"/>
           </f:entry>
   
-          <f:entry title="Source directory" description="The relative path to the sources directory (example : src/java).">
+          <f:entry title="${%SrcDir}" description="${%SrcDirDescr}">
             <f:textbox name="sonar.projectSrcDir" value="${instance.getProjectSrcDir()}"
                        checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
           </f:entry>
   
-          <f:entry title="Java version" description="Default is 1.5">
+          <f:entry title="${%JavaVersion}" description="${%JavaVersionDescr}">
             <f:textbox name="sonar.javaVersion" value="${instance.getJavaVersion()}"
                        checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
           </f:entry>

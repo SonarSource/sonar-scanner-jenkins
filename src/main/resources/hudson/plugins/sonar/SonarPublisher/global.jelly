@@ -1,38 +1,38 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <f:section title="Sonar">
-    <f:entry title="Sonar installation">
+    <f:entry title="${%SonarInstallation}">
           <f:repeatable var="inst" items="${descriptor.installations}">
             <table width="100%">
               <f:entry title="Name">
                 <f:textbox name="sonar.name" value="${inst.getName()}" />
               </f:entry>
 
-              <f:entry title="Disable" description="Check to quickly disable Sonar on all jobs.">
+              <f:entry title="${%Disable}" description="${%DisableDescr}">
                 <f:checkbox name="sonar.disabled" checked="${inst.isDisabled()}" />
               </f:entry>
 
               <f:advanced>
-                <f:entry title="Server URL" description="Default is http://localhost:9000">
+                <f:entry title="${%ServerUrl}" description="${%ServerUrlDescr}">
                   <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}" />
                 </f:entry>
 
-                <f:entry title="Database URL" description="Do not set if you use the default embedded database on localhost." help="${rootURL}/plugin/sonar/help-global-dburl.html">
+                <f:entry title="${%DbUrl}" description="${%DbUrlDescr}" help="${rootURL}/plugin/sonar/help-global-dburl.html">
                   <f:textbox name="sonar.databaseUrl" value="${inst.getDatabaseUrl()}" />
                 </f:entry>
 
-                <f:entry title="Database login" description="Default is sonar.">
+                <f:entry title="${%DbLogin}" description="${%DbLoginDescr}">
                   <f:textbox name="sonar.databaseLogin" value="${inst.getDatabaseLogin()}" />
                 </f:entry>
 
-                <f:entry title="Database password" description="Default is sonar.">
+                <f:entry title="${%DbPass}" description="${%DbPassDescr}">
                   <f:textbox name="sonar.databasePassword" value="${inst.getDatabasePassword()}" />
                 </f:entry>
 
-                <f:entry title="Database driver" description="Do not set if you use the default embedded database on localhost." help="${rootURL}/plugin/sonar/help-global-dbdriver.html">
+                <f:entry title="${%DbDriver}" description="${%DbDriverDescr}" help="${rootURL}/plugin/sonar/help-global-dbdriver.html">
                   <f:textbox name="sonar.databaseDriver" value="${inst.getDatabaseDriver()}" />
                 </f:entry>
 
-                <f:entry title="Additional properties" description="Additional properties to be passed to the mvn executable (example : -Dsome.property=some.value)">
+                <f:entry title="${%AddProps}" description="${%AddPropsDescr}">
                   <f:textbox name="sonar.additionalProperties" value="${inst.getAdditionalProperties()}" />
                 </f:entry>
               </f:advanced>
