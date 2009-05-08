@@ -126,7 +126,6 @@ public class SonarPublisher extends Notifier {
   
   public MavenInstallation getMavenInstallation() {
     Maven.DescriptorImpl mavenDescriptor = Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class);
-    
     if (StringUtils.isEmpty(mavenInstallationName) && mavenDescriptor.getInstallations().length > 0) {
       return mavenDescriptor.getInstallations()[0];
     }
@@ -148,7 +147,6 @@ public class SonarPublisher extends Notifier {
         return si;
       }
     }
-
     return null;
   }
 
@@ -188,7 +186,7 @@ public class SonarPublisher extends Notifier {
     return false;
   }
 
-  private Maven.MavenInstallation getMavenInstallationForSonar(AbstractBuild build, PrintStream logger) {
+  private Maven.MavenInstallation getMavenInstallationForSonar(AbstractBuild<?, ?> build, PrintStream logger) {
     Maven.MavenInstallation mavenInstallation = null;
     if (build.getProject() instanceof Maven.ProjectWithMaven) {
       mavenInstallation = ((Maven.ProjectWithMaven) build.getProject()).inferMavenInstallation();
@@ -203,18 +201,25 @@ public class SonarPublisher extends Notifier {
     }
     return mavenInstallation;
   }
+  
+  private MavenModuleSet getMavenProject(AbstractBuild build) {
+    return (build.getProject() instanceof MavenModuleSet) ? (MavenModuleSet)build.getProject() : null;
+  }
 
   private boolean executeSonar(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
     Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build, listener.getLogger());
     try {
       FilePath root = build.getProject().getModuleRoot();
+      MavenModuleSet mavenModuleProject = getMavenProject(build);
+      String pomName = mavenModuleProject != null ? mavenModuleProject.getRootPOM() : "pom.xml";
       if (useSonarLight) {
         listener.getLogger().println("Generating sonar-pom.xml...");
         generatePomForNonMavenProject(root);
+        pomName = "sonar-pom.xml";
       }
 
       String executable = buildExecName(launcher, mavenInstallation);
-      String[] command = buildCommand(build, sonarInstallation, executable);
+      String[] command = buildCommand(build, sonarInstallation, executable, pomName);
 
       EnvVars environmentVars = getMavenEnvironmentVars(build, mavenInstallation, sonarInstallation);
       int r = launcher.launch(command, environmentVars, listener.getLogger(), root).join();
@@ -242,13 +247,13 @@ public class SonarPublisher extends Notifier {
     pomTemplate.write(root);
   }
 
-  private EnvVars getMavenEnvironmentVars(AbstractBuild build, Maven.MavenInstallation mavenInstallation, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
+  private EnvVars getMavenEnvironmentVars(AbstractBuild<?, ?> build, Maven.MavenInstallation mavenInstallation, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
     EnvVars environmentVars = build.getEnvironment();
     if (mavenInstallation != null) {
       environmentVars.put("M2_HOME", mavenInstallation.getMavenHome());
     }
-    MavenModuleSet mavenModuleProject = (build.getProject() instanceof MavenModuleSet) ? (MavenModuleSet)build.getProject() : null;
     String envMavenOpts = getMavenOpts();
+    MavenModuleSet mavenModuleProject = getMavenProject(build);
     if (StringUtils.isEmpty(envMavenOpts) && mavenModuleProject != null && StringUtils.isNotEmpty(mavenModuleProject.getMavenOpts())) {
       envMavenOpts = mavenModuleProject.getMavenOpts();
     }
@@ -270,15 +275,13 @@ public class SonarPublisher extends Notifier {
     return executable;
   }
 
-  private String[] buildCommand(AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable) {
+  private String[] buildCommand(AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable, String pomName) {
     ArgumentListBuilder args = new ArgumentListBuilder();
     args.add(executable).add("-e").add("-B")
       .addKeyValuePairs("-D", build.getBuildVariables())
       .addTokenized(sonarInstallation.getPluginCallArgs())
-      .addTokenized(getJobAdditionalProperties());
-    if (useSonarLight) {
-      args.addTokenized("--file sonar-pom.xml");
-    }
+      .addTokenized(getJobAdditionalProperties())
+      .addTokenized("-f " + pomName);
     return args.toCommandArray();
   }
 
