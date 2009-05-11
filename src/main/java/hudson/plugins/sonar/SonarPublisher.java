@@ -48,11 +48,12 @@ public class SonarPublisher extends Notifier {
   private final String projectSrcDir;
   private final String mavenOpts;
   private boolean skipOnScm = true;
+  private boolean skipIfBuildFails = true;
 
   @DataBoundConstructor
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
       String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
-      String projectDescription, String mavenOpts, String mavenInstallationName, boolean skipOnScm) {
+      String projectDescription, String mavenOpts, String mavenInstallationName, boolean skipOnScm, boolean skipIfBuildFails) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
     this.useSonarLight = useSonarLight;
@@ -66,6 +67,7 @@ public class SonarPublisher extends Notifier {
     this.mavenOpts = mavenOpts;
     this.skipOnScm = skipOnScm;
     this.mavenInstallationName = mavenInstallationName;
+    this.skipIfBuildFails = skipIfBuildFails;
   }
 
   public String getJobAdditionalProperties() {
@@ -80,6 +82,10 @@ public class SonarPublisher extends Notifier {
     return useSonarLight;
   }
   
+  protected boolean isSkipIfBuildFails() {
+    return skipIfBuildFails;
+  }
+
   public boolean isSkipOnScm() {
     return skipOnScm;
   }
@@ -154,7 +160,7 @@ public class SonarPublisher extends Notifier {
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
     SonarInstallation sonarInstallation = getInstallation();
     String skipLaunchMsg = null;
-    if (build.getResult().isWorseThan(Result.SUCCESS)) {
+    if (skipIfBuildFails && build.getResult().isWorseThan(Result.SUCCESS)) {
       skipLaunchMsg = Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
     } else if (sonarInstallation == null) {
       skipLaunchMsg = Messages.SonarPublisher_NoInstallation(installationName, Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations().length);

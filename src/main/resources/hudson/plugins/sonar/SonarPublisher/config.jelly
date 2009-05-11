@@ -21,7 +21,13 @@
   
   <f:entry title="${%SkipScm}" description="${%SkipScmDescr}" help="${rootURL}/plugin/sonar/help-skip-on-scm.html">
     <f:checkbox name="sonar.skipOnScm" checked="${instance.isSkipOnScm()}" default="true"/>
-   </f:entry>
+  </f:entry>
+  
+  <f:entry title="${%SkipIfBuildFails}" description="${%SkipIfBuildFailsDescr}" help="${rootURL}/plugin/sonar/help-skip-on-build-failure.html">
+    <f:checkbox name="sonar.skipIfBuildFails" checked="${instance.isSkipIfBuildFails()}" default="false"/>
+  </f:entry>
+   
+   skipIfBuildFails
    
   <j:invokeStatic var="isMavenBuilder" className="hudson.plugins.sonar.SonarPublisher" method="isMavenBuilder">
     <j:arg value="${it}" type="hudson.model.AbstractProject"/>
