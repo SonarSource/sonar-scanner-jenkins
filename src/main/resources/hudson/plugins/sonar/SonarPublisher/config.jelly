@@ -27,8 +27,6 @@
     <f:checkbox name="sonar.skipIfBuildFails" checked="${instance.isSkipIfBuildFails()}" default="false"/>
   </f:entry>
    
-   skipIfBuildFails
-   
   <j:invokeStatic var="isMavenBuilder" className="hudson.plugins.sonar.SonarPublisher" method="isMavenBuilder">
     <j:arg value="${it}" type="hudson.model.AbstractProject"/>
   </j:invokeStatic>

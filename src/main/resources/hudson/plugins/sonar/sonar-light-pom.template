@@ -21,6 +21,6 @@
   </build>
 
   <properties>
-  	<sonar.light>true</sonar.light>
+  	<sonar.dynamicAnalysis>false</sonar.dynamicAnalysis>
   </properties>
 </project>

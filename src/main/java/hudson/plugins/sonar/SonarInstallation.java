@@ -66,7 +66,6 @@ public final class SonarInstallation {
     appendUnlessEmpty(builder, "sonar.jdbc.password", databasePassword);
     appendUnlessEmpty(builder, "sonar.jdbc.url", databaseUrl);
     appendUnlessEmpty(builder, "sonar.host.url", serverUrl);
-    appendUnlessEmpty(builder, "sonar.skipInstall", "true");
     if (StringUtils.isNotBlank(additionalProperties)) {
       builder.append(' ');
       builder.append(additionalProperties);
