@@ -14,6 +14,7 @@ import hudson.model.Cause;
 import hudson.model.CauseAction;
 import hudson.model.Hudson;
 import hudson.model.Result;
+import hudson.model.TaskListener;
 import hudson.plugins.sonar.template.SimpleTemplate;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Maven;
@@ -192,7 +193,7 @@ public class SonarPublisher extends Notifier {
     return false;
   }
 
-  private Maven.MavenInstallation getMavenInstallationForSonar(AbstractBuild<?, ?> build) {
+  private Maven.MavenInstallation getMavenInstallationForSonar(AbstractBuild<?, ?> build, TaskListener listener) throws IOException, InterruptedException {
     Maven.MavenInstallation mavenInstallation = null;
     if (build.getProject() instanceof Maven.ProjectWithMaven) {
       mavenInstallation = ((Maven.ProjectWithMaven) build.getProject()).inferMavenInstallation();
@@ -200,7 +201,7 @@ public class SonarPublisher extends Notifier {
     if (mavenInstallation == null) {
       mavenInstallation = getMavenInstallation();
     }
-    return mavenInstallation != null ? mavenInstallation.forNode(build.getBuiltOn()) : mavenInstallation;
+    return mavenInstallation != null ? mavenInstallation.forNode(build.getBuiltOn(),listener) : mavenInstallation;
   }
   
   private MavenModuleSet getMavenProject(AbstractBuild build) {
@@ -208,8 +209,8 @@ public class SonarPublisher extends Notifier {
   }
 
   private boolean executeSonar(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
-    Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build);
     try {
+        Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build,listener);
       FilePath root = build.getProject().getModuleRoot();
       MavenModuleSet mavenModuleProject = getMavenProject(build);
       String pomName = mavenModuleProject != null ? mavenModuleProject.getRootPOM() : "pom.xml";
