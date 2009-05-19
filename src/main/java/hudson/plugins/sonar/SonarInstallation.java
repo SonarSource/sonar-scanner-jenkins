@@ -12,6 +12,7 @@ public final class SonarInstallation {
   private final String databaseLogin;
   private final String databasePassword;
   private final String additionalProperties;
+  private final String version = "";
 
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled, String serverUrl, String databaseUrl,
@@ -56,6 +57,11 @@ public final class SonarInstallation {
 
   public String getAdditionalProperties() {
     return additionalProperties;
+  }
+
+  @Deprecated
+  public String getVersion() {
+    return version;
   }
 
   public String getPluginCallArgs() {
