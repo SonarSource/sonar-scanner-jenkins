@@ -12,7 +12,7 @@ public final class SonarInstallation {
   private final String databaseLogin;
   private final String databasePassword;
   private final String additionalProperties;
-  private final String version = "";
+  private final String version;
 
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled, String serverUrl, String databaseUrl,
@@ -25,6 +25,7 @@ public final class SonarInstallation {
     this.databaseLogin = databaseLogin;
     this.databasePassword = databasePassword;
     this.additionalProperties = additionalProperties;
+    this.version = "";
   }
 
   public String getName() {
