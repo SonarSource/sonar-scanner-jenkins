@@ -83,7 +83,7 @@ public class SonarPublisher extends Notifier {
     return useSonarLight;
   }
   
-  protected boolean isSkipIfBuildFails() {
+  public boolean isSkipIfBuildFails() {
     return skipIfBuildFails;
   }
 
