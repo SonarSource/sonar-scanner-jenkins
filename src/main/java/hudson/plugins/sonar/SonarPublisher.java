@@ -282,10 +282,10 @@ public class SonarPublisher extends Notifier {
   private String[] buildCommand(AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable, String pomName) {
     ArgumentListBuilder args = new ArgumentListBuilder();
     args.add(executable).add("-e").add("-B")
+      .addTokenized("-f " + pomName)
       .addKeyValuePairs("-D", build.getBuildVariables())
       .addTokenized(sonarInstallation.getPluginCallArgs())
-      .addTokenized(getJobAdditionalProperties())
-      .addTokenized("-f " + pomName);
+      .addTokenized(getJobAdditionalProperties());
     return args.toCommandArray();
   }
 
