@@ -326,7 +326,6 @@ public class SonarPublisher extends Notifier {
       return req.bindParameters(SonarPublisher.class, "sonar.");
     }
 
-    // web methods
     public FormValidation doCheckMandatory(@QueryParameter String value) {
       if (StringUtils.isBlank(value)) {
         return FormValidation.error(Messages.SonarPublisher_MandatoryProperty());
