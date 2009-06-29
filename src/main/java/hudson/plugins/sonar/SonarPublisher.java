@@ -210,7 +210,7 @@ public class SonarPublisher extends Notifier {
 
   private boolean executeSonar(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
     try {
-        Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build,listener);
+      Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build,listener);
       FilePath root = build.getProject().getModuleRoot();
       MavenModuleSet mavenModuleProject = getMavenProject(build);
       String pomName = mavenModuleProject != null ? mavenModuleProject.getRootPOM() : "pom.xml";
@@ -220,7 +220,7 @@ public class SonarPublisher extends Notifier {
       }
 
       String executable = buildExecName(launcher, mavenInstallation, listener.getLogger());
-      String[] command = buildCommand(build, sonarInstallation, executable, pomName);
+      String[] command = buildCommand(build, sonarInstallation, executable, pomName, mavenModuleProject);
 
       EnvVars environmentVars = getMavenEnvironmentVars(build, mavenInstallation, sonarInstallation);
       int r = launcher.launch(command, environmentVars, listener.getLogger(), root).join();
@@ -279,13 +279,16 @@ public class SonarPublisher extends Notifier {
     return executable;
   }
 
-  private String[] buildCommand(AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable, String pomName) {
+  private String[] buildCommand(AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable, String pomName, MavenModuleSet mms) {
     ArgumentListBuilder args = new ArgumentListBuilder();
     args.add(executable).add("-e").add("-B")
       .addTokenized("-f " + pomName)
       .addKeyValuePairs("-D", build.getBuildVariables())
       .addTokenized(sonarInstallation.getPluginCallArgs())
       .addTokenized(getJobAdditionalProperties());
+    if (mms != null && mms.usesPrivateRepository()) {
+      args.add("-Dmaven.repo.local="+mms.getWorkspace().child(".repository").getRemote());
+    }
     return args.toCommandArray();
   }
 
