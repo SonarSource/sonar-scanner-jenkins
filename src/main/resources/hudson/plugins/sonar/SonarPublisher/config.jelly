@@ -73,6 +73,11 @@
             <f:textbox name="sonar.projectSrcDir" value="${instance.getProjectSrcDir()}"
                        checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
           </f:entry>
+          
+          <f:entry title="${%BinDir}" description="${%BinDirDescr}">
+            <f:textbox name="sonar.projectBinDir" value="${instance.getProjectBinDir()}"
+                       checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
+          </f:entry>
   
           <f:entry title="${%JavaVersion}" description="${%JavaVersionDescr}">
             <f:textbox name="sonar.javaVersion" value="${instance.getJavaVersion()}"

@@ -1,5 +1,7 @@
 package hudson.plugins.sonar;
 
+import hudson.EnvVars;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -65,18 +67,13 @@ public final class SonarInstallation {
     return version;
   }
 
-  public String getPluginCallArgs() {
+  public String getPluginCallArgs(EnvVars envVars) {
     StringBuilder builder = new StringBuilder(100);
-    builder.append("sonar:sonar");
-    appendUnlessEmpty(builder, "sonar.jdbc.driver", databaseDriver);
-    appendUnlessEmpty(builder, "sonar.jdbc.username", databaseLogin);
-    appendUnlessEmpty(builder, "sonar.jdbc.password", databasePassword);
-    appendUnlessEmpty(builder, "sonar.jdbc.url", databaseUrl);
-    appendUnlessEmpty(builder, "sonar.host.url", serverUrl);
-    if (StringUtils.isNotBlank(additionalProperties)) {
-      builder.append(' ');
-      builder.append(additionalProperties);
-    }
+    appendUnlessEmpty(builder, "sonar.jdbc.driver", envVars.expand(databaseDriver));
+    appendUnlessEmpty(builder, "sonar.jdbc.username", envVars.expand(databaseLogin));
+    appendUnlessEmpty(builder, "sonar.jdbc.password", envVars.expand(databasePassword));
+    appendUnlessEmpty(builder, "sonar.jdbc.url", envVars.expand(databaseUrl));
+    appendUnlessEmpty(builder, "sonar.host.url", envVars.expand(serverUrl));
     return builder.toString();
   }
 
@@ -85,7 +82,7 @@ public final class SonarInstallation {
       builder.append(" -D");
       builder.append(key);
       builder.append('=');
-      builder.append(value);
+      builder.append(value.contains(" ") ? "'" + value + "'" : value);
     }
   }
 }

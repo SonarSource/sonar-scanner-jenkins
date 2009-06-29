@@ -30,6 +30,8 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 
+import net.sf.json.JSONObject;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -47,6 +49,7 @@ public class SonarPublisher extends Notifier {
   private final String projectDescription;
   private final String javaVersion;
   private final String projectSrcDir;
+  private final String projectBinDir;
   private final String mavenOpts;
   private boolean skipOnScm = true;
   private boolean skipIfBuildFails = true;
@@ -54,7 +57,7 @@ public class SonarPublisher extends Notifier {
   @DataBoundConstructor
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
       String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
-      String projectDescription, String mavenOpts, String mavenInstallationName, boolean skipOnScm, boolean skipIfBuildFails) {
+      String projectDescription, String mavenOpts, String mavenInstallationName, boolean skipOnScm, boolean skipIfBuildFails, String projectBinDir) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
     this.useSonarLight = useSonarLight;
@@ -69,6 +72,7 @@ public class SonarPublisher extends Notifier {
     this.skipOnScm = skipOnScm;
     this.mavenInstallationName = mavenInstallationName;
     this.skipIfBuildFails = skipIfBuildFails;
+    this.projectBinDir = projectBinDir;
   }
 
   public String getJobAdditionalProperties() {
@@ -82,7 +86,7 @@ public class SonarPublisher extends Notifier {
   public boolean isUseSonarLight() {
     return useSonarLight;
   }
-  
+
   public boolean isSkipIfBuildFails() {
     return skipIfBuildFails;
   }
@@ -90,7 +94,7 @@ public class SonarPublisher extends Notifier {
   public boolean isSkipOnScm() {
     return skipOnScm;
   }
-  
+
   public String getGroupId() {
     return groupId;
   }
@@ -115,22 +119,26 @@ public class SonarPublisher extends Notifier {
     return projectSrcDir;
   }
 
+  public String getProjectBinDir() {
+    return StringUtils.isBlank(projectBinDir) ? "target/classes" : projectBinDir;
+  }
+
   public String getProjectDescription() {
     return StringUtils.isBlank(projectDescription) ? "" : projectDescription;
   }
-  
+
   public String getMavenOpts() {
     return mavenOpts;
   }
-  
+
   public static boolean isMavenBuilder(AbstractProject currentProject) {
     return (currentProject instanceof MavenModuleSet);
   }
-  
+
   public List<MavenInstallation> getMavenInstallations() {
     return Arrays.asList(Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations());
   }
-  
+
   public MavenInstallation getMavenInstallation() {
     Maven.DescriptorImpl mavenDescriptor = Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class);
     if (StringUtils.isEmpty(mavenInstallationName) && mavenDescriptor.getInstallations().length > 0) {
@@ -181,7 +189,7 @@ public class SonarPublisher extends Notifier {
     }
     return sonarSuccess;
   }
-  
+
   private boolean isSCMTrigger(AbstractBuild<?,?> build) {
     CauseAction buildCause = build.getAction(CauseAction.class);
     List<Cause> buildCauses = buildCause.getCauses();
@@ -203,7 +211,7 @@ public class SonarPublisher extends Notifier {
     }
     return mavenInstallation != null ? mavenInstallation.forNode(build.getBuiltOn(),listener) : mavenInstallation;
   }
-  
+
   private MavenModuleSet getMavenProject(AbstractBuild build) {
     return (build.getProject() instanceof MavenModuleSet) ? (MavenModuleSet)build.getProject() : null;
   }
@@ -220,11 +228,14 @@ public class SonarPublisher extends Notifier {
       }
 
       String executable = buildExecName(launcher, mavenInstallation, listener.getLogger());
-      String[] command = buildCommand(build, sonarInstallation, executable, pomName, mavenModuleProject);
 
-      EnvVars environmentVars = getMavenEnvironmentVars(build, mavenInstallation, sonarInstallation);
-      int r = launcher.launch(command, environmentVars, listener.getLogger(), root).join();
-      return r == 0;
+      Launcher.ProcStarter starter = launcher.launch();
+      starter.cmds(buildCommand(launcher, listener, build, sonarInstallation, executable, pomName, mavenModuleProject));
+      starter.envs(getMavenEnvironmentVars(listener, build, mavenInstallation, sonarInstallation));
+      starter.pwd(root);
+      starter.stderr(listener.getLogger());
+      starter.stdout(listener.getLogger());
+      return starter.join() == 0;
     }
     catch (IOException e) {
       Util.displayIOException(e, listener);
@@ -243,16 +254,17 @@ public class SonarPublisher extends Notifier {
     pomTemplate.setAttribute("projectName", getProjectName());
     pomTemplate.setAttribute("projectVersion", getProjectVersion());
     pomTemplate.setAttribute("projectSrcDir", getProjectSrcDir());
+    pomTemplate.setAttribute("projectBinDir", getProjectBinDir());
     pomTemplate.setAttribute("javaVersion", getJavaVersion());
     pomTemplate.setAttribute("projectDescription", getProjectDescription());
     pomTemplate.write(root);
-    
+
   }
 
-  private EnvVars getMavenEnvironmentVars(AbstractBuild<?, ?> build, Maven.MavenInstallation mavenInstallation, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
-    EnvVars environmentVars = build.getEnvironment();
+  private EnvVars getMavenEnvironmentVars(BuildListener listener, AbstractBuild<?, ?> build, Maven.MavenInstallation mavenInstallation, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
+    EnvVars environmentVars = build.getEnvironment(listener);
     if (mavenInstallation != null) {
-      environmentVars.put("M2_HOME", mavenInstallation.getMavenHome());
+      environmentVars.put("M2_HOME", mavenInstallation.getHome());
     }
     String envMavenOpts = getMavenOpts();
     MavenModuleSet mavenModuleProject = getMavenProject(build);
@@ -265,13 +277,13 @@ public class SonarPublisher extends Notifier {
     return environmentVars;
   }
 
-  private static String buildExecName(Launcher launcher, Maven.MavenInstallation mavenInstallation, PrintStream logger) {
+  private String buildExecName(Launcher launcher, Maven.MavenInstallation mavenInstallation, PrintStream logger) {
     String execName = launcher.isUnix() ? "mvn" : "mvn.bat";
     String separator = launcher.isUnix() ? "/" : "\\";
 
     String executable = execName;
     if (mavenInstallation != null) {
-      String mavenHome = mavenInstallation.getMavenHome();
+      String mavenHome = mavenInstallation.getHome();
       executable = mavenHome + separator + "bin" + separator + execName;
     } else {
       logger.println(Messages.SonarPublisher_NoMavenInstallation());
@@ -279,17 +291,34 @@ public class SonarPublisher extends Notifier {
     return executable;
   }
 
-  private String[] buildCommand(AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable, String pomName, MavenModuleSet mms) {
+  private ArgumentListBuilder buildCommand(Launcher launcher, BuildListener listener, AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable, String pomName, MavenModuleSet mms) throws IOException, InterruptedException {
+    EnvVars envVars = build.getEnvironment(listener);
     ArgumentListBuilder args = new ArgumentListBuilder();
-    args.add(executable).add("-e").add("-B")
-      .addTokenized("-f " + pomName)
-      .addKeyValuePairs("-D", build.getBuildVariables())
-      .addTokenized(sonarInstallation.getPluginCallArgs())
-      .addTokenized(getJobAdditionalProperties());
+    args.add(executable).add("-e").add("-B");
+    args.addTokenized("-f " + pomName);
+    args.addKeyValuePairs("-D", build.getBuildVariables());
+    addTokenizedAndQuoted(launcher.isUnix(), args, sonarInstallation.getPluginCallArgs(envVars));
+    addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(sonarInstallation.getAdditionalProperties()));
+    addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(getJobAdditionalProperties()));
     if (mms != null && mms.usesPrivateRepository()) {
-      args.add("-Dmaven.repo.local="+mms.getWorkspace().child(".repository").getRemote());
+      args.add("-Dmaven.repo.local=" +mms.getWorkspace().child(".repository").getRemote());
     }
-    return args.toCommandArray();
+    args.add("sonar:sonar");
+    return args;
+  }
+
+
+  private void addTokenizedAndQuoted(boolean isUnix, ArgumentListBuilder args, String argsString) {
+    if (StringUtils.isNotBlank(argsString)) {
+      for (String argToken : Util.tokenize(argsString)) {
+        // see SONARPLUGINS-123 amperstand bug with windows..
+        if (!isUnix && argToken.contains("&")) {
+          args.addQuoted(argToken);
+        } else {
+          args.add(argToken);
+        }
+      }
+    }
   }
 
   @Extension
@@ -318,29 +347,25 @@ public class SonarPublisher extends Notifier {
     }
 
     @Override
-    public boolean configure(StaplerRequest req) {
+    public boolean configure(StaplerRequest req, JSONObject json) {
       installations = req.bindParametersToList(SonarInstallation.class, "sonar.").toArray(new SonarInstallation[0]);
       save();
       return true;
     }
 
     @Override
-    public Notifier newInstance(StaplerRequest req) {
+    public Notifier newInstance(StaplerRequest req, JSONObject json) {
       return req.bindParameters(SonarPublisher.class, "sonar.");
     }
 
     public FormValidation doCheckMandatory(@QueryParameter String value) {
-      if (StringUtils.isBlank(value)) {
-        return FormValidation.error(Messages.SonarPublisher_MandatoryProperty());
-      }
-      return FormValidation.ok();
+      return StringUtils.isBlank(value) ? 
+          FormValidation.error(Messages.SonarPublisher_MandatoryProperty()) : FormValidation.ok();
     }
 
     public FormValidation doCheckMandatoryAndNoSpaces(@QueryParameter String value) {
-      if (StringUtils.isBlank(value) || value.contains(" ")) {
-        return FormValidation.error(Messages.SonarPublisher_MandatoryPropertySpaces());
-      }
-      return FormValidation.ok();
+      return (StringUtils.isBlank(value) || value.contains(" ")) ?
+          FormValidation.error(Messages.SonarPublisher_MandatoryPropertySpaces()) : FormValidation.ok();
     }
 
     @Override

@@ -7,6 +7,7 @@
   <description>$projectDescription$</description>
 
   <build>
+    <outputDirectory>$projectBinDir$</outputDirectory>
   	<sourceDirectory>$projectSrcDir$</sourceDirectory>
     <plugins>
       <plugin>
