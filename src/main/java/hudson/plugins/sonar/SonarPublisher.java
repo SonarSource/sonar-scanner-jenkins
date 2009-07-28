@@ -51,13 +51,18 @@ public class SonarPublisher extends Notifier {
   private final String projectSrcDir;
   private final String projectBinDir;
   private final String mavenOpts;
+  private final boolean reuseReports;
+  private final String surefireReportsPath;
+  private final String coberturaReportPath;
+  private final String cloverReportPath;
   private boolean skipOnScm = true;
   private boolean skipIfBuildFails = true;
 
   @DataBoundConstructor
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
-      String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
-      String projectDescription, String mavenOpts, String mavenInstallationName, boolean skipOnScm, boolean skipIfBuildFails, String projectBinDir) {
+                        String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
+                        String projectDescription, String mavenOpts, String mavenInstallationName, boolean skipOnScm, boolean skipIfBuildFails, String projectBinDir,
+                        boolean reuseReports, String coberturaReportPath, String surefireReportsPath, String cloverReportPath) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
     this.useSonarLight = useSonarLight;
@@ -73,10 +78,14 @@ public class SonarPublisher extends Notifier {
     this.mavenInstallationName = mavenInstallationName;
     this.skipIfBuildFails = skipIfBuildFails;
     this.projectBinDir = projectBinDir;
+    this.reuseReports = reuseReports;
+    this.surefireReportsPath = surefireReportsPath;
+    this.coberturaReportPath = coberturaReportPath;
+    this.cloverReportPath = cloverReportPath;
   }
 
   public String getJobAdditionalProperties() {
-    return StringUtils.defaultString(jobAdditionalProperties);
+    return StringUtils.trimToEmpty(jobAdditionalProperties);
   }
 
   public String getInstallationName() {
@@ -120,15 +129,31 @@ public class SonarPublisher extends Notifier {
   }
 
   public String getProjectBinDir() {
-    return StringUtils.isBlank(projectBinDir) ? "target/classes" : projectBinDir;
+    return StringUtils.trimToEmpty(projectBinDir);
   }
 
   public String getProjectDescription() {
-    return StringUtils.isBlank(projectDescription) ? "" : projectDescription;
+    return StringUtils.trimToEmpty(projectDescription);
   }
 
   public String getMavenOpts() {
     return mavenOpts;
+  }
+
+  public boolean isReuseReports() {
+    return reuseReports;
+  }
+
+  public String getSurefireReportsPath() {
+    return StringUtils.trimToEmpty(surefireReportsPath);
+  }
+
+  public String getCoberturaReportPath() {
+    return StringUtils.trimToEmpty(coberturaReportPath);
+  }
+
+  public String getCloverReportPath() {
+    return StringUtils.trimToEmpty(cloverReportPath);
   }
 
   public static boolean isMavenBuilder(AbstractProject currentProject) {
@@ -190,7 +215,7 @@ public class SonarPublisher extends Notifier {
     return sonarSuccess;
   }
 
-  private boolean isSCMTrigger(AbstractBuild<?,?> build) {
+  private boolean isSCMTrigger(AbstractBuild<?, ?> build) {
     CauseAction buildCause = build.getAction(CauseAction.class);
     List<Cause> buildCauses = buildCause.getCauses();
     for (Cause cause : buildCauses) {
@@ -209,16 +234,16 @@ public class SonarPublisher extends Notifier {
     if (mavenInstallation == null) {
       mavenInstallation = getMavenInstallation();
     }
-    return mavenInstallation != null ? mavenInstallation.forNode(build.getBuiltOn(),listener) : mavenInstallation;
+    return mavenInstallation != null ? mavenInstallation.forNode(build.getBuiltOn(), listener) : mavenInstallation;
   }
 
   private MavenModuleSet getMavenProject(AbstractBuild build) {
-    return (build.getProject() instanceof MavenModuleSet) ? (MavenModuleSet)build.getProject() : null;
+    return (build.getProject() instanceof MavenModuleSet) ? (MavenModuleSet) build.getProject() : null;
   }
 
-  private boolean executeSonar(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
+  private boolean executeSonar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
     try {
-      Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build,listener);
+      Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build, listener);
       FilePath root = build.getProject().getModuleRoot();
       MavenModuleSet mavenModuleProject = getMavenProject(build);
       String pomName = mavenModuleProject != null ? mavenModuleProject.getRootPOM() : "pom.xml";
@@ -253,12 +278,22 @@ public class SonarPublisher extends Notifier {
     pomTemplate.setAttribute("artifactId", getArtifactId());
     pomTemplate.setAttribute("projectName", getProjectName());
     pomTemplate.setAttribute("projectVersion", getProjectVersion());
-    pomTemplate.setAttribute("projectSrcDir", getProjectSrcDir());
-    pomTemplate.setAttribute("projectBinDir", getProjectBinDir());
     pomTemplate.setAttribute("javaVersion", getJavaVersion());
-    pomTemplate.setAttribute("projectDescription", getProjectDescription());
-    pomTemplate.write(root);
+   
+    setPomElement("description", getProjectDescription(), true, pomTemplate);
+    setPomElement("sourceDirectory", getProjectSrcDir(), true, pomTemplate);
+    setPomElement("outputDirectory", getProjectBinDir(), StringUtils.isNotBlank(getProjectBinDir()), pomTemplate);
+    setPomElement("sonar.dynamicAnalysis", isReuseReports() ? "reuseReports" : "false", true, pomTemplate);
+    setPomElement("sonar.surefire.reportsPath", getSurefireReportsPath(), isReuseReports(), pomTemplate);
+    setPomElement("sonar.cobertura.reportPath", getCoberturaReportPath(), isReuseReports(), pomTemplate);
+    setPomElement("sonar.clover.reportPath", getCloverReportPath(), isReuseReports(), pomTemplate);
 
+    pomTemplate.write(root);
+  }
+  
+  private void setPomElement(String tagName, String tagValue, boolean enabled, SimpleTemplate template) {
+    String tagContent = enabled && StringUtils.isNotBlank(tagValue) ? "<" + tagName + "><![CDATA[" + tagValue + "]]></" + tagName + ">" : "";
+    template.setAttribute(tagName, tagContent);
   }
 
   private EnvVars getMavenEnvironmentVars(BuildListener listener, AbstractBuild<?, ?> build, Maven.MavenInstallation mavenInstallation, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
@@ -301,7 +336,7 @@ public class SonarPublisher extends Notifier {
     addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(sonarInstallation.getAdditionalProperties()));
     addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(getJobAdditionalProperties()));
     if (mms != null && mms.usesPrivateRepository()) {
-      args.add("-Dmaven.repo.local=" +mms.getWorkspace().child(".repository").getRemote());
+      args.add("-Dmaven.repo.local=" + mms.getWorkspace().child(".repository").getRemote());
     }
     args.add("sonar:sonar");
     return args;
@@ -359,7 +394,7 @@ public class SonarPublisher extends Notifier {
     }
 
     public FormValidation doCheckMandatory(@QueryParameter String value) {
-      return StringUtils.isBlank(value) ? 
+      return StringUtils.isBlank(value) ?
           FormValidation.error(Messages.SonarPublisher_MandatoryProperty()) : FormValidation.ok();
     }
 

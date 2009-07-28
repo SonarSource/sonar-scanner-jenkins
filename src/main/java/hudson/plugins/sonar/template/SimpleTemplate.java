@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 
 public class SimpleTemplate {
   private String template;
@@ -50,7 +49,7 @@ public class SimpleTemplate {
   }
 
   public void setAttribute(String key, String value) {
-    template = StringUtils.replace(template, '$' + key + '$', value);
+    template = template.replace('$' + key + '$', value);
   }
 
   @Override

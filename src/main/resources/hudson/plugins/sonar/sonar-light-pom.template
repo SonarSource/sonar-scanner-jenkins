@@ -4,11 +4,11 @@
   <artifactId>$artifactId$</artifactId>
   <name>$projectName$</name>
   <version>$projectVersion$</version>
-  <description>$projectDescription$</description>
+  $description$
 
   <build>
-    <outputDirectory>$projectBinDir$</outputDirectory>
-  	<sourceDirectory>$projectSrcDir$</sourceDirectory>
+    $outputDirectory$
+  	$sourceDirectory$
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -22,6 +22,9 @@
   </build>
 
   <properties>
-  	<sonar.dynamicAnalysis>false</sonar.dynamicAnalysis>
+    $sonar.dynamicAnalysis$
+    $sonar.surefire.reportsPath$
+    $sonar.cobertura.reportPath$
+    $sonar.clover.reportPath$
   </properties>
 </project>
