@@ -16,6 +16,7 @@
         <configuration>
           <source>$javaVersion$</source>
           <target>$javaVersion$</target>
+          $encoding$
         </configuration>
       </plugin>
       $srcDirsPlugin$
@@ -23,6 +24,7 @@
   </build>
 
   <properties>
+    $project.build.sourceEncoding$
     $sonar.dynamicAnalysis$
     $sonar.surefire.reportsPath$
     $sonar.cobertura.reportPath$

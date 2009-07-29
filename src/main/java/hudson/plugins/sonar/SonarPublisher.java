@@ -49,6 +49,7 @@ public class SonarPublisher extends Notifier {
   private final String projectDescription;
   private final String javaVersion;
   private final String projectSrcDir;
+  private final String projectSrcEncoding;
   private final String projectBinDir;
   private final String mavenOpts;
   private final boolean reuseReports;
@@ -62,7 +63,7 @@ public class SonarPublisher extends Notifier {
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
                         String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
                         String projectDescription, String mavenOpts, String mavenInstallationName, boolean skipOnScm, boolean skipIfBuildFails, String projectBinDir,
-                        boolean reuseReports, String coberturaReportPath, String surefireReportsPath, String cloverReportPath) {
+                        boolean reuseReports, String coberturaReportPath, String surefireReportsPath, String cloverReportPath, String projectSrcEncoding) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
     this.useSonarLight = useSonarLight;
@@ -82,6 +83,7 @@ public class SonarPublisher extends Notifier {
     this.surefireReportsPath = surefireReportsPath;
     this.coberturaReportPath = coberturaReportPath;
     this.cloverReportPath = cloverReportPath;
+    this.projectSrcEncoding = projectSrcEncoding;
   }
 
   public String getJobAdditionalProperties() {
@@ -125,7 +127,11 @@ public class SonarPublisher extends Notifier {
   }
 
   public String getProjectSrcDir() {
-    return projectSrcDir;
+    return StringUtils.trimToEmpty(projectSrcDir);
+  }
+  
+  public String getProjectSrcEncoding() {
+    return StringUtils.trimToEmpty(projectSrcEncoding);
   }
 
   public String getProjectBinDir() {
@@ -284,7 +290,9 @@ public class SonarPublisher extends Notifier {
     boolean multiSources = srcDirs.size() > 1;
     setPomElement("sourceDirectory", srcDirs.get(0), true, pomTemplate);
     pomTemplate.setAttribute("srcDirsPlugin", multiSources ? generateSrcDirsPluginTemplate(srcDirs).toString() : "");
-    
+
+    setPomElement("project.build.sourceEncoding", getProjectSrcEncoding(), true, pomTemplate);
+    setPomElement("encoding", getProjectSrcEncoding(), true, pomTemplate);
     setPomElement("description", getProjectDescription(), true, pomTemplate);
     setPomElement("sonar.phase", multiSources ? "generate-sources" : "", true, pomTemplate);
     setPomElement("outputDirectory", getProjectBinDir(), StringUtils.isNotBlank(getProjectBinDir()), pomTemplate);

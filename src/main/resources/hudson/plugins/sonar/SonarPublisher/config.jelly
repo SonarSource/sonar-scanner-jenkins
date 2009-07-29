@@ -72,6 +72,10 @@
                      checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
         </f:entry>
         
+        <f:entry title="${%SrcEncoding}" description="${%SrcEncodingDescr}">
+          <f:textbox name="sonar.projectSrcEncoding" value="${instance.getProjectSrcEncoding()}"/>
+        </f:entry>
+
         <f:entry title="${%BinDir}" description="${%BinDirDescr}">
           <f:textbox name="sonar.projectBinDir" value="${instance.getProjectBinDir()}"/>
         </f:entry>
