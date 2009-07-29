@@ -67,7 +67,7 @@
           <f:textbox name="sonar.projectVersion" value="${instance.getProjectVersion()}"/>
         </f:entry>
 
-        <f:entry title="${%SrcDir}" description="${%SrcDirDescr}">
+        <f:entry title="${%SrcDirs}" description="${%SrcDirsDescr}">
           <f:textbox name="sonar.projectSrcDir" value="${instance.getProjectSrcDir()}"
                      checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
         </f:entry>

@@ -18,6 +18,7 @@
           <target>$javaVersion$</target>
         </configuration>
       </plugin>
+      $srcDirsPlugin$
     </plugins>
   </build>
 
@@ -26,5 +27,6 @@
     $sonar.surefire.reportsPath$
     $sonar.cobertura.reportPath$
     $sonar.clover.reportPath$
+    $sonar.phase$
   </properties>
 </project>

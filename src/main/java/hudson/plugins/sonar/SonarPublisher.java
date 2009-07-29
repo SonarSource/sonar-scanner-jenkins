@@ -280,8 +280,13 @@ public class SonarPublisher extends Notifier {
     pomTemplate.setAttribute("projectVersion", getProjectVersion());
     pomTemplate.setAttribute("javaVersion", getJavaVersion());
    
+    List<String> srcDirs = getProjectSrcDirsList();
+    boolean multiSources = srcDirs.size() > 1;
+    setPomElement("sourceDirectory", srcDirs.get(0), true, pomTemplate);
+    pomTemplate.setAttribute("srcDirsPlugin", multiSources ? generateSrcDirsPluginTemplate(srcDirs).toString() : "");
+    
     setPomElement("description", getProjectDescription(), true, pomTemplate);
-    setPomElement("sourceDirectory", getProjectSrcDir(), true, pomTemplate);
+    setPomElement("sonar.phase", multiSources ? "generate-sources" : "", true, pomTemplate);
     setPomElement("outputDirectory", getProjectBinDir(), StringUtils.isNotBlank(getProjectBinDir()), pomTemplate);
     setPomElement("sonar.dynamicAnalysis", isReuseReports() ? "reuseReports" : "false", true, pomTemplate);
     setPomElement("sonar.surefire.reportsPath", getSurefireReportsPath(), isReuseReports(), pomTemplate);
@@ -289,6 +294,21 @@ public class SonarPublisher extends Notifier {
     setPomElement("sonar.clover.reportPath", getCloverReportPath(), isReuseReports(), pomTemplate);
 
     pomTemplate.write(root);
+  }
+  
+  private SimpleTemplate generateSrcDirsPluginTemplate(List<String> srcDirs) throws IOException, InterruptedException {
+    SimpleTemplate srcTemplate = new SimpleTemplate("hudson/plugins/sonar/sonar-multi-sources.template");
+    StringBuffer sourcesXml = new StringBuffer();
+    for (int i = 1; i < srcDirs.size(); i++) {
+      sourcesXml.append("<source><![CDATA[").append(StringUtils.trim(srcDirs.get(i))).append("]]></source>\n");
+    }
+    srcTemplate.setAttribute("sources", sourcesXml.toString());
+    return srcTemplate;
+  }
+  
+  private List<String> getProjectSrcDirsList() {
+    String[] dirs = StringUtils.split(getProjectSrcDir(), ',');
+    return Arrays.asList(dirs);
   }
   
   private void setPomElement(String tagName, String tagValue, boolean enabled, SimpleTemplate template) {
