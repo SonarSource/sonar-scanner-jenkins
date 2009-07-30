@@ -15,6 +15,7 @@ import hudson.model.CauseAction;
 import hudson.model.Hudson;
 import hudson.model.Result;
 import hudson.model.TaskListener;
+import hudson.model.Cause.UpstreamCause;
 import hudson.plugins.sonar.template.SimpleTemplate;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Maven;
@@ -22,6 +23,7 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.triggers.SCMTrigger.SCMTriggerCause;
+import hudson.triggers.TimerTrigger.TimerTriggerCause;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
 
@@ -56,13 +58,15 @@ public class SonarPublisher extends Notifier {
   private final String surefireReportsPath;
   private final String coberturaReportPath;
   private final String cloverReportPath;
-  private boolean skipOnScm = true;
-  private boolean skipIfBuildFails = true;
+  private boolean scmBuilds;
+  private boolean timerBuilds;
+  private boolean snapshotDependencyBuilds;
+  private boolean skipIfBuildFails;
 
   @DataBoundConstructor
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
                         String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
-                        String projectDescription, String mavenOpts, String mavenInstallationName, boolean skipOnScm, boolean skipIfBuildFails, String projectBinDir,
+                        String projectDescription, String mavenOpts, String mavenInstallationName, boolean snapshotDependencyBuilds, boolean scmBuilds, boolean timerBuilds, boolean skipIfBuildFails, String projectBinDir,
                         boolean reuseReports, String coberturaReportPath, String surefireReportsPath, String cloverReportPath, String projectSrcEncoding) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
@@ -75,7 +79,9 @@ public class SonarPublisher extends Notifier {
     this.projectSrcDir = projectSrcDir;
     this.projectDescription = projectDescription;
     this.mavenOpts = mavenOpts;
-    this.skipOnScm = skipOnScm;
+    this.scmBuilds = scmBuilds;
+    this.timerBuilds = timerBuilds;
+    this.snapshotDependencyBuilds = snapshotDependencyBuilds;
     this.mavenInstallationName = mavenInstallationName;
     this.skipIfBuildFails = skipIfBuildFails;
     this.projectBinDir = projectBinDir;
@@ -102,8 +108,16 @@ public class SonarPublisher extends Notifier {
     return skipIfBuildFails;
   }
 
-  public boolean isSkipOnScm() {
-    return skipOnScm;
+  public boolean isTimerBuilds() {
+    return timerBuilds;
+  }
+  
+  public boolean isScmBuilds() {
+    return scmBuilds;
+  }
+  
+  public boolean isSnapshotDependencyBuilds() {
+    return snapshotDependencyBuilds;
   }
 
   public String getGroupId() {
@@ -206,9 +220,14 @@ public class SonarPublisher extends Notifier {
       skipLaunchMsg = Messages.SonarPublisher_NoInstallation(installationName, Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations().length);
     } else if (sonarInstallation.isDisabled()) {
       skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else if (isSkipOnScm() && isSCMTrigger(build)) {
+    } else if (!isScmBuilds() && isTrigger(build, SCMTriggerCause.class)) {
       skipLaunchMsg = Messages.SonarPublisher_SCMBuild();
+    } else if (!isTimerBuilds() && isTrigger(build, TimerTriggerCause.class)) {
+      skipLaunchMsg = Messages.SonarPublisher_TimerBuild();
+    } else if (!isSnapshotDependencyBuilds() && isTrigger(build, UpstreamCause.class)) {
+      skipLaunchMsg = Messages.SonarPublisher_SnapshotDepBuild();
     }
+
     if (skipLaunchMsg != null) {
       listener.getLogger().println(skipLaunchMsg);
       return true;
@@ -221,11 +240,11 @@ public class SonarPublisher extends Notifier {
     return sonarSuccess;
   }
 
-  private boolean isSCMTrigger(AbstractBuild<?, ?> build) {
+  private boolean isTrigger(AbstractBuild<?, ?> build, Class<? extends hudson.model.Cause> trigger) {
     CauseAction buildCause = build.getAction(CauseAction.class);
     List<Cause> buildCauses = buildCause.getCauses();
     for (Cause cause : buildCauses) {
-      if (cause instanceof SCMTriggerCause) {
+      if (cause.getClass().equals(trigger)) {
         return true;
       }
     }

@@ -19,10 +19,18 @@
     <f:textbox name="sonar.jobAdditionalProperties" value="${instance.getJobAdditionalProperties()}"/>
   </f:entry>
   
-  <f:entry title="${%SkipScm}" description="${%SkipScmDescr}" help="${rootURL}/plugin/sonar/help-skip-on-scm.html">
-    <f:checkbox name="sonar.skipOnScm" checked="${instance.isSkipOnScm()}" default="true"/>
+  <f:entry title="${%ScmBuilds}" description="${%ScmBuildsDescr}">
+    <f:checkbox name="sonar.scmBuilds" checked="${instance.isScmBuilds()}" default="false"/>
   </f:entry>
   
+  <f:entry title="${%TimerBuilds}" description="${%TimerBuildsDescr}">
+    <f:checkbox name="sonar.timerBuilds" checked="${instance.isTimerBuilds()}" default="true"/>
+  </f:entry>
+  
+  <f:entry title="${%SnapshotsDepBuilds}" description="${%SnapshotsDepBuildsDescr}">
+    <f:checkbox name="sonar.snapshotDependencyBuilds" checked="${instance.isSnapshotDependencyBuilds()}" default="false"/>
+  </f:entry>
+
   <f:entry title="${%SkipIfBuildFails}" description="${%SkipIfBuildFailsDescr}" help="${rootURL}/plugin/sonar/help-skip-on-build-failure.html">
     <f:checkbox name="sonar.skipIfBuildFails" checked="${instance.isSkipIfBuildFails()}" default="false"/>
   </f:entry>
