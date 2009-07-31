@@ -58,10 +58,10 @@ public class SonarPublisher extends Notifier {
   private final String surefireReportsPath;
   private final String coberturaReportPath;
   private final String cloverReportPath;
-  private boolean scmBuilds;
+  private final boolean scmBuilds;
   private boolean timerBuilds = true;
-  private boolean snapshotDependencyBuilds;
-  private boolean skipIfBuildFails;
+  private final boolean snapshotDependencyBuilds;
+  private final boolean skipIfBuildFails;
   
   @Deprecated
   private Boolean skipOnScm;
@@ -70,7 +70,7 @@ public class SonarPublisher extends Notifier {
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
                         String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
                         String projectDescription, String mavenOpts, String mavenInstallationName, boolean snapshotDependencyBuilds, boolean scmBuilds, boolean timerBuilds, boolean skipIfBuildFails, String projectBinDir,
-                        boolean reuseReports, String coberturaReportPath, String surefireReportsPath, String cloverReportPath, String projectSrcEncoding, Boolean skipOnScm) {
+                        boolean reuseReports, String coberturaReportPath, String surefireReportsPath, String cloverReportPath, String projectSrcEncoding) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
     this.useSonarLight = useSonarLight;
@@ -93,7 +93,6 @@ public class SonarPublisher extends Notifier {
     this.coberturaReportPath = coberturaReportPath;
     this.cloverReportPath = cloverReportPath;
     this.projectSrcEncoding = projectSrcEncoding;
-    this.skipOnScm = skipOnScm;
   }
   
   @Deprecated
@@ -142,11 +141,11 @@ public class SonarPublisher extends Notifier {
   }
 
   public String getProjectVersion() {
-    return StringUtils.isBlank(projectVersion) ? "1.0" : projectVersion;
+    return StringUtils.trimToEmpty(projectVersion);
   }
 
   public String getJavaVersion() {
-    return StringUtils.isBlank(javaVersion) ? "1.5" : javaVersion;
+    return StringUtils.trimToEmpty(javaVersion);
   }
 
   public String getProjectSrcDir() {
@@ -311,8 +310,8 @@ public class SonarPublisher extends Notifier {
     pomTemplate.setAttribute("groupId", getGroupId());
     pomTemplate.setAttribute("artifactId", getArtifactId());
     pomTemplate.setAttribute("projectName", getProjectName());
-    pomTemplate.setAttribute("projectVersion", getProjectVersion());
-    pomTemplate.setAttribute("javaVersion", getJavaVersion());
+    pomTemplate.setAttribute("projectVersion", StringUtils.isEmpty(getProjectVersion()) ? "1.0" : getProjectVersion());
+    pomTemplate.setAttribute("javaVersion", StringUtils.isEmpty(getJavaVersion()) ? "1.5" : getJavaVersion());
    
     List<String> srcDirs = getProjectSrcDirsList();
     boolean multiSources = srcDirs.size() > 1;
