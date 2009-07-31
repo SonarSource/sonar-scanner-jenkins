@@ -59,15 +59,18 @@ public class SonarPublisher extends Notifier {
   private final String coberturaReportPath;
   private final String cloverReportPath;
   private boolean scmBuilds;
-  private boolean timerBuilds;
+  private boolean timerBuilds = true;
   private boolean snapshotDependencyBuilds;
   private boolean skipIfBuildFails;
+  
+  @Deprecated
+  private Boolean skipOnScm;
 
   @DataBoundConstructor
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
                         String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
                         String projectDescription, String mavenOpts, String mavenInstallationName, boolean snapshotDependencyBuilds, boolean scmBuilds, boolean timerBuilds, boolean skipIfBuildFails, String projectBinDir,
-                        boolean reuseReports, String coberturaReportPath, String surefireReportsPath, String cloverReportPath, String projectSrcEncoding) {
+                        boolean reuseReports, String coberturaReportPath, String surefireReportsPath, String cloverReportPath, String projectSrcEncoding, Boolean skipOnScm) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
     this.useSonarLight = useSonarLight;
@@ -90,6 +93,12 @@ public class SonarPublisher extends Notifier {
     this.coberturaReportPath = coberturaReportPath;
     this.cloverReportPath = cloverReportPath;
     this.projectSrcEncoding = projectSrcEncoding;
+    this.skipOnScm = skipOnScm;
+  }
+  
+  @Deprecated
+  public Boolean getSkipOnScm() {
+    return skipOnScm;
   }
 
   public String getJobAdditionalProperties() {
@@ -185,13 +194,13 @@ public class SonarPublisher extends Notifier {
   }
 
   public MavenInstallation getMavenInstallation() {
-    Maven.DescriptorImpl mavenDescriptor = Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class);
-    if (StringUtils.isEmpty(mavenInstallationName) && mavenDescriptor.getInstallations().length > 0) {
-      return mavenDescriptor.getInstallations()[0];
+    List<MavenInstallation> installations = getMavenInstallations();
+    if (StringUtils.isEmpty(mavenInstallationName) && !installations.isEmpty()) {
+      return installations.get(0);
     }
-    for (MavenInstallation si : getMavenInstallations()) {
-      if (StringUtils.equals(mavenInstallationName, si.getName())) {
-        return si;
+    for (MavenInstallation install : installations) {
+      if (StringUtils.equals(mavenInstallationName, install.getName())) {
+        return install;
       }
     }
     return null;

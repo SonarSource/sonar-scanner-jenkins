@@ -21,27 +21,25 @@
   <f:nested>
       <table>
         <f:section title="${%BuildTriggers}">
-          <f:entry title="">
+          <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-scm.html">
             <f:checkbox name="sonar.scmBuilds" checked="${instance.isScmBuilds()}" default="false"/>
             <label>${%ScmBuilds}</label>
           </f:entry>
           
-          <f:entry title="">
+          <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-timer.html">
             <f:checkbox name="sonar.timerBuilds" checked="${instance.isTimerBuilds()}" default="true"/>
             <label>${%TimerBuilds}</label>
           </f:entry>
           
-          <f:entry title="">
+          <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-snapshot-dep.html">
             <f:checkbox name="sonar.snapshotDependencyBuilds" checked="${instance.isSnapshotDependencyBuilds()}" default="false"/>
             <label>${%SnapshotsDepBuilds}</label>
-            
           </f:entry>
         
-          <f:entry title="" help="${rootURL}/plugin/sonar/help-skip-on-build-failure.html">
+          <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-build-failure.html">
             <f:checkbox name="sonar.skipIfBuildFails" checked="${instance.isSkipIfBuildFails()}" default="false"/>
             <label>${%SkipIfBuildFails}</label>
           </f:entry>
-        
         </f:section>
       </table>
   </f:nested>
