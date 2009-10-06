@@ -18,6 +18,7 @@ import hudson.model.TaskListener;
 import hudson.model.Cause.UpstreamCause;
 import hudson.plugins.sonar.template.SimpleTemplate;
 import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Maven;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
@@ -218,6 +219,10 @@ public class SonarPublisher extends Notifier {
     return null;
   }
 
+  public BuildStepMonitor getRequiredMonitorService() {
+    return BuildStepMonitor.BUILD;
+  }
+
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
     SonarInstallation sonarInstallation = getInstallation();
@@ -277,7 +282,7 @@ public class SonarPublisher extends Notifier {
   private boolean executeSonar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
     try {
       Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build, listener);
-      FilePath root = build.getProject().getModuleRoot();
+      FilePath root = build.getModuleRoot();
       MavenModuleSet mavenModuleProject = getMavenProject(build);
       String pomName = mavenModuleProject != null ? mavenModuleProject.getRootPOM() : "pom.xml";
       if (useSonarLight) {
@@ -391,7 +396,7 @@ public class SonarPublisher extends Notifier {
     addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(sonarInstallation.getAdditionalProperties()));
     addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(getJobAdditionalProperties()));
     if (mms != null && mms.usesPrivateRepository()) {
-      args.add("-Dmaven.repo.local=" + mms.getWorkspace().child(".repository").getRemote());
+      args.add("-Dmaven.repo.local=" + build.getWorkspace().child(".repository").getRemote());
     }
     args.add("sonar:sonar");
     return args;
