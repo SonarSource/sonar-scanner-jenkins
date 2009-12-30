@@ -6,7 +6,7 @@
     <version>1.319</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  
+
   <artifactId>sonar</artifactId>
   <version>1.2-SNAPSHOT</version>
   <packaging>hpi</packaging>
@@ -45,6 +45,11 @@
       <id>cjelmini</id>
       <name>Carlo Jelmini</name>
       <email>cjelmini@gmail.com</email>
+    </developer>
+    <developer>
+      <id>godin</id>
+      <name>Evgeny Mandrikov</name>
+      <timezone>+3</timezone>
     </developer>
   </developers>
 
