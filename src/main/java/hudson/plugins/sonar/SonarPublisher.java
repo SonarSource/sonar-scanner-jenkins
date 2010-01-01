@@ -16,6 +16,7 @@ import hudson.model.Hudson;
 import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.model.Cause.UpstreamCause;
+import hudson.model.Cause.UserCause;
 import hudson.plugins.sonar.template.SimpleTemplate;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -60,18 +61,22 @@ public class SonarPublisher extends Notifier {
   private final String coberturaReportPath;
   private final String cloverReportPath;
   private final boolean scmBuilds;
-  private boolean timerBuilds = true;
+  private final boolean timerBuilds;
+  private final boolean userBuilds;
   private final boolean snapshotDependencyBuilds;
   private final boolean skipIfBuildFails;
   
   @Deprecated
   private Boolean skipOnScm;
 
-  @DataBoundConstructor
-  public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight,
-                        String groupId, String artifactId, String projectName, String projectVersion, String projectSrcDir, String javaVersion,
-                        String projectDescription, String mavenOpts, String mavenInstallationName, boolean snapshotDependencyBuilds, boolean scmBuilds, boolean timerBuilds, boolean skipIfBuildFails, String projectBinDir,
-                        boolean reuseReports, String coberturaReportPath, String surefireReportsPath, String cloverReportPath, String projectSrcEncoding) {
+	@DataBoundConstructor
+  public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight, String groupId,
+                        String artifactId, String projectName, String projectVersion, String projectSrcDir,
+                        String javaVersion, String projectDescription, String mavenOpts, String mavenInstallationName,
+                        boolean snapshotDependencyBuilds, boolean scmBuilds, boolean timerBuilds, boolean userBuilds,
+                        boolean skipIfBuildFails, String projectBinDir, boolean reuseReports,
+                        String coberturaReportPath, String surefireReportsPath, String cloverReportPath,
+                        String projectSrcEncoding) {
     this.jobAdditionalProperties = jobAdditionalProperties;
     this.installationName = installationName;
     this.useSonarLight = useSonarLight;
@@ -85,6 +90,7 @@ public class SonarPublisher extends Notifier {
     this.mavenOpts = mavenOpts;
     this.scmBuilds = scmBuilds;
     this.timerBuilds = timerBuilds;
+    this.userBuilds = userBuilds;
     this.snapshotDependencyBuilds = snapshotDependencyBuilds;
     this.mavenInstallationName = mavenInstallationName;
     this.skipIfBuildFails = skipIfBuildFails;
@@ -120,7 +126,11 @@ public class SonarPublisher extends Notifier {
   public boolean isTimerBuilds() {
     return timerBuilds;
   }
-  
+
+  public boolean isUserBuilds() {
+    return userBuilds;
+  }
+
   public boolean isScmBuilds() {
     return scmBuilds;
   }
@@ -237,6 +247,8 @@ public class SonarPublisher extends Notifier {
       skipLaunchMsg = Messages.SonarPublisher_SCMBuild();
     } else if (!isTimerBuilds() && isTrigger(build, TimerTriggerCause.class)) {
       skipLaunchMsg = Messages.SonarPublisher_TimerBuild();
+    } else if (!isUserBuilds() && isTrigger(build, UserCause.class)) {
+      skipLaunchMsg = Messages.SonarPublisher_UserBuild();
     } else if (!isSnapshotDependencyBuilds() && isTrigger(build, UpstreamCause.class)) {
       skipLaunchMsg = Messages.SonarPublisher_SnapshotDepBuild();
     }

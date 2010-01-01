@@ -31,6 +31,11 @@
             <label>${%TimerBuilds}</label>
           </f:entry>
           
+          <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-user.html">
+            <f:checkbox name="sonar.userBuilds" checked="${instance.isUserBuilds()}" default="true"/>
+            <label>${%UserBuilds}</label>
+          </f:entry>
+
           <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-snapshot-dep.html">
             <f:checkbox name="sonar.snapshotDependencyBuilds" checked="${instance.isSnapshotDependencyBuilds()}" default="false"/>
             <label>${%SnapshotsDepBuilds}</label>
