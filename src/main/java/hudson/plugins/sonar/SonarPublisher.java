@@ -234,26 +234,29 @@ public class SonarPublisher extends Notifier {
     return BuildStepMonitor.BUILD;
   }
 
+  protected String isSkipSonar(AbstractBuild<?, ?> build, SonarInstallation sonarInstallation) {
+    if (isSkipIfBuildFails() && build.getResult().isWorseThan(Result.SUCCESS)) {
+      return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
+    } else if (sonarInstallation == null) {
+      return Messages.SonarPublisher_NoInstallation(installationName, Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations().length);
+    } else if (sonarInstallation.isDisabled()) {
+      return Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
+    } else if (!isScmBuilds() && isTrigger(build, SCMTriggerCause.class)) {
+      return Messages.SonarPublisher_SCMBuild();
+    } else if (!isTimerBuilds() && isTrigger(build, TimerTriggerCause.class)) {
+      return Messages.SonarPublisher_TimerBuild();
+    } else if (!isUserBuilds() && isTrigger(build, UserCause.class)) {
+      return Messages.SonarPublisher_UserBuild();
+    } else if (!isSnapshotDependencyBuilds() && isTrigger(build, UpstreamCause.class)) {
+      return Messages.SonarPublisher_SnapshotDepBuild();
+    }
+    return null;
+  }
+
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
     SonarInstallation sonarInstallation = getInstallation();
-    String skipLaunchMsg = null;
-    if (skipIfBuildFails && build.getResult().isWorseThan(Result.SUCCESS)) {
-      skipLaunchMsg = Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
-    } else if (sonarInstallation == null) {
-      skipLaunchMsg = Messages.SonarPublisher_NoInstallation(installationName, Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations().length);
-    } else if (sonarInstallation.isDisabled()) {
-      skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else if (!isScmBuilds() && isTrigger(build, SCMTriggerCause.class)) {
-      skipLaunchMsg = Messages.SonarPublisher_SCMBuild();
-    } else if (!isTimerBuilds() && isTrigger(build, TimerTriggerCause.class)) {
-      skipLaunchMsg = Messages.SonarPublisher_TimerBuild();
-    } else if (!isUserBuilds() && isTrigger(build, UserCause.class)) {
-      skipLaunchMsg = Messages.SonarPublisher_UserBuild();
-    } else if (!isSnapshotDependencyBuilds() && isTrigger(build, UpstreamCause.class)) {
-      skipLaunchMsg = Messages.SonarPublisher_SnapshotDepBuild();
-    }
-
+    String skipLaunchMsg = isSkipSonar(build, sonarInstallation);
     if (skipLaunchMsg != null) {
       listener.getLogger().println(skipLaunchMsg);
       return true;

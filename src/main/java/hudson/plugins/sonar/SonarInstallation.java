@@ -20,11 +20,10 @@
 package hudson.plugins.sonar;
 
 import hudson.EnvVars;
-
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public final class SonarInstallation {
+public class SonarInstallation {
   private final String name;
   private final boolean disabled;
   private final String serverUrl;
