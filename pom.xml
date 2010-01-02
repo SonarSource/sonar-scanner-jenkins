@@ -58,4 +58,9 @@
     <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/trunk/hudson/plugins/sonar</developerConnection>
     <url>https://hudson.dev.java.net/source/browse/hudson/trunk/hudson/plugins/sonar</url>
   </scm>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>http://jira.codehaus.org/browse/SONARPLUGINS/component/13726</url>
+  </issueManagement>
 </project>

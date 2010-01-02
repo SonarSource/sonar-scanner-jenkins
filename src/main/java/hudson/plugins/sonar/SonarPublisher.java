@@ -1,45 +1,27 @@
 package hudson.plugins.sonar;
 
-import hudson.CopyOnWrite;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
+import hudson.*;
 import hudson.maven.MavenModuleSet;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.Cause;
-import hudson.model.CauseAction;
-import hudson.model.Hudson;
-import hudson.model.Result;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.model.Cause.UpstreamCause;
 import hudson.model.Cause.UserCause;
 import hudson.plugins.sonar.template.SimpleTemplate;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Maven;
-import hudson.tasks.Notifier;
-import hudson.tasks.Publisher;
+import hudson.tasks.*;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.triggers.SCMTrigger.SCMTriggerCause;
 import hudson.triggers.TimerTrigger.TimerTriggerCause;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
-
-import net.sf.json.JSONObject;
-
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
 
 public class SonarPublisher extends Notifier {
   private final String jobAdditionalProperties;
@@ -65,11 +47,11 @@ public class SonarPublisher extends Notifier {
   private final boolean userBuilds;
   private final boolean snapshotDependencyBuilds;
   private final boolean skipIfBuildFails;
-  
+
   @Deprecated
   private Boolean skipOnScm;
 
-	@DataBoundConstructor
+  @DataBoundConstructor
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight, String groupId,
                         String artifactId, String projectName, String projectVersion, String projectSrcDir,
                         String javaVersion, String projectDescription, String mavenOpts, String mavenInstallationName,
@@ -101,7 +83,7 @@ public class SonarPublisher extends Notifier {
     this.cloverReportPath = cloverReportPath;
     this.projectSrcEncoding = projectSrcEncoding;
   }
-  
+
   @Deprecated
   public Boolean getSkipOnScm() {
     return skipOnScm;
@@ -134,7 +116,7 @@ public class SonarPublisher extends Notifier {
   public boolean isScmBuilds() {
     return scmBuilds;
   }
-  
+
   public boolean isSnapshotDependencyBuilds() {
     return snapshotDependencyBuilds;
   }
@@ -162,7 +144,7 @@ public class SonarPublisher extends Notifier {
   public String getProjectSrcDir() {
     return StringUtils.trimToEmpty(projectSrcDir);
   }
-  
+
   public String getProjectSrcEncoding() {
     return StringUtils.trimToEmpty(projectSrcEncoding);
   }
@@ -329,7 +311,7 @@ public class SonarPublisher extends Notifier {
     pomTemplate.setAttribute("projectName", getProjectName());
     pomTemplate.setAttribute("projectVersion", StringUtils.isEmpty(getProjectVersion()) ? "1.0" : getProjectVersion());
     pomTemplate.setAttribute("javaVersion", StringUtils.isEmpty(getJavaVersion()) ? "1.5" : getJavaVersion());
-   
+
     List<String> srcDirs = getProjectSrcDirsList();
     boolean multiSources = srcDirs.size() > 1;
     setPomElement("sourceDirectory", srcDirs.get(0), true, pomTemplate);
@@ -347,7 +329,7 @@ public class SonarPublisher extends Notifier {
 
     pomTemplate.write(root);
   }
-  
+
   private SimpleTemplate generateSrcDirsPluginTemplate(List<String> srcDirs) throws IOException, InterruptedException {
     SimpleTemplate srcTemplate = new SimpleTemplate("hudson/plugins/sonar/sonar-multi-sources.template");
     StringBuffer sourcesXml = new StringBuffer();
@@ -357,12 +339,12 @@ public class SonarPublisher extends Notifier {
     srcTemplate.setAttribute("sources", sourcesXml.toString());
     return srcTemplate;
   }
-  
+
   private List<String> getProjectSrcDirsList() {
     String[] dirs = StringUtils.split(getProjectSrcDir(), ',');
     return Arrays.asList(dirs);
   }
-  
+
   private void setPomElement(String tagName, String tagValue, boolean enabled, SimpleTemplate template) {
     String tagContent = enabled && StringUtils.isNotBlank(tagValue) ? "<" + tagName + "><![CDATA[" + tagValue + "]]></" + tagName + ">" : "";
     template.setAttribute(tagName, tagContent);
@@ -414,7 +396,6 @@ public class SonarPublisher extends Notifier {
     return args;
   }
 
-
   private void addTokenizedAndQuoted(boolean isUnix, ArgumentListBuilder args, String argsString) {
     if (StringUtils.isNotBlank(argsString)) {
       for (String argToken : Util.tokenize(argsString)) {
@@ -425,6 +406,16 @@ public class SonarPublisher extends Notifier {
           args.add(argToken);
         }
       }
+    }
+  }
+
+  @Override
+  public Action getProjectAction(AbstractProject<?, ?> project) {
+    SonarInstallation sonarInstallation = getInstallation();
+    if (sonarInstallation != null) {
+      return new SonarAction(sonarInstallation);
+    } else {
+      return null;
     }
   }
 
