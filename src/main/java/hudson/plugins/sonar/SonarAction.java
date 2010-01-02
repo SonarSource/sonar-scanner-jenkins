@@ -35,7 +35,7 @@ public final class SonarAction implements Action {
   }
 
   public String getIconFileName() {
-    return "/plugin/sonar/images/sonarsource-wave.png";
+    return MagicNames.ICON;
   }
 
   public String getDisplayName() {
@@ -44,7 +44,7 @@ public final class SonarAction implements Action {
 
   public String getUrlName() {
     return StringUtils.isEmpty(sonarInstallation.getServerUrl()) ?
-        "http://localhost:9000" :
+        MagicNames.DEFAULT_SONAR_URL :
         sonarInstallation.getServerUrl();
   }
 }

@@ -40,6 +40,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class SonarPublisher extends Notifier {
@@ -197,7 +198,7 @@ public class SonarPublisher extends Notifier {
   }
 
   public static boolean isMavenBuilder(AbstractProject currentProject) {
-    return (currentProject instanceof MavenModuleSet);
+    return currentProject instanceof MavenModuleSet;
   }
 
   public List<MavenInstallation> getMavenInstallations() {
@@ -456,7 +457,7 @@ public class SonarPublisher extends Notifier {
 
     @Override
     public String getHelpFile() {
-      return "/plugin/sonar/help.html";
+      return MagicNames.PLUGIN_HOME + "/help.html";
     }
 
     public SonarInstallation[] getInstallations() {
@@ -465,7 +466,8 @@ public class SonarPublisher extends Notifier {
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) {
-      installations = req.bindParametersToList(SonarInstallation.class, "sonar.").toArray(new SonarInstallation[0]);
+      List<SonarInstallation> list = req.bindParametersToList(SonarInstallation.class, "sonar.");
+      installations = list.toArray(new SonarInstallation[list.size()]);
       save();
       return true;
     }
