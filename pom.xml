@@ -14,6 +14,8 @@
   <name>Hudson Sonar plugin</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/Sonar+Plugin</url>
 
+  <inceptionYear>2007</inceptionYear>
+
   <dependencies>
     <dependency>
       <groupId>commons-lang</groupId>
@@ -54,6 +56,27 @@
     </developer>
   </developers>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.mycila.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <version>1.5.0</version>
+        <configuration>
+          <header>${basedir}/src/license-header.txt</header>
+          <includes>
+            <include>src/main/java/**</include>
+            <include>src/test/java/**</include>
+          </includes>
+          <properties>
+            <inceptionYear>${project.inceptionYear}</inceptionYear>
+            <email>be_agile HAT hortis DOT ch</email>
+          </properties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <scm>
     <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/trunk/hudson/plugins/sonar</connection>
     <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/trunk/hudson/plugins/sonar</developerConnection>
@@ -64,6 +87,11 @@
     <system>JIRA</system>
     <url>http://jira.codehaus.org/browse/SONARPLUGINS/component/13726</url>
   </issueManagement>
+
+  <ciManagement>
+    <system>Bamboo</system>
+    <url>http://ci.codehaus.org/browse/SONAR-HUDSON</url>
+  </ciManagement>
 
   <licenses>
     <license>

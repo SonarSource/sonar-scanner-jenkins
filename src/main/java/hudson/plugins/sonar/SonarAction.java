@@ -43,6 +43,7 @@ public final class SonarAction implements Action {
   }
 
   public String getUrlName() {
+    // TODO this link should point directy to project dashboard
     return StringUtils.isEmpty(sonarInstallation.getServerUrl()) ?
         MagicNames.DEFAULT_SONAR_URL :
         sonarInstallation.getServerUrl();

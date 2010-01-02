@@ -40,7 +40,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class SonarPublisher extends Notifier {
