@@ -19,16 +19,18 @@
  */
 package hudson.plugins.sonar.template;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
 import hudson.FilePath;
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 
-import org.apache.commons.io.IOUtils;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class SimpleTemplate {
+  private static final String POM_FILENAME = "sonar-pom.xml";
+
   private String template;
 
   public SimpleTemplate(String path) {
@@ -57,8 +59,8 @@ public class SimpleTemplate {
     return template;
   }
 
-  public void write(FilePath path) throws IOException, InterruptedException {
-    FilePath pom = path.child("sonar-pom.xml");
+  public String write(FilePath path) throws IOException, InterruptedException {
+    FilePath pom = path.child(POM_FILENAME);
     OutputStreamWriter outputStream = new OutputStreamWriter(pom.write());
     try {
       outputStream.write(template);
@@ -66,5 +68,6 @@ public class SimpleTemplate {
     finally {
       outputStream.close();
     }
+    return POM_FILENAME;
   }
 }

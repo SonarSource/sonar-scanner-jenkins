@@ -219,11 +219,11 @@ public class SonarPublisher extends Notifier {
 
   public SonarInstallation getInstallation() {
     DescriptorImpl sonarDescriptor = Hudson.getInstance().getDescriptorByType(DescriptorImpl.class);
-    if (StringUtils.isEmpty(installationName) && sonarDescriptor.getInstallations().length > 0) {
+    if (StringUtils.isEmpty(getInstallationName()) && sonarDescriptor.getInstallations().length > 0) {
       return sonarDescriptor.getInstallations()[0];
     }
     for (SonarInstallation si : sonarDescriptor.getInstallations()) {
-      if (StringUtils.equals(installationName, si.getName())) {
+      if (StringUtils.equals(getInstallationName(), si.getName())) {
         return si;
       }
     }
@@ -238,7 +238,7 @@ public class SonarPublisher extends Notifier {
     if (isSkipIfBuildFails() && build.getResult().isWorseThan(Result.SUCCESS)) {
       return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
     } else if (sonarInstallation == null) {
-      return Messages.SonarPublisher_NoInstallation(installationName, Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations().length);
+      return Messages.SonarPublisher_NoInstallation(getInstallationName(), Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations().length);
     } else if (sonarInstallation.isDisabled()) {
       return Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
     } else if (!isScmBuilds() && SonarHelper.isTrigger(build, SCMTriggerCause.class)) {
@@ -291,9 +291,8 @@ public class SonarPublisher extends Notifier {
       FilePath root = build.getModuleRoot();
       MavenModuleSet mavenModuleProject = getMavenProject(build);
       String pomName = mavenModuleProject != null ? mavenModuleProject.getRootPOM() : "pom.xml";
-      if (useSonarLight) {
-        generatePomForNonMavenProject(root);
-        pomName = "sonar-pom.xml";
+      if (isUseSonarLight()) {
+        pomName = generatePomForNonMavenProject(root);
       }
 
       String executable = buildExecName(launcher, mavenInstallation, listener.getLogger());
@@ -316,7 +315,7 @@ public class SonarPublisher extends Notifier {
     }
   }
 
-  private void generatePomForNonMavenProject(FilePath root) throws IOException, InterruptedException {
+  private String generatePomForNonMavenProject(FilePath root) throws IOException, InterruptedException {
     SimpleTemplate pomTemplate = new SimpleTemplate("hudson/plugins/sonar/sonar-light-pom.template");
     pomTemplate.setAttribute("groupId", getGroupId());
     pomTemplate.setAttribute("artifactId", getArtifactId());
@@ -339,7 +338,7 @@ public class SonarPublisher extends Notifier {
     setPomElement("sonar.cobertura.reportPath", getCoberturaReportPath(), isReuseReports(), pomTemplate);
     setPomElement("sonar.clover.reportPath", getCloverReportPath(), isReuseReports(), pomTemplate);
 
-    pomTemplate.write(root);
+    return pomTemplate.write(root);
   }
 
   private SimpleTemplate generateSrcDirsPluginTemplate(List<String> srcDirs) throws IOException, InterruptedException {
