@@ -9,7 +9,7 @@
       </j:forEach>
     </select>
   </f:entry>
-  
+
   <f:entry title="${%MavenOpts}" description="${%MavenOptsDescr}">
     <f:textbox name="sonar.mavenOpts" value="${instance.getMavenOpts()}"/>
   </f:entry>
@@ -17,94 +17,97 @@
   <f:entry title="${%AdditonalProps}" description="${%AdditonalPropsDescr}">
     <f:textbox name="sonar.jobAdditionalProperties" value="${instance.getJobAdditionalProperties()}"/>
   </f:entry>
-  
-  <f:nested>
-      <table>
-        <f:section title="${%BuildTriggers}">
-          <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-scm.html">
-            <f:checkbox name="sonar.scmBuilds" checked="${instance.isScmBuilds()}" default="false"/>
-            <label>${%ScmBuilds}</label>
-          </f:entry>
-          
-          <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-timer.html">
-            <f:checkbox name="sonar.timerBuilds" checked="${instance.isTimerBuilds()}" default="true"/>
-            <label>${%TimerBuilds}</label>
-          </f:entry>
-          
-          <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-user.html">
-            <f:checkbox name="sonar.userBuilds" checked="${instance.isUserBuilds()}" default="true"/>
-            <label>${%UserBuilds}</label>
-          </f:entry>
 
-          <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-snapshot-dep.html">
-            <f:checkbox name="sonar.snapshotDependencyBuilds" checked="${instance.isSnapshotDependencyBuilds()}" default="false"/>
-            <label>${%SnapshotsDepBuilds}</label>
-          </f:entry>
-        
-          <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-build-failure.html">
-            <f:checkbox name="sonar.skipIfBuildFails" checked="${instance.isSkipIfBuildFails()}" default="false"/>
-            <label>${%SkipIfBuildFails}</label>
-          </f:entry>
-        </f:section>
-      </table>
+  <f:nested>
+    <table>
+      <f:section title="${%BuildTriggers}">
+        <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-scm.html">
+          <f:checkbox name="sonar.scmBuilds" checked="${instance.isScmBuilds()}" default="false"/>
+          <label>${%ScmBuilds}</label>
+        </f:entry>
+
+        <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-timer.html">
+          <f:checkbox name="sonar.timerBuilds" checked="${instance.isTimerBuilds()}" default="true"/>
+          <label>${%TimerBuilds}</label>
+        </f:entry>
+
+        <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-user.html">
+          <f:checkbox name="sonar.userBuilds" checked="${instance.isUserBuilds()}" default="true"/>
+          <label>${%UserBuilds}</label>
+        </f:entry>
+
+        <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-snapshot-dep.html">
+          <f:checkbox name="sonar.snapshotDependencyBuilds" checked="${instance.isSnapshotDependencyBuilds()}"
+                      default="false"/>
+          <label>${%SnapshotsDepBuilds}</label>
+        </f:entry>
+
+        <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-build-failure.html">
+          <f:checkbox name="sonar.skipIfBuildFails" checked="${instance.isSkipIfBuildFails()}" default="false"/>
+          <label>${%SkipIfBuildFails}</label>
+        </f:entry>
+      </f:section>
+    </table>
   </f:nested>
-  
+
   <j:invokeStatic var="isMavenBuilder" className="hudson.plugins.sonar.SonarPublisher" method="isMavenBuilder">
     <j:arg value="${it}" type="hudson.model.AbstractProject"/>
   </j:invokeStatic>
-  
+
   <j:if test="${!isMavenBuilder}">
     <f:nested>
       <table>
         <f:section title="${%Builder}">
+
+          <f:entry title="${%MavenRuntime}">
+            <select class="setting-input" name="sonar.mavenInstallationName">
+              <option value="">(Default)</option>
+              <j:forEach var="inst" items="${instance.mavenInstallations}">
+                <f:option selected="${inst.name==instance.getMavenInstallation().name}">${inst.name}</f:option>
+              </j:forEach>
+            </select>
+          </f:entry>
+
           <f:optionalBlock name="sonar.useSonarLight" title="${%SonarLight}"
-                           checked="${instance.isUseSonarLight()}" help="${rootURL}/plugin/sonar/help-project-light.html">
-            
-            <f:entry title="${%MavenRuntime}">
-              <select class="setting-input" name="sonar.mavenInstallationName">
-                <option value="">(Default)</option>
-                <j:forEach var="inst" items="${instance.mavenInstallations}">
-                  <f:option selected="${inst.name==instance.getMavenInstallation().name}">${inst.name}</f:option>
-                </j:forEach>
-              </select>
-            </f:entry>
-                      
+                           checked="${instance.isUseSonarLight()}"
+                           help="${rootURL}/plugin/sonar/help-project-light.html">
+
             <f:entry title="${%Org}" description="${%OrgDescr}">
               <f:textbox name="sonar.groupId" value="${instance.getGroupId()}"
                          checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
             </f:entry>
-    
+
             <f:entry title="${%ProjectId}" description="${%ProjectIdDescr}">
               <f:textbox name="sonar.artifactId" value="${instance.getArtifactId()}"
                          checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
             </f:entry>
-    
+
             <f:entry title="${%ProjectName}" description="${%ProjectNameDescr}">
               <f:textbox name="sonar.projectName" value="${instance.getProjectName()}"
                          checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
             </f:entry>
-    
+
             <f:entry title="${%ProjectDescr}">
-              <f:textbox name="sonar.projectDescription" value="${instance.getProjectDescription()}" />
+              <f:textbox name="sonar.projectDescription" value="${instance.getProjectDescription()}"/>
             </f:entry>
-    
+
             <f:entry title="${%ProjectVersion}" description="${%ProjectVersionDescr}">
               <f:textbox name="sonar.projectVersion" value="${instance.getProjectVersion()}"/>
             </f:entry>
-    
+
             <f:entry title="${%SrcDirs}" description="${%SrcDirsDescr}">
               <f:textbox name="sonar.projectSrcDir" value="${instance.getProjectSrcDir()}"
                          checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
             </f:entry>
-            
+
             <f:entry title="${%SrcEncoding}" description="${%SrcEncodingDescr}">
               <f:textbox name="sonar.projectSrcEncoding" value="${instance.getProjectSrcEncoding()}"/>
             </f:entry>
-    
+
             <f:entry title="${%BinDir}" description="${%BinDirDescr}">
               <f:textbox name="sonar.projectBinDir" value="${instance.getProjectBinDir()}"/>
             </f:entry>
-    
+
             <f:entry title="${%JavaVersion}" description="${%JavaVersionDescr}">
               <f:textbox name="sonar.javaVersion" value="${instance.getJavaVersion()}"/>
             </f:entry>
@@ -114,18 +117,18 @@
                 <f:entry title="${%SurefireReportsPath}" description="${%SurefireReportsPathDescr}">
                   <f:textbox name="sonar.surefireReportsPath" value="${instance.getSurefireReportsPath()}"/>
                 </f:entry>
-          
+
                 <f:entry title="${%CoberturaReportPath}" description="${%CoberturaReportPathDescr}">
                   <f:textbox name="sonar.coberturaReportPath" value="${instance.getCoberturaReportPath()}"/>
                 </f:entry>
-          
+
                 <f:entry title="${%CloverReportPath}" description="${%CloverReportPathDescr}">
                   <f:textbox name="sonar.cloverReportPath" value="${instance.getCloverReportPath()}"/>
                 </f:entry>
               </f:optionalBlock>
             </f:section>
           </f:optionalBlock>
-          
+
         </f:section>
       </table>
     </f:nested>
