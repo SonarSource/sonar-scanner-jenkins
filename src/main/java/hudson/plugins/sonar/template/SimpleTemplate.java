@@ -29,8 +29,6 @@ import java.io.OutputStreamWriter;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class SimpleTemplate {
-  private static final String POM_FILENAME = "sonar-pom.xml";
-
   private String template;
 
   public SimpleTemplate(String path) {
@@ -59,8 +57,8 @@ public class SimpleTemplate {
     return template;
   }
 
-  public String write(FilePath path) throws IOException, InterruptedException {
-    FilePath pom = path.child(POM_FILENAME);
+  public void write(FilePath path, String pomName) throws IOException, InterruptedException {
+    FilePath pom = path.child(pomName);
     OutputStreamWriter outputStream = new OutputStreamWriter(pom.write());
     try {
       outputStream.write(template);
@@ -68,6 +66,5 @@ public class SimpleTemplate {
     finally {
       outputStream.close();
     }
-    return POM_FILENAME;
   }
 }

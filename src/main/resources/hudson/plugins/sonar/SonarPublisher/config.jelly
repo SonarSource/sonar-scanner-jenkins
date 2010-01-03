@@ -68,6 +68,10 @@
             </select>
           </f:entry>
 
+          <f:entry title="${%RootPom}" description="${%RootPomDescr}">
+            <f:textbox name="sonar.rootPom" value="${instance.getRootPom()}"/>
+          </f:entry>
+
           <f:optionalBlock name="sonar.useSonarLight" title="${%SonarLight}"
                            checked="${instance.isUseSonarLight()}"
                            help="${rootURL}/plugin/sonar/help-project-light.html">

@@ -48,7 +48,7 @@ public class SonarPublisherTest {
         "test",
         "",
         false,
-        null, null, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null,
         snapshotDependencyBuilds,
         scmBuilds,
         timerBuilds,

@@ -43,9 +43,28 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SonarPublisher extends Notifier {
-  private final String jobAdditionalProperties;
   private final String installationName;
+
+  private final String mavenOpts;
+  private final String jobAdditionalProperties;
+
+  // Triggers
+
+  private final boolean scmBuilds;
+  private final boolean timerBuilds;
+  private final boolean userBuilds;
+  private final boolean snapshotDependencyBuilds;
+  private final boolean skipIfBuildFails;
+  @Deprecated
+  private Boolean skipOnScm;
+
+  // Next properties available only for non-maven projects
+
   private final String mavenInstallationName;
+  private final String rootPom;
+
+  // Next properties available only for Sonar Light
+
   private final boolean useSonarLight;
   private final String groupId;
   private final String artifactId;
@@ -56,24 +75,17 @@ public class SonarPublisher extends Notifier {
   private final String projectSrcDir;
   private final String projectSrcEncoding;
   private final String projectBinDir;
-  private final String mavenOpts;
+
   private final boolean reuseReports;
   private final String surefireReportsPath;
   private final String coberturaReportPath;
   private final String cloverReportPath;
-  private final boolean scmBuilds;
-  private final boolean timerBuilds;
-  private final boolean userBuilds;
-  private final boolean snapshotDependencyBuilds;
-  private final boolean skipIfBuildFails;
-
-  @Deprecated
-  private Boolean skipOnScm;
 
   @DataBoundConstructor
   public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight, String groupId,
                         String artifactId, String projectName, String projectVersion, String projectSrcDir,
-                        String javaVersion, String projectDescription, String mavenOpts, String mavenInstallationName,
+                        String javaVersion, String projectDescription,
+                        String mavenOpts, String mavenInstallationName, String rootPom,
                         boolean snapshotDependencyBuilds, boolean scmBuilds, boolean timerBuilds, boolean userBuilds,
                         boolean skipIfBuildFails, String projectBinDir, boolean reuseReports,
                         String coberturaReportPath, String surefireReportsPath, String cloverReportPath,
@@ -101,6 +113,11 @@ public class SonarPublisher extends Notifier {
     this.coberturaReportPath = coberturaReportPath;
     this.cloverReportPath = cloverReportPath;
     this.projectSrcEncoding = projectSrcEncoding;
+    this.rootPom = rootPom;
+  }
+
+  public String getRootPom() {
+    return StringUtils.trimToEmpty(rootPom);
   }
 
   @Deprecated
@@ -290,9 +307,12 @@ public class SonarPublisher extends Notifier {
       Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build, listener);
       FilePath root = build.getModuleRoot();
       MavenModuleSet mavenModuleProject = getMavenProject(build);
-      String pomName = mavenModuleProject != null ? mavenModuleProject.getRootPOM() : "pom.xml";
+      String pomName = mavenModuleProject != null ? mavenModuleProject.getRootPOM() : getRootPom();
+      if (StringUtils.isEmpty(pomName)) {
+        pomName = "pom.xml";
+      }
       if (isUseSonarLight()) {
-        pomName = generatePomForNonMavenProject(root);
+        generatePomForNonMavenProject(root, pomName);
       }
 
       String executable = buildExecName(launcher, mavenInstallation, listener.getLogger());
@@ -315,7 +335,7 @@ public class SonarPublisher extends Notifier {
     }
   }
 
-  private String generatePomForNonMavenProject(FilePath root) throws IOException, InterruptedException {
+  private void generatePomForNonMavenProject(FilePath root, String pomName) throws IOException, InterruptedException {
     SimpleTemplate pomTemplate = new SimpleTemplate("hudson/plugins/sonar/sonar-light-pom.template");
     pomTemplate.setAttribute("groupId", getGroupId());
     pomTemplate.setAttribute("artifactId", getArtifactId());
@@ -338,7 +358,7 @@ public class SonarPublisher extends Notifier {
     setPomElement("sonar.cobertura.reportPath", getCoberturaReportPath(), isReuseReports(), pomTemplate);
     setPomElement("sonar.clover.reportPath", getCloverReportPath(), isReuseReports(), pomTemplate);
 
-    return pomTemplate.write(root);
+    pomTemplate.write(root, pomName);
   }
 
   private SimpleTemplate generateSrcDirsPluginTemplate(List<String> srcDirs) throws IOException, InterruptedException {
