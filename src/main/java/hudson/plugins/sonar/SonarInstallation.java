@@ -32,6 +32,7 @@ public class SonarInstallation {
   private final String databaseLogin;
   private final String databasePassword;
   private final String additionalProperties;
+  @Deprecated
   private final String version;
 
   @DataBoundConstructor
