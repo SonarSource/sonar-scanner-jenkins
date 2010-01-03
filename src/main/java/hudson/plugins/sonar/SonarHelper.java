@@ -61,6 +61,13 @@ public final class SonarHelper {
     }
   }
 
+  /**
+   * Returns true, if specified build triggered by specified trigger.
+   *
+   * @param build   build
+   * @param trigger trigger
+   * @return true, if specified build triggered by specified trigger
+   */
   public static boolean isTrigger(AbstractBuild<?, ?> build, Class<? extends hudson.model.Cause> trigger) {
     CauseAction buildCause = build.getAction(CauseAction.class);
     List<Cause> buildCauses = buildCause.getCauses();

@@ -17,29 +17,18 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
+
 package hudson.plugins.sonar;
 
-import hudson.model.ProminentProjectAction;
+import hudson.model.BuildBadgeAction;
 
 /**
+ * {@link BuildBadgeAction} that shows the build contains Sonar analysis.
+ *
  * @author Evgeny Mandrikov
  */
-public abstract class SonarAction implements ProminentProjectAction {
-  /**
-   * Default no-arg constructor.
-   */
-  public SonarAction() {
-  }
-
-  public String getIconFileName() {
-    return MagicNames.ICON;
-  }
-
-  public String getDisplayName() {
-    return Messages.SonarAction_Sonar();
-  }
-
-  public String getUrlName() {
-    return null;
+public final class BuildSonarAction extends SonarAction implements BuildBadgeAction {
+  public String getTooltip() {
+    return Messages.BuildSonarAction_Tooltip();
   }
 }

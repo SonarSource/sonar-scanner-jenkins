@@ -261,6 +261,7 @@ public class SonarPublisher extends Notifier {
       listener.getLogger().println(skipLaunchMsg);
       return true;
     }
+    build.addAction(new BuildSonarAction());
     boolean sonarSuccess = executeSonar(build, launcher, listener, sonarInstallation);
     if (!sonarSuccess) {
       // returning false has no effect on the global build status so need to do it manually
@@ -420,11 +421,10 @@ public class SonarPublisher extends Notifier {
   @Override
   public Action getProjectAction(AbstractProject<?, ?> project) {
     SonarInstallation sonarInstallation = getInstallation();
-    if (sonarInstallation != null) {
-      return new SonarAction(sonarInstallation);
-    } else {
+    if (sonarInstallation == null) {
       return null;
     }
+    return new ProjectSonarAction(project, sonarInstallation);
   }
 
   @Extension

@@ -20,6 +20,7 @@
 package hudson.plugins.sonar;
 
 import hudson.EnvVars;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SonarInstallation {
@@ -94,4 +95,32 @@ public class SonarInstallation {
     return builder.toString();
   }
 
+  public String getServerLink() {
+    return StringUtils.isEmpty(getServerUrl()) ?
+        MagicNames.DEFAULT_SONAR_URL :
+        getServerUrl();
+  }
+
+  private String getServerLink(String prefix, String groupId, String artifactId) {
+    StringBuilder builder = new StringBuilder();
+    builder.append(getServerLink())
+        .append(prefix)
+        .append(groupId).append(':').append(artifactId);
+    return builder.toString();
+  }
+
+  /**
+   * Returns URL of Sonar project dashboard.
+   *
+   * @param groupId    Group ID
+   * @param artifactId Artifact ID
+   * @return URL of Sonar project dashboard
+   */
+  public String getProjectLink(String groupId, String artifactId) {
+    return getServerLink("/project/index/", groupId, artifactId);
+  }
+
+  public String getComponentLink(String groupId, String artifactId) {
+    return getServerLink("/components/index/", groupId, artifactId);
+  }
 }
