@@ -420,11 +420,7 @@ public class SonarPublisher extends Notifier {
 
   @Override
   public Action getProjectAction(AbstractProject<?, ?> project) {
-    SonarInstallation sonarInstallation = getInstallation();
-    if (sonarInstallation == null) {
-      return null;
-    }
-    return new ProjectSonarAction(project, sonarInstallation);
+    return new ProjectSonarAction(project);
   }
 
   @Extension

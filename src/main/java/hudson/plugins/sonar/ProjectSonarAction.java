@@ -21,6 +21,7 @@
 package hudson.plugins.sonar;
 
 import hudson.maven.AbstractMavenProject;
+import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.ModuleName;
 import hudson.model.AbstractProject;
@@ -32,16 +33,21 @@ import hudson.model.AbstractProject;
  */
 public final class ProjectSonarAction extends SonarAction {
   private final AbstractProject<?, ?> project;
-  private final SonarInstallation sonarInstallation;
 
-  public ProjectSonarAction(AbstractProject<?, ?> project, SonarInstallation sonarInstallation) {
+  public ProjectSonarAction(AbstractProject<?, ?> project) {
     this.project = project;
-    this.sonarInstallation = sonarInstallation;
   }
 
   @Override
   public String getUrlName() {
-    if (project instanceof AbstractMavenProject) {
+    final SonarPublisher publisher = project.getPublishersList().get(SonarPublisher.class);
+    final SonarInstallation sonarInstallation = publisher.getInstallation();
+    if (sonarInstallation == null) {
+      return null;
+    }
+
+    if (project instanceof MavenModule) {
+      // Maven Project
       AbstractMavenProject mavenProject = (AbstractMavenProject) project;
       if (mavenProject.getRootProject() instanceof MavenModuleSet) {
         MavenModuleSet mms = (MavenModuleSet) mavenProject.getRootProject();
@@ -50,9 +56,16 @@ public final class ProjectSonarAction extends SonarAction {
             moduleName.groupId,
             moduleName.artifactId
         );
+      } else {
+        // TODO Godin: WTF?
       }
+    } else {
+      // Non-Maven Project
+      return sonarInstallation.getProjectLink(
+          publisher.getGroupId(),
+          publisher.getArtifactId()
+      );
     }
-    // TODO sonarLight
     return sonarInstallation.getServerLink();
   }
 }
