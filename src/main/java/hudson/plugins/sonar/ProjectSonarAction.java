@@ -21,6 +21,7 @@
 package hudson.plugins.sonar;
 
 import hudson.maven.AbstractMavenProject;
+import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.ModuleName;
 import hudson.model.AbstractProject;
@@ -50,13 +51,14 @@ public final class ProjectSonarAction extends SonarAction {
       AbstractMavenProject mavenProject = (AbstractMavenProject) project;
       if (mavenProject.getRootProject() instanceof MavenModuleSet) {
         MavenModuleSet mms = (MavenModuleSet) mavenProject.getRootProject();
-        ModuleName moduleName = mms.getRootModule().getModuleName();
-        return sonarInstallation.getProjectLink(
-            moduleName.groupId,
-            moduleName.artifactId
-        );
-      } else {
-        // TODO Godin: WTF?
+        MavenModule rootModule = mms.getRootModule();
+        if (rootModule != null) {
+          ModuleName moduleName = rootModule.getModuleName();
+          return sonarInstallation.getProjectLink(
+              moduleName.groupId,
+              moduleName.artifactId
+          );
+        }
       }
     } else {
       // Non-Maven Project
