@@ -20,7 +20,6 @@
 package hudson.plugins.sonar;
 
 import hudson.EnvVars;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SonarInstallation {
@@ -87,21 +86,12 @@ public class SonarInstallation {
 
   public String getPluginCallArgs(EnvVars envVars) {
     StringBuilder builder = new StringBuilder(100);
-    appendUnlessEmpty(builder, "sonar.jdbc.driver", envVars.expand(databaseDriver));
-    appendUnlessEmpty(builder, "sonar.jdbc.username", envVars.expand(databaseLogin));
-    appendUnlessEmpty(builder, "sonar.jdbc.password", envVars.expand(databasePassword));
-    appendUnlessEmpty(builder, "sonar.jdbc.url", envVars.expand(databaseUrl));
-    appendUnlessEmpty(builder, "sonar.host.url", envVars.expand(serverUrl));
+    SonarHelper.appendUnlessEmpty(builder, "sonar.jdbc.driver", envVars.expand(getDatabaseDriver()));
+    SonarHelper.appendUnlessEmpty(builder, "sonar.jdbc.username", envVars.expand(getDatabaseLogin()));
+    SonarHelper.appendUnlessEmpty(builder, "sonar.jdbc.password", envVars.expand(getDatabasePassword()));
+    SonarHelper.appendUnlessEmpty(builder, "sonar.jdbc.url", envVars.expand(getDatabaseUrl()));
+    SonarHelper.appendUnlessEmpty(builder, "sonar.host.url", envVars.expand(getServerUrl()));
     return builder.toString();
   }
 
-  private static void appendUnlessEmpty(StringBuilder builder, String key, String value) {
-    if (StringUtils.isNotEmpty(StringUtils.defaultString(value))) {
-      builder.append(" -D");
-      builder.append(key);
-      builder.append('=');
-      builder.append(value.contains(" ") ? "'" + value + "'" : value);
-    }
-  }
 }
-

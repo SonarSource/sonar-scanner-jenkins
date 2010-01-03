@@ -241,13 +241,13 @@ public class SonarPublisher extends Notifier {
       return Messages.SonarPublisher_NoInstallation(installationName, Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations().length);
     } else if (sonarInstallation.isDisabled()) {
       return Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else if (!isScmBuilds() && isTrigger(build, SCMTriggerCause.class)) {
+    } else if (!isScmBuilds() && SonarHelper.isTrigger(build, SCMTriggerCause.class)) {
       return Messages.SonarPublisher_SCMBuild();
-    } else if (!isTimerBuilds() && isTrigger(build, TimerTriggerCause.class)) {
+    } else if (!isTimerBuilds() && SonarHelper.isTrigger(build, TimerTriggerCause.class)) {
       return Messages.SonarPublisher_TimerBuild();
-    } else if (!isUserBuilds() && isTrigger(build, UserCause.class)) {
+    } else if (!isUserBuilds() && SonarHelper.isTrigger(build, UserCause.class)) {
       return Messages.SonarPublisher_UserBuild();
-    } else if (!isSnapshotDependencyBuilds() && isTrigger(build, UpstreamCause.class)) {
+    } else if (!isSnapshotDependencyBuilds() && SonarHelper.isTrigger(build, UpstreamCause.class)) {
       return Messages.SonarPublisher_SnapshotDepBuild();
     }
     return null;
@@ -267,17 +267,6 @@ public class SonarPublisher extends Notifier {
       build.setResult(Result.FAILURE);
     }
     return sonarSuccess;
-  }
-
-  private boolean isTrigger(AbstractBuild<?, ?> build, Class<? extends hudson.model.Cause> trigger) {
-    CauseAction buildCause = build.getAction(CauseAction.class);
-    List<Cause> buildCauses = buildCause.getCauses();
-    for (Cause cause : buildCauses) {
-      if (cause.getClass().equals(trigger)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private Maven.MavenInstallation getMavenInstallationForSonar(AbstractBuild<?, ?> build, TaskListener listener) throws IOException, InterruptedException {
@@ -389,6 +378,8 @@ public class SonarPublisher extends Notifier {
   }
 
   private String buildExecName(Launcher launcher, Maven.MavenInstallation mavenInstallation, PrintStream logger) {
+    // TODO see mavenInstallation.getExecutable()
+
     String execName = launcher.isUnix() ? "mvn" : "mvn.bat";
     String separator = launcher.isUnix() ? "/" : "\\";
 
@@ -402,33 +393,28 @@ public class SonarPublisher extends Notifier {
     return executable;
   }
 
-  private ArgumentListBuilder buildCommand(Launcher launcher, BuildListener listener, AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable, String pomName, MavenModuleSet mms) throws IOException, InterruptedException {
+  protected ArgumentListBuilder buildCommand(Launcher launcher, BuildListener listener, AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable, String pomName, MavenModuleSet mms) throws IOException, InterruptedException {
     EnvVars envVars = build.getEnvironment(listener);
     ArgumentListBuilder args = new ArgumentListBuilder();
-    args.add(executable).add("-e").add("-B");
-    args.addTokenized("-f " + pomName);
+    args.add(executable);
+    // Produce execution error messages
+    args.add("-e");
+    // Run in non-interactive (batch) mode
+    args.add("-B");
+    // Force the use of an alternate POM file,
+    // don't use addTokenized - see bug SONARPLUGINS-263 (pom with spaces)
+    args.add("-f").add(pomName);
+    // Define a system properties
     args.addKeyValuePairs("-D", build.getBuildVariables());
-    addTokenizedAndQuoted(launcher.isUnix(), args, sonarInstallation.getPluginCallArgs(envVars));
-    addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(sonarInstallation.getAdditionalProperties()));
-    addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(getJobAdditionalProperties()));
+    SonarHelper.addTokenizedAndQuoted(launcher.isUnix(), args, sonarInstallation.getPluginCallArgs(envVars));
+    SonarHelper.addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(sonarInstallation.getAdditionalProperties()));
+    SonarHelper.addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(getJobAdditionalProperties()));
     if (mms != null && mms.usesPrivateRepository()) {
       args.add("-Dmaven.repo.local=" + build.getWorkspace().child(".repository").getRemote());
     }
+    // Goal
     args.add("sonar:sonar");
     return args;
-  }
-
-  private void addTokenizedAndQuoted(boolean isUnix, ArgumentListBuilder args, String argsString) {
-    if (StringUtils.isNotBlank(argsString)) {
-      for (String argToken : Util.tokenize(argsString)) {
-        // see SONARPLUGINS-123 amperstand bug with windows..
-        if (!isUnix && argToken.contains("&")) {
-          args.addQuoted(argToken);
-        } else {
-          args.add(argToken);
-        }
-      }
-    }
   }
 
   @Override
