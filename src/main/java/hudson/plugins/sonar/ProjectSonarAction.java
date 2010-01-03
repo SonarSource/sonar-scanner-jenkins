@@ -21,7 +21,6 @@
 package hudson.plugins.sonar;
 
 import hudson.maven.AbstractMavenProject;
-import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.ModuleName;
 import hudson.model.AbstractProject;
@@ -46,7 +45,7 @@ public final class ProjectSonarAction extends SonarAction {
       return null;
     }
 
-    if (project instanceof MavenModule) {
+    if (project instanceof AbstractMavenProject) {
       // Maven Project
       AbstractMavenProject mavenProject = (AbstractMavenProject) project;
       if (mavenProject.getRootProject() instanceof MavenModuleSet) {
