@@ -38,7 +38,10 @@ public class BaseTest extends SonarTestCase {
     MavenModuleSetBuild build = build(project);
 
     // TODO Check that there is no POM-generation for Maven project
-    assertSonarExecution(build, "-f \"" + pomName + "\" -Dsonar.host.url=" + SONAR_HOST);
+    assertSonarExecution(build, "-f \"" + pomName + "\""
+        + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
+        + " -Dsonar.host.url=" + SONAR_HOST
+    );
   }
 
   /**
@@ -60,7 +63,10 @@ public class BaseTest extends SonarTestCase {
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(pomName));
     FreeStyleBuild build = build(project);
 
-    assertSonarExecution(build, "-f \"" + pomName + "\" -Dsonar.host.url=" + SONAR_HOST);
+    assertSonarExecution(build, "-f \"" + pomName + "\""
+        + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
+        + " -Dsonar.host.url=" + SONAR_HOST
+    );
     // Check that POM generated
     assertTrue(build.getWorkspace().child(pomName).exists());
   }

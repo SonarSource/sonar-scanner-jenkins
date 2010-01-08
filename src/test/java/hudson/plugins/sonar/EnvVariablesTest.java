@@ -25,7 +25,7 @@ public class EnvVariablesTest extends SonarTestCase {
         SONAR_INSTALLATION_NAME,
         false,
         "${VAR_SONAR_HOST}",
-        null, null, null, null, // Database Properties
+        null, null, null, DATABASE_PASSWORD, // Database Properties
         "-P${VAR_PROFILE}" // Additinal Properties
     ));
 
@@ -64,6 +64,7 @@ public class EnvVariablesTest extends SonarTestCase {
         " -DVAR_SUBDIR=subdir" +
         " -DVAR_SONAR_HOST=" + SONAR_HOST +
         " -DVAR_PROFILE=release" +
+        " -Dsonar.jdbc.password=" + DATABASE_PASSWORD +
         " -Dsonar.host.url=" + SONAR_HOST +
         " -Prelease" +
         " -Ddir=subdir"
