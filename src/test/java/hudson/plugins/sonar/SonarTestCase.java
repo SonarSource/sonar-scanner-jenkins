@@ -125,7 +125,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
         null, null, null, null,
         null, null, null, null,
         null, null,
-        false, false, false, true, true, // Triggers
+        false, false, false, true, false, // Triggers
         null,
         false, // Reuse Reports
         null, null, null, null

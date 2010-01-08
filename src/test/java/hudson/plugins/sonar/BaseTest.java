@@ -1,5 +1,7 @@
 package hudson.plugins.sonar;
 
+import hudson.maven.MavenModuleSet;
+import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
@@ -29,7 +31,6 @@ public class BaseTest extends SonarTestCase {
    * @throws Exception if something is wrong
    */
   public void testMavenProject() throws Exception {
-    /* FIXME disabled
     configureDefaultMaven();
     configureDefaultSonar();
     String pomName = "space test/root-pom.xml";
@@ -41,7 +42,6 @@ public class BaseTest extends SonarTestCase {
         + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
         + " -Dsonar.host.url=" + SONAR_HOST
     );
-    */
   }
 
   /**
