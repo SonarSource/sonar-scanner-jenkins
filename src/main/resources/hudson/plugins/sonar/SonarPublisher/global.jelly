@@ -42,7 +42,8 @@
 
           <f:entry title="">
             <div align="right">
-              <f:repeatableDeleteButton/>
+              <!-- TODO l10n -->
+              <f:repeatableDeleteButton value="Delete Sonar"/>
             </div>
           </f:entry>
         </table>
@@ -50,3 +51,4 @@
     </f:entry>
   </f:section>
 </j:jelly>
+
