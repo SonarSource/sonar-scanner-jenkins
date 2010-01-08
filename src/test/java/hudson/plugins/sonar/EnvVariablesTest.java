@@ -62,7 +62,7 @@ public class EnvVariablesTest extends SonarTestCase {
     assertTrue(build.getWorkspace().child(pomName).exists());
     assertSonarExecution(build, "-f " + pomName +
         " -DVAR_SUBDIR=subdir" +
-        " -DVAR_SONAR_HOST=http://sonarhost:sonarport" +
+        " -DVAR_SONAR_HOST=" + SONAR_HOST +
         " -DVAR_PROFILE=release" +
         " -Dsonar.host.url=" + SONAR_HOST +
         " -Prelease" +

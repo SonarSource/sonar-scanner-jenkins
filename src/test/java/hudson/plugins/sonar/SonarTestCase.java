@@ -18,7 +18,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   /**
    * Setting this to non-existent host, allows us to avoid intersection with exist Sonar.
    */
-  public static final String SONAR_HOST = "http://sonarhost:sonarport";
+  public static final String SONAR_HOST = "http://example.org:9999/sonar";
 
   public static final String ROOT_POM = "sonar-pom.xml";
   public static final String SONAR_INSTALLATION_NAME = "default";
