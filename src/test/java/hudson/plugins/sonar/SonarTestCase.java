@@ -1,5 +1,6 @@
 package hudson.plugins.sonar;
 
+import hudson.UDPBroadcastThread;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
@@ -27,8 +28,21 @@ public abstract class SonarTestCase extends HudsonTestCase {
   public static final String ROOT_POM = "sonar-pom.xml";
   public static final String SONAR_INSTALLATION_NAME = "default";
 
+  /**
+   * We should override default port defined in {@link hudson.UDPBroadcastThread#PORT}
+   * to avoid intersections with real Hudson on Nemo.
+   */
+  public static final Integer UdpBroadcastPort = 33849;
+
+  /**
+   * @throws Exception
+   */
   @Override
   protected void setUp() throws Exception {
+    System.setProperty("hudson.udp", UdpBroadcastPort.toString());
+    if (UDPBroadcastThread.PORT != 33849) {
+      throw new RuntimeException("UdpBroadcastPort");
+    }
     System.setProperty("maven.home", "/usr/share/maven-bin-2.2"); // FIXME
     super.setUp();
   }
