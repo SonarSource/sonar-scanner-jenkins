@@ -12,11 +12,11 @@ import java.io.IOException;
 /**
  * @author Evgeny Mandrikov
  */
-public class MavenHelper {
+public final class MavenHelper {
   /**
    * Produce execution error messages and run in non-interactive (batch) mode.
    */
-  public static String MAVEN_PROPERTIES = "-e -B";
+  public static final String MAVEN_PROPERTIES = "-e -B";
 
   /**
    * See {@link hudson.tasks.Maven}.
@@ -103,5 +103,11 @@ public class MavenHelper {
         jvmOptions,
         usesPrivateRepository
     );
+  }
+
+  /**
+   * Hide utility-class constructor.
+   */
+  private MavenHelper() {
   }
 }

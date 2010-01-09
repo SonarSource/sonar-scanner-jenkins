@@ -11,8 +11,7 @@ import java.util.List;
 /**
  * @author Evgeny Mandrikov
  */
-public class SonarPomGenerator {
-
+public final class SonarPomGenerator {
   public static void generatePomForNonMavenProject(SonarPublisher publisher, FilePath root, String pomName) throws IOException, InterruptedException {
     SimpleTemplate pomTemplate = new SimpleTemplate("hudson/plugins/sonar/sonar-light-pom.template");
     pomTemplate.setAttribute("groupId", publisher.getGroupId());
@@ -59,4 +58,9 @@ public class SonarPomGenerator {
     return Arrays.asList(dirs);
   }
 
+  /**
+   * Hide utility-class constructor.
+   */
+  private SonarPomGenerator() {
+  }
 }
