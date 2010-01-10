@@ -10,12 +10,6 @@ import org.jvnet.hudson.test.Email;
 import org.jvnet.hudson.test.FailureBuilder;
 
 /**
- * TODO:
- * <ul>
- * <li>SONARPLUGINS-101 - Private Repository</li>
- * <li>Start Sonar???</li>
- * </ul>
- *
  * @author Evgeny Mandrikov
  */
 public class BaseTest extends SonarTestCase {
@@ -26,6 +20,7 @@ public class BaseTest extends SonarTestCase {
    * <li>SONARPLUGINS-73: Root POM</li>
    * <li>SONARPLUGINS-253: Maven "-e" option</li>
    * <li>SONARPLUGINS-263: Path to POM with spaces</li>
+   * <li>SONARPLUGINS-101: Private Repository</li>
    * </ul>
    *
    * @throws Exception if something is wrong
@@ -35,12 +30,15 @@ public class BaseTest extends SonarTestCase {
     configureDefaultSonar();
     String pomName = "space test/root-pom.xml";
     MavenModuleSet project = setupMavenProject(pomName);
+    project.setUsePrivateRepository(true);
     MavenModuleSetBuild build = build(project);
+    String repo = build.getWorkspace().child(".repository").getRemote();
 
     // TODO Check that there is no POM-generation for Maven project
     assertSonarExecution(build, "-f \"" + pomName + "\""
         + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
         + " -Dsonar.host.url=" + SONAR_HOST
+        + " -Dmaven.repo.local=" + repo
     );
   }
 

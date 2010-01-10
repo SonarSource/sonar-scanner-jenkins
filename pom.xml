@@ -11,7 +11,7 @@
   <artifactId>sonar</artifactId>
   <version>1.2-SNAPSHOT</version>
   <packaging>hpi</packaging>
-  <name>Hudson Sonar plugin</name>
+  <name>Hudson Sonar Plugin</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/Sonar+Plugin</url>
 
   <inceptionYear>2007</inceptionYear>
@@ -42,6 +42,15 @@
 
   <developers>
     <developer>
+      <id>godin</id>
+      <name>Evgeny Mandrikov</name>
+      <email>mandrikov@gmail.com</email>
+      <timezone>+3</timezone>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+    <developer>
       <id>sbrandhof</id>
       <name>Simon Brandhof</name>
       <email>simon.brandhof@gmail.com</email>
@@ -55,11 +64,6 @@
       <id>cjelmini</id>
       <name>Carlo Jelmini</name>
       <email>cjelmini@gmail.com</email>
-    </developer>
-    <developer>
-      <id>godin</id>
-      <name>Evgeny Mandrikov</name>
-      <timezone>+3</timezone>
     </developer>
   </developers>
 

@@ -14,8 +14,6 @@ import java.io.File;
 import static org.mockito.Mockito.spy;
 
 /**
- * TODO Set -Dmaven.home to MAVEN_HOME
- *
  * @author Evgeny Mandrikov
  */
 public abstract class SonarTestCase extends HudsonTestCase {
@@ -35,7 +33,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   public static final Integer UdpBroadcastPort = 33849;
 
   /**
-   * @throws Exception
+   * @throws Exception if something is wrong
    */
   @Override
   protected void setUp() throws Exception {
@@ -43,10 +41,15 @@ public abstract class SonarTestCase extends HudsonTestCase {
     if (UDPBroadcastThread.PORT != 33849) {
       throw new RuntimeException("UdpBroadcastPort");
     }
-    System.setProperty("maven.home", "/usr/share/maven-bin-2.2"); // FIXME
     super.setUp();
   }
 
+  /**
+   * Returns Fake Maven Installation.
+   *
+   * @return Fake Maven Installation
+   * @throws Exception if something is wrong
+   */
   @Override
   protected Maven.MavenInstallation configureDefaultMaven() throws Exception {
     File mvn = new File(getClass().getResource("SonarTestCase/maven/bin/mvn").toURI().getPath());
