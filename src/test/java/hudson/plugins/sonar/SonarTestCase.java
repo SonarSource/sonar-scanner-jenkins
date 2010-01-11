@@ -10,8 +10,6 @@ import org.jvnet.hudson.test.SingleFileSCM;
 
 import java.io.File;
 
-import static org.mockito.Mockito.spy;
-
 /**
  * @author Evgeny Mandrikov
  */
@@ -122,7 +120,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   }
 
   protected static SonarPublisher newSonarPublisherForMavenProject() {
-    SonarPublisher publisher = new SonarPublisher(
+    return new SonarPublisher(
         SONAR_INSTALLATION_NAME,
         null,
         false, // Sonar Light
@@ -134,11 +132,9 @@ public abstract class SonarTestCase extends HudsonTestCase {
         false, // Reuse Reports
         null, null, null, null
     );
-    return spy(publisher);
   }
 
   protected static SonarPublisher newSonarPublisherForFreeStyleProject(String pomName) {
-    // TODO Godin: I don't know why, but spy don't work for FreeStyleProject
     return new SonarPublisher(
         SONAR_INSTALLATION_NAME,
         null,

@@ -31,13 +31,6 @@
       <groupId>org.jvnet.hudson.main</groupId>
       <artifactId>maven-plugin</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>1.8.0</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <developers>
