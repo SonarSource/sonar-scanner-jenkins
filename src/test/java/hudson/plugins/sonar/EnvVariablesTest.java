@@ -1,6 +1,6 @@
 package hudson.plugins.sonar;
 
-import hudson.model.FreeStyleBuild;
+import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.StringParameterDefinition;
@@ -55,7 +55,7 @@ public class EnvVariablesTest extends SonarTestCase {
         false, // Reuse Reports
         null, null, null, "UTF-8"
     ));
-    FreeStyleBuild build = build(project);
+    AbstractBuild build = build(project);
 
     // Check that POM generated
     // TODO validate POM

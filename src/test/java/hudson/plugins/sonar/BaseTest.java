@@ -1,7 +1,6 @@
 package hudson.plugins.sonar;
 
 import hudson.maven.MavenModuleSet;
-import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
@@ -18,9 +17,9 @@ public class BaseTest extends SonarTestCase {
    * <ul>
    * <li>SONARPLUGINS-19: Maven "-B" option (batch mode)</li>
    * <li>SONARPLUGINS-73: Root POM</li>
+   * <li>SONARPLUGINS-101: Private Repository</li>
    * <li>SONARPLUGINS-253: Maven "-e" option</li>
    * <li>SONARPLUGINS-263: Path to POM with spaces</li>
-   * <li>SONARPLUGINS-101: Private Repository</li>
    * </ul>
    *
    * @throws Exception if something is wrong
@@ -31,9 +30,9 @@ public class BaseTest extends SonarTestCase {
     String pomName = "space test/root-pom.xml";
     MavenModuleSet project = setupMavenProject(pomName);
     project.setUsePrivateRepository(true);
-    MavenModuleSetBuild build = build(project);
-    String repo = build.getWorkspace().child(".repository").getRemote();
+    AbstractBuild build = build(project);
 
+    String repo = build.getWorkspace().child(".repository").getRemote();
     // TODO Check that there is no POM-generation for Maven project
     assertSonarExecution(build, "-f \"" + pomName + "\""
         + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
@@ -59,7 +58,7 @@ public class BaseTest extends SonarTestCase {
     String pomName = "space test/sonar-pom.xml";
     FreeStyleProject project = setupFreeStyleProject(pomName);
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(pomName));
-    FreeStyleBuild build = build(project);
+    AbstractBuild build = build(project);
 
     assertSonarExecution(build, "-f \"" + pomName + "\""
         + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
@@ -78,7 +77,7 @@ public class BaseTest extends SonarTestCase {
     configureDefaultMaven();
     configureDefaultSonar();
     FreeStyleProject project = setupFreeStyleProject();
-    FreeStyleBuild build;
+    AbstractBuild build;
     // Disable sonar on user build command execution
     build = build(project, new Cause.UserCause(), null);
     assertNoSonarExecution(build, Messages.SonarPublisher_UserBuild());
@@ -93,7 +92,7 @@ public class BaseTest extends SonarTestCase {
     assertNoSonarExecution(build, Messages.SonarPublisher_SnapshotDepBuild());
     // Disable sonar on build failure
     project.getBuildersList().add(new FailureBuilder());
-    build = build(project, null);
+    build = build(project);
     assertNoSonarExecution(build, Messages.SonarPublisher_BadBuildStatus(Result.FAILURE));
   }
 

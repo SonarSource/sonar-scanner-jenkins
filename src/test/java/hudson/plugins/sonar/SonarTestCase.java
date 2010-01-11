@@ -2,7 +2,6 @@ package hudson.plugins.sonar;
 
 import hudson.UDPBroadcastThread;
 import hudson.maven.MavenModuleSet;
-import hudson.maven.MavenModuleSetBuild;
 import hudson.model.*;
 import hudson.scm.NullSCM;
 import hudson.tasks.Maven;
@@ -81,7 +80,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   }
 
   protected MavenModuleSet setupMavenProject(String pomName) throws Exception {
-    MavenModuleSet project = createMavenProject("MavenProject");
+    MavenModuleSet project = super.createMavenProject("MavenProject");
     // Setup SCM
     project.setScm(new SingleFileSCM(pomName, getClass().getResource("/hudson/plugins/sonar/SonarTestCase/pom.xml")));
     // Setup Maven
@@ -106,28 +105,16 @@ public abstract class SonarTestCase extends HudsonTestCase {
     return project;
   }
 
-  protected MavenModuleSetBuild build(final MavenModuleSet project) throws Exception {
+  protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project) throws Exception {
     return build(project, null);
   }
 
-  protected FreeStyleBuild build(final FreeStyleProject project) throws Exception {
-    return build(project, null);
-  }
-
-  protected MavenModuleSetBuild build(final MavenModuleSet project, Result expectedStatus) throws Exception {
-    MavenModuleSetBuild build = project.scheduleBuild2(0, new Cause.RemoteCause("", "")).get();
-    if (expectedStatus != null) {
-      assertBuildStatus(expectedStatus, build);
-    }
-    return build;
-  }
-
-  protected FreeStyleBuild build(FreeStyleProject project, Result expectedStatus) throws Exception {
+  protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project, Result expectedStatus) throws Exception {
     return build(project, new Cause.RemoteCause("", ""), expectedStatus);
   }
 
-  protected FreeStyleBuild build(FreeStyleProject project, Cause cause, Result expectedStatus) throws Exception {
-    FreeStyleBuild build = project.scheduleBuild2(0, cause).get();
+  protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project, Cause cause, Result expectedStatus) throws Exception {
+    AbstractBuild<?, ?> build = project.scheduleBuild2(0, cause).get();
     if (expectedStatus != null) {
       assertBuildStatus(expectedStatus, build);
     }
@@ -173,7 +160,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   }
 
   /**
-   * Asserts that the Sonar executed with given arguments.
+   * Asserts that Sonar executed with given arguments.
    *
    * @param build build
    * @param args  command line arguments

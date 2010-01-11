@@ -1,8 +1,7 @@
 package hudson.plugins.sonar;
 
 import hudson.maven.MavenModuleSet;
-import hudson.maven.MavenModuleSetBuild;
-import hudson.model.FreeStyleBuild;
+import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.tasks.Mailer;
@@ -41,7 +40,7 @@ public class MailTest extends SonarTestCase {
     MavenModuleSet project = setupMavenProject();
     project.getPublishersList().add(mailer);
     inbox.clear();
-    MavenModuleSetBuild mavenBuild = build(project, Result.FAILURE);
+    AbstractBuild mavenBuild = build(project, Result.FAILURE);
 
     assertSonarExecution(mavenBuild, "-f pom.xml"
         + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
@@ -54,7 +53,7 @@ public class MailTest extends SonarTestCase {
     FreeStyleProject project = setupFreeStyleProject();
     project.getPublishersList().add(mailer);
     inbox.clear();
-    FreeStyleBuild freeStyleBuild = build(project, Result.FAILURE);
+    AbstractBuild freeStyleBuild = build(project, Result.FAILURE);
 
     assertSonarExecution(freeStyleBuild, "-f sonar-pom.xml"
         + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
