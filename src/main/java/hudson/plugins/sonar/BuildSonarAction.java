@@ -26,6 +26,7 @@ import hudson.model.BuildBadgeAction;
  * {@link BuildBadgeAction} that shows the build contains Sonar analysis.
  *
  * @author Evgeny Mandrikov
+ * @since 1.2
  */
 public final class BuildSonarAction extends SonarAction implements BuildBadgeAction {
   public String getTooltip() {

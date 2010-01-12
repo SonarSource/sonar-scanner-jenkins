@@ -1,11 +1,13 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <f:section title="Sonar">
-    <f:entry title="${%SonarInstallation}">
-      <f:repeatable var="inst" items="${descriptor.installations}">
+    <f:entry title="${%SonarInstallations}" description="${%SonarInstallationsDescr}">
+      <!-- TODO l10n -->
+      <f:repeatable var="inst" items="${descriptor.installations}" add="Add Sonar">
         <table width="100%">
           <f:entry title="Name">
-            <f:textbox name="sonar.name" value="${inst.getName()}"/>
+            <f:textbox name="sonar.name" value="${inst.getName()}"
+                       checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
           </f:entry>
 
           <f:entry title="${%Disable}" description="${%DisableDescr}">
@@ -38,11 +40,16 @@
             <f:entry title="${%AddProps}" description="${%AddPropsDescr}">
               <f:textbox name="sonar.additionalProperties" value="${inst.getAdditionalProperties()}"/>
             </f:entry>
+
+            <!-- TODO help -->
+            <f:section title="${%BuildTriggers}" name="triggers">
+              <st:include page="/hudson/plugins/sonar/SonarPublisher/triggers.jelly"
+                          it="${inst.getTriggers()}"/>
+            </f:section>
           </f:advanced>
 
           <f:entry title="">
             <div align="right">
-              <!-- TODO l10n -->
               <f:repeatableDeleteButton value="Delete Sonar"/>
             </div>
           </f:entry>
@@ -51,4 +58,3 @@
     </f:entry>
   </f:section>
 </j:jelly>
-

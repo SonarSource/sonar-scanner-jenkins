@@ -20,9 +20,11 @@
 package hudson.plugins.sonar;
 
 import hudson.model.ProminentProjectAction;
+import hudson.plugins.sonar.utils.MagicNames;
 
 /**
  * @author Evgeny Mandrikov
+ * @since 1.2
  */
 public abstract class SonarAction implements ProminentProjectAction {
   /**

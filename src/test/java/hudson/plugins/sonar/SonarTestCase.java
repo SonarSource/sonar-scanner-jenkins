@@ -3,8 +3,10 @@ package hudson.plugins.sonar;
 import hudson.UDPBroadcastThread;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;
+import hudson.plugins.sonar.model.LightProjectConfig;
 import hudson.scm.NullSCM;
 import hudson.tasks.Maven;
+import hudson.util.jna.GNUCLibrary;
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.jvnet.hudson.test.SingleFileSCM;
 
@@ -50,22 +52,18 @@ public abstract class SonarTestCase extends HudsonTestCase {
   @Override
   protected Maven.MavenInstallation configureDefaultMaven() throws Exception {
     File mvn = new File(getClass().getResource("SonarTestCase/maven/bin/mvn").toURI().getPath());
-    String home = mvn.getParentFile().getAbsolutePath();
+    if (!Hudson.isWindows()) {
+      //noinspection OctalInteger
+      GNUCLibrary.LIBC.chmod(mvn.getPath(), 0755);
+    }
+    String home = mvn.getParentFile().getParentFile().getAbsolutePath();
     Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default", home, NO_PROPERTIES);
     hudson.getDescriptorByType(Maven.DescriptorImpl.class).setInstallations(mavenInstallation);
     return mavenInstallation;
   }
 
   protected SonarInstallation configureDefaultSonar() {
-    return configureSonar(
-        new SonarInstallation(
-            SONAR_INSTALLATION_NAME,
-            false,
-            SONAR_HOST,
-            null, null, null, DATABASE_PASSWORD, // Database Properties
-            null // Additinal Properties
-        )
-    );
+    return configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME));
   }
 
   protected SonarInstallation configureSonar(SonarInstallation sonarInstallation) {
@@ -120,38 +118,30 @@ public abstract class SonarTestCase extends HudsonTestCase {
   }
 
   protected static SonarPublisher newSonarPublisherForMavenProject() {
-    return new SonarPublisher(
-        SONAR_INSTALLATION_NAME,
-        null,
-        false, // Sonar Light
-        null, null, null, null,
-        null, null, null, null,
-        null, null,
-        false, false, false, true, false, // Triggers
-        null,
-        false, // Reuse Reports
-        null, null, null, null
-    );
+    return new SonarPublisher(SONAR_INSTALLATION_NAME, null, null);
   }
+
+  protected static final LightProjectConfig PROJECT_CONFIG = new LightProjectConfig(
+      "test", "test",
+      "Test", // TODO can be ${JOB_NAME} ?
+      "0.1-SNAPSHOT", // Version
+      "Test project", // Description,
+      null,
+      "src",
+      "UTF-8",
+      null,
+      null
+  );
 
   protected static SonarPublisher newSonarPublisherForFreeStyleProject(String pomName) {
     return new SonarPublisher(
         SONAR_INSTALLATION_NAME,
         null,
-        true, // Sonar Light
-        "test", "test",
-        "Test", // TODO can be ${JOB_NAME} ?
-        "0.1-SNAPSHOT", // Project Information
-        "src", // Project SRC Dir 
-        null, // Java Version
-        "Test project", // Project Description
-        null, // Maven OPTS
+        null,
+        null,
         "default", // Maven Installation Name
         pomName, // Root POM
-        false, false, false, false, true, // Triggers
-        null, // Project BIN Dir
-        false, // Reuse Reports
-        null, null, null, "UTF-8"
+        PROJECT_CONFIG
     );
   }
 

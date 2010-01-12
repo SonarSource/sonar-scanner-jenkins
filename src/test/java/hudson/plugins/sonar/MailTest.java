@@ -40,12 +40,9 @@ public class MailTest extends SonarTestCase {
     MavenModuleSet project = setupMavenProject();
     project.getPublishersList().add(mailer);
     inbox.clear();
-    AbstractBuild mavenBuild = build(project, Result.FAILURE);
+    AbstractBuild build = build(project, Result.FAILURE);
 
-    assertSonarExecution(mavenBuild, "-f pom.xml"
-        + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
-        + " -Dsonar.host.url=" + SONAR_HOST
-    );
+    assertSonarExecution(build, "-f pom.xml");
     assertEquals(1, inbox.size());
   }
 
@@ -53,12 +50,9 @@ public class MailTest extends SonarTestCase {
     FreeStyleProject project = setupFreeStyleProject();
     project.getPublishersList().add(mailer);
     inbox.clear();
-    AbstractBuild freeStyleBuild = build(project, Result.FAILURE);
+    AbstractBuild build = build(project, Result.FAILURE);
 
-    assertSonarExecution(freeStyleBuild, "-f sonar-pom.xml"
-        + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
-        + " -Dsonar.host.url=" + SONAR_HOST
-    );
+    assertSonarExecution(build, "-f sonar-pom.xml");
     assertEquals(1, inbox.size());
   }
 }

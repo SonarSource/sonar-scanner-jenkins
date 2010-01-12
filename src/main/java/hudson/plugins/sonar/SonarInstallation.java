@@ -19,7 +19,8 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.EnvVars;
+import hudson.plugins.sonar.model.TriggersConfig;
+import hudson.plugins.sonar.utils.MagicNames;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -32,12 +33,20 @@ public class SonarInstallation {
   private final String databaseLogin;
   private final String databasePassword;
   private final String additionalProperties;
+
+  private TriggersConfig triggers;
+
   @Deprecated
-  private final String version;
+  private transient String version;
+
+  public SonarInstallation(String name) {
+    this(name, false, null, null, null, null, null, null, null);
+  }
 
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled, String serverUrl, String databaseUrl,
-                           String databaseDriver, String databaseLogin, String databasePassword, String additionalProperties) {
+                           String databaseDriver, String databaseLogin, String databasePassword, String additionalProperties,
+                           TriggersConfig triggers) {
     this.name = name;
     this.disabled = disabled;
     this.serverUrl = serverUrl;
@@ -46,6 +55,7 @@ public class SonarInstallation {
     this.databaseLogin = databaseLogin;
     this.databasePassword = databasePassword;
     this.additionalProperties = additionalProperties;
+    this.triggers = triggers;
     this.version = "";
   }
 
@@ -81,19 +91,11 @@ public class SonarInstallation {
     return additionalProperties;
   }
 
-  @Deprecated
-  public String getVersion() {
-    return version;
-  }
-
-  public String getPluginCallArgs(EnvVars envVars) {
-    StringBuilder builder = new StringBuilder(100);
-    SonarHelper.appendUnlessEmpty(builder, "sonar.jdbc.driver", envVars.expand(getDatabaseDriver()));
-    SonarHelper.appendUnlessEmpty(builder, "sonar.jdbc.username", envVars.expand(getDatabaseLogin()));
-    SonarHelper.appendUnlessEmpty(builder, "sonar.jdbc.password", envVars.expand(getDatabasePassword()));
-    SonarHelper.appendUnlessEmpty(builder, "sonar.jdbc.url", envVars.expand(getDatabaseUrl()));
-    SonarHelper.appendUnlessEmpty(builder, "sonar.host.url", envVars.expand(getServerUrl()));
-    return builder.toString();
+  public TriggersConfig getTriggers() {
+    if (triggers == null) {
+      triggers = new TriggersConfig();
+    }
+    return triggers;
   }
 
   public String getPluginCallArgs() {

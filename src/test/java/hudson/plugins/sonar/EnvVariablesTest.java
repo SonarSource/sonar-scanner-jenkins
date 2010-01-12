@@ -26,7 +26,8 @@ public class EnvVariablesTest extends SonarTestCase {
         false,
         "${VAR_SONAR_HOST}",
         null, null, null, DATABASE_PASSWORD, // Database Properties
-        "-P${VAR_PROFILE}" // Additinal Properties
+        "-P${VAR_PROFILE}", // Additinal Properties
+        null
     ));
 
     FreeStyleProject project = createFreeStyleProject("FreeStyleProject");
@@ -39,21 +40,12 @@ public class EnvVariablesTest extends SonarTestCase {
     String pomName = "subdir/pom.xml";
     project.getPublishersList().add(new SonarPublisher(
         SONAR_INSTALLATION_NAME,
+        null,
         "-Ddir=${VAR_SUBDIR}",
-        true, // Sonar Light
-        "test", "test",
-        "", // TODO can be ${JOB_NAME}
-        "0.1-SNAPSHOT", // Project Information
-        "src", // Project SRC Dir
-        null, // Java Version
-        "Test project", // Project Description
         null, // Maven OPTS
         "default", // Maven Installation Name
-        varPomName, // Root POM
-        false, false, false, false, true, // Triggers
-        null, // Project BIN Dir
-        false, // Reuse Reports
-        null, null, null, "UTF-8"
+        varPomName,
+        PROJECT_CONFIG
     ));
     AbstractBuild build = build(project);
 

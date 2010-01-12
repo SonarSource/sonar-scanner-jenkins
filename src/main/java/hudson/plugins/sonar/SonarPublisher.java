@@ -22,14 +22,14 @@ package hudson.plugins.sonar;
 import hudson.*;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;
-import hudson.model.Cause.UpstreamCause;
-import hudson.model.Cause.UserCause;
+import hudson.plugins.sonar.model.LightProjectConfig;
+import hudson.plugins.sonar.model.ReportsConfig;
+import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.template.SonarPomGenerator;
+import hudson.plugins.sonar.utils.MagicNames;
+import hudson.plugins.sonar.utils.SonarHelper;
 import hudson.tasks.*;
 import hudson.tasks.Maven.MavenInstallation;
-import hudson.triggers.SCMTrigger.SCMTriggerCause;
-import hudson.triggers.TimerTrigger.TimerTriggerCause;
-import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -38,7 +38,6 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -46,6 +45,9 @@ import java.util.logging.Logger;
 public class SonarPublisher extends Notifier {
   private static final Logger LOG = Logger.getLogger(SonarPublisher.class.getName());
 
+  /**
+   * Sonar installation name.
+   */
   private final String installationName;
 
   /**
@@ -58,217 +60,197 @@ public class SonarPublisher extends Notifier {
    */
   private final String jobAdditionalProperties;
 
-  // Triggers
+  /**
+   * Triggers. If null, then we should use triggers from {@link SonarInstallation}.
+   *
+   * @since 1.2
+   */
+  private TriggersConfig triggers;
 
-  private final boolean scmBuilds;
-  private final boolean timerBuilds;
-  private final boolean userBuilds;
-  private final boolean snapshotDependencyBuilds;
-  private final boolean skipIfBuildFails;
   @Deprecated
-  private Boolean skipOnScm;
+  private transient Boolean scmBuilds;
+  @Deprecated
+  private transient Boolean timerBuilds;
+  @Deprecated
+  private transient Boolean snapshotDependencyBuilds;
+  @Deprecated
+  private transient Boolean skipIfBuildFails;
+  @Deprecated
+  private transient Boolean skipOnScm;
 
   // Next properties available only for non-maven projects
 
-  private final String mavenInstallationName;
-  private final String rootPom;
-
-  // Next properties available only for Sonar Light
-
-  private final boolean useSonarLight;
+  private String mavenInstallationName;
 
   /**
-   * Mandatory and no spaces.
+   * @since 1.2
    */
-  private final String groupId;
-
-  /**
-   * Mandatory and no spaces.
-   */
-  private final String artifactId;
-
-  /**
-   * Mandatory.
-   */
-  private final String projectName;
-
-  /**
-   * Optional.
-   */
-  private final String projectVersion;
-
-  /**
-   * Optional.
-   */
-  private final String projectDescription;
-
-  /**
-   * Optional.
-   */
-  private final String javaVersion;
-
-  /**
-   * Mandatory.
-   */
-  private final String projectSrcDir;
-
-  /**
-   * Optional.
-   */
-  private final String projectSrcEncoding;
-
-  /**
-   * Optional.
-   */
-  private final String projectBinDir;
-
-  private final boolean reuseReports;
-
-  /**
-   * Optional.
-   */
-  private final String surefireReportsPath;
-
-  /**
-   * Optional.
-   */
-  private final String coberturaReportPath;
-
-  /**
-   * Optional.
-   */
-  private final String cloverReportPath;
-
-  @DataBoundConstructor
-  public SonarPublisher(String installationName, String jobAdditionalProperties, boolean useSonarLight, String groupId,
-                        String artifactId, String projectName, String projectVersion, String projectSrcDir,
-                        String javaVersion, String projectDescription,
-                        String mavenOpts, String mavenInstallationName, String rootPom,
-                        boolean snapshotDependencyBuilds, boolean scmBuilds, boolean timerBuilds, boolean userBuilds,
-                        boolean skipIfBuildFails, String projectBinDir, boolean reuseReports,
-                        String coberturaReportPath, String surefireReportsPath, String cloverReportPath,
-                        String projectSrcEncoding) {
-    this.jobAdditionalProperties = jobAdditionalProperties;
-    this.installationName = installationName;
-    this.useSonarLight = useSonarLight;
-    this.groupId = groupId;
-    this.artifactId = artifactId;
-    this.projectName = projectName;
-    this.projectVersion = projectVersion;
-    this.javaVersion = javaVersion;
-    this.projectSrcDir = projectSrcDir;
-    this.projectDescription = projectDescription;
-    this.mavenOpts = mavenOpts;
-    this.scmBuilds = scmBuilds;
-    this.timerBuilds = timerBuilds;
-    this.userBuilds = userBuilds;
-    this.snapshotDependencyBuilds = snapshotDependencyBuilds;
-    this.mavenInstallationName = mavenInstallationName;
-    this.skipIfBuildFails = skipIfBuildFails;
-    this.projectBinDir = projectBinDir;
-    this.reuseReports = reuseReports;
-    this.surefireReportsPath = surefireReportsPath;
-    this.coberturaReportPath = coberturaReportPath;
-    this.cloverReportPath = cloverReportPath;
-    this.projectSrcEncoding = projectSrcEncoding;
-    this.rootPom = rootPom;
-  }
-
-  public String getRootPom() {
-    return StringUtils.trimToEmpty(rootPom);
-  }
+  private String rootPom;
 
   @Deprecated
-  public Boolean getSkipOnScm() {
-    return skipOnScm;
+  private transient Boolean useSonarLight;
+
+  /**
+   * If not null, then we should generate pom.xml.
+   *
+   * @since 1.2
+   */
+  private LightProjectConfig lightProject;
+
+  @Deprecated
+  private transient String groupId;
+  @Deprecated
+  private transient String artifactId;
+  @Deprecated
+  private transient String projectName;
+  @Deprecated
+  private transient String projectVersion;
+  @Deprecated
+  private transient String projectDescription;
+  @Deprecated
+  private transient String javaVersion;
+  @Deprecated
+  private transient String projectSrcDir;
+  @Deprecated
+  private transient String projectSrcEncoding;
+  @Deprecated
+  private transient String projectBinDir;
+  @Deprecated
+  private transient Boolean reuseReports;
+  @Deprecated
+  private transient String surefireReportsPath;
+  @Deprecated
+  private transient String coberturaReportPath;
+  @Deprecated
+  private transient String cloverReportPath;
+
+  public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
+    this.installationName = installationName;
+
+    this.triggers = null;
+
+    this.jobAdditionalProperties = jobAdditionalProperties;
+    this.mavenOpts = mavenOpts;
+
+    this.rootPom = null;
+    this.mavenInstallationName = null;
+
+    this.lightProject = null;
   }
 
-  public String getJobAdditionalProperties() {
-    return StringUtils.trimToEmpty(jobAdditionalProperties);
+  public SonarPublisher(
+      String installationName,
+      TriggersConfig triggers,
+      String jobAdditionalProperties, String mavenOpts
+  ) {
+    this(installationName, triggers, jobAdditionalProperties, mavenOpts, null, null, null);
+  }
+
+  @DataBoundConstructor
+  public SonarPublisher(String installationName,
+                        TriggersConfig triggers,
+                        String jobAdditionalProperties, String mavenOpts,
+                        String mavenInstallationName, String rootPom,
+                        LightProjectConfig lightProject
+  ) {
+    this.installationName = installationName;
+    // Triggers
+    this.triggers = triggers;
+    // Maven
+    this.mavenOpts = mavenOpts;
+    this.jobAdditionalProperties = jobAdditionalProperties;
+    // Non Maven Project
+    this.mavenInstallationName = mavenInstallationName;
+    this.rootPom = rootPom;
+    // Sonar Light
+    this.lightProject = lightProject;
+  }
+
+  /**
+   * Migrate data.
+   *
+   * @return this
+   */
+  @SuppressWarnings({"UnusedDeclaration"})
+  public Object readResolve() {
+    // Triggers migration
+    if (scmBuilds != null && timerBuilds != null && snapshotDependencyBuilds != null && skipIfBuildFails != null) {
+      this.triggers = new TriggersConfig(
+          scmBuilds,
+          timerBuilds,
+          true,
+          snapshotDependencyBuilds,
+          skipIfBuildFails
+      );
+    }
+    // Project migration
+    if (useSonarLight != null && useSonarLight) {
+      ReportsConfig reportsConfig = null;
+      if (reuseReports != null && reuseReports) {
+        reportsConfig = new ReportsConfig(surefireReportsPath, coberturaReportPath, cloverReportPath);
+      }
+      this.lightProject = new LightProjectConfig(
+          groupId,
+          artifactId,
+          projectName,
+          projectVersion,
+          projectDescription,
+          javaVersion,
+          projectSrcDir,
+          projectSrcEncoding,
+          projectBinDir,
+          reportsConfig
+      );
+    }
+    return this;
   }
 
   public String getInstallationName() {
     return installationName;
   }
 
-  public boolean isUseSonarLight() {
-    return useSonarLight;
-  }
-
-  public boolean isSkipIfBuildFails() {
-    return skipIfBuildFails;
-  }
-
-  public boolean isTimerBuilds() {
-    return timerBuilds;
-  }
-
-  public boolean isUserBuilds() {
-    return userBuilds;
-  }
-
-  public boolean isScmBuilds() {
-    return scmBuilds;
-  }
-
-  public boolean isSnapshotDependencyBuilds() {
-    return snapshotDependencyBuilds;
-  }
-
-  public String getGroupId() {
-    return groupId;
-  }
-
-  public String getArtifactId() {
-    return artifactId;
-  }
-
-  public String getProjectName() {
-    return projectName;
-  }
-
-  public String getProjectVersion() {
-    return StringUtils.trimToEmpty(projectVersion);
-  }
-
-  public String getJavaVersion() {
-    return StringUtils.trimToEmpty(javaVersion);
-  }
-
-  public String getProjectSrcDir() {
-    return StringUtils.trimToEmpty(projectSrcDir);
-  }
-
-  public String getProjectSrcEncoding() {
-    return StringUtils.trimToEmpty(projectSrcEncoding);
-  }
-
-  public String getProjectBinDir() {
-    return StringUtils.trimToEmpty(projectBinDir);
-  }
-
-  public String getProjectDescription() {
-    return StringUtils.trimToEmpty(projectDescription);
-  }
-
   public String getMavenOpts() {
     return mavenOpts;
   }
 
-  public boolean isReuseReports() {
-    return reuseReports;
+  public String getJobAdditionalProperties() {
+    return StringUtils.trimToEmpty(jobAdditionalProperties);
   }
 
-  public String getSurefireReportsPath() {
-    return StringUtils.trimToEmpty(surefireReportsPath);
+  /**
+   * @return true, if we should use triggers from {@link SonarInstallation}
+   */
+  public boolean isUseGlobalTriggers() {
+    return triggers == null;
   }
 
-  public String getCoberturaReportPath() {
-    return StringUtils.trimToEmpty(coberturaReportPath);
+  public TriggersConfig getTriggers() {
+    if (triggers == null) {
+      triggers = new TriggersConfig();
+    }
+    return triggers;
   }
 
-  public String getCloverReportPath() {
-    return StringUtils.trimToEmpty(cloverReportPath);
+  public String getMavenInstallationName() {
+    return mavenInstallationName;
+  }
+
+  public String getRootPom() {
+    return StringUtils.trimToEmpty(rootPom);
+  }
+
+  /**
+   * @return true, if we should generate pom.xml
+   */
+  public boolean isUseSonarLight() {
+    return lightProject != null;
+  }
+
+  public LightProjectConfig getLightProject() {
+    if (lightProject == null) {
+      lightProject = new LightProjectConfig();
+    }
+    return lightProject;
   }
 
   @SuppressWarnings({"UnusedDeclaration"})
@@ -282,11 +264,11 @@ public class SonarPublisher extends Notifier {
 
   public MavenInstallation getMavenInstallation() {
     List<MavenInstallation> installations = getMavenInstallations();
-    if (StringUtils.isEmpty(mavenInstallationName) && !installations.isEmpty()) {
+    if (StringUtils.isEmpty(getMavenInstallationName()) && !installations.isEmpty()) {
       return installations.get(0);
     }
     for (MavenInstallation install : installations) {
-      if (StringUtils.equals(mavenInstallationName, install.getName())) {
+      if (StringUtils.equals(getMavenInstallationName(), install.getName())) {
         return install;
       }
     }
@@ -310,31 +292,28 @@ public class SonarPublisher extends Notifier {
     return BuildStepMonitor.BUILD;
   }
 
-  protected String isSkipSonar(AbstractBuild<?, ?> build, SonarInstallation sonarInstallation) {
-    if (isSkipIfBuildFails() && build.getResult().isWorseThan(Result.SUCCESS)) {
-      return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
-    } else if (sonarInstallation == null) {
-      return Messages.SonarPublisher_NoInstallation(getInstallationName(), Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations().length);
+  protected boolean isSkip(AbstractBuild<?, ?> build, BuildListener listener, SonarInstallation sonarInstallation) {
+    final String skipLaunchMsg;
+    if (sonarInstallation == null) {
+      skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(), Hudson.getInstance().getDescriptorByType(DescriptorImpl.class).getInstallations().length);
     } else if (sonarInstallation.isDisabled()) {
-      return Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else if (!isScmBuilds() && SonarHelper.isTrigger(build, SCMTriggerCause.class)) {
-      return Messages.SonarPublisher_SCMBuild();
-    } else if (!isTimerBuilds() && SonarHelper.isTrigger(build, TimerTriggerCause.class)) {
-      return Messages.SonarPublisher_TimerBuild();
-    } else if (!isUserBuilds() && SonarHelper.isTrigger(build, UserCause.class)) {
-      return Messages.SonarPublisher_UserBuild();
-    } else if (!isSnapshotDependencyBuilds() && SonarHelper.isTrigger(build, UpstreamCause.class)) {
-      return Messages.SonarPublisher_SnapshotDepBuild();
+      skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
+    } else if (isUseGlobalTriggers()) {
+      skipLaunchMsg = sonarInstallation.getTriggers().isSkipSonar(build);
+    } else {
+      skipLaunchMsg = getTriggers().isSkipSonar(build);
     }
-    return null;
+    if (skipLaunchMsg != null) {
+      listener.getLogger().println(skipLaunchMsg);
+      return true;
+    }
+    return false;
   }
 
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
-    SonarInstallation sonarInstallation = getInstallation();
-    String skipLaunchMsg = isSkipSonar(build, sonarInstallation);
-    if (skipLaunchMsg != null) {
-      listener.getLogger().println(skipLaunchMsg);
+    final SonarInstallation sonarInstallation = getInstallation();
+    if (isSkip(build, listener, sonarInstallation)) {
       return true;
     }
     build.addAction(new BuildSonarAction());
@@ -358,7 +337,7 @@ public class SonarPublisher extends Notifier {
     return mavenInstallation != null ? mavenInstallation.forNode(build.getBuiltOn(), listener) : mavenInstallation;
   }
 
-  protected MavenModuleSet getMavenProject(AbstractBuild build) {
+  public MavenModuleSet getMavenProject(AbstractBuild build) {
     return (build.getProject() instanceof MavenModuleSet) ? (MavenModuleSet) build.getProject() : null;
   }
 
@@ -381,17 +360,16 @@ public class SonarPublisher extends Notifier {
 
   private boolean executeSonar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
     try {
-      MavenModuleSet mavenModuleProject = getMavenProject(build);
       String pomName = getPomName(build, listener);
       FilePath root = build.getModuleRoot();
       if (isUseSonarLight()) {
         LOG.info("Generating " + pomName);
-        SonarPomGenerator.generatePomForNonMavenProject(this, root, pomName);
+        SonarPomGenerator.generatePomForNonMavenProject(getLightProject(), root, pomName);
       }
       // Execute maven
-//      MavenInstallation mavenInstallation = getMavenInstallation();
-//      return MavenHelper.executeMaven(build, launcher, listener, mavenInstallation.getName(), pomName, sonarInstallation, this);
-      return executeMaven(build, launcher, listener, sonarInstallation, mavenModuleProject, root, pomName);
+      MavenInstallation mavenInstallation = getMavenInstallationForSonar(build, listener);
+      String mavenName = mavenInstallation.getName();
+      return SonarHelper.executeMaven(build, launcher, listener, mavenName, pomName, sonarInstallation, this);
     }
     catch (IOException e) {
       Util.displayIOException(e, listener);
@@ -401,90 +379,6 @@ public class SonarPublisher extends Notifier {
     catch (InterruptedException e) {
       return false;
     }
-  }
-
-  /**
-   * @deprecated since 1.2, use {@link MavenHelper}
-   */
-  @Deprecated
-  private boolean executeMaven(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation, MavenModuleSet mavenModuleProject, FilePath root, String pomName) throws IOException, InterruptedException {
-    Maven.MavenInstallation mavenInstallation = getMavenInstallationForSonar(build, listener);
-    String executable = buildExecName(launcher, mavenInstallation, listener.getLogger());
-
-    Launcher.ProcStarter starter = launcher.launch();
-    starter.cmds(buildCommand(launcher, listener, build, sonarInstallation, executable, pomName, mavenModuleProject));
-    starter.envs(getMavenEnvironmentVars(listener, build, mavenInstallation));
-    starter.pwd(root);
-    starter.stderr(listener.getLogger());
-    starter.stdout(listener.getLogger());
-    return starter.join() == 0;
-  }
-
-  /**
-   * @deprecated since 1.2, use {@link MavenHelper}
-   */
-  @Deprecated
-  private EnvVars getMavenEnvironmentVars(BuildListener listener, AbstractBuild<?, ?> build, Maven.MavenInstallation mavenInstallation) throws IOException, InterruptedException {
-    EnvVars environmentVars = build.getEnvironment(listener);
-    if (mavenInstallation != null) {
-      environmentVars.put("M2_HOME", mavenInstallation.getHome());
-    }
-    String envMavenOpts = getMavenOpts();
-    MavenModuleSet mavenModuleProject = getMavenProject(build);
-    if (StringUtils.isEmpty(envMavenOpts) && mavenModuleProject != null && StringUtils.isNotEmpty(mavenModuleProject.getMavenOpts())) {
-      envMavenOpts = mavenModuleProject.getMavenOpts();
-    }
-    if (StringUtils.isNotEmpty(envMavenOpts)) {
-      environmentVars.put("MAVEN_OPTS", envMavenOpts);
-    }
-    return environmentVars;
-  }
-
-  /**
-   * @deprecated since 1.2, use {@link MavenHelper}
-   */
-  @Deprecated
-  private String buildExecName(Launcher launcher, Maven.MavenInstallation mavenInstallation, PrintStream logger) {
-    String execName = launcher.isUnix() ? "mvn" : "mvn.bat";
-    String separator = launcher.isUnix() ? "/" : "\\";
-
-    String executable = execName;
-    if (mavenInstallation != null) {
-      String mavenHome = mavenInstallation.getHome();
-      executable = mavenHome + separator + "bin" + separator + execName;
-    } else {
-      logger.println(Messages.SonarPublisher_NoMavenInstallation());
-    }
-    return executable;
-  }
-
-  /**
-   * @deprecated since 1.2, use {@link MavenHelper}
-   */
-  @Deprecated
-  protected ArgumentListBuilder buildCommand(Launcher launcher, BuildListener listener, AbstractBuild<?, ?> build, SonarInstallation sonarInstallation, String executable, String pomName, MavenModuleSet mms) throws IOException, InterruptedException {
-    EnvVars envVars = build.getEnvironment(listener);
-    ArgumentListBuilder args = new ArgumentListBuilder();
-    args.add(executable);
-    // Force the use of an alternate POM file,
-    // don't use addTokenized - see bug SONARPLUGINS-263 (pom with spaces)
-    args.add("-f").add(pomName);
-    // Define a system properties
-    args.addKeyValuePairs("-D", build.getBuildVariables());
-    SonarHelper.addTokenizedAndQuoted(launcher.isUnix(), args, sonarInstallation.getPluginCallArgs(envVars));
-    SonarHelper.addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(sonarInstallation.getAdditionalProperties()));
-    SonarHelper.addTokenizedAndQuoted(launcher.isUnix(), args, envVars.expand(getJobAdditionalProperties()));
-    if (mms != null && mms.usesPrivateRepository()) {
-      args.add("-Dmaven.repo.local=" + build.getWorkspace().child(".repository").getRemote());
-    }
-    // Produce execution error messages
-    args.add("-e");
-    // Run in non-interactive (batch) mode
-    args.add("-B");
-    // Goal
-    args.add("sonar:sonar");
-    LOG.info("Sonar build command: " + args.toStringWithQuote());
-    return args;
   }
 
   @Override
@@ -524,15 +418,9 @@ public class SonarPublisher extends Notifier {
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) {
-      List<SonarInstallation> list = req.bindParametersToList(SonarInstallation.class, "sonar.");
-      installations = list.toArray(new SonarInstallation[list.size()]);
-      save();
+      List<SonarInstallation> list = req.bindJSONToList(SonarInstallation.class, json.get("inst"));
+      setInstallations(list.toArray(new SonarInstallation[list.size()]));
       return true;
-    }
-
-    @Override
-    public Notifier newInstance(StaplerRequest req, JSONObject json) {
-      return req.bindParameters(SonarPublisher.class, "sonar.");
     }
 
     @SuppressWarnings({"UnusedDeclaration", "ThrowableResultOfMethodCallIgnored"})

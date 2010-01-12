@@ -1,54 +1,51 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  <f:entry title="${%SonarInstallation}">
-    <select class="setting-input" name="sonar.installationName">
-      <option value="">(Default)</option>
-      <j:forEach var="inst" items="${descriptor.installations}">
-        <f:option selected="${inst.name==instance.getInstallation().name}">${inst.name}</f:option>
-      </j:forEach>
-    </select>
-  </f:entry>
+  <!-- Sonar Installation -->
+  <j:set var="sonars" value="${descriptor.installations}"/>
+  <j:if test="${empty(sonars)}">
+    <!-- no Sonar installation is configured, so warn the user now -->
+    <f:entry title="${%SonarInstallation}">
+      <div class="error">${%SonarInstallation.error(rootURL)}</div>
+    </f:entry>
+  </j:if>
+  <j:if test="${sonars.size() gt 1}">
+    <!-- choise not necessary if there's no choice -->
+    <f:entry title="${%SonarInstallation}">
+      <select class="setting-input" name="sonar.installationName">
+        <j:forEach var="inst" items="${sonars}">
+          <f:option value="${inst.name}" selected="${inst.name==instance.installation.name}">${inst.name}
+          </f:option>
+        </j:forEach>
+      </select>
+    </f:entry>
+  </j:if>
 
-  <f:entry title="${%MavenOpts}" description="${%MavenOptsDescr}">
-    <f:textbox name="sonar.mavenOpts" value="${instance.getMavenOpts()}"/>
-  </f:entry>
-
-  <f:entry title="${%AdditonalProps}" description="${%AdditonalPropsDescr}">
-    <f:textbox name="sonar.jobAdditionalProperties" value="${instance.getJobAdditionalProperties()}"/>
-  </f:entry>
-
-  <f:nested>
-    <table>
-      <f:section title="${%BuildTriggers}">
-        <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-scm.html">
-          <f:checkbox name="sonar.scmBuilds" checked="${instance.isScmBuilds()}" default="false"/>
-          <label>${%ScmBuilds}</label>
-        </f:entry>
-
-        <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-timer.html">
-          <f:checkbox name="sonar.timerBuilds" checked="${instance.isTimerBuilds()}" default="true"/>
-          <label>${%TimerBuilds}</label>
-        </f:entry>
-
-        <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-user.html">
-          <f:checkbox name="sonar.userBuilds" checked="${instance.isUserBuilds()}" default="true"/>
-          <label>${%UserBuilds}</label>
-        </f:entry>
-
-        <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-snapshot-dep.html">
-          <f:checkbox name="sonar.snapshotDependencyBuilds" checked="${instance.isSnapshotDependencyBuilds()}"
-                      default="false"/>
-          <label>${%SnapshotsDepBuilds}</label>
-        </f:entry>
-
-        <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-build-failure.html">
-          <f:checkbox name="sonar.skipIfBuildFails" checked="${instance.isSkipIfBuildFails()}" default="false"/>
-          <label>${%SkipIfBuildFails}</label>
-        </f:entry>
-      </f:section>
-    </table>
-  </f:nested>
+  <f:advanced>
+    <!-- MAVEN_OPTS -->
+    <f:entry title="MAVEN_OPTS" description="${%MavenOptsDescr}"
+             help="/plugin/maven-plugin/maven-opts.html">
+      <f:expandableTextbox name="sonar.mavenOpts" value="${instance.mavenOpts}"/>
+    </f:entry>
+    <!-- Maven Properties -->
+    <f:entry title="${%AdditonalProps}" description="${%AdditonalPropsDescr}"
+             help="/plugin/sonar/help-properties.html">
+      <f:expandableTextbox name="sonar.jobAdditionalProperties" value="${instance.getJobAdditionalProperties()}"/>
+    </f:entry>
+    <!-- Build Triggers -->
+    <f:nested>
+      <table width="100%">
+        <f:optionalBlock name="sonar.triggers" title="${%UseGlobalTriggers}"
+                         checked="${instance.isUseGlobalTriggers()}" negative="true"
+                         help="${rootURL}/plugin/sonar/help-trigger-global.html">
+          <f:section title="${%BuildTriggers}">
+            <st:include page="/hudson/plugins/sonar/SonarPublisher/triggers.jelly"
+                        it="${instance.getTriggers()}"/>
+          </f:section>
+        </f:optionalBlock>
+      </table>
+    </f:nested>
+  </f:advanced>
 
   <j:invokeStatic var="isMavenBuilder" className="hudson.plugins.sonar.SonarPublisher" method="isMavenBuilder">
     <j:arg value="${it}" type="hudson.model.AbstractProject"/>
@@ -56,23 +53,26 @@
 
   <j:if test="${!isMavenBuilder}">
     <f:nested>
-      <table>
+      <table width="100%">
         <f:section title="${%Builder}">
 
-          <f:entry title="${%MavenRuntime}">
+          <f:entry title="${%MavenVersion}">
             <select class="setting-input" name="sonar.mavenInstallationName">
               <option value="">(Default)</option>
               <j:forEach var="inst" items="${instance.mavenInstallations}">
-                <f:option selected="${inst.name==instance.getMavenInstallation().name}">${inst.name}</f:option>
+                <f:option selected="${inst.name==instance.getMavenInstallation().name}" value="${inst.name}">
+                  ${inst.name}
+                </f:option>
               </j:forEach>
             </select>
           </f:entry>
 
-          <f:entry title="${%RootPom}" description="${%RootPomDescr}">
+          <f:entry title="${%RootPom}" description="${%RootPomDescr}"
+                   help="/plugin/maven-plugin/root-pom.html">
             <f:textbox name="sonar.rootPom" value="${instance.getRootPom()}"/>
           </f:entry>
 
-          <f:optionalBlock name="sonar.useSonarLight" title="${%SonarLight}"
+          <f:optionalBlock name="sonar.lightProject" title="${%SonarLight}"
                            checked="${instance.isUseSonarLight()}"
                            help="${rootURL}/plugin/sonar/help-project-light.html">
 
@@ -115,6 +115,7 @@
             <f:entry title="${%JavaVersion}" description="${%JavaVersionDescr}">
               <f:textbox name="sonar.javaVersion" value="${instance.getJavaVersion()}"/>
             </f:entry>
+
             <f:section title="${%Reports}">
               <f:optionalBlock name="sonar.reuseReports" title="${%ReuseReports}"
                                checked="${instance.isReuseReports()}">

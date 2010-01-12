@@ -17,12 +17,13 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.utils;
 
 /**
  * A simple class to contain strings used by the sonar plugin.
  *
  * @author Evgeny Mandrikov
+ * @since 1.2
  */
 public final class MagicNames {
   /**

@@ -30,6 +30,7 @@ import hudson.model.AbstractProject;
  * The action appears as the link in the side bar that users will click on in order to go to the Sonar Dashboard.
  *
  * @author Evgeny Mandrikov
+ * @since 1.2
  */
 public final class ProjectSonarAction extends SonarAction {
   private final AbstractProject<?, ?> project;
@@ -61,11 +62,11 @@ public final class ProjectSonarAction extends SonarAction {
         }
       }
     } else {
-      // Non-Maven Project
-      return sonarInstallation.getProjectLink(
-          publisher.getGroupId(),
-          publisher.getArtifactId()
-      );
+      // FIXME Non-Maven Project
+//      return sonarInstallation.getProjectLink(
+//          publisher.getProject().getGroupId(),
+//          publisher.getProject().getArtifactId()
+//      );
     }
     return sonarInstallation.getServerLink();
   }

@@ -2,6 +2,7 @@ package hudson.plugins.sonar;
 
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;
+import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
 import org.jvnet.hudson.test.Bug;
@@ -20,6 +21,7 @@ public class BaseTest extends SonarTestCase {
    * <li>SONARPLUGINS-101: Private Repository</li>
    * <li>SONARPLUGINS-253: Maven "-e" option</li>
    * <li>SONARPLUGINS-263: Path to POM with spaces</li>
+   * <li>TODO SONARPLUGINS-326: Use alternate settings file</li>
    * </ul>
    *
    * @throws Exception if something is wrong
@@ -34,11 +36,7 @@ public class BaseTest extends SonarTestCase {
 
     String repo = build.getWorkspace().child(".repository").getRemote();
     // TODO Check that there is no POM-generation for Maven project
-    assertSonarExecution(build, "-f \"" + pomName + "\""
-        + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
-        + " -Dsonar.host.url=" + SONAR_HOST
-        + " -Dmaven.repo.local=" + repo
-    );
+    assertSonarExecution(build, "-f \"" + pomName + "\" -Dmaven.repo.local=" + repo);
   }
 
   /**
@@ -60,10 +58,7 @@ public class BaseTest extends SonarTestCase {
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(pomName));
     AbstractBuild build = build(project);
 
-    assertSonarExecution(build, "-f \"" + pomName + "\""
-        + " -Dsonar.jdbc.password=" + DATABASE_PASSWORD
-        + " -Dsonar.host.url=" + SONAR_HOST
-    );
+    assertSonarExecution(build, "-f \"" + pomName + "\"");
     // Check that POM generated
     assertTrue(build.getWorkspace().child(pomName).exists());
   }
@@ -77,6 +72,12 @@ public class BaseTest extends SonarTestCase {
     configureDefaultMaven();
     configureDefaultSonar();
     FreeStyleProject project = setupFreeStyleProject();
+    TriggersConfig triggers = project.getPublishersList().get(SonarPublisher.class).getTriggers();
+    triggers.setUserBuilds(false);
+    triggers.setScmBuilds(false);
+    triggers.setTimerBuilds(false);
+    triggers.setSnapshotDependencyBuilds(false);
+    triggers.setSkipIfBuildFails(true);
     AbstractBuild build;
     // Disable sonar on user build command execution
     build = build(project, new Cause.UserCause(), null);
@@ -114,10 +115,11 @@ public class BaseTest extends SonarTestCase {
         "com.mysql.jdbc.Driver",
         "sonar",
         "sonar",
+        null,
         null
     ));
     MavenModuleSet project = setupMavenProject();
-    MavenModuleSetBuild build = build(project);
+    AbstractBuild build = build(project);
 
     assertLogContains("-f pom.xml -Dsonar.jdbc.driver=com.mysql.jdbc.Driver -Dsonar.jdbc.username=sonar -Dsonar.jdbc.password=sonar -Dsonar.jdbc.url=jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8 -Dsonar.host.url=http://sonarhost:sonarport", build);
     */
