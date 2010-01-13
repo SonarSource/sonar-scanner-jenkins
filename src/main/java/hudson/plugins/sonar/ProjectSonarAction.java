@@ -20,12 +20,6 @@
 
 package hudson.plugins.sonar;
 
-import hudson.maven.AbstractMavenProject;
-import hudson.maven.MavenModule;
-import hudson.maven.MavenModuleSet;
-import hudson.maven.ModuleName;
-import hudson.model.AbstractProject;
-
 /**
  * The action appears as the link in the side bar that users will click on in order to go to the Sonar Dashboard.
  *
@@ -33,41 +27,13 @@ import hudson.model.AbstractProject;
  * @since 1.2
  */
 public final class ProjectSonarAction extends SonarAction {
-  private final AbstractProject<?, ?> project;
+  private final String url;
 
-  public ProjectSonarAction(AbstractProject<?, ?> project) {
-    this.project = project;
+  public ProjectSonarAction(String url) {
+    this.url = url;
   }
 
-  @Override
   public String getUrlName() {
-    final SonarPublisher publisher = project.getPublishersList().get(SonarPublisher.class);
-    final SonarInstallation sonarInstallation = publisher.getInstallation();
-    if (sonarInstallation == null) {
-      return null;
-    }
-
-    if (project instanceof AbstractMavenProject) {
-      // Maven Project
-      AbstractMavenProject mavenProject = (AbstractMavenProject) project;
-      if (mavenProject.getRootProject() instanceof MavenModuleSet) {
-        MavenModuleSet mms = (MavenModuleSet) mavenProject.getRootProject();
-        MavenModule rootModule = mms.getRootModule();
-        if (rootModule != null) {
-          ModuleName moduleName = rootModule.getModuleName();
-          return sonarInstallation.getProjectLink(
-              moduleName.groupId,
-              moduleName.artifactId
-          );
-        }
-      }
-    } else {
-      // FIXME Non-Maven Project
-//      return sonarInstallation.getProjectLink(
-//          publisher.getProject().getGroupId(),
-//          publisher.getProject().getArtifactId()
-//      );
-    }
-    return sonarInstallation.getServerLink();
+    return url;
   }
 }

@@ -40,8 +40,4 @@ public abstract class SonarAction implements ProminentProjectAction {
   public String getDisplayName() {
     return Messages.SonarAction_Sonar();
   }
-
-  public String getUrlName() {
-    return null;
-  }
 }

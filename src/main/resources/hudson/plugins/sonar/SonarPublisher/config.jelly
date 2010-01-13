@@ -1,6 +1,10 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
+  <j:invokeStatic var="isMavenBuilder" className="hudson.plugins.sonar.SonarPublisher" method="isMavenBuilder">
+    <j:arg value="${it}" type="hudson.model.AbstractProject"/>
+  </j:invokeStatic>
+
   <!-- Sonar Installation -->
   <j:set var="sonars" value="${descriptor.installations}"/>
   <j:if test="${empty(sonars)}">
@@ -22,6 +26,26 @@
   </j:if>
 
   <f:advanced>
+
+    <j:if test="${!isMavenBuilder}">
+      <!-- Maven version -->
+      <f:entry title="${%MavenVersion}">
+        <select class="setting-input" name="sonar.mavenInstallationName">
+          <option value="">(Default)</option>
+          <j:forEach var="inst" items="${instance.mavenInstallations}">
+            <f:option selected="${inst.name==instance.getMavenInstallation().name}" value="${inst.name}">
+              ${inst.name}
+            </f:option>
+          </j:forEach>
+        </select>
+      </f:entry>
+      <!-- Root POM -->
+      <f:entry title="${%RootPom}" description="${%RootPomDescr}"
+               help="/plugin/maven-plugin/root-pom.html">
+        <f:textbox name="sonar.rootPom" value="${instance.getRootPom()}"/>
+      </f:entry>
+    </j:if>
+
     <!-- MAVEN_OPTS -->
     <f:entry title="MAVEN_OPTS" description="${%MavenOptsDescr}"
              help="/plugin/maven-plugin/maven-opts.html">
@@ -47,35 +71,14 @@
     </f:nested>
   </f:advanced>
 
-  <j:invokeStatic var="isMavenBuilder" className="hudson.plugins.sonar.SonarPublisher" method="isMavenBuilder">
-    <j:arg value="${it}" type="hudson.model.AbstractProject"/>
-  </j:invokeStatic>
-
   <j:if test="${!isMavenBuilder}">
     <f:nested>
       <table width="100%">
-        <f:section title="${%Builder}">
-
-          <f:entry title="${%MavenVersion}">
-            <select class="setting-input" name="sonar.mavenInstallationName">
-              <option value="">(Default)</option>
-              <j:forEach var="inst" items="${instance.mavenInstallations}">
-                <f:option selected="${inst.name==instance.getMavenInstallation().name}" value="${inst.name}">
-                  ${inst.name}
-                </f:option>
-              </j:forEach>
-            </select>
-          </f:entry>
-
-          <f:entry title="${%RootPom}" description="${%RootPomDescr}"
-                   help="/plugin/maven-plugin/root-pom.html">
-            <f:textbox name="sonar.rootPom" value="${instance.getRootPom()}"/>
-          </f:entry>
-
-          <f:optionalBlock name="sonar.lightProject" title="${%SonarLight}"
-                           checked="${instance.isUseSonarLight()}"
-                           help="${rootURL}/plugin/sonar/help-project-light.html">
-
+        <!-- Sonar Light -->
+        <f:optionalBlock name="sonar.lightProject" title="${%SonarLight}"
+                         checked="${instance.isUseSonarLight()}"
+                         help="${rootURL}/plugin/sonar/help-project-light.html">
+          <f:section title="${%Builder}">
             <f:entry title="${%Org}" description="${%OrgDescr}">
               <f:textbox name="sonar.groupId" value="${instance.getGroupId()}"
                          checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
@@ -132,9 +135,8 @@
                 </f:entry>
               </f:optionalBlock>
             </f:section>
-          </f:optionalBlock>
-
-        </f:section>
+          </f:section>
+        </f:optionalBlock>
       </table>
     </f:nested>
   </j:if>

@@ -20,7 +20,10 @@
 package hudson.plugins.sonar;
 
 import hudson.*;
+import hudson.maven.AbstractMavenProject;
+import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSet;
+import hudson.maven.ModuleName;
 import hudson.model.*;
 import hudson.plugins.sonar.model.LightProjectConfig;
 import hudson.plugins.sonar.model.ReportsConfig;
@@ -76,9 +79,10 @@ public class SonarPublisher extends Notifier {
   @Deprecated
   private transient Boolean skipIfBuildFails;
   @Deprecated
-  private transient Boolean skipOnScm;
+  private transient Boolean skipOnScm; //NOSONAR
 
-  // Next properties available only for non-maven projects
+  // =================================================
+  // Next fields available only for free-style projects
 
   private String mavenInstallationName;
 
@@ -205,14 +209,23 @@ public class SonarPublisher extends Notifier {
     return this;
   }
 
+  /**
+   * @return name of {@link hudson.plugins.sonar.SonarInstallation}
+   */
   public String getInstallationName() {
     return installationName;
   }
 
+  /**
+   * @return MAVEN_OPTS
+   */
   public String getMavenOpts() {
     return mavenOpts;
   }
 
+  /**
+   * @return additional Maven options like "-Pprofile" and "-Dname=value"
+   */
   public String getJobAdditionalProperties() {
     return StringUtils.trimToEmpty(jobAdditionalProperties);
   }
@@ -224,6 +237,9 @@ public class SonarPublisher extends Notifier {
     return triggers == null;
   }
 
+  /**
+   * @return triggers configuration
+   */
   public TriggersConfig getTriggers() {
     if (triggers == null) {
       triggers = new TriggersConfig();
@@ -231,10 +247,18 @@ public class SonarPublisher extends Notifier {
     return triggers;
   }
 
+  /**
+   * @return name of {@link hudson.tasks.Maven.MavenInstallation}
+   */
   public String getMavenInstallationName() {
     return mavenInstallationName;
   }
 
+  /**
+   * Root POM. Should be applied only for free-style projects.
+   *
+   * @return Root POM
+   */
   public String getRootPom() {
     return StringUtils.trimToEmpty(rootPom);
   }
@@ -246,6 +270,9 @@ public class SonarPublisher extends Notifier {
     return lightProject != null;
   }
 
+  /**
+   * @return configuration for Sonar Light
+   */
   public LightProjectConfig getLightProject() {
     if (lightProject == null) {
       lightProject = new LightProjectConfig();
@@ -288,11 +315,7 @@ public class SonarPublisher extends Notifier {
     return null;
   }
 
-  public BuildStepMonitor getRequiredMonitorService() {
-    return BuildStepMonitor.BUILD;
-  }
-
-  protected boolean isSkip(AbstractBuild<?, ?> build, BuildListener listener, SonarInstallation sonarInstallation) {
+  private boolean isSkip(AbstractBuild<?, ?> build, BuildListener listener, SonarInstallation sonarInstallation) {
     final String skipLaunchMsg;
     if (sonarInstallation == null) {
       skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(), Hudson.getInstance().getDescriptorByType(DescriptorImpl.class).getInstallations().length);
@@ -383,14 +406,44 @@ public class SonarPublisher extends Notifier {
 
   @Override
   public Action getProjectAction(AbstractProject<?, ?> project) {
-    return new ProjectSonarAction(project);
+    SonarInstallation sonarInstallation = getInstallation();
+    if (sonarInstallation == null) {
+      return null;
+    }
+    String url = sonarInstallation.getServerLink();
+    if (project instanceof AbstractMavenProject) {
+      // Maven Project
+      AbstractMavenProject mavenProject = (AbstractMavenProject) project;
+      if (mavenProject.getRootProject() instanceof MavenModuleSet) {
+        MavenModuleSet mms = (MavenModuleSet) mavenProject.getRootProject();
+        MavenModule rootModule = mms.getRootModule();
+        if (rootModule != null) {
+          ModuleName moduleName = rootModule.getModuleName();
+          url = sonarInstallation.getProjectLink(
+              moduleName.groupId,
+              moduleName.artifactId
+          );
+        }
+      }
+    }
+    if (isUseSonarLight()) {
+      url = sonarInstallation.getProjectLink(
+          lightProject.getGroupId(),
+          lightProject.getArtifactId()
+      );
+    }
+    return new ProjectSonarAction(url);
+  }
+
+  public BuildStepMonitor getRequiredMonitorService() {
+    return BuildStepMonitor.BUILD;
   }
 
   @Extension
   public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
     @CopyOnWrite
-    private volatile SonarInstallation[] installations = new SonarInstallation[0];
+    private volatile SonarInstallation[] installations = new SonarInstallation[0]; //NOSONAR
 
     public DescriptorImpl() {
       super(SonarPublisher.class);
@@ -407,6 +460,9 @@ public class SonarPublisher extends Notifier {
       return MagicNames.PLUGIN_HOME + "/help.html";
     }
 
+    /**
+     * @return all configured {@link hudson.plugins.sonar.SonarInstallation}
+     */
     public SonarInstallation[] getInstallations() {
       return installations;
     }

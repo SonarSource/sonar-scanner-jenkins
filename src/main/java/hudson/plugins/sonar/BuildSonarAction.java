@@ -32,4 +32,8 @@ public final class BuildSonarAction extends SonarAction implements BuildBadgeAct
   public String getTooltip() {
     return Messages.BuildSonarAction_Tooltip();
   }
+
+  public String getUrlName() {
+    return null;
+  }
 }

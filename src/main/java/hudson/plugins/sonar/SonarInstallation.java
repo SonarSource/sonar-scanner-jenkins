@@ -37,7 +37,7 @@ public class SonarInstallation {
   private TriggersConfig triggers;
 
   @Deprecated
-  private transient String version;
+  private transient String version; //NOSONAR
 
   public SonarInstallation(String name) {
     this(name, false, null, null, null, null, null, null, null);
