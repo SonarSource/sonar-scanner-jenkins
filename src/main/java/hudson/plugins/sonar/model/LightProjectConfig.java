@@ -10,60 +10,55 @@ public class LightProjectConfig {
   /**
    * Mandatory and no spaces.
    */
-  private String groupId;
+  private final String groupId;
 
   /**
    * Mandatory and no spaces.
    */
-  private String artifactId;
+  private final String artifactId;
 
   /**
    * Mandatory.
    */
-  private String projectName;
+  private final String projectName;
 
   /**
    * Optional.
    */
-  private String projectVersion;
+  private final String projectVersion;
 
   /**
    * Optional.
    */
-  private String projectDescription;
+  private final String projectDescription;
 
   /**
    * Optional.
    */
-  private String javaVersion;
+  private final String javaVersion;
 
   /**
    * Mandatory.
    */
-  private String projectSrcDir;
+  private final String projectSrcDir;
 
   /**
    * Optional.
    */
-  private String projectSrcEncoding;
+  private final String projectSrcEncoding;
 
   /**
    * Optional.
    */
-  private String projectBinDir;
+  private final String projectBinDir;
 
   /**
    * Optional.
    */
-  private ReportsConfig reports;
-
-  public LightProjectConfig() {
-  }
+  private final ReportsConfig reports;
 
   public LightProjectConfig(String groupId, String artifactId, String projectName) {
-    this.groupId = groupId;
-    this.artifactId = artifactId;
-    this.projectName = projectName;
+    this(groupId, artifactId, projectName, null, null, null, null, null, null, null);
   }
 
   @DataBoundConstructor
@@ -79,53 +74,15 @@ public class LightProjectConfig {
       String projectBinDir,
       ReportsConfig reports
   ) {
-    this(groupId, artifactId, projectName);
-    this.projectVersion = projectVersion;
-    this.projectDescription = projectDescription;
-    this.javaVersion = javaVersion;
-    this.projectSrcDir = projectSrcDir;
-    this.projectSrcEncoding = projectSrcEncoding;
-    this.projectBinDir = projectBinDir;
-    this.reports = reports;
-  }
-
-  public void setGroupId(String groupId) {
     this.groupId = groupId;
-  }
-
-  public void setArtifactId(String artifactId) {
     this.artifactId = artifactId;
-  }
-
-  public void setProjectName(String projectName) {
     this.projectName = projectName;
-  }
-
-  public void setProjectVersion(String projectVersion) {
     this.projectVersion = projectVersion;
-  }
-
-  public void setProjectDescription(String projectDescription) {
     this.projectDescription = projectDescription;
-  }
-
-  public void setJavaVersion(String javaVersion) {
     this.javaVersion = javaVersion;
-  }
-
-  public void setProjectSrcDir(String projectSrcDir) {
     this.projectSrcDir = projectSrcDir;
-  }
-
-  public void setProjectSrcEncoding(String projectSrcEncoding) {
     this.projectSrcEncoding = projectSrcEncoding;
-  }
-
-  public void setProjectBinDir(String projectBinDir) {
     this.projectBinDir = projectBinDir;
-  }
-
-  public void setReports(ReportsConfig reports) {
     this.reports = reports;
   }
 

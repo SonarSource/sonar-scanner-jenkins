@@ -274,9 +274,6 @@ public class SonarPublisher extends Notifier {
    * @return configuration for Sonar Light
    */
   public LightProjectConfig getLightProject() {
-    if (lightProject == null) {
-      lightProject = new LightProjectConfig();
-    }
     return lightProject;
   }
 
