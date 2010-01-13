@@ -21,7 +21,7 @@ public class BaseTest extends SonarTestCase {
    * <li>SONARPLUGINS-101: Private Repository</li>
    * <li>SONARPLUGINS-253: Maven "-e" option</li>
    * <li>SONARPLUGINS-263: Path to POM with spaces</li>
-   * <li>TODO SONARPLUGINS-326: Use alternate settings file</li>
+   * <li>SONARPLUGINS-326: Use alternate settings file</li>
    * </ul>
    *
    * @throws Exception if something is wrong
@@ -31,12 +31,15 @@ public class BaseTest extends SonarTestCase {
     configureDefaultSonar();
     String pomName = "space test/root-pom.xml";
     MavenModuleSet project = setupMavenProject(pomName);
+//    project.setAlternateSettings("settings.xml");
     project.setUsePrivateRepository(true);
     AbstractBuild build = build(project);
 
     String repo = build.getWorkspace().child(".repository").getRemote();
     // TODO Check that there is no POM-generation for Maven project
     assertSonarExecution(build, "-f \"" + pomName + "\" -Dmaven.repo.local=" + repo);
+    // TODO After Hudson release 1.341: uncomment next line and remove previous
+//    assertSonarExecution(build, "-f \"" + pomName + "\" -Dmaven.repo.local=" + repo + " -s settings.xml");
   }
 
   /**
