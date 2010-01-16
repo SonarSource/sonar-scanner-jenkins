@@ -81,6 +81,19 @@
     </plugins>
   </build>
 
+  <repositories>
+    <repository>
+      <id>m.g.o-public</id>
+      <url>http://maven.glassfish.org/content/groups/public/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
   <scm>
     <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/trunk/hudson/plugins/sonar</connection>
     <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/trunk/hudson/plugins/sonar</developerConnection>
