@@ -57,6 +57,7 @@ public class MigrationTest extends SonarTestCase {
   }
 
   private void verifyGeneral(SonarPublisher sonarPublisher) {
+    assertEquals((Integer) 1, sonarPublisher.getConfigVersion());
     assertEquals("My Sonar", sonarPublisher.getInstallationName());
     assertEquals("-Dproperty=value", sonarPublisher.getJobAdditionalProperties());
     assertEquals("-Xmx512m", sonarPublisher.getMavenOpts());
