@@ -153,6 +153,7 @@ public class SonarPublisher extends Notifier {
                         String mavenInstallationName, String rootPom,
                         LightProjectConfig lightProject
   ) {
+    super();
     this.configVersion = 1;
     this.installationName = installationName;
     // Triggers
