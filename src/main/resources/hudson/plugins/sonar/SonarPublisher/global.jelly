@@ -41,7 +41,6 @@
               <f:textbox name="sonar.additionalProperties" value="${inst.getAdditionalProperties()}"/>
             </f:entry>
 
-            <!-- TODO help -->
             <f:section title="${%BuildTriggers}" name="triggers">
               <st:include page="/hudson/plugins/sonar/SonarPublisher/triggers.jelly"
                           it="${inst.getTriggers()}"/>
