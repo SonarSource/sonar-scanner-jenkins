@@ -45,6 +45,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Old fields are left so that old config data can be read in, but
+ * they are deprecated and transient so that they won't show up in XML
+ * when writing back
+ */
 public class SonarPublisher extends Notifier {
   private static final Logger LOG = Logger.getLogger(SonarPublisher.class.getName());
 
