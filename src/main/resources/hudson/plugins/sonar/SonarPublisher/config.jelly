@@ -63,8 +63,7 @@
                          checked="${instance.isUseGlobalTriggers()}" negative="true"
                          help="${rootURL}/plugin/sonar/help-trigger-global.html">
           <f:section title="${%BuildTriggers}">
-            <st:include page="/hudson/plugins/sonar/SonarPublisher/triggers.jelly"
-                        it="${instance.getTriggers()}"/>
+            <st:include class="${descriptor.clazz}" page="triggers.jelly"/>
           </f:section>
         </f:optionalBlock>
       </table>
