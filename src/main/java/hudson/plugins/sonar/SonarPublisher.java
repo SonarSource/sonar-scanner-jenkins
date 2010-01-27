@@ -401,8 +401,7 @@ public class SonarPublisher extends Notifier {
     }
   }
 
-  @Override
-  public Action getProjectAction(AbstractProject<?, ?> project) {
+  protected String getSonarUrl(AbstractProject<?, ?> project) {
     SonarInstallation sonarInstallation = getInstallation();
     if (sonarInstallation == null) {
       return null;
@@ -429,7 +428,12 @@ public class SonarPublisher extends Notifier {
           lightProject.getArtifactId()
       );
     }
-    return new ProjectSonarAction(url);
+    return url;
+  }
+
+  @Override
+  public Action getProjectAction(AbstractProject<?, ?> project) {
+    return new ProjectSonarAction(getSonarUrl(project));
   }
 
   public BuildStepMonitor getRequiredMonitorService() {

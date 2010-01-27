@@ -20,17 +20,28 @@
 
 package hudson.plugins.sonar;
 
+import hudson.model.ProminentProjectAction;
+import hudson.plugins.sonar.utils.MagicNames;
+
 /**
- * The action appears as the link in the side bar that users will click on in order to go to the Sonar Dashboard.
+ * {@link ProminentProjectAction} that allows user to go to the Sonar Dashboard.
  *
  * @author Evgeny Mandrikov
  * @since 1.2
  */
-public final class ProjectSonarAction extends SonarAction {
+public final class ProjectSonarAction implements ProminentProjectAction {
   private final String url;
 
   public ProjectSonarAction(String url) {
     this.url = url;
+  }
+
+  public String getIconFileName() {
+    return MagicNames.ICON;
+  }
+
+  public String getDisplayName() {
+    return Messages.SonarAction_Sonar();
   }
 
   public String getUrlName() {
