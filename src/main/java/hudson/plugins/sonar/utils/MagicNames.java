@@ -34,7 +34,7 @@ public final class MagicNames {
   /**
    * Plugin icon.
    */
-  public static final String ICON = PLUGIN_HOME + "/images/sonarsource-wave.png";
+  public static final String ICON = PLUGIN_HOME + "/images/sonar-wave.png";
 
   /**
    * Default URL of Sonar.
