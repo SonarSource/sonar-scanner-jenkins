@@ -13,6 +13,23 @@ import org.jvnet.hudson.test.FailureBuilder;
  * @author Evgeny Mandrikov
  */
 public class BaseTest extends SonarTestCase {
+  public void testNoSonarInstallation() throws Exception {
+    FreeStyleProject project = setupFreeStyleProject();
+    project.getPublishersList().add(newSonarPublisherForFreeStyleProject(ROOT_POM));
+    AbstractBuild build = build(project);
+
+    assertNoSonarExecution(build, Messages.SonarPublisher_NoInstallation("default", 0));
+  }
+
+  public void testNoMavenInstallation() throws Exception {
+    configureDefaultSonar();
+    FreeStyleProject project = setupFreeStyleProject();
+    project.getPublishersList().add(newSonarPublisherForFreeStyleProject("pom.xml"));
+    AbstractBuild build = build(project);
+
+    System.out.println(build.getLog());
+  }
+
   /**
    * Maven Project.
    * <ul>

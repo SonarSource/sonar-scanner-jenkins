@@ -33,7 +33,7 @@
         <select class="setting-input" name="sonar.mavenInstallationName">
           <option value="">(Default)</option>
           <j:forEach var="inst" items="${instance.mavenInstallations}">
-            <f:option selected="${inst.name==instance.getMavenInstallation().name}" value="${inst.name}">
+            <f:option selected="${inst.name==instance.getMavenInstallationName()}" value="${inst.name}">
               ${inst.name}
             </f:option>
           </j:forEach>
