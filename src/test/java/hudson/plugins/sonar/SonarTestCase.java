@@ -4,6 +4,7 @@ import hudson.UDPBroadcastThread;
 import hudson.maven.MavenModuleSet;
 import hudson.model.*;
 import hudson.plugins.sonar.model.LightProjectConfig;
+import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
 import hudson.tasks.Maven;
 import hudson.util.jna.GNUCLibrary;
@@ -136,7 +137,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   protected static SonarPublisher newSonarPublisherForFreeStyleProject(String pomName) {
     return new SonarPublisher(
         SONAR_INSTALLATION_NAME,
-        null,
+        new TriggersConfig(),
         null,
         null,
         "default", // Maven Installation Name

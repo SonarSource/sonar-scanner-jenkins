@@ -59,8 +59,8 @@
     <!-- Build Triggers -->
     <f:nested>
       <table width="100%">
-        <f:optionalBlock name="sonar.triggers" title="${%UseGlobalTriggers}"
-                         checked="${instance.isUseGlobalTriggers()}" negative="true"
+        <f:optionalBlock name="sonar.triggers" title="${%DontUseGlobalTriggers}"
+                         checked="${instance.isUseLocalTriggers()}"
                          help="${rootURL}/plugin/sonar/help-trigger-global.html">
           <f:section title="${%BuildTriggers}">
             <st:include class="${descriptor.clazz}" page="triggers.jelly" it="${instance.getTriggers()}"/>

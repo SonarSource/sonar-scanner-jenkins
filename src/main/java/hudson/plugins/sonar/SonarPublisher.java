@@ -140,7 +140,7 @@ public class SonarPublisher extends Notifier {
   private transient String cloverReportPath;
 
   public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
-    this(installationName, null, jobAdditionalProperties, mavenOpts, null, null, null);
+    this(installationName, new TriggersConfig(), jobAdditionalProperties, mavenOpts, null, null, null);
   }
 
   public SonarPublisher(
@@ -254,13 +254,14 @@ public class SonarPublisher extends Notifier {
     return triggers == null;
   }
 
+  public boolean isUseLocalTriggers() {
+    return !isUseGlobalTriggers();
+  }
+
   /**
    * @return triggers configuration
    */
   public TriggersConfig getTriggers() {
-    if (triggers == null) {
-      triggers = new TriggersConfig();
-    }
     return triggers;
   }
 
