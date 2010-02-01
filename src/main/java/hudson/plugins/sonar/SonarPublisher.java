@@ -348,6 +348,7 @@ public class SonarPublisher extends Notifier {
       return true;
     }
     build.addAction(new BuildSonarAction());
+    
     boolean sonarSuccess = executeSonar(build, launcher, listener, sonarInstallation);
     if (!sonarSuccess) {
       // returning false has no effect on the global build status so need to do it manually
@@ -386,8 +387,18 @@ public class SonarPublisher extends Notifier {
         LOG.info("Generating " + pomName);
         SonarPomGenerator.generatePomForNonMavenProject(getLightProject(), root, pomName);
       }
+      String mavenInstallationName = getMavenInstallationName();
+      if (isMavenBuilder( build.getProject() ))
+      {
+          MavenModuleSet mavenModuleSet = getMavenProject( build );
+          if (null != mavenModuleSet.getMaven().getName())
+          {
+              mavenInstallationName = mavenModuleSet.getMaven().getName();
+          }
+      }
+      
       // Execute maven
-      return SonarHelper.executeMaven(build, launcher, listener, getMavenInstallationName(), pomName, sonarInstallation, this);
+      return SonarHelper.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this);
     }
     catch (IOException e) {
       Util.displayIOException(e, listener);
