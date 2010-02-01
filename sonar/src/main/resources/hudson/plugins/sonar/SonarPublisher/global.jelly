@@ -1,0 +1,58 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:section title="Sonar">
+    <f:entry title="${%SonarInstallations}" description="${%SonarInstallationsDescr}">
+      <!-- TODO l10n -->
+      <f:repeatable var="inst" items="${descriptor.installations}" add="Add Sonar">
+        <table width="100%">
+          <f:entry title="Name">
+            <f:textbox name="sonar.name" value="${inst.getName()}"
+                       checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
+          </f:entry>
+
+          <f:entry title="${%Disable}" description="${%DisableDescr}">
+            <f:checkbox name="sonar.disabled" checked="${inst.isDisabled()}"/>
+          </f:entry>
+
+          <f:advanced>
+            <f:entry title="${%ServerUrl}" description="${%ServerUrlDescr}">
+              <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}"/>
+            </f:entry>
+
+            <f:entry title="${%DbUrl}" description="${%DbUrlDescr}"
+                     help="${rootURL}/plugin/sonar/help-global-dburl.html">
+              <f:textbox name="sonar.databaseUrl" value="${inst.getDatabaseUrl()}"/>
+            </f:entry>
+
+            <f:entry title="${%DbLogin}" description="${%DbLoginDescr}">
+              <f:textbox name="sonar.databaseLogin" value="${inst.getDatabaseLogin()}"/>
+            </f:entry>
+
+            <f:entry title="${%DbPass}" description="${%DbPassDescr}">
+              <f:textbox name="sonar.databasePassword" value="${inst.getDatabasePassword()}"/>
+            </f:entry>
+
+            <f:entry title="${%DbDriver}" description="${%DbDriverDescr}"
+                     help="${rootURL}/plugin/sonar/help-global-dbdriver.html">
+              <f:textbox name="sonar.databaseDriver" value="${inst.getDatabaseDriver()}"/>
+            </f:entry>
+
+            <f:entry title="${%AddProps}" description="${%AddPropsDescr}">
+              <f:textbox name="sonar.additionalProperties" value="${inst.getAdditionalProperties()}"/>
+            </f:entry>
+
+            <f:section title="${%BuildTriggers}" name="triggers">
+              <st:include class="${descriptor.clazz}" page="triggers.jelly" it="${inst.getTriggers()}"/>
+            </f:section>
+          </f:advanced>
+
+          <f:entry title="">
+            <div align="right">
+              <f:repeatableDeleteButton value="Delete Sonar"/>
+            </div>
+          </f:entry>
+        </table>
+      </f:repeatable>
+    </f:entry>
+  </f:section>
+</j:jelly>

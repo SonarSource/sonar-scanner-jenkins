@@ -1,0 +1,119 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.jvnet.hudson.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>1.341</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>sonar</artifactId>
+  <version>1.2</version>
+  <packaging>hpi</packaging>
+  <name>Hudson Sonar Plugin</name>
+  <url>http://wiki.hudson-ci.org/display/HUDSON/Sonar+Plugin</url>
+
+  <inceptionYear>2007</inceptionYear>
+
+  <dependencies>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jvnet.hudson.main</groupId>
+      <artifactId>maven-plugin</artifactId>
+    </dependency>
+  </dependencies>
+
+  <developers>
+    <developer>
+      <id>godin</id>
+      <name>Evgeny Mandrikov</name>
+      <email>mandrikov@gmail.com</email>
+      <timezone>+3</timezone>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>sbrandhof</id>
+      <name>Simon Brandhof</name>
+      <email>simon.brandhof@gmail.com</email>
+    </developer>
+    <developer>
+      <id>cmunger</id>
+      <name>Cedric Munger</name>
+      <email>cedric.munger@gmail.com</email>
+    </developer>
+    <developer>
+      <id>cjelmini</id>
+      <name>Carlo Jelmini</name>
+      <email>cjelmini@gmail.com</email>
+    </developer>
+  </developers>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.mycila.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <version>1.5.0</version>
+        <configuration>
+          <header>${basedir}/src/license-header.txt</header>
+          <includes>
+            <include>src/main/java/**</include>
+            <include>src/test/java/**</include>
+          </includes>
+          <properties>
+            <inceptionYear>${project.inceptionYear}</inceptionYear>
+            <email>be_agile HAT hortis DOT ch</email>
+          </properties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>m.g.o-public</id>
+      <url>http://maven.glassfish.org/content/groups/public/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <scm>
+    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/sonar-1.2</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/sonar-1.2</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/tags/sonar-1.2</url>
+  </scm>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>http://jira.codehaus.org/browse/SONARPLUGINS/component/13726</url>
+  </issueManagement>
+
+  <ciManagement>
+    <system>Bamboo</system>
+    <url>http://ci.codehaus.org/browse/SONAR-HUDSON</url>
+  </ciManagement>
+
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License (LGPL), v.3</name>
+      <url>http://www.gnu.org/licenses/lgpl.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+</project>
