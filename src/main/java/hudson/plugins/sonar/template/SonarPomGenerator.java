@@ -24,7 +24,7 @@ public final class SonarPomGenerator {
 
     List<String> srcDirs = getProjectSrcDirsList(project.getProjectSrcDir());
     boolean multiSources = srcDirs.size() > 1;
-    setPomElement("sourceDirectory", srcDirs.get(0), pomTemplate);
+    setPomElement("sourceDirectory", srcDirs.size() == 0 ? "src" : srcDirs.get(0), pomTemplate);
     pomTemplate.setAttribute("srcDirsPlugin", multiSources ? generateSrcDirsPluginTemplate(srcDirs).toString() : "");
 
     setPomElement("project.build.sourceEncoding", project.getProjectSrcEncoding(), pomTemplate);
