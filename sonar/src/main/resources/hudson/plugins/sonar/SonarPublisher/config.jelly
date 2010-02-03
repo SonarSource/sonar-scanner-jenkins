@@ -1,0 +1,142 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+  <j:invokeStatic var="isMavenBuilder" className="hudson.plugins.sonar.SonarPublisher" method="isMavenBuilder">
+    <j:arg value="${it}" type="hudson.model.AbstractProject"/>
+  </j:invokeStatic>
+
+  <!-- Sonar Installation -->
+  <j:set var="sonars" value="${descriptor.installations}"/>
+  <j:if test="${empty(sonars)}">
+    <!-- no Sonar installation is configured, so warn the user now -->
+    <f:entry title="${%SonarInstallation}">
+      <div class="error">${%SonarInstallation.error(rootURL)}</div>
+    </f:entry>
+  </j:if>
+  <j:if test="${sonars.size() gt 1}">
+    <!-- choise not necessary if there's no choice -->
+    <f:entry title="${%SonarInstallation}">
+      <select class="setting-input" name="sonar.installationName">
+        <j:forEach var="inst" items="${sonars}">
+          <f:option value="${inst.name}" selected="${inst.name==instance.installation.name}">${inst.name}
+          </f:option>
+        </j:forEach>
+      </select>
+    </f:entry>
+  </j:if>
+
+  <f:advanced>
+
+    <j:if test="${!isMavenBuilder}">
+      <!-- Maven version -->
+      <f:entry title="${%MavenVersion}">
+        <select class="setting-input" name="sonar.mavenInstallationName">
+          <option value="">(Default)</option>
+          <j:forEach var="inst" items="${instance.mavenInstallations}">
+            <f:option selected="${inst.name==instance.getMavenInstallationName()}" value="${inst.name}">
+              ${inst.name}
+            </f:option>
+          </j:forEach>
+        </select>
+      </f:entry>
+      <!-- Root POM -->
+      <f:entry title="${%RootPom}" description="${%RootPomDescr}"
+               help="/plugin/maven-plugin/root-pom.html">
+        <f:textbox name="sonar.rootPom" value="${instance.getRootPom()}"/>
+      </f:entry>
+    </j:if>
+
+    <!-- MAVEN_OPTS -->
+    <f:entry title="MAVEN_OPTS" description="${%MavenOptsDescr}"
+             help="/plugin/maven-plugin/maven-opts.html">
+      <f:expandableTextbox name="sonar.mavenOpts" value="${instance.mavenOpts}"/>
+    </f:entry>
+    <!-- Maven Properties -->
+    <f:entry title="${%AdditonalProps}" description="${%AdditonalPropsDescr}"
+             help="/plugin/sonar/help-properties.html">
+      <f:expandableTextbox name="sonar.jobAdditionalProperties" value="${instance.getJobAdditionalProperties()}"/>
+    </f:entry>
+    <!-- Build Triggers -->
+    <f:nested>
+      <table width="100%">
+        <f:optionalBlock name="sonar.triggers" title="${%DontUseGlobalTriggers}"
+                         checked="${instance.isUseLocalTriggers()}"
+                         help="${rootURL}/plugin/sonar/help-trigger-global.html">
+          <f:section title="${%BuildTriggers}">
+            <st:include class="${descriptor.clazz}" page="triggers.jelly" it="${instance.getTriggers()}"/>
+          </f:section>
+        </f:optionalBlock>
+      </table>
+    </f:nested>
+  </f:advanced>
+
+  <j:if test="${!isMavenBuilder}">
+    <f:nested>
+      <table width="100%">
+        <!-- Sonar Light -->
+        <f:optionalBlock name="sonar.lightProject" title="${%SonarLight}"
+                         checked="${instance.isUseSonarLight()}"
+                         help="${rootURL}/plugin/sonar/help-project-light.html">
+          <f:section title="${%Builder}">
+            <f:entry title="${%Org}" description="${%OrgDescr}">
+              <f:textbox name="groupId" value="${instance.lightProject.groupId}"
+                         checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
+            </f:entry>
+
+            <f:entry title="${%ProjectId}" description="${%ProjectIdDescr}">
+              <f:textbox name="artifactId" value="${instance.lightProject.artifactId}"
+                         checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatoryAndNoSpaces?value='+escape(this.value)"/>
+            </f:entry>
+
+            <f:entry title="${%ProjectName}" description="${%ProjectNameDescr}">
+              <f:textbox name="projectName" value="${instance.lightProject.projectName}"
+                         checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
+            </f:entry>
+
+            <f:entry title="${%ProjectDescr}">
+              <f:textbox name="projectDescription" value="${instance.lightProject.projectDescription}"/>
+            </f:entry>
+
+            <f:entry title="${%ProjectVersion}" description="${%ProjectVersionDescr}">
+              <f:textbox name="projectVersion" value="${instance.lightProject.projectVersion}"/>
+            </f:entry>
+
+            <f:entry title="${%SrcDirs}" description="${%SrcDirsDescr}">
+              <f:textbox name="projectSrcDir" value="${instance.lightProject.projectSrcDir}"
+                         checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
+            </f:entry>
+
+            <f:entry title="${%SrcEncoding}" description="${%SrcEncodingDescr}">
+              <f:textbox name="projectSrcEncoding" value="${instance.lightProject.projectSrcEncoding}"/>
+            </f:entry>
+
+            <f:entry title="${%BinDir}" description="${%BinDirDescr}">
+              <f:textbox name="projectBinDir" value="${instance.lightProject.projectBinDir}"/>
+            </f:entry>
+
+            <f:entry title="${%JavaVersion}" description="${%JavaVersionDescr}">
+              <f:textbox name="javaVersion" value="${instance.lightProject.javaVersion}"/>
+            </f:entry>
+
+            <f:optionalBlock name="reports" title="${%ReuseReports}"
+                             checked="${instance.lightProject.isReuseReports()}">
+              <f:section title="${%Reports}">
+                <f:entry title="${%SurefireReportsPath}" description="${%SurefireReportsPathDescr}">
+                  <f:textbox name="surefireReportsPath" value="${instance.lightProject.reports.surefireReportsPath}"/>
+                </f:entry>
+
+                <f:entry title="${%CoberturaReportPath}" description="${%CoberturaReportPathDescr}">
+                  <f:textbox name="coberturaReportPath" value="${instance.lightProject.reports.coberturaReportPath}"/>
+                </f:entry>
+
+                <f:entry title="${%CloverReportPath}" description="${%CloverReportPathDescr}">
+                  <f:textbox name="cloverReportPath" value="${instance.lightProject.reports.cloverReportPath}"/>
+                </f:entry>
+              </f:section>
+            </f:optionalBlock>
+          </f:section>
+        </f:optionalBlock>
+      </table>
+    </f:nested>
+  </j:if>
+</j:jelly>
