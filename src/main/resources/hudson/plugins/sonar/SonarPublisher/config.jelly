@@ -61,7 +61,7 @@
       <table width="100%">
         <f:optionalBlock name="sonar.triggers" title="${%DontUseGlobalTriggers}"
                          checked="${instance.isUseLocalTriggers()}"
-                         help="${rootURL}/plugin/sonar/help-trigger-global.html">
+                         help="/plugin/sonar/help-trigger-global.html">
           <f:section title="${%BuildTriggers}">
             <st:include class="${descriptor.clazz}" page="triggers.jelly" it="${instance.getTriggers()}"/>
           </f:section>
@@ -76,7 +76,7 @@
         <!-- Sonar Light -->
         <f:optionalBlock name="sonar.lightProject" title="${%SonarLight}"
                          checked="${instance.isUseSonarLight()}"
-                         help="${rootURL}/plugin/sonar/help-project-light.html">
+                         help="/plugin/sonar/help-project-light.html">
           <f:section title="${%Builder}">
             <f:entry title="${%Org}" description="${%OrgDescr}">
               <f:textbox name="groupId" value="${instance.lightProject.groupId}"

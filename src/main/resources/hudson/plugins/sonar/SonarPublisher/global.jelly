@@ -20,7 +20,7 @@
             </f:entry>
 
             <f:entry title="${%DbUrl}" description="${%DbUrlDescr}"
-                     help="${rootURL}/plugin/sonar/help-global-dburl.html">
+                     help="/plugin/sonar/help-global-dburl.html">
               <f:textbox name="sonar.databaseUrl" value="${inst.getDatabaseUrl()}"/>
             </f:entry>
 
@@ -33,7 +33,7 @@
             </f:entry>
 
             <f:entry title="${%DbDriver}" description="${%DbDriverDescr}"
-                     help="${rootURL}/plugin/sonar/help-global-dbdriver.html">
+                     help="/plugin/sonar/help-global-dbdriver.html">
               <f:textbox name="sonar.databaseDriver" value="${inst.getDatabaseDriver()}"/>
             </f:entry>
 

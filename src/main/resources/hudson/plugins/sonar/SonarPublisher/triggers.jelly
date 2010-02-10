@@ -1,31 +1,31 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-scm.html">
+  <f:entry title="" help="/plugin/sonar/help-trigger-scm.html">
     <f:checkbox name="scmBuilds" checked="${it.isScmBuilds()}"
                 default="false"/>
     <label>${%ScmBuilds}</label>
   </f:entry>
 
-  <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-timer.html">
+  <f:entry title="" help="/plugin/sonar/help-trigger-timer.html">
     <f:checkbox name="timerBuilds" checked="${it.isTimerBuilds()}"
                 default="true"/>
     <label>${%TimerBuilds}</label>
   </f:entry>
 
-  <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-user.html">
+  <f:entry title="" help="/plugin/sonar/help-trigger-user.html">
     <f:checkbox name="userBuilds" checked="${it.isUserBuilds()}"
                 default="true"/>
     <label>${%UserBuilds}</label>
   </f:entry>
 
-  <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-snapshot-dep.html">
+  <f:entry title="" help="/plugin/sonar/help-trigger-snapshot-dep.html">
     <f:checkbox name="snapshotDependencyBuilds" checked="${it.isSnapshotDependencyBuilds()}"
                 default="false"/>
     <label>${%SnapshotsDepBuilds}</label>
   </f:entry>
 
-  <f:entry title="" help="${rootURL}/plugin/sonar/help-trigger-build-failure.html">
+  <f:entry title="" help="/plugin/sonar/help-trigger-build-failure.html">
     <f:checkbox name="skipIfBuildFails" checked="${it.isSkipIfBuildFails()}"
                 default="false"/>
     <label>${%SkipIfBuildFails}</label>
