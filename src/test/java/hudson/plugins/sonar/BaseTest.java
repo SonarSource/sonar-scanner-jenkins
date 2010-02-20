@@ -5,29 +5,23 @@ import hudson.model.*;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
-import org.jvnet.hudson.test.Bug;
-import org.jvnet.hudson.test.Email;
 import org.jvnet.hudson.test.FailureBuilder;
 
 /**
  * @author Evgeny Mandrikov
  */
 public class BaseTest extends SonarTestCase {
+  /**
+   * No sonar installations defined.
+   *
+   * @throws Exception if something is wrong
+   */
   public void testNoSonarInstallation() throws Exception {
     FreeStyleProject project = setupFreeStyleProject();
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(ROOT_POM));
     AbstractBuild build = build(project);
 
     assertNoSonarExecution(build, Messages.SonarPublisher_NoInstallation("default", 0));
-  }
-
-  public void testNoMavenInstallation() throws Exception {
-    configureDefaultSonar();
-    FreeStyleProject project = setupFreeStyleProject();
-    project.getPublishersList().add(newSonarPublisherForFreeStyleProject("pom.xml"));
-    AbstractBuild build = build(project);
-
-    System.out.println(build.getLog());
   }
 
   /**
@@ -116,30 +110,47 @@ public class BaseTest extends SonarTestCase {
   }
 
   /**
-   * TODO SONARPLUGINS-123: Ampersand problem.
+   * SONARPLUGINS-48: Hide the user/password from the standard output
+   *
+   * @throws Exception if something wrong
+   */
+  public void testPassword() throws Exception {
+    configureDefaultMaven();
+    configureSecuredSonar();
+    MavenModuleSet project = setupMavenProject();
+    AbstractBuild build = build(project);
+
+    assertLogContains("sonar:sonar", build);
+    assertLogDoesntContains("-Dsonar.jdbc.username=dbuser", build);
+    assertLogDoesntContains("-Dsonar.jdbc.password=dbpassword", build);
+  }
+
+  /**
+   * SONARPLUGINS-123, SONARPLUGINS-363: Ampersand problem.
    *
    * @throws Exception if something is wrong
    */
-  @Bug(123)
-  @Email("http://old.nabble.com/Hudson-Builds-Fail-With-1.9-tt23859002.html")
   public void testAmpersand() throws Exception {
-    /*
     configureDefaultMaven();
+    configureSecuredSonar();
+    MavenModuleSet project = setupMavenProject();
+    AbstractBuild build = build(project);
+
+    assertLogContains("sonar:sonar", build);
+    assertLogContains("-Dsonar.jdbc.driver=com.mysql.jdbc.Driver", build);
+    assertLogContains("\"-Dsonar.jdbc.url=jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8\"", build);
+    assertLogContains("-Dsonar.host.url=" + SONAR_HOST, build);
+  }
+
+  private void configureSecuredSonar() {
     configureSonar(new SonarInstallation(
         SONAR_INSTALLATION_NAME,
         false,
         SONAR_HOST,
         "jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8",
         "com.mysql.jdbc.Driver",
-        "sonar",
-        "sonar",
-        null,
-        null
+        "dbuser", "dbpassword",
+        null, null
     ));
-    MavenModuleSet project = setupMavenProject();
-    AbstractBuild build = build(project);
-
-    assertLogContains("-f pom.xml -Dsonar.jdbc.driver=com.mysql.jdbc.Driver -Dsonar.jdbc.username=sonar -Dsonar.jdbc.password=sonar -Dsonar.jdbc.url=jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8 -Dsonar.host.url=http://sonarhost:sonarport", build);
-    */
   }
 }

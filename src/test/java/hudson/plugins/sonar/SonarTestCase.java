@@ -180,4 +180,20 @@ public abstract class SonarTestCase extends HudsonTestCase {
         build.getAction(BuildSonarAction.class)
     );
   }
+
+  /**
+   * Asserts that the console output of the build doesn't contains the given substring.
+   *
+   * @param substring substring to check
+   * @param run       run to check
+   * @throws Exception if something wrong
+   */
+  protected void assertLogDoesntContains(String substring, Run run) throws Exception {
+    String log = getLog(run);
+    if (!log.contains(substring)) {
+      return; // good!
+    }
+    System.out.println(log);
+    fail("Console output of " + run + " contains " + substring);
+  }
 }

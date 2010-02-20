@@ -30,7 +30,7 @@ import hudson.plugins.sonar.model.ReportsConfig;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.template.SonarPomGenerator;
 import hudson.plugins.sonar.utils.MagicNames;
-import hudson.plugins.sonar.utils.SonarHelper;
+import hudson.plugins.sonar.utils.SonarMaven;
 import hudson.tasks.*;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.util.FormValidation;
@@ -398,7 +398,7 @@ public class SonarPublisher extends Notifier {
       }
       
       // Execute maven
-      return SonarHelper.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this);
+      return SonarMaven.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this);
     }
     catch (IOException e) {
       Util.displayIOException(e, listener);

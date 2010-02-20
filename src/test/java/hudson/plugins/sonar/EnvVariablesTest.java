@@ -24,8 +24,8 @@ public class EnvVariablesTest extends SonarTestCase {
     configureSonar(new SonarInstallation(
         SONAR_INSTALLATION_NAME,
         false,
-        "${VAR_SONAR_HOST}",
-        null, null, null, DATABASE_PASSWORD, // Database Properties
+        SONAR_HOST,
+        null, null, null, null, // Database Properties
         "-P${VAR_PROFILE}", // Additinal Properties
         null
     ));
@@ -33,7 +33,6 @@ public class EnvVariablesTest extends SonarTestCase {
     FreeStyleProject project = createFreeStyleProject("FreeStyleProject");
     project.addProperty(new ParametersDefinitionProperty(
         new StringParameterDefinition("VAR_SUBDIR", "subdir"),
-        new StringParameterDefinition("VAR_SONAR_HOST", SONAR_HOST),
         new StringParameterDefinition("VAR_PROFILE", "release")
     ));
     String varPomName = "${VAR_SUBDIR}/pom.xml";
@@ -52,15 +51,10 @@ public class EnvVariablesTest extends SonarTestCase {
     // Check that POM generated
     // TODO validate POM
     assertTrue(build.getWorkspace().child(pomName).exists());
-    assertSonarExecution(build, "-f " + pomName +
-        " -DVAR_SUBDIR=subdir" +
-        " -DVAR_SONAR_HOST=" + SONAR_HOST +
-        " -DVAR_PROFILE=release" +
-        " -Dsonar.jdbc.password=" + DATABASE_PASSWORD +
-        " -Dsonar.host.url=" + SONAR_HOST +
-        " -Prelease" +
-        " -Ddir=subdir"
-    );
+    assertLogContains("sonar:sonar", build);
+    assertLogContains("-f " + pomName, build);
+    assertLogContains("-Ddir=subdir", build);
+    assertLogContains("-Prelease", build);
   }
 
   /* TODO Godin: WTF? original build failed

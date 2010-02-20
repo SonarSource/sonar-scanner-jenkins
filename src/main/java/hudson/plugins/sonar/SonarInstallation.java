@@ -98,25 +98,6 @@ public class SonarInstallation {
     return triggers;
   }
 
-  public String getPluginCallArgs() {
-    StringBuilder sb = new StringBuilder(100);
-    appendUnlessEmpty(sb, "sonar.jdbc.driver", getDatabaseDriver());
-    appendUnlessEmpty(sb, "sonar.jdbc.username", getDatabaseLogin());
-    appendUnlessEmpty(sb, "sonar.jdbc.password", getDatabasePassword());
-    appendUnlessEmpty(sb, "sonar.jdbc.url", getDatabaseUrl());
-    appendUnlessEmpty(sb, "sonar.host.url", getServerUrl());
-    return sb.toString();
-  }
-
-  void appendUnlessEmpty(StringBuilder sb, String key, String value) {
-    if (StringUtils.isNotEmpty(StringUtils.defaultString(value))) {
-      sb.append(key);
-      sb.append('=');
-      sb.append(value);
-      sb.append('\n');
-    }
-  }
-
   public String getServerLink() {
     return StringUtils.isEmpty(getServerUrl()) ?
         MagicNames.DEFAULT_SONAR_URL :
