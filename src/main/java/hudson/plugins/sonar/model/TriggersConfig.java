@@ -14,6 +14,7 @@ import java.util.List;
 
 /**
  * @author Evgeny Mandrikov
+ * @since 1.2
  */
 public class TriggersConfig implements Serializable {
   private boolean scmBuilds;

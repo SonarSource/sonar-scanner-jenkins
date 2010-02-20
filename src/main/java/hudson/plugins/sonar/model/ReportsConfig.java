@@ -4,6 +4,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author Evgeny Mandrikov
+ * @since 1.2
  */
 public class ReportsConfig {
   /**
