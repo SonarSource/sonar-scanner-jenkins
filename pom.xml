@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>sonar</artifactId>
-  <version>1.3</version>
+  <version>1.4-SNAPSHOT</version>
   <packaging>hpi</packaging>
   <name>Hudson Sonar Plugin</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/Sonar+Plugin</url>
@@ -94,9 +94,9 @@
   </repositories>
 
   <scm>
-    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/sonar-1.3</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/sonar-1.3</developerConnection>
-    <url>https://hudson.dev.java.net/source/browse/hudson/tags/sonar-1.3</url>
+    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/trunk/hudson/plugins/sonar</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/trunk/hudson/plugins/sonar</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/trunk/hudson/plugins/sonar</url>
   </scm>
 
   <issueManagement>
