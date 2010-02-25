@@ -125,23 +125,6 @@ public class BaseTest extends SonarTestCase {
     assertLogDoesntContains("-Dsonar.jdbc.password=dbpassword", build);
   }
 
-  /**
-   * SONARPLUGINS-123, SONARPLUGINS-363: Ampersand problem.
-   *
-   * @throws Exception if something is wrong
-   */
-  public void testAmpersand() throws Exception {
-    configureDefaultMaven();
-    configureSecuredSonar();
-    MavenModuleSet project = setupMavenProject();
-    AbstractBuild build = build(project);
-
-    assertLogContains("sonar:sonar", build);
-    assertLogContains("-Dsonar.jdbc.driver=com.mysql.jdbc.Driver", build);
-    assertLogContains("\"-Dsonar.jdbc.url=jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8\"", build);
-    assertLogContains("-Dsonar.host.url=" + SONAR_HOST, build);
-  }
-
   private void configureSecuredSonar() {
     configureSonar(new SonarInstallation(
         SONAR_INSTALLATION_NAME,

@@ -33,34 +33,17 @@ public final class SonarMaven extends Maven {
   @Override
   protected void wrapUpArguments(ArgumentListBuilder args, String normalizedTarget, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
       throws IOException, InterruptedException {
-    appendUnlessEmpty(args, "sonar.jdbc.driver", sonarInstallation.getDatabaseDriver());
-    appendQuotedUnlessEmpty(args, "sonar.jdbc.url", sonarInstallation.getDatabaseUrl()); // TODO can be masked
-    appendMaskedUnlessEmpty(args, "sonar.jdbc.username", sonarInstallation.getDatabaseLogin());
-    appendMaskedUnlessEmpty(args, "sonar.jdbc.password", sonarInstallation.getDatabasePassword());
-    appendUnlessEmpty(args, "sonar.host.url", sonarInstallation.getServerUrl());
+    ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
+    argsBuilder.append("sonar.jdbc.driver", sonarInstallation.getDatabaseDriver());
+    argsBuilder.append("sonar.jdbc.url", sonarInstallation.getDatabaseUrl());  // TODO can be masked
+    argsBuilder.appendMasked("sonar.jdbc.username", sonarInstallation.getDatabaseLogin());
+    argsBuilder.appendMasked("sonar.jdbc.password", sonarInstallation.getDatabasePassword());
+    argsBuilder.append("sonar.host.url", sonarInstallation.getServerUrl());
   }
 
   @Override
   public DescriptorImpl getDescriptor() {
     return (DescriptorImpl) Hudson.getInstance().getDescriptorOrDie(Maven.class);
-  }
-
-  private static void appendUnlessEmpty(ArgumentListBuilder args, String key, String value) {
-    if (StringUtils.isNotEmpty(StringUtils.defaultString(value))) {
-      args.add("-D" + key + "=" + value);
-    }
-  }
-
-  private static void appendMaskedUnlessEmpty(ArgumentListBuilder args, String key, String value) {
-    if (StringUtils.isNotEmpty(StringUtils.defaultString(value))) {
-      args.addMasked("-D" + key + "=" + value);
-    }
-  }
-
-  private static void appendQuotedUnlessEmpty(ArgumentListBuilder args, String key, String value) {
-    if (StringUtils.isNotEmpty(StringUtils.defaultString(value))) {
-      args.addQuoted("-D" + key + "=" + value);
-    }
   }
 
   public static boolean executeMaven(
