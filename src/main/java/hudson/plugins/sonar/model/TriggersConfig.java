@@ -108,7 +108,7 @@ public class TriggersConfig implements Serializable {
     CauseAction buildCause = build.getAction(CauseAction.class);
     List<Cause> buildCauses = buildCause.getCauses();
     for (Cause cause : buildCauses) {
-      if (cause.getClass().equals(trigger)) {
+      if (trigger.isInstance(cause)) {
         return true;
       }
     }

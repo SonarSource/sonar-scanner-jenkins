@@ -77,6 +77,7 @@ public class BaseTest extends SonarTestCase {
 
   /**
    * SONARPLUGINS-153, SONARPLUGINS-216: Triggers
+   * SONARPLUGINS-378
    *
    * @throws Exception if something wrong
    */
@@ -91,6 +92,9 @@ public class BaseTest extends SonarTestCase {
     triggers.setSnapshotDependencyBuilds(false);
     triggers.setSkipIfBuildFails(true);
     AbstractBuild build;
+    // SONARPLUGINS-378
+    build = build(project, new CustomCause(), null);
+    assertNoSonarExecution(build, Messages.SonarPublisher_UserBuild());
     // Disable sonar on user build command execution
     build = build(project, new Cause.UserCause(), null);
     assertNoSonarExecution(build, Messages.SonarPublisher_UserBuild());
@@ -107,6 +111,9 @@ public class BaseTest extends SonarTestCase {
     project.getBuildersList().add(new FailureBuilder());
     build = build(project);
     assertNoSonarExecution(build, Messages.SonarPublisher_BadBuildStatus(Result.FAILURE));
+  }
+
+  public static class CustomCause extends Cause.UserCause {
   }
 
   /**
