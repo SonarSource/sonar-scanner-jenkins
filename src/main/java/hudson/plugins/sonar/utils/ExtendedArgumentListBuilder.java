@@ -32,4 +32,8 @@ public class ExtendedArgumentListBuilder {
       builder.add(arg);
     }
   }
+
+  public boolean isUnix() {
+    return unix;
+  }
 }
