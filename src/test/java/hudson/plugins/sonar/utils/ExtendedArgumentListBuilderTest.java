@@ -36,7 +36,8 @@ public class ExtendedArgumentListBuilderTest {
   
   @Test
   public void empty() {
-    builder.append("key", null);
+    builder.append("key1", null);
+    builder.append("key2", "");
     assertEquals("", original.toStringWithQuote());
   }
 
@@ -54,5 +55,16 @@ public class ExtendedArgumentListBuilderTest {
   public void withoutAmpersand() {
     builder.append("key", "value");
     assertEquals("-Dkey=value", original.toStringWithQuote());
+  }
+
+  @Test
+  public void mixed() {
+    builder.append("key", "value");
+    builder.append("amp", "&");
+    if (builder.isUnix()) {
+      assertEquals("-Dkey=value -Damp=&", original.toStringWithQuote());
+    } else {
+      assertEquals("-Dkey=value \"-Damp=&\"" , original.toStringWithQuote());
+    }
   }
 }
