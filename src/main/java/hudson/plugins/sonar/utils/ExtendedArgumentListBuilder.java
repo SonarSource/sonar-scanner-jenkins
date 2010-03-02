@@ -22,7 +22,9 @@ public class ExtendedArgumentListBuilder {
   }
 
   public void appendMasked(String key, String value) {
-    builder.addMasked("-D" + key + "=" + value);
+    if (StringUtils.isNotEmpty(StringUtils.defaultString(value))) {
+      builder.addMasked("-D" + key + "=" + value);
+    }
   }
 
   public void append(String arg) {
