@@ -5,6 +5,7 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * @author Evgeny Mandrikov
+ * @since 1.3.1
  */
 public class ExtendedArgumentListBuilder {
   private boolean unix;
