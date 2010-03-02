@@ -38,6 +38,8 @@ public class ExtendedArgumentListBuilderTest {
   public void empty() {
     builder.append("key1", null);
     builder.append("key2", "");
+    builder.appendMasked("key3", null);
+    builder.appendMasked("key4", "");
     assertEquals("", original.toStringWithQuote());
   }
 
