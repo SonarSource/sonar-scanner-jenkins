@@ -99,9 +99,9 @@ public class SonarInstallation {
   }
 
   public String getServerLink() {
-    return StringUtils.isEmpty(getServerUrl()) ?
-        MagicNames.DEFAULT_SONAR_URL :
-        getServerUrl();
+    String url = StringUtils.trimToEmpty(getServerUrl());
+    url = StringUtils.defaultIfEmpty(url, MagicNames.DEFAULT_SONAR_URL);
+    return StringUtils.chomp(url, "/");
   }
 
   private String getServerLink(String prefix, String groupId, String artifactId) {
