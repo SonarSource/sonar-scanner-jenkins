@@ -1,7 +1,6 @@
 package hudson.plugins.sonar.utils;
 
 import hudson.util.ArgumentListBuilder;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -33,7 +32,16 @@ public class ExtendedArgumentListBuilderTest {
         {false},
     });
   }
-  
+
+  /**
+   * See SONARPLUGINS-392
+   */
+  @Test
+  public void spaces() {
+    builder.append("key", " value ");
+    assertEquals("-Dkey=value", original.toStringWithQuote());
+  }
+
   @Test
   public void empty() {
     builder.append("key1", null);
@@ -49,7 +57,7 @@ public class ExtendedArgumentListBuilderTest {
     if (builder.isUnix()) {
       assertEquals("-Dkey=&", original.toStringWithQuote());
     } else {
-      assertEquals("\"-Dkey=&\"" , original.toStringWithQuote());
+      assertEquals("\"-Dkey=&\"", original.toStringWithQuote());
     }
   }
 
@@ -66,7 +74,7 @@ public class ExtendedArgumentListBuilderTest {
     if (builder.isUnix()) {
       assertEquals("-Dkey=value -Damp=&", original.toStringWithQuote());
     } else {
-      assertEquals("-Dkey=value \"-Damp=&\"" , original.toStringWithQuote());
+      assertEquals("-Dkey=value \"-Damp=&\"", original.toStringWithQuote());
     }
   }
 }

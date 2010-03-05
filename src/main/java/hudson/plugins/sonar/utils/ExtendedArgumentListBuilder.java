@@ -17,13 +17,15 @@ public class ExtendedArgumentListBuilder {
   }
 
   public void append(String key, String value) {
-    if (StringUtils.isNotEmpty(StringUtils.defaultString(value))) {
+    value = StringUtils.trimToEmpty(value);
+    if (StringUtils.isNotEmpty(value)) {
       append("-D" + key + "=" + value);
     }
   }
 
   public void appendMasked(String key, String value) {
-    if (StringUtils.isNotEmpty(StringUtils.defaultString(value))) {
+    value = StringUtils.trimToEmpty(value);
+    if (StringUtils.isNotEmpty(value)) {
       builder.addMasked("-D" + key + "=" + value);
     }
   }
