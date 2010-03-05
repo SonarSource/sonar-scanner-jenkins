@@ -19,12 +19,19 @@ public class SonarInstallationTest {
   }
 
   @Test
+  public void publicUrl() {
+    SonarInstallation installation = create("http://localhost");
+    installation.setServerPublicUrl("http://host:port/sonar");
+    assertEquals("http://host:port/sonar", installation.getServerLink());
+  }
+
+  @Test
   public void trailingSlashAndSpace() throws Exception {
-    SonarInstallation installation = create("http://host:port/sonar/");
+    SonarInstallation installation = create("http://host:port/sonar/ ");
     assertEquals("http://host:port/sonar", installation.getServerLink());
   }
 
   private SonarInstallation create(String url) {
-    return new SonarInstallation("default", false, url, "", "", "", "", "", null);
+    return new SonarInstallation("default", false, url, null, "", "", "", "", "", null);
   }
 }

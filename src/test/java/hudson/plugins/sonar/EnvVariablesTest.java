@@ -24,7 +24,7 @@ public class EnvVariablesTest extends SonarTestCase {
     configureSonar(new SonarInstallation(
         SONAR_INSTALLATION_NAME,
         false,
-        SONAR_HOST,
+        SONAR_HOST, null,
         null, null, null, null, // Database Properties
         "-P${VAR_PROFILE}", // Additinal Properties
         null

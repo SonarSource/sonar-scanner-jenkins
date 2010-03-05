@@ -19,6 +19,10 @@
               <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}"/>
             </f:entry>
 
+            <f:entry title="${%ServerPublicUrl}" description="${%ServerPublicUrlDescr}">
+              <f:textbox name="sonar.serverPublicUrl" value="${inst.getServerPublicUrl()}"/>
+            </f:entry>
+
             <f:entry title="${%DbUrl}" description="${%DbUrlDescr}"
                      help="/plugin/sonar/help-global-dburl.html">
               <f:textbox name="sonar.databaseUrl" value="${inst.getDatabaseUrl()}"/>

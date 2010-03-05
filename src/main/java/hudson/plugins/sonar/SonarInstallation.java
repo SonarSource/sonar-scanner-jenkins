@@ -28,6 +28,7 @@ public class SonarInstallation {
   private final String name;
   private final boolean disabled;
   private final String serverUrl;
+  private String serverPublicUrl;
   private final String databaseUrl;
   private final String databaseDriver;
   private final String databaseLogin;
@@ -40,16 +41,18 @@ public class SonarInstallation {
   private transient String version; //NOSONAR
 
   public SonarInstallation(String name) {
-    this(name, false, null, null, null, null, null, null, null);
+    this(name, false, null, null, null, null, null, null, null, null);
   }
 
   @DataBoundConstructor
-  public SonarInstallation(String name, boolean disabled, String serverUrl, String databaseUrl,
-                           String databaseDriver, String databaseLogin, String databasePassword, String additionalProperties,
-                           TriggersConfig triggers) {
+  public SonarInstallation(String name, boolean disabled,
+                           String serverUrl, String serverPublicUrl,
+                           String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
+                           String additionalProperties, TriggersConfig triggers) {
     this.name = name;
     this.disabled = disabled;
     this.serverUrl = serverUrl;
+    this.serverPublicUrl = serverPublicUrl;
     this.databaseUrl = databaseUrl;
     this.databaseDriver = databaseDriver;
     this.databaseLogin = databaseLogin;
@@ -69,6 +72,20 @@ public class SonarInstallation {
 
   public String getServerUrl() {
     return serverUrl;
+  }
+
+  /**
+   * @since 1.4
+   */
+  public String getServerPublicUrl() {
+    return serverPublicUrl;
+  }
+
+  /**
+   * @since 1.4
+   */
+  public void setServerPublicUrl(String serverPublicUrl) {
+    this.serverPublicUrl = serverPublicUrl;
   }
 
   public String getDatabaseUrl() {
@@ -99,7 +116,10 @@ public class SonarInstallation {
   }
 
   public String getServerLink() {
-    String url = StringUtils.trimToEmpty(getServerUrl());
+    String url = StringUtils.defaultIfEmpty(
+        StringUtils.trimToEmpty(getServerPublicUrl()),
+        StringUtils.trimToEmpty(getServerUrl())
+    );
     url = StringUtils.defaultIfEmpty(url, MagicNames.DEFAULT_SONAR_URL);
     return StringUtils.chomp(url, "/");
   }
