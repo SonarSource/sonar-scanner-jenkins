@@ -26,7 +26,6 @@ import hudson.maven.MavenModuleSet;
 import hudson.maven.ModuleName;
 import hudson.model.*;
 import hudson.plugins.sonar.model.LightProjectConfig;
-import hudson.plugins.sonar.model.ReportsConfig;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.template.SonarPomGenerator;
 import hudson.plugins.sonar.utils.MagicNames;
@@ -46,8 +45,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Old fields are left so that old config data can be read in, but
- * they are deprecated and transient so that they won't show up in XML
+ * Old fields should be left so that old config data can be read in, but
+ * they should be deprecated and transient so that they won't show up in XML
  * when writing back
  */
 public class SonarPublisher extends Notifier {
@@ -66,6 +65,13 @@ public class SonarPublisher extends Notifier {
 
   /**
    * Optional.
+   *
+   * @since 1.4
+   */
+  private String branch;
+
+  /**
+   * Optional.
    */
   private final String mavenOpts;
 
@@ -75,29 +81,11 @@ public class SonarPublisher extends Notifier {
   private final String jobAdditionalProperties;
 
   /**
-   * Optional.
-   *
-   * @since 1.4
-   */
-  private String branch;
-
-  /**
    * Triggers. If null, then we should use triggers from {@link SonarInstallation}.
    *
    * @since 1.2
    */
   private TriggersConfig triggers;
-
-  @Deprecated
-  private transient Boolean scmBuilds;
-  @Deprecated
-  private transient Boolean timerBuilds;
-  @Deprecated
-  private transient Boolean snapshotDependencyBuilds;
-  @Deprecated
-  private transient Boolean skipIfBuildFails;
-  @Deprecated
-  private transient Boolean skipOnScm; //NOSONAR
 
   // =================================================
   // Next fields available only for free-style projects
@@ -109,42 +97,12 @@ public class SonarPublisher extends Notifier {
    */
   private String rootPom;
 
-  @Deprecated
-  private transient Boolean useSonarLight;
-
   /**
    * If not null, then we should generate pom.xml.
    *
    * @since 1.2
    */
   private LightProjectConfig lightProject;
-
-  @Deprecated
-  private transient String groupId;
-  @Deprecated
-  private transient String artifactId;
-  @Deprecated
-  private transient String projectName;
-  @Deprecated
-  private transient String projectVersion;
-  @Deprecated
-  private transient String projectDescription;
-  @Deprecated
-  private transient String javaVersion;
-  @Deprecated
-  private transient String projectSrcDir;
-  @Deprecated
-  private transient String projectSrcEncoding;
-  @Deprecated
-  private transient String projectBinDir;
-  @Deprecated
-  private transient Boolean reuseReports;
-  @Deprecated
-  private transient String surefireReportsPath;
-  @Deprecated
-  private transient String coberturaReportPath;
-  @Deprecated
-  private transient String cloverReportPath;
 
   public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
     this(installationName, new TriggersConfig(), jobAdditionalProperties, mavenOpts, null, null, null);
@@ -203,35 +161,7 @@ public class SonarPublisher extends Notifier {
       configVersion = 0;
     }
     if (configVersion < 1) {
-      // Triggers migration
-      if (scmBuilds != null && timerBuilds != null && snapshotDependencyBuilds != null && skipIfBuildFails != null) {
-        this.triggers = new TriggersConfig(
-            scmBuilds,
-            timerBuilds,
-            true,
-            snapshotDependencyBuilds,
-            skipIfBuildFails
-        );
-      }
-      // Project migration
-      if (useSonarLight != null && useSonarLight) {
-        ReportsConfig reportsConfig = null;
-        if (reuseReports != null && reuseReports) {
-          reportsConfig = new ReportsConfig(surefireReportsPath, coberturaReportPath, cloverReportPath);
-        }
-        this.lightProject = new LightProjectConfig(
-            groupId,
-            artifactId,
-            projectName,
-            projectVersion,
-            projectDescription,
-            javaVersion,
-            projectSrcDir,
-            projectSrcEncoding,
-            projectBinDir,
-            reportsConfig
-        );
-      }
+      // No migration - see http://jira.codehaus.org/browse/SONARPLUGINS-402
       configVersion = 1;
     }
     return this;

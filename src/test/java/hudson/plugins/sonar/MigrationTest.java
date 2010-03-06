@@ -3,11 +3,13 @@ package hudson.plugins.sonar;
 import hudson.model.AbstractProject;
 import hudson.plugins.sonar.model.LightProjectConfig;
 import hudson.plugins.sonar.model.ReportsConfig;
+import org.junit.Ignore;
 import org.jvnet.hudson.test.recipes.LocalData;
 
 /**
  * @author Evgeny Mandrikov
  */
+@Ignore("Due to http://jira.codehaus.org/browse/SONARPLUGINS-402")
 public class MigrationTest extends SonarTestCase {
   @LocalData
   public void testOldMaven() {

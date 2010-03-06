@@ -33,6 +33,7 @@ public class SonarInstallation {
    * @since 1.4
    */
   private String serverPublicUrl;
+
   private final String databaseUrl;
   private final String databaseDriver;
   private final String databaseLogin;
@@ -40,9 +41,6 @@ public class SonarInstallation {
   private final String additionalProperties;
 
   private TriggersConfig triggers;
-
-  @Deprecated
-  private transient String version; //NOSONAR
 
   public SonarInstallation(String name) {
     this(name, false, null, null, null, null, null, null, null, null);
@@ -63,7 +61,6 @@ public class SonarInstallation {
     this.databasePassword = databasePassword;
     this.additionalProperties = additionalProperties;
     this.triggers = triggers;
-    this.version = "";
   }
 
   public String getName() {
@@ -79,6 +76,7 @@ public class SonarInstallation {
   }
 
   /**
+   * @return publically available URL for users of Sonar server
    * @since 1.4
    */
   public String getServerPublicUrl() {
@@ -86,6 +84,7 @@ public class SonarInstallation {
   }
 
   /**
+   * @param serverPublicUrl publically available URL for users of Sonar server
    * @since 1.4
    */
   public void setServerPublicUrl(String serverPublicUrl) {
