@@ -31,6 +31,24 @@ public class SonarInstallationTest {
     assertEquals("http://host:port/sonar", installation.getServerLink());
   }
 
+  @Test
+  public void projectLink() {
+    SonarInstallation installation = create("http://localhost/sonar");
+    assertEquals(
+        "http://localhost/sonar/project/index/org.example:myproject",
+        installation.getProjectLink("org.example", "myproject", null)
+    );
+  }
+
+  @Test
+  public void projectLinkWithBranch() throws Exception {
+    SonarInstallation installation = create("http://localhost/sonar");
+    assertEquals(
+        "http://localhost/sonar/project/index/org.example:myproject:1.2",
+        installation.getProjectLink("org.example", "myproject", "1.2")
+    );
+  }
+
   private SonarInstallation create(String url) {
     return new SonarInstallation("default", false, url, null, "", "", "", "", "", null);
   }

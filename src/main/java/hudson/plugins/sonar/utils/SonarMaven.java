@@ -23,22 +23,28 @@ public final class SonarMaven extends Maven {
    */
   private static final String TARGET = "-e -B sonar:sonar";
 
-  private SonarInstallation sonarInstallation;
+  private SonarPublisher publisher;
 
-  public SonarMaven(String targets, String name, String pom, String jvmOptions, boolean usePrivateRepository, SonarInstallation sonarInstallation) {
+  public SonarMaven(String targets, String name, String pom, String jvmOptions, boolean usePrivateRepository, SonarPublisher publisher) {
     super(targets + " " + TARGET, name, pom, "", jvmOptions, usePrivateRepository);
-    this.sonarInstallation = sonarInstallation;
+    this.publisher = publisher;
+  }
+
+  private SonarInstallation getInstallation() {
+    return publisher.getInstallation();
   }
 
   @Override
   protected void wrapUpArguments(ArgumentListBuilder args, String normalizedTarget, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
       throws IOException, InterruptedException {
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    argsBuilder.append("sonar.jdbc.driver", sonarInstallation.getDatabaseDriver());
-    argsBuilder.append("sonar.jdbc.url", sonarInstallation.getDatabaseUrl());  // TODO can be masked
-    argsBuilder.appendMasked("sonar.jdbc.username", sonarInstallation.getDatabaseLogin());
-    argsBuilder.appendMasked("sonar.jdbc.password", sonarInstallation.getDatabasePassword());
-    argsBuilder.append("sonar.host.url", sonarInstallation.getServerUrl());
+    argsBuilder.append("sonar.jdbc.driver", getInstallation().getDatabaseDriver());
+    argsBuilder.append("sonar.jdbc.url", getInstallation().getDatabaseUrl());  // TODO can be masked
+    argsBuilder.appendMasked("sonar.jdbc.username", getInstallation().getDatabaseLogin());
+    argsBuilder.appendMasked("sonar.jdbc.password", getInstallation().getDatabasePassword());
+    argsBuilder.append("sonar.host.url", getInstallation().getServerUrl());
+
+    argsBuilder.append("sonar.branch", publisher.getBranch());
   }
 
   @Override
@@ -80,7 +86,7 @@ public final class SonarMaven extends Maven {
         + (StringUtils.isNotBlank(jobProperties) ? jobProperties : "") + " "
         + (StringUtils.isNotBlank(alternateSettings) ? "-s " + alternateSettings : "");
     // Execute Maven
-    return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, usesPrivateRepository, sonarInstallation)
+    return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, usesPrivateRepository, sonarPublisher)
         .perform(build, launcher, listener);
   }
 }

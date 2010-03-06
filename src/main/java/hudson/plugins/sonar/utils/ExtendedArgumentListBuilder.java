@@ -16,6 +16,14 @@ public class ExtendedArgumentListBuilder {
     this.unix = unix;
   }
 
+  /**
+   * Appends specified key/value pair, if value not empty.
+   * Also value will be trimmed (see <a href="http://jira.codehaus.org/browse/MNG-3529">MNG-3529</a>).
+   *
+   * @param key   key
+   * @param value value
+   * @see #append(String)
+   */
   public void append(String key, String value) {
     value = StringUtils.trimToEmpty(value);
     if (StringUtils.isNotEmpty(value)) {
@@ -23,6 +31,14 @@ public class ExtendedArgumentListBuilder {
     }
   }
 
+  /**
+   * Appends specified key/value pair with mask, if value not empty.
+   * Also value will be trimmed (see <a href="http://jira.codehaus.org/browse/MNG-3529">MNG-3529</a>).
+   *
+   * @param key   key
+   * @param value value
+   * @see hudson.util.ArgumentListBuilder#addMasked(String)
+   */
   public void appendMasked(String key, String value) {
     value = StringUtils.trimToEmpty(value);
     if (StringUtils.isNotEmpty(value)) {
@@ -30,8 +46,15 @@ public class ExtendedArgumentListBuilder {
     }
   }
 
+  /**
+   * Appends specified argument with proper quoting under unix and other OSes.
+   *
+   * @param arg argument
+   * @see hudson.util.ArgumentListBuilder#add(String)
+   * @see hudson.util.ArgumentListBuilder#addQuoted(String)
+   */
   public void append(String arg) {
-    if (!unix && arg.contains("&")) {
+    if (!isUnix() && arg.contains("&")) {
       builder.addQuoted(arg);
     } else {
       builder.add(arg);

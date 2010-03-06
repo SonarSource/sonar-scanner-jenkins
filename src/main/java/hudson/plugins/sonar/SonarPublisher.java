@@ -75,6 +75,13 @@ public class SonarPublisher extends Notifier {
   private final String jobAdditionalProperties;
 
   /**
+   * Optional.
+   *
+   * @since 1.4
+   */
+  private String branch;
+
+  /**
    * Triggers. If null, then we should use triggers from {@link SonarInstallation}.
    *
    * @since 1.2
@@ -151,8 +158,18 @@ public class SonarPublisher extends Notifier {
     this(installationName, triggers, jobAdditionalProperties, mavenOpts, null, null, null);
   }
 
+  public SonarPublisher(String installationName,
+                        TriggersConfig triggers,
+                        String jobAdditionalProperties, String mavenOpts,
+                        String mavenInstallationName, String rootPom,
+                        LightProjectConfig lightProject
+  ) {
+    this(installationName, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, lightProject);
+  }
+
   @DataBoundConstructor
   public SonarPublisher(String installationName,
+                        String branch,
                         TriggersConfig triggers,
                         String jobAdditionalProperties, String mavenOpts,
                         String mavenInstallationName, String rootPom,
@@ -161,6 +178,7 @@ public class SonarPublisher extends Notifier {
     super();
     this.configVersion = 1;
     this.installationName = installationName;
+    this.branch = branch;
     // Triggers
     this.triggers = triggers;
     // Maven
@@ -259,6 +277,16 @@ public class SonarPublisher extends Notifier {
   }
 
   /**
+   * See <a href="http://docs.codehaus.org/display/SONAR/Advanced+parameters#Advancedparameters-ManageSCMbranches">Sonar Branch option</a>.
+   *
+   * @return branch
+   * @since 1.4
+   */
+  public String getBranch() {
+    return branch;
+  }
+
+  /**
    * @return triggers configuration
    */
   public TriggersConfig getTriggers() {
@@ -348,7 +376,7 @@ public class SonarPublisher extends Notifier {
       return true;
     }
     build.addAction(new BuildSonarAction());
-    
+
     boolean sonarSuccess = executeSonar(build, launcher, listener, sonarInstallation);
     if (!sonarSuccess) {
       // returning false has no effect on the global build status so need to do it manually
@@ -388,15 +416,13 @@ public class SonarPublisher extends Notifier {
         SonarPomGenerator.generatePomForNonMavenProject(getLightProject(), root, pomName);
       }
       String mavenInstallationName = getMavenInstallationName();
-      if (isMavenBuilder( build.getProject() ))
-      {
-          MavenModuleSet mavenModuleSet = getMavenProject( build );
-          if (null != mavenModuleSet.getMaven().getName())
-          {
-              mavenInstallationName = mavenModuleSet.getMaven().getName();
-          }
+      if (isMavenBuilder(build.getProject())) {
+        MavenModuleSet mavenModuleSet = getMavenProject(build);
+        if (null != mavenModuleSet.getMaven().getName()) {
+          mavenInstallationName = mavenModuleSet.getMaven().getName();
+        }
       }
-      
+
       // Execute maven
       return SonarMaven.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this);
     }
@@ -429,7 +455,8 @@ public class SonarPublisher extends Notifier {
           ModuleName moduleName = rootModule.getModuleName();
           url = sonarInstallation.getProjectLink(
               moduleName.groupId,
-              moduleName.artifactId
+              moduleName.artifactId,
+              getBranch()
           );
         }
       }
@@ -437,7 +464,8 @@ public class SonarPublisher extends Notifier {
     if (isUseSonarLight()) {
       url = sonarInstallation.getProjectLink(
           lightProject.getGroupId(),
-          lightProject.getArtifactId()
+          lightProject.getArtifactId(),
+          getBranch()
       );
     }
     return url;

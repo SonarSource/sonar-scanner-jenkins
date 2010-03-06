@@ -26,6 +26,10 @@
   </j:if>
 
   <f:advanced>
+    <f:entry title="${%Branch}" description="${%BranchDescr}"
+             help="/plugin/sonar/help-branch.html">
+      <f:textbox name="sonar.branch" value="${instance.getBranch()}"/>
+    </f:entry>
 
     <j:if test="${!isMavenBuilder}">
       <!-- Maven version -->

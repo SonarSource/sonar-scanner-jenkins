@@ -28,6 +28,10 @@ public class SonarInstallation {
   private final String name;
   private final boolean disabled;
   private final String serverUrl;
+
+  /**
+   * @since 1.4
+   */
   private String serverPublicUrl;
   private final String databaseUrl;
   private final String databaseDriver;
@@ -125,22 +129,28 @@ public class SonarInstallation {
   }
 
   private String getServerLink(String prefix, String groupId, String artifactId) {
+    return getServerLink(prefix, groupId, artifactId, null);
+  }
+
+  private String getServerLink(String prefix, String groupId, String artifactId, String branch) {
     StringBuilder builder = new StringBuilder();
     builder.append(getServerLink())
         .append(prefix)
         .append(groupId).append(':').append(artifactId);
+    if (StringUtils.isNotEmpty(branch)) {
+      builder.append(':').append(branch);
+    }
     return builder.toString();
   }
 
   /**
-   * Returns URL of Sonar project dashboard.
-   *
    * @param groupId    Group ID
    * @param artifactId Artifact ID
+   * @param branch     branch
    * @return URL of Sonar project dashboard
    */
-  public String getProjectLink(String groupId, String artifactId) {
-    return getServerLink("/project/index/", groupId, artifactId);
+  public String getProjectLink(String groupId, String artifactId, String branch) {
+    return getServerLink("/project/index/", groupId, artifactId, branch);
   }
 
   public String getComponentLink(String groupId, String artifactId) {
