@@ -35,11 +35,15 @@ import hudson.tasks.Maven.MavenInstallation;
 import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -320,7 +324,7 @@ public class SonarPublisher extends Notifier {
     return (build.getProject() instanceof MavenModuleSet) ? (MavenModuleSet) build.getProject() : null;
   }
 
-  private String getPomName(AbstractBuild<?, ?> build, BuildListener listener) throws IOException, InterruptedException {
+  private String getPomName(AbstractBuild<?, ?> build) {
     String pomName;
     MavenModuleSet mavenModuleProject = getMavenProject(build);
     if (mavenModuleProject != null) {
@@ -331,6 +335,12 @@ public class SonarPublisher extends Notifier {
     if (StringUtils.isEmpty(pomName)) {
       pomName = "pom.xml";
     }
+    return pomName;
+  }
+
+  private String getPomName(AbstractBuild<?, ?> build, BuildListener listener) throws IOException, InterruptedException {
+    String pomName = getPomName(build);
+    // TODO Godin: why we should expand it?
     // Expand, because pomName can be "${VAR}/pom.xml"
     EnvVars env = build.getEnvironment(listener);
     pomName = env.expand(pomName);
@@ -391,12 +401,26 @@ public class SonarPublisher extends Notifier {
         }
       }
     }
-    if (isUseSonarLight()) {
-      url = sonarInstallation.getProjectLink(
-          lightProject.getGroupId(),
-          lightProject.getArtifactId(),
-          getBranch()
-      );
+    /**
+     * Free-style job:
+     * If project was built by maven, then pom.xml already exists
+     * If project wasn't built by maven, then there is should be generated pom.xml
+     */
+    try {
+      AbstractBuild<?, ?> lastBuild = project.getLastBuild();
+      if (lastBuild != null) {
+        MavenXpp3Reader reader = new MavenXpp3Reader();
+        Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
+        String groupId = model.getGroupId();
+        String artifactId = model.getArtifactId();
+        url = sonarInstallation.getProjectLink(
+            groupId, artifactId, getBranch()
+        );
+      }
+    } catch (IOException e) {
+      // ignore
+    } catch (XmlPullParserException e) {
+      // ignore
     }
     return url;
   }
