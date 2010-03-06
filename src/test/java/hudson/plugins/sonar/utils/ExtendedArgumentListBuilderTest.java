@@ -8,7 +8,8 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * SONARPLUGINS-123, SONARPLUGINS-363, SONARPLUGINS-385
@@ -39,7 +40,7 @@ public class ExtendedArgumentListBuilderTest {
   @Test
   public void spaces() {
     builder.append("key", " value ");
-    assertEquals("-Dkey=value", original.toStringWithQuote());
+    assertThat(original.toStringWithQuote(), is("-Dkey=value"));
   }
 
   @Test
@@ -48,23 +49,23 @@ public class ExtendedArgumentListBuilderTest {
     builder.append("key2", "");
     builder.appendMasked("key3", null);
     builder.appendMasked("key4", "");
-    assertEquals("", original.toStringWithQuote());
+    assertThat(original.toStringWithQuote(), is(""));
   }
 
   @Test
   public void ampersand() {
     builder.append("key", "&");
     if (builder.isUnix()) {
-      assertEquals("-Dkey=&", original.toStringWithQuote());
+      assertThat(original.toStringWithQuote(), is("-Dkey=&"));
     } else {
-      assertEquals("\"-Dkey=&\"", original.toStringWithQuote());
+      assertThat(original.toStringWithQuote(), is("\"-Dkey=&\""));
     }
   }
 
   @Test
   public void withoutAmpersand() {
     builder.append("key", "value");
-    assertEquals("-Dkey=value", original.toStringWithQuote());
+    assertThat(original.toStringWithQuote(), is("-Dkey=value"));
   }
 
   @Test
@@ -72,9 +73,9 @@ public class ExtendedArgumentListBuilderTest {
     builder.append("key", "value");
     builder.append("amp", "&");
     if (builder.isUnix()) {
-      assertEquals("-Dkey=value -Damp=&", original.toStringWithQuote());
+      assertThat(original.toStringWithQuote(), is("-Dkey=value -Damp=&"));
     } else {
-      assertEquals("-Dkey=value \"-Damp=&\"", original.toStringWithQuote());
+      assertThat(original.toStringWithQuote(), is("-Dkey=value \"-Damp=&\""));
     }
   }
 }

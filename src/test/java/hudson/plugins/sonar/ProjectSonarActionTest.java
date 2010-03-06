@@ -4,8 +4,9 @@ import hudson.plugins.sonar.utils.MagicNames;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Evgeny Mandrikov
@@ -20,8 +21,8 @@ public class ProjectSonarActionTest {
 
   @Test
   public void test() throws Exception {
-    assertNotNull(action.getDisplayName());
-    assertNotNull(action.getIconFileName());
-    assertEquals(MagicNames.DEFAULT_SONAR_URL, action.getUrlName());
+    assertThat(action.getDisplayName(), notNullValue());
+    assertThat(action.getIconFileName(), notNullValue());
+    assertThat(action.getUrlName(), is(MagicNames.DEFAULT_SONAR_URL));
   }
 }

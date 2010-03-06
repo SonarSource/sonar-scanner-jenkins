@@ -19,14 +19,18 @@
  */
 package hudson.plugins.sonar.template;
 
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
 
 public class SimpleTemplateTest {
   @Test
   public void shouldLoadFile() {
     SimpleTemplate template = new SimpleTemplate("simple.template");
-    assertEquals("simple test", template.toString());
+
+    assertThat(template.toString(), is("simple test"));
   }
 
   @Test
@@ -34,6 +38,7 @@ public class SimpleTemplateTest {
     SimpleTemplate template = new SimpleTemplate("attributes.template");
     template.setAttribute("firstname", "Jack");
     template.setAttribute("lastname", "Sparrow");
-    assertEquals("First name: Jack, Last name: Sparrow", template.toString());
+
+    assertThat(template.toString(), is("First name: Jack, Last name: Sparrow"));
   }
 }
