@@ -349,7 +349,7 @@ public class SonarPublisher extends Notifier {
 
   private boolean executeSonar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
     try {
-      String pomName = getPomName(build, listener);
+      String pomName = getPomName(build);
       FilePath root = build.getModuleRoot();
       if (isUseSonarLight()) {
         LOG.info("Generating " + pomName);

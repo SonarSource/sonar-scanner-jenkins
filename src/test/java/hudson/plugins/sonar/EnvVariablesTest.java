@@ -35,7 +35,7 @@ public class EnvVariablesTest extends SonarTestCase {
         new StringParameterDefinition("VAR_SUBDIR", "subdir"),
         new StringParameterDefinition("VAR_PROFILE", "release")
     ));
-    String varPomName = "${VAR_SUBDIR}/pom.xml";
+//    String varPomName = "${VAR_SUBDIR}/pom.xml";
     String pomName = "subdir/pom.xml";
     project.getPublishersList().add(new SonarPublisher(
         SONAR_INSTALLATION_NAME,
@@ -43,7 +43,8 @@ public class EnvVariablesTest extends SonarTestCase {
         "-Ddir=${VAR_SUBDIR}",
         null, // Maven OPTS
         "default", // Maven Installation Name
-        varPomName,
+//        varPomName,
+        pomName,
         PROJECT_CONFIG
     ));
     AbstractBuild build = build(project);
@@ -56,21 +57,4 @@ public class EnvVariablesTest extends SonarTestCase {
     assertLogContains("-Ddir=subdir", build);
     assertLogContains("-Prelease", build);
   }
-
-  /* TODO Godin: WTF? original build failed
-  public void testMavenProject() throws Exception {
-    configureDefaultMaven();
-    configureDefaultSonar();
-
-    String pomName = "subdir/pom.xml";
-    MavenModuleSet project = setupMavenProject(pomName);
-    project.addProperty(new ParametersDefinitionProperty(
-        new StringParameterDefinition("VAR_SUBDIR", "subdir")
-    ));
-    project.setRootPOM("${VAR_SUBDIR}/pom.xml");
-    MavenModuleSetBuild build = build(project);
-
-    System.out.println(build.getLog());
-  }
-  */
 }
