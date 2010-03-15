@@ -421,6 +421,9 @@ public class SonarPublisher extends Notifier {
       // ignore
     } catch (XmlPullParserException e) {
       // ignore
+    } catch (NullPointerException e) {
+        // ignore something in the line can be null for maven project 
+        // Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
     }
     return url;
   }
