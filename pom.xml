@@ -7,6 +7,10 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
+  <!-- IMPORTANT!!!
+  Please read DEVELOPER_README.txt before making any changes in this plugin.
+  -->
+
   <artifactId>sonar</artifactId>
   <version>1.6-SNAPSHOT</version>
   <packaging>hpi</packaging>
