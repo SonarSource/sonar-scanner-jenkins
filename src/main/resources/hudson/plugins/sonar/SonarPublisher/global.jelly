@@ -33,7 +33,7 @@
             </f:entry>
 
             <f:entry title="${%DbPass}" description="${%DbPassDescr}">
-              <f:textbox name="sonar.databasePassword" value="${inst.getDatabasePassword()}"/>
+              <f:password name="sonar.databasePassword" value="${inst.getDatabasePassword()}"/>
             </f:entry>
 
             <f:entry title="${%DbDriver}" description="${%DbDriverDescr}"
