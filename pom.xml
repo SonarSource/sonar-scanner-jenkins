@@ -63,6 +63,10 @@
       <id>sbrandhof</id>
       <name>Simon Brandhof</name>
       <email>simon.brandhof@gmail.com</email>
+      <timezone>+1</timezone>
+      <roles>
+        <role>Developer</role>
+      </roles>
     </developer>
     <developer>
       <id>cmunger</id>
@@ -96,11 +100,15 @@
             <include>src/main/java/**</include>
             <include>src/test/java/**</include>
           </includes>
-          <properties>
-            <inceptionYear>${project.inceptionYear}</inceptionYear>
-            <email>be_agile HAT hortis DOT ch</email>
-          </properties>
         </configuration>
+        <executions>
+          <execution>
+            <id>check-license</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
