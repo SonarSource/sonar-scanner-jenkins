@@ -170,7 +170,9 @@ public abstract class SonarTestCase extends HudsonTestCase {
    */
   protected void assertSonarExecution(AbstractBuild build, String args) throws Exception {
     // Check command line arguments
-    assertLogContains(args + " -e -B sonar:sonar", build);
+    assertLogContains(args + " -e -B", build);
+    // Check that plugin was invoked
+    assertLogContains("sonar-maven-plugin", build);
 
     // Check that Sonar Plugin started
 //    assertLogContains("[INFO] Sonar host: " + SONAR_HOST, build);
@@ -185,6 +187,10 @@ public abstract class SonarTestCase extends HudsonTestCase {
     // FIXME Godin: I don't know why, but this don't work for FreeStyleProject
     // AbstractProject project = build.getProject();
     // assertNotNull(project.getAction(ProjectSonarAction.class));
+  }
+
+  protected void assertSonarExecution(AbstractBuild build) throws Exception {
+    assertSonarExecution(build, "");
   }
 
   protected void assertNoSonarExecution(AbstractBuild build, String cause) throws Exception {

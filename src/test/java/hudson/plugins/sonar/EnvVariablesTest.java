@@ -67,7 +67,7 @@ public class EnvVariablesTest extends SonarTestCase {
     // Check that POM generated
     // TODO validate POM
     assertTrue(build.getWorkspace().child(pomName).exists());
-    assertLogContains("sonar:sonar", build);
+    assertLogContains("sonar-maven-plugin", build);
     assertLogContains("-f " + pomName, build);
     assertLogContains("-Ddir=subdir", build);
     assertLogContains("-Prelease", build);

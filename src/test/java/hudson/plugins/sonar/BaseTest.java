@@ -20,7 +20,7 @@ import hudson.model.*;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
-import org.jvnet.hudson.test.FailureBuilder;
+import org.jvnet.hudson.test.MockBuilder;
 
 /**
  * @author Evgeny Mandrikov
@@ -93,6 +93,7 @@ public class BaseTest extends SonarTestCase {
   /**
    * SONARPLUGINS-153, SONARPLUGINS-216: Triggers
    * SONARPLUGINS-378
+   * SONARPLUGINS-461
    *
    * @throws Exception if something wrong
    */
@@ -107,6 +108,8 @@ public class BaseTest extends SonarTestCase {
     triggers.setSnapshotDependencyBuilds(false);
     triggers.setSkipIfBuildFails(true);
     AbstractBuild build;
+
+    setBuildResult(project, Result.SUCCESS);
     // SONARPLUGINS-378
     build = build(project, new CustomCause(), null);
     assertNoSonarExecution(build, Messages.SonarPublisher_UserBuild());
@@ -123,9 +126,22 @@ public class BaseTest extends SonarTestCase {
     build = build(project, new Cause.UpstreamCause((Run) build), null);
     assertNoSonarExecution(build, Messages.SonarPublisher_SnapshotDepBuild());
     // Disable sonar on build failure
-    project.getBuildersList().add(new FailureBuilder());
+    setBuildResult(project, Result.FAILURE);
     build = build(project);
     assertNoSonarExecution(build, Messages.SonarPublisher_BadBuildStatus(Result.FAILURE));
+    // Enable sonar on build unstable
+    setBuildResult(project, Result.UNSTABLE);
+    build = build(project);
+    assertSonarExecution(build);
+    // Enable sonar on build success
+    setBuildResult(project, Result.SUCCESS);
+    build = build(project);
+    assertSonarExecution(build);
+  }
+
+  protected void setBuildResult(Project project, Result result) throws Exception {
+    project.getBuildersList().clear();
+    project.getBuildersList().add(new MockBuilder(result));
   }
 
   public static class CustomCause extends Cause.UserCause {
@@ -142,7 +158,7 @@ public class BaseTest extends SonarTestCase {
     MavenModuleSet project = setupMavenProject();
     AbstractBuild build = build(project);
 
-    assertLogContains("sonar:sonar", build);
+    assertLogContains("sonar-maven-plugin", build);
     assertLogDoesntContains("-Dsonar.jdbc.username=dbuser", build);
     assertLogDoesntContains("-Dsonar.jdbc.password=dbpassword", build);
   }
