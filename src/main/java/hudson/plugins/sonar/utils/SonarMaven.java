@@ -36,7 +36,7 @@ public final class SonarMaven extends Maven {
   /**
    * Produce execution error messages and run in non-interactive (batch) mode.
    */
-  private static final String TARGET = "-e -B sonar:sonar";
+  private static final String TARGET = "-e -B org.codehaus.mojo:sonar-maven-plugin:1.0-beta-1:sonar";
 
   private SonarPublisher publisher;
 
