@@ -129,6 +129,14 @@ public class BaseTest extends SonarTestCase {
     setBuildResult(project, Result.FAILURE);
     build = build(project);
     assertNoSonarExecution(build, Messages.SonarPublisher_BadBuildStatus(Result.FAILURE));
+    // Enable sonar on build failure
+    triggers.setSkipIfBuildFails(false);
+    build = build(project);
+    assertSonarExecution(build);
+    // Disable sonar if build status worse than failure
+    setBuildResult(project, Result.ABORTED);
+    build = build(project);
+    assertNoSonarExecution(build, Messages.SonarPublisher_BadBuildStatus(Result.ABORTED));
     // Enable sonar on build unstable
     setBuildResult(project, Result.UNSTABLE);
     build = build(project);

@@ -100,6 +100,8 @@ public class TriggersConfig implements Serializable {
   public String isSkipSonar(AbstractBuild<?, ?> build) {
     if (isSkipIfBuildFails() && build.getResult().isWorseThan(Result.UNSTABLE)) {
       return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
+    } else if (build.getResult().isWorseThan(Result.FAILURE)) {
+      return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
     } else if (!isScmBuilds() && isTrigger(build, SCMTrigger.SCMTriggerCause.class)) {
       return Messages.SonarPublisher_SCMBuild();
     } else if (!isTimerBuilds() && isTrigger(build, TimerTrigger.TimerTriggerCause.class)) {
