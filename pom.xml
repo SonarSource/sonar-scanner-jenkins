@@ -42,9 +42,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <!-- 29.04.2010 Godin: version 1.2 not available in central repo -->
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
-      <version>1.2</version>
+      <version>1.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
