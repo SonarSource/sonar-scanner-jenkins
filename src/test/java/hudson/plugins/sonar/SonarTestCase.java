@@ -146,6 +146,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
       "src",
       "UTF-8",
       null,
+      null,
       null
   );
 
