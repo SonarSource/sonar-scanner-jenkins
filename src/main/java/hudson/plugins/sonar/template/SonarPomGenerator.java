@@ -48,6 +48,8 @@ public final class SonarPomGenerator {
     setPomElement("sonar.phase", multiSources ? "generate-sources" : "", pomTemplate);
     setPomElement("outputDirectory", project.getProjectBinDir(), pomTemplate);
 
+    setPomElement("sonar.language", project.getLanguage(), pomTemplate);
+
     ReportsConfig reports = project.isReuseReports() ? project.getReports() : new ReportsConfig();
     setPomElement("sonar.dynamicAnalysis", project.isReuseReports() ? "reuseReports" : "false", true, pomTemplate);
     setPomElement("sonar.surefire.reportsPath", reports.getSurefireReportsPath(), project.isReuseReports(), pomTemplate);

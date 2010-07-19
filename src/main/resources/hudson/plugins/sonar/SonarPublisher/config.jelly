@@ -122,6 +122,10 @@
               <f:textbox name="javaVersion" value="${instance.lightProject.javaVersion}"/>
             </f:entry>
 
+            <f:entry title="${%Language}" description="${%LanguageDescr}">
+              <f:textbox name="language" value="${instance.lightProject.language}"/>
+            </f:entry>
+
             <f:optionalBlock name="reports" title="${%ReuseReports}"
                              checked="${instance.lightProject.isReuseReports()}">
               <f:section title="${%Reports}">
