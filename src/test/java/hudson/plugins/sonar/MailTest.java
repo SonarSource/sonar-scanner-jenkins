@@ -57,7 +57,7 @@ public class MailTest extends SonarTestCase {
     inbox.clear();
     AbstractBuild build = build(project, Result.FAILURE);
 
-    assertSonarExecution(build, "-f pom.xml");
+    assertSonarExecution(build, "-f " + getPom(build, "pom.xml"));
     assertEquals(1, inbox.size());
   }
 
@@ -67,7 +67,7 @@ public class MailTest extends SonarTestCase {
     inbox.clear();
     AbstractBuild build = build(project, Result.FAILURE);
 
-    assertSonarExecution(build, "-f sonar-pom.xml");
+    assertSonarExecution(build, "-f " + getPom(build, "sonar-pom.xml"));
     assertEquals(1, inbox.size());
   }
 }

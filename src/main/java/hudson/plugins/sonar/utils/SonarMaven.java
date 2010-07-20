@@ -109,6 +109,7 @@ public final class SonarMaven extends Maven {
         + (StringUtils.isNotBlank(jobProperties) ? jobProperties : "") + " "
         + (StringUtils.isNotBlank(alternateSettings) ? "-s " + alternateSettings : "");
     // Execute Maven
+    pom = build.getModuleRoot().child(pom).getRemote(); // SONARPLUGINS-487
     return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, usesPrivateRepository, sonarPublisher)
         .perform(build, launcher, listener);
   }

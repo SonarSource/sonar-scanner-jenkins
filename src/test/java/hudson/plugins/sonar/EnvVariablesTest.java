@@ -68,7 +68,7 @@ public class EnvVariablesTest extends SonarTestCase {
     // TODO validate POM
     assertTrue(build.getWorkspace().child(pomName).exists());
     assertLogContains("sonar:sonar", build);
-    assertLogContains("-f " + pomName, build);
+    assertLogContains("-f " + getPom(build, pomName), build);
     assertLogContains("-Ddir=subdir", build);
     assertLogContains("-Prelease", build);
   }

@@ -63,7 +63,7 @@ public class BaseTest extends SonarTestCase {
 
     String repo = build.getWorkspace().child(".repository").getRemote();
     // TODO Check that there is no POM-generation for Maven project
-    assertSonarExecution(build, "-f \"" + pomName + "\" -Dmaven.repo.local=" + repo + " -s settings.xml");
+    assertSonarExecution(build, "-f \"" + getPom(build, pomName) + "\" -Dmaven.repo.local=" + repo + " -s settings.xml");
   }
 
   /**
@@ -85,7 +85,7 @@ public class BaseTest extends SonarTestCase {
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(pomName));
     AbstractBuild build = build(project);
 
-    assertSonarExecution(build, "-f \"" + pomName + "\"");
+    assertSonarExecution(build, "-f \"" + getPom(build, pomName) + "\"");
     // Check that POM generated
     assertTrue(build.getWorkspace().child(pomName).exists());
   }

@@ -91,6 +91,10 @@ public abstract class SonarTestCase extends HudsonTestCase {
     return setupMavenProject("pom.xml");
   }
 
+  protected String getPom(AbstractBuild build, String pomName) {
+    return build.getWorkspace().child(pomName).getRemote();
+  }
+
   protected MavenModuleSet setupMavenProject(String pomName) throws Exception {
     MavenModuleSet project = super.createMavenProject("MavenProject");
     // Setup SCM
