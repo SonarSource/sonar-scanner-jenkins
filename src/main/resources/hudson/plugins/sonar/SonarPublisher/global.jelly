@@ -41,6 +41,10 @@
               <f:textbox name="sonar.databaseDriver" value="${inst.getDatabaseDriver()}"/>
             </f:entry>
 
+            <f:entry title="${%MojoVersion}" description="${%MojoVersionDescr}">
+              <f:textbox name="sonar.mojoVersion" value="${inst.getMojoVersion()}"/>
+            </f:entry>
+
             <f:entry title="${%AddProps}" description="${%AddPropsDescr}">
               <f:textbox name="sonar.additionalProperties" value="${inst.getAdditionalProperties()}"/>
             </f:entry>

@@ -173,7 +173,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
     // Check command line arguments
     assertLogContains(args + " -e -B", build);
     // Check that plugin was invoked
-    assertLogContains("sonar-maven-plugin", build);
+    assertLogContains("sonar:sonar", build);
 
     // Check that Sonar Plugin started
 //    assertLogContains("[INFO] Sonar host: " + SONAR_HOST, build);

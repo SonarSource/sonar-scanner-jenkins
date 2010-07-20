@@ -30,6 +30,11 @@ public class SonarInstallation {
    */
   private String serverPublicUrl;
 
+  /**
+   * @since 1.5
+   */
+  private String mojoVersion;
+
   private final String databaseUrl;
   private final String databaseDriver;
   private final String databaseLogin;
@@ -39,14 +44,14 @@ public class SonarInstallation {
   private TriggersConfig triggers;
 
   public SonarInstallation(String name) {
-    this(name, false, null, null, null, null, null, null, null, null);
+    this(name, false, null, null, null, null, null, null, null, null, null);
   }
 
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled,
                            String serverUrl, String serverPublicUrl,
                            String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
-                           String additionalProperties, TriggersConfig triggers) {
+                           String mojoVersion, String additionalProperties, TriggersConfig triggers) {
     this.name = name;
     this.disabled = disabled;
     this.serverUrl = serverUrl;
@@ -55,6 +60,7 @@ public class SonarInstallation {
     this.databaseDriver = databaseDriver;
     this.databaseLogin = databaseLogin;
     this.databasePassword = databasePassword;
+    this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
     this.triggers = triggers;
   }
@@ -85,6 +91,14 @@ public class SonarInstallation {
    */
   public void setServerPublicUrl(String serverPublicUrl) {
     this.serverPublicUrl = serverPublicUrl;
+  }
+
+  /**
+   * @return version of sonar-maven-plugin to use
+   * @since 1.5
+   */
+  public String getMojoVersion() {
+    return mojoVersion;
   }
 
   public String getDatabaseUrl() {

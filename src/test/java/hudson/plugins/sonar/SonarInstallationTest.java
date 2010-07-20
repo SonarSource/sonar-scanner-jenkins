@@ -66,6 +66,6 @@ public class SonarInstallationTest {
   }
 
   private SonarInstallation create(String url) {
-    return new SonarInstallation("default", false, url, null, "", "", "", "", "", null);
+    return new SonarInstallation("default", false, url, null, "", "", "", "", null, "", null);
   }
 }

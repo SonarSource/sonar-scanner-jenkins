@@ -41,7 +41,7 @@ public class EnvVariablesTest extends SonarTestCase {
         false,
         SONAR_HOST, null,
         null, null, null, null, // Database Properties
-        "-P${VAR_PROFILE}", // Additinal Properties
+        null, "-P${VAR_PROFILE}", // Additinal Properties
         null
     ));
 
@@ -67,7 +67,7 @@ public class EnvVariablesTest extends SonarTestCase {
     // Check that POM generated
     // TODO validate POM
     assertTrue(build.getWorkspace().child(pomName).exists());
-    assertLogContains("sonar-maven-plugin", build);
+    assertLogContains("sonar:sonar", build);
     assertLogContains("-f " + pomName, build);
     assertLogContains("-Ddir=subdir", build);
     assertLogContains("-Prelease", build);

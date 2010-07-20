@@ -36,13 +36,21 @@ public final class SonarMaven extends Maven {
   /**
    * Produce execution error messages and run in non-interactive (batch) mode.
    */
-  private static final String TARGET = "-e -B org.codehaus.mojo:sonar-maven-plugin:1.0-beta-1:sonar";
+  private static final String TARGET = "-e -B";
 
   private SonarPublisher publisher;
 
   public SonarMaven(String targets, String name, String pom, String jvmOptions, boolean usePrivateRepository, SonarPublisher publisher) {
-    super(targets + " " + TARGET, name, pom, "", jvmOptions, usePrivateRepository);
+    super(targets + " " + getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, usePrivateRepository);
     this.publisher = publisher;
+  }
+
+  private static String getTarget(SonarInstallation installation) {
+    if (StringUtils.isBlank(installation.getMojoVersion())) {
+      return TARGET + " sonar:sonar";
+    } else {
+      return TARGET + " org.codehaus.mojo:sonar-maven-plugin:1.0-beta-1:sonar";
+    }
   }
 
   private SonarInstallation getInstallation() {

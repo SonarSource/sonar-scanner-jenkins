@@ -166,7 +166,7 @@ public class BaseTest extends SonarTestCase {
     MavenModuleSet project = setupMavenProject();
     AbstractBuild build = build(project);
 
-    assertLogContains("sonar-maven-plugin", build);
+    assertLogContains("sonar:sonar", build);
     assertLogDoesntContains("-Dsonar.jdbc.username=dbuser", build);
     assertLogDoesntContains("-Dsonar.jdbc.password=dbpassword", build);
   }
@@ -179,7 +179,7 @@ public class BaseTest extends SonarTestCase {
         "jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8",
         "com.mysql.jdbc.Driver",
         "dbuser", "dbpassword",
-        null, null
+        null, null, null
     ));
   }
 }
