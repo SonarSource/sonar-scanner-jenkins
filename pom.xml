@@ -71,6 +71,12 @@
     <system>Bamboo</system>
     <url>http://ci.codehaus.org/browse/SONAR-HUDSON</url>
   </ciManagement>
+  <distributionManagement>
+    <snapshotRepository>
+      <id>${snapshotRepositoryId}</id>
+      <url>${snapshotRepositoryUrl}</url>
+    </snapshotRepository>
+  </distributionManagement>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
