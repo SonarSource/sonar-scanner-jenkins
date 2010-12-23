@@ -17,8 +17,8 @@ package hudson.plugins.sonar.utils;
 
 import hudson.Launcher;
 import hudson.maven.MavenModuleSet;
-import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.AbstractBuild;
 import hudson.model.Hudson;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
@@ -49,7 +49,7 @@ public final class SonarMaven extends Maven {
     if (StringUtils.isBlank(installation.getMojoVersion())) {
       return TARGET + " sonar:sonar";
     } else {
-      return TARGET + " org.codehaus.mojo:sonar-maven-plugin:1.0-beta-1:sonar";
+      return TARGET + " org.codehaus.mojo:sonar-maven-plugin:" + installation.getMojoVersion() + ":sonar";
     }
   }
 
@@ -58,11 +58,12 @@ public final class SonarMaven extends Maven {
   }
 
   @Override
-  protected void wrapUpArguments(ArgumentListBuilder args, String normalizedTarget, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+  protected void wrapUpArguments(ArgumentListBuilder args, String normalizedTarget, AbstractBuild<?, ?> build, Launcher launcher,
+      BuildListener listener)
       throws IOException, InterruptedException {
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
     argsBuilder.append("sonar.jdbc.driver", getInstallation().getDatabaseDriver());
-    argsBuilder.append("sonar.jdbc.url", getInstallation().getDatabaseUrl());  // TODO can be masked
+    argsBuilder.append("sonar.jdbc.url", getInstallation().getDatabaseUrl()); // TODO can be masked
     argsBuilder.appendMasked("sonar.jdbc.username", getInstallation().getDatabaseLogin());
     argsBuilder.appendMasked("sonar.jdbc.password", getInstallation().getDatabasePassword());
     argsBuilder.append("sonar.host.url", getInstallation().getServerUrl());
@@ -83,7 +84,7 @@ public final class SonarMaven extends Maven {
       String pom,
       SonarInstallation sonarInstallation,
       SonarPublisher sonarPublisher
-  ) throws IOException, InterruptedException {
+      ) throws IOException, InterruptedException {
     MavenModuleSet mavenModuleProject = sonarPublisher.getMavenProject(build);
     /**
      * MAVEN_OPTS
