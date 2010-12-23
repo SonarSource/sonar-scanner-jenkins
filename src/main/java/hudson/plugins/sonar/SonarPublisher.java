@@ -439,7 +439,7 @@ public class SonarPublisher extends Notifier {
     private volatile SonarInstallation[] installations = new SonarInstallation[0]; // NOSONAR
 
     public DescriptorImpl() {
-      super(SonarPublisher.class);
+      super();
       load();
     }
 
