@@ -27,6 +27,8 @@
       <id>godin</id>
       <name>Evgeny Mandrikov</name>
       <email>mandrikov@gmail.com</email>
+      <organization>SonarSource</organization>
+      <organizationUrl>http://www.sonarsource.com/</organizationUrl>
       <timezone>+3</timezone>
       <roles>
         <role>Developer</role>
@@ -37,21 +39,24 @@
       <name>Simon Brandhof</name>
       <email>simon.brandhof@gmail.com</email>
       <timezone>+1</timezone>
+      <organization>SonarSource</organization>
+      <organizationUrl>http://www.sonarsource.com/</organizationUrl>
       <roles>
         <role>Developer</role>
       </roles>
     </developer>
-    <developer>
-      <id>cmunger</id>
+  </developers>
+  
+  <contributors>
+    <contributor>
       <name>Cedric Munger</name>
       <email>cedric.munger@gmail.com</email>
-    </developer>
-    <developer>
-      <id>cjelmini</id>
+    </contributor>
+    <contributor>
       <name>Carlo Jelmini</name>
       <email>cjelmini@gmail.com</email>
-    </developer>
-  </developers>
+    </contributor>
+  </contributors>
   
   <scm>
     <connection>scm:git:git://github.com/hudson/sonar-plugin.git</connection>
