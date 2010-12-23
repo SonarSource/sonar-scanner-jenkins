@@ -17,16 +17,25 @@ package hudson.plugins.sonar;
 
 import hudson.*;
 import hudson.maven.AbstractMavenProject;
+import hudson.maven.ModuleName;
 import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSet;
-import hudson.maven.ModuleName;
-import hudson.model.*;
+import hudson.model.Action;
+import hudson.model.BuildListener;
+import hudson.model.Result;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Hudson;
 import hudson.plugins.sonar.model.LightProjectConfig;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.template.SonarPomGenerator;
 import hudson.plugins.sonar.utils.MagicNames;
 import hudson.plugins.sonar.utils.SonarMaven;
-import hudson.tasks.*;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Notifier;
+import hudson.tasks.Publisher;
+import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
@@ -65,7 +74,7 @@ public class SonarPublisher extends Notifier {
 
   /**
    * Optional.
-   *
+   * 
    * @since 1.4
    */
   private String branch;
@@ -82,7 +91,7 @@ public class SonarPublisher extends Notifier {
 
   /**
    * Triggers. If null, then we should use triggers from {@link SonarInstallation}.
-   *
+   * 
    * @since 1.2
    */
   private TriggersConfig triggers;
@@ -99,7 +108,7 @@ public class SonarPublisher extends Notifier {
 
   /**
    * If not null, then we should generate pom.xml.
-   *
+   * 
    * @since 1.2
    */
   private LightProjectConfig lightProject;
@@ -111,8 +120,7 @@ public class SonarPublisher extends Notifier {
   public SonarPublisher(
       String installationName,
       TriggersConfig triggers,
-      String jobAdditionalProperties, String mavenOpts
-  ) {
+      String jobAdditionalProperties, String mavenOpts) {
     this(installationName, triggers, jobAdditionalProperties, mavenOpts, null, null, null);
   }
 
@@ -120,8 +128,7 @@ public class SonarPublisher extends Notifier {
                         TriggersConfig triggers,
                         String jobAdditionalProperties, String mavenOpts,
                         String mavenInstallationName, String rootPom,
-                        LightProjectConfig lightProject
-  ) {
+                        LightProjectConfig lightProject) {
     this(installationName, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, lightProject);
   }
 
@@ -131,8 +138,7 @@ public class SonarPublisher extends Notifier {
                         TriggersConfig triggers,
                         String jobAdditionalProperties, String mavenOpts,
                         String mavenInstallationName, String rootPom,
-                        LightProjectConfig lightProject
-  ) {
+                        LightProjectConfig lightProject) {
     super();
     this.configVersion = 1;
     this.installationName = installationName;
@@ -151,10 +157,10 @@ public class SonarPublisher extends Notifier {
 
   /**
    * Migrate data.
-   *
+   * 
    * @return this
    */
-  @SuppressWarnings({"UnusedDeclaration"})
+  @SuppressWarnings({ "UnusedDeclaration" })
   public Object readResolve() {
     // Default unspecified to v0
     if (configVersion == null) {
@@ -208,7 +214,7 @@ public class SonarPublisher extends Notifier {
 
   /**
    * See <a href="http://docs.codehaus.org/display/SONAR/Advanced+parameters#Advancedparameters-ManageSCMbranches">Sonar Branch option</a>.
-   *
+   * 
    * @return branch
    * @since 1.4
    */
@@ -232,7 +238,7 @@ public class SonarPublisher extends Notifier {
 
   /**
    * Root POM. Should be applied only for free-style projects.
-   *
+   * 
    * @return Root POM
    */
   public String getRootPom() {
@@ -253,17 +259,17 @@ public class SonarPublisher extends Notifier {
     return lightProject;
   }
 
-  @SuppressWarnings({"UnusedDeclaration"})
+  @SuppressWarnings({ "UnusedDeclaration" })
   public static boolean isMavenBuilder(AbstractProject currentProject) {
     return currentProject instanceof MavenModuleSet;
   }
 
   /**
    * Returns list of configured Maven installations. This method used in UI.
-   *
+   * 
    * @return list of configured Maven installations
    */
-  @SuppressWarnings({"UnusedDeclaration"})
+  @SuppressWarnings({ "UnusedDeclaration" })
   public static List<MavenInstallation> getMavenInstallations() {
     return Arrays.asList(Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations());
   }
@@ -284,7 +290,8 @@ public class SonarPublisher extends Notifier {
   private boolean isSkip(AbstractBuild<?, ?> build, BuildListener listener, SonarInstallation sonarInstallation) {
     final String skipLaunchMsg;
     if (sonarInstallation == null) {
-      skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(), Hudson.getInstance().getDescriptorByType(DescriptorImpl.class).getInstallations().length);
+      skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(),
+          Hudson.getInstance().getDescriptorByType(DescriptorImpl.class).getInstallations().length);
     } else if (sonarInstallation.isDisabled()) {
       skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
     } else if (isUseGlobalTriggers()) {
@@ -361,13 +368,11 @@ public class SonarPublisher extends Notifier {
 
       // Execute maven
       return SonarMaven.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       Util.displayIOException(e, listener);
       e.printStackTrace(listener.fatalError("command execution failed"));
       return false;
-    }
-    catch (InterruptedException e) {
+    } catch (InterruptedException e) {
       return false;
     } catch (Exception e) {
       e.printStackTrace(listener.fatalError("command execution failed"));
@@ -389,11 +394,7 @@ public class SonarPublisher extends Notifier {
         MavenModule rootModule = mms.getRootModule();
         if (rootModule != null) {
           ModuleName moduleName = rootModule.getModuleName();
-          url = sonarInstallation.getProjectLink(
-              moduleName.groupId,
-              moduleName.artifactId,
-              getBranch()
-          );
+          url = sonarInstallation.getProjectLink(moduleName.groupId, moduleName.artifactId, getBranch());
         }
       }
     }
@@ -409,17 +410,15 @@ public class SonarPublisher extends Notifier {
         Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
         String groupId = model.getGroupId();
         String artifactId = model.getArtifactId();
-        url = sonarInstallation.getProjectLink(
-            groupId, artifactId, getBranch()
-        );
+        url = sonarInstallation.getProjectLink(groupId, artifactId, getBranch());
       }
     } catch (IOException e) {
       // ignore
     } catch (XmlPullParserException e) {
       // ignore
     } catch (NullPointerException e) {
-        // ignore something in the line can be null for maven project 
-        // Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
+      // ignore something in the line can be null for maven project
+      // Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
     }
     return url;
   }
@@ -433,11 +432,11 @@ public class SonarPublisher extends Notifier {
     return BuildStepMonitor.BUILD;
   }
 
-  @Extension
+  @Extension(ordinal = 1000)
   public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
     @CopyOnWrite
-    private volatile SonarInstallation[] installations = new SonarInstallation[0]; //NOSONAR
+    private volatile SonarInstallation[] installations = new SonarInstallation[0]; // NOSONAR
 
     public DescriptorImpl() {
       super(SonarPublisher.class);
@@ -473,13 +472,13 @@ public class SonarPublisher extends Notifier {
       return true;
     }
 
-    @SuppressWarnings({"UnusedDeclaration", "ThrowableResultOfMethodCallIgnored"})
+    @SuppressWarnings({ "UnusedDeclaration", "ThrowableResultOfMethodCallIgnored" })
     public FormValidation doCheckMandatory(@QueryParameter String value) {
       return StringUtils.isBlank(value) ?
           FormValidation.error(Messages.SonarPublisher_MandatoryProperty()) : FormValidation.ok();
     }
 
-    @SuppressWarnings({"UnusedDeclaration", "ThrowableResultOfMethodCallIgnored"})
+    @SuppressWarnings({ "UnusedDeclaration", "ThrowableResultOfMethodCallIgnored" })
     public FormValidation doCheckMandatoryAndNoSpaces(@QueryParameter String value) {
       return (StringUtils.isBlank(value) || value.contains(" ")) ?
           FormValidation.error(Messages.SonarPublisher_MandatoryPropertySpaces()) : FormValidation.ok();
