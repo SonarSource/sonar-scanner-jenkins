@@ -72,6 +72,10 @@
     <url>http://ci.codehaus.org/browse/SONAR-HUDSON</url>
   </ciManagement>
   <distributionManagement>
+    <repository>
+      <id>java.net-m2-repository</id>
+      <url>http://maven.hudson-labs.org:8081/content/repositories/releases/</url>
+    </repository>
     <snapshotRepository>
       <id>${snapshotRepositoryId}</id>
       <url>${snapshotRepositoryUrl}</url>
@@ -185,6 +189,15 @@
         <configuration>
           <!-- See http://jira.codehaus.org/browse/SONARPLUGINS-402 -->
           <compatibleSinceVersion>1.2</compatibleSinceVersion>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <localCheckout>true</localCheckout>
+          <pushChanges>false</pushChanges>
+          <goals>deploy</goals>
         </configuration>
       </plugin>
       <plugin>
