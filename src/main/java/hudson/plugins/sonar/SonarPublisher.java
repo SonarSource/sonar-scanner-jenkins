@@ -81,6 +81,13 @@ public class SonarPublisher extends Notifier {
 
   /**
    * Optional.
+   * 
+   * @since 1.6
+   */
+  private String language;
+
+  /**
+   * Optional.
    */
   private final String mavenOpts;
 
@@ -129,12 +136,13 @@ public class SonarPublisher extends Notifier {
                         String jobAdditionalProperties, String mavenOpts,
                         String mavenInstallationName, String rootPom,
                         LightProjectConfig lightProject) {
-    this(installationName, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, lightProject);
+    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, lightProject);
   }
 
   @DataBoundConstructor
   public SonarPublisher(String installationName,
                         String branch,
+                        String language,
                         TriggersConfig triggers,
                         String jobAdditionalProperties, String mavenOpts,
                         String mavenInstallationName, String rootPom,
@@ -143,6 +151,7 @@ public class SonarPublisher extends Notifier {
     this.configVersion = 1;
     this.installationName = installationName;
     this.branch = branch;
+    this.language = language;
     // Triggers
     this.triggers = triggers;
     // Maven
@@ -220,6 +229,10 @@ public class SonarPublisher extends Notifier {
    */
   public String getBranch() {
     return branch;
+  }
+
+  public String getLanguage() {
+    return StringUtils.trimToEmpty(language);
   }
 
   /**

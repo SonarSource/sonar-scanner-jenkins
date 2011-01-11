@@ -17,7 +17,13 @@ package hudson.plugins.sonar;
 
 import hudson.UDPBroadcastThread;
 import hudson.maven.MavenModuleSet;
-import hudson.model.*;
+import hudson.model.Result;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Cause;
+import hudson.model.FreeStyleProject;
+import hudson.model.Hudson;
+import hudson.model.Run;
 import hudson.plugins.sonar.model.LightProjectConfig;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
@@ -42,8 +48,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   public static final String SONAR_INSTALLATION_NAME = "default";
 
   /**
-   * We should override default port defined in {@link hudson.UDPBroadcastThread#PORT}
-   * to avoid intersections with real Hudson on Nemo.
+   * We should override default port defined in {@link hudson.UDPBroadcastThread#PORT} to avoid intersections with real Hudson on Nemo.
    */
   public static final Integer UdpBroadcastPort = 33849;
 
@@ -61,7 +66,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
 
   /**
    * Returns Fake Maven Installation.
-   *
+   * 
    * @return Fake Maven Installation
    * @throws Exception if something is wrong
    */
@@ -69,7 +74,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   protected Maven.MavenInstallation configureDefaultMaven() throws Exception {
     File mvn = new File(getClass().getResource("SonarTestCase/maven/bin/mvn").toURI().getPath());
     if (!Hudson.isWindows()) {
-      //noinspection OctalInteger
+      // noinspection OctalInteger
       GNUCLibrary.LIBC.chmod(mvn.getPath(), 0755);
     }
     String home = mvn.getParentFile().getParentFile().getAbsolutePath();
@@ -150,9 +155,8 @@ public abstract class SonarTestCase extends HudsonTestCase {
       "src",
       "UTF-8",
       null,
-      null,
       null
-  );
+      );
 
   protected static SonarPublisher newSonarPublisherForFreeStyleProject(String pomName) {
     return new SonarPublisher(
@@ -162,15 +166,14 @@ public abstract class SonarTestCase extends HudsonTestCase {
         null,
         "default", // Maven Installation Name
         pomName, // Root POM
-        PROJECT_CONFIG
-    );
+        PROJECT_CONFIG);
   }
 
   /**
    * Asserts that Sonar executed with given arguments.
-   *
+   * 
    * @param build build
-   * @param args  command line arguments
+   * @param args command line arguments
    * @throws Exception if something is wrong
    */
   protected void assertSonarExecution(AbstractBuild build, String args) throws Exception {
@@ -180,13 +183,12 @@ public abstract class SonarTestCase extends HudsonTestCase {
     assertLogContains("sonar:sonar", build);
 
     // Check that Sonar Plugin started
-//    assertLogContains("[INFO] Sonar host: " + SONAR_HOST, build);
+    // assertLogContains("[INFO] Sonar host: " + SONAR_HOST, build);
 
     // SONARPLUGINS-320: Check that small badge was added to build history
     assertNotNull(
         BuildSonarAction.class.getSimpleName() + " not found",
-        build.getAction(BuildSonarAction.class)
-    );
+        build.getAction(BuildSonarAction.class));
 
     // SONARPLUGINS-165: Check that link added to project
     // FIXME Godin: I don't know why, but this don't work for FreeStyleProject
@@ -203,15 +205,14 @@ public abstract class SonarTestCase extends HudsonTestCase {
     // SONARPLUGINS-320: Check that small badge was not added to build history
     assertNull(
         BuildSonarAction.class.getSimpleName() + " found",
-        build.getAction(BuildSonarAction.class)
-    );
+        build.getAction(BuildSonarAction.class));
   }
 
   /**
    * Asserts that the console output of the build doesn't contains the given substring.
-   *
+   * 
    * @param substring substring to check
-   * @param run       run to check
+   * @param run run to check
    * @throws Exception if something wrong
    */
   protected void assertLogDoesntContains(String substring, Run run) throws Exception {

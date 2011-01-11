@@ -71,15 +71,10 @@ public class LightProjectConfig {
   /**
    * Optional.
    */
-  private final String language;
-
-  /**
-   * Optional.
-   */
   private final ReportsConfig reports;
 
   public LightProjectConfig(String groupId, String artifactId, String projectName) {
-    this(groupId, artifactId, projectName, null, null, null, null, null, null, null, null);
+    this(groupId, artifactId, projectName, null, null, null, null, null, null, null);
   }
 
   @DataBoundConstructor
@@ -93,9 +88,7 @@ public class LightProjectConfig {
       String projectSrcDir,
       String projectSrcEncoding,
       String projectBinDir,
-      String language,
-      ReportsConfig reports
-  ) {
+      ReportsConfig reports) {
     this.groupId = groupId;
     this.artifactId = artifactId;
     this.projectName = projectName;
@@ -105,7 +98,6 @@ public class LightProjectConfig {
     this.projectSrcDir = projectSrcDir;
     this.projectSrcEncoding = projectSrcEncoding;
     this.projectBinDir = projectBinDir;
-    this.language = language;
     this.reports = reports;
   }
 
@@ -143,10 +135,6 @@ public class LightProjectConfig {
 
   public String getProjectBinDir() {
     return StringUtils.trimToEmpty(projectBinDir);
-  }
-
-  public String getLanguage() {
-    return StringUtils.trimToEmpty(language);
   }
 
   public ReportsConfig getReports() {

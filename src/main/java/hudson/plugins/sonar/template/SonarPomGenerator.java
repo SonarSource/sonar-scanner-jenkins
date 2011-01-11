@@ -29,7 +29,8 @@ import java.util.List;
  * @since 1.2
  */
 public final class SonarPomGenerator {
-  public static void generatePomForNonMavenProject(LightProjectConfig project, FilePath root, String pomName) throws IOException, InterruptedException {
+  public static void generatePomForNonMavenProject(LightProjectConfig project, FilePath root, String pomName) throws IOException,
+      InterruptedException {
     SimpleTemplate pomTemplate = new SimpleTemplate("hudson/plugins/sonar/sonar-light-pom.template");
     pomTemplate.setAttribute("groupId", project.getGroupId());
     pomTemplate.setAttribute("artifactId", project.getArtifactId());
@@ -47,8 +48,6 @@ public final class SonarPomGenerator {
     setPomElement("description", project.getProjectDescription(), pomTemplate);
     setPomElement("sonar.phase", multiSources ? "generate-sources" : "", pomTemplate);
     setPomElement("outputDirectory", project.getProjectBinDir(), pomTemplate);
-
-    setPomElement("sonar.language", project.getLanguage(), pomTemplate);
 
     ReportsConfig reports = project.isReuseReports() ? project.getReports() : new ReportsConfig();
     setPomElement("sonar.dynamicAnalysis", project.isReuseReports() ? "reuseReports" : "false", true, pomTemplate);

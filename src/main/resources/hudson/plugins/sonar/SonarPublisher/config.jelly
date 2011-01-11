@@ -31,6 +31,10 @@
       <f:textbox name="sonar.branch" value="${instance.getBranch()}"/>
     </f:entry>
 
+    <f:entry title="${%Language}" description="${%LanguageDescr}">
+      <f:textbox name="sonar.language" value="${instance.getLanguage()}"/>
+    </f:entry>
+
     <j:if test="${!isMavenBuilder}">
       <!-- Maven version -->
       <f:entry title="${%MavenVersion}">
@@ -120,10 +124,6 @@
 
             <f:entry title="${%JavaVersion}" description="${%JavaVersionDescr}">
               <f:textbox name="javaVersion" value="${instance.lightProject.javaVersion}"/>
-            </f:entry>
-
-            <f:entry title="${%Language}" description="${%LanguageDescr}">
-              <f:textbox name="language" value="${instance.lightProject.language}"/>
             </f:entry>
 
             <f:optionalBlock name="reports" title="${%ReuseReports}"
