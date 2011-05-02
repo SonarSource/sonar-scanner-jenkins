@@ -19,6 +19,12 @@
     <label>${%UserBuilds}</label>
   </f:entry>
 
+  <f:entry title="" help="/plugin/sonar/help-trigger-descendant-of-user.html">
+    <f:checkbox name="descendantOfUserBuilds" checked="${it.isDescendantOfUserBuilds()}"
+                default="true"/>
+    <label>${%DescendantOfUserBuilds}</label>
+  </f:entry>
+
   <f:entry title="" help="/plugin/sonar/help-trigger-snapshot-dep.html">
     <f:checkbox name="snapshotDependencyBuilds" checked="${it.isSnapshotDependencyBuilds()}"
                 default="false"/>

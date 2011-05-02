@@ -105,6 +105,7 @@ public class BaseTest extends SonarTestCase {
     triggers.setUserBuilds(false);
     triggers.setScmBuilds(false);
     triggers.setTimerBuilds(false);
+    triggers.setDescendantOfUserBuilds(false);
     triggers.setSnapshotDependencyBuilds(false);
     triggers.setSkipIfBuildFails(true);
     AbstractBuild build;
@@ -112,19 +113,19 @@ public class BaseTest extends SonarTestCase {
     setBuildResult(project, Result.SUCCESS);
     // SONARPLUGINS-378
     build = build(project, new CustomCause(), null);
-    assertNoSonarExecution(build, Messages.SonarPublisher_UserBuild());
+    assertNoSonarExecution(build, Messages.SonarPublisher_NoGlobalTrigger());
     // Disable sonar on user build command execution
     build = build(project, new Cause.UserCause(), null);
-    assertNoSonarExecution(build, Messages.SonarPublisher_UserBuild());
+    assertNoSonarExecution(build, Messages.SonarPublisher_NoGlobalTrigger());
     // Disable sonar on SCM build
     build = build(project, new SCMTrigger.SCMTriggerCause(), null);
-    assertNoSonarExecution(build, Messages.SonarPublisher_SCMBuild());
+    assertNoSonarExecution(build, Messages.SonarPublisher_NoGlobalTrigger());
     // Disable sonar on Timer build
     build = build(project, new TimerTrigger.TimerTriggerCause(), null);
-    assertNoSonarExecution(build, Messages.SonarPublisher_TimerBuild());
+    assertNoSonarExecution(build, Messages.SonarPublisher_NoGlobalTrigger());
     // Disable sonar on Upstream build
     build = build(project, new Cause.UpstreamCause((Run) build), null);
-    assertNoSonarExecution(build, Messages.SonarPublisher_SnapshotDepBuild());
+    assertNoSonarExecution(build, Messages.SonarPublisher_NoGlobalTrigger());
     // Disable sonar on build failure
     setBuildResult(project, Result.FAILURE);
     build = build(project);

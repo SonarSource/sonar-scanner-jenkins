@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -300,40 +301,44 @@ public class SonarPublisher extends Notifier {
     return null;
   }
 
-  private boolean isSkip(AbstractBuild<?, ?> build, BuildListener listener, SonarInstallation sonarInstallation) {
-    final String skipLaunchMsg;
+  private boolean doPerformSonar(AbstractBuild<?, ?> build, BuildListener listener, SonarInstallation sonarInstallation) {
+    String skipLaunchMsg = null;
     if (sonarInstallation == null) {
       skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(),
           Hudson.getInstance().getDescriptorByType(DescriptorImpl.class).getInstallations().length);
     } else if (sonarInstallation.isDisabled()) {
       skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else if (isUseGlobalTriggers()) {
-      skipLaunchMsg = sonarInstallation.getTriggers().isSkipSonar(build);
-    } else {
-      skipLaunchMsg = getTriggers().isSkipSonar(build);
+    } else if (isUseGlobalTriggers() && !sonarInstallation.getTriggers().doPerformSonar(build)) {
+      skipLaunchMsg = Messages.SonarPublisher_NoGlobalTrigger();
+    } else if (!isUseGlobalTriggers() && !getTriggers().doPerformSonar(build)) {
+      skipLaunchMsg = Messages.SonarPublisher_NoTrigger();
     }
+
     if (skipLaunchMsg != null) {
       listener.getLogger().println(skipLaunchMsg);
-      return true;
+      return false;
     }
-    return false;
+
+    return true;
   }
 
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
     final SonarInstallation sonarInstallation = getInstallation();
-    if (isSkip(build, listener, sonarInstallation)) {
+    if (doPerformSonar(build, listener, sonarInstallation)) {
+      build.addAction(new BuildSonarAction());
+
+      boolean sonarSuccess = executeSonar(build, launcher, listener, sonarInstallation);
+      if (!sonarSuccess) {
+        // returning false has no effect on the global build status so need to do it manually
+        build.setResult(Result.FAILURE);
+      }
+      LOG.log(Level.INFO, "Sonar build completed: {0}", build.getResult());
+      return sonarSuccess;
+    }
+    else {
       return true;
     }
-    build.addAction(new BuildSonarAction());
-
-    boolean sonarSuccess = executeSonar(build, launcher, listener, sonarInstallation);
-    if (!sonarSuccess) {
-      // returning false has no effect on the global build status so need to do it manually
-      build.setResult(Result.FAILURE);
-    }
-    LOG.info("Sonar build completed: " + build.getResult());
-    return sonarSuccess;
   }
 
   public MavenModuleSet getMavenProject(AbstractBuild build) {
