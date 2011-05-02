@@ -57,6 +57,11 @@ public class LightProjectConfig {
    * Mandatory.
    */
   private final String projectSrcDir;
+  
+  /**
+   * Mandatory.
+   */
+  private final String projectTestSrcDir;
 
   /**
    * Optional.
@@ -74,7 +79,7 @@ public class LightProjectConfig {
   private final ReportsConfig reports;
 
   public LightProjectConfig(String groupId, String artifactId, String projectName) {
-    this(groupId, artifactId, projectName, null, null, null, null, null, null, null);
+    this(groupId, artifactId, projectName, null, null, null, null, null, null, null, null);
   }
 
   @DataBoundConstructor
@@ -86,6 +91,7 @@ public class LightProjectConfig {
       String projectDescription,
       String javaVersion,
       String projectSrcDir,
+      String projectTestSrcDir,
       String projectSrcEncoding,
       String projectBinDir,
       ReportsConfig reports) {
@@ -96,6 +102,7 @@ public class LightProjectConfig {
     this.projectDescription = projectDescription;
     this.javaVersion = javaVersion;
     this.projectSrcDir = projectSrcDir;
+    this.projectTestSrcDir = projectTestSrcDir;
     this.projectSrcEncoding = projectSrcEncoding;
     this.projectBinDir = projectBinDir;
     this.reports = reports;
@@ -127,6 +134,10 @@ public class LightProjectConfig {
 
   public String getProjectSrcDir() {
     return StringUtils.trimToEmpty(projectSrcDir);
+  }
+  
+  public String getProjectTestSrcDir() {
+      return StringUtils.trimToEmpty(projectTestSrcDir);
   }
 
   public String getProjectSrcEncoding() {

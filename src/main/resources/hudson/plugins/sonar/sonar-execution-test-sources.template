@@ -1,0 +1,12 @@
+    <execution>
+      <id>add-test-source</id>
+      <phase>generate-test-sources</phase>
+      <goals>
+          <goal>add-test-source</goal>
+      </goals>
+      <configuration>
+          <sources>
+              $sources$
+          </sources>
+      </configuration>
+    </execution>

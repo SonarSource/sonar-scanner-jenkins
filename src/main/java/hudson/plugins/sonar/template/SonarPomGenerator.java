@@ -38,15 +38,29 @@ public final class SonarPomGenerator {
     pomTemplate.setAttribute("projectVersion", StringUtils.isEmpty(project.getProjectVersion()) ? "1.0" : project.getProjectVersion());
     pomTemplate.setAttribute("javaVersion", StringUtils.isEmpty(project.getJavaVersion()) ? "1.5" : project.getJavaVersion());
 
-    List<String> srcDirs = getProjectSrcDirsList(project.getProjectSrcDir());
+    List<String> srcDirs = getProjectDirsList(project.getProjectSrcDir());
     boolean multiSources = srcDirs.size() > 1;
     setPomElement("sourceDirectory", srcDirs.size() == 0 ? "src" : srcDirs.get(0), pomTemplate);
-    pomTemplate.setAttribute("srcDirsPlugin", multiSources ? generateSrcDirsPluginTemplate(srcDirs).toString() : "");
+    
+    List<String> srcTestDirs = getProjectDirsList(project.getProjectTestSrcDir());
+    boolean multiTestSources = srcTestDirs.size() > 1;
+    
+    if (srcTestDirs.size() > 0) {
+      setPomElement("testSourceDirectory", srcTestDirs.get(0), pomTemplate);
+    } else {
+      pomTemplate.setAttribute("testSourceDirectory", "");
+    }
+    
+    pomTemplate.setAttribute("srcDirsPlugin", generateSrcDirsPluginTemplate(srcDirs, srcTestDirs).toString());
 
     setPomElement("project.build.sourceEncoding", project.getProjectSrcEncoding(), pomTemplate);
     setPomElement("encoding", project.getProjectSrcEncoding(), pomTemplate);
     setPomElement("description", project.getProjectDescription(), pomTemplate);
+
+    
     setPomElement("sonar.phase", multiSources ? "generate-sources" : "", pomTemplate);
+    
+    
     setPomElement("outputDirectory", project.getProjectBinDir(), pomTemplate);
 
     ReportsConfig reports = project.isReuseReports() ? project.getReports() : new ReportsConfig();
@@ -58,14 +72,23 @@ public final class SonarPomGenerator {
     pomTemplate.write(root, pomName);
   }
 
-  private static SimpleTemplate generateSrcDirsPluginTemplate(List<String> srcDirs) throws IOException, InterruptedException {
+  private static SimpleTemplate generateSrcDirsPluginTemplate(List<String> srcDirs, List<String> srcTestDirs) throws IOException, InterruptedException {
     SimpleTemplate srcTemplate = new SimpleTemplate("hudson/plugins/sonar/sonar-multi-sources.template");
-    StringBuffer sourcesXml = new StringBuffer();
-    for (int i = 1; i < srcDirs.size(); i++) {
-      sourcesXml.append("<source><![CDATA[").append(StringUtils.trim(srcDirs.get(i))).append("]]></source>\n");
-    }
-    srcTemplate.setAttribute("sources", sourcesXml.toString());
+
+    srcTemplate.setAttribute("execution-add-sources", srcDirs.size() > 1 ?  generateSrcDirsExecutionTemplate(srcDirs, "hudson/plugins/sonar/sonar-execution-sources.template").toString() : "");
+    srcTemplate.setAttribute("execution-add-test-sources", srcTestDirs.size() > 1 ? generateSrcDirsExecutionTemplate(srcTestDirs, "hudson/plugins/sonar/sonar-execution-test-sources.template").toString() : "");
+    
     return srcTemplate;
+  }
+  
+  private static SimpleTemplate generateSrcDirsExecutionTemplate(List<String> srcDirs, String templateName) throws IOException, InterruptedException {
+      SimpleTemplate srcTemplate = new SimpleTemplate(templateName);
+      StringBuffer sourcesXml = new StringBuffer();
+      for (int i = 1; i < srcDirs.size(); i++) {
+          sourcesXml.append("<source><![CDATA[").append(StringUtils.trim(srcDirs.get(i))).append("]]></source>\n");
+      }
+      srcTemplate.setAttribute("sources", sourcesXml.toString());
+      return srcTemplate;
   }
 
   private static void setPomElement(String tagName, String tagValue, SimpleTemplate template) {
@@ -82,7 +105,7 @@ public final class SonarPomGenerator {
     template.setAttribute(tagName, tagContent);
   }
 
-  private static List<String> getProjectSrcDirsList(String src) {
+  private static List<String> getProjectDirsList(String src) {
     String[] dirs = StringUtils.split(src, ',');
     return Arrays.asList(dirs);
   }
