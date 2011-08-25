@@ -15,23 +15,27 @@
  */
 package hudson.plugins.sonar.model;
 
+import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
-import hudson.model.Result;
 import hudson.plugins.sonar.Messages;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
-import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.Serializable;
 import java.util.List;
+
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author Evgeny Mandrikov
  * @since 1.2
  */
 public class TriggersConfig implements Serializable {
+
+  public static final String ENV_VARIABLE = "SKIP_SONAR";
+	
   private boolean scmBuilds;
 
   private boolean timerBuilds;
@@ -44,17 +48,20 @@ public class TriggersConfig implements Serializable {
   private boolean snapshotDependencyBuilds;
 
   private boolean skipIfBuildFails;
+  
+  private boolean skipIfEnvVarTrue;
 
   public TriggersConfig() {
   }
 
   @DataBoundConstructor
-  public TriggersConfig(boolean scmBuilds, boolean timerBuilds, boolean userBuilds, boolean snapshotDependencyBuilds, boolean skipIfBuildFails) {
+  public TriggersConfig(boolean scmBuilds, boolean timerBuilds, boolean userBuilds, boolean snapshotDependencyBuilds, boolean skipIfBuildFails, boolean skipIfEnvVarTrue) {
     this.scmBuilds = scmBuilds;
     this.timerBuilds = timerBuilds;
     this.userBuilds = userBuilds;
     this.snapshotDependencyBuilds = snapshotDependencyBuilds;
     this.skipIfBuildFails = skipIfBuildFails;
+    this.skipIfEnvVarTrue = skipIfEnvVarTrue;
   }
 
   public boolean isScmBuilds() {
@@ -96,9 +103,23 @@ public class TriggersConfig implements Serializable {
   public void setSkipIfBuildFails(boolean skipIfBuildFails) {
     this.skipIfBuildFails = skipIfBuildFails;
   }
+  
+  public boolean isSkipIfEnvVarTrue(){
+	  return skipIfEnvVarTrue;
+  }
+  
+  public void setSkipIfEnvVarTrue(boolean skipIfEnvVarTrue) {
+	this.skipIfEnvVarTrue = skipIfEnvVarTrue;
+  }
 
   public String isSkipSonar(AbstractBuild<?, ?> build) {
-    if (isSkipIfBuildFails() && build.getResult().isWorseThan(Result.UNSTABLE)) {
+	  
+	if(isSkipIfEnvVarTrue()){
+	    String skipVar = build.getBuildVariableResolver().resolve(ENV_VARIABLE);
+	    if("true".equalsIgnoreCase(skipVar)){
+	    	return Messages.SonarPublisher_EnvVarTrue();
+	    }
+    } else if (isSkipIfBuildFails() && build.getResult().isWorseThan(Result.UNSTABLE)) {
       return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
     } else if (build.getResult().isWorseThan(Result.FAILURE)) {
       return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());

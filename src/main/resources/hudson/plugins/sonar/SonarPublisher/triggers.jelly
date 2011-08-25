@@ -30,5 +30,11 @@
                 default="false"/>
     <label>${%SkipIfBuildFails}</label>
   </f:entry>
+  
+  <f:entry title="" help="/plugin/sonar/help-skip-variable.html">
+    <f:checkbox name="skipIfEnvVarTrue" checked="${it.isSkipIfEnvVarTrue()}"
+                default="false"/>
+    <label>${%SkipIfEnvVarTrue}</label>
+  </f:entry>
 
 </j:jelly>
