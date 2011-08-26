@@ -113,12 +113,9 @@ public class TriggersConfig implements Serializable {
   }
 
   public String isSkipSonar(AbstractBuild<?, ?> build) {
-	  
-	if(isSkipIfEnvVarTrue()){
-	    String skipVar = build.getBuildVariableResolver().resolve(ENV_VARIABLE);
-	    if("true".equalsIgnoreCase(skipVar)){
-	    	return Messages.SonarPublisher_EnvVarTrue();
-	    }
+	String skipVar = build.getBuildVariableResolver().resolve(ENV_VARIABLE);
+	if(isSkipIfEnvVarTrue() && "true".equalsIgnoreCase(skipVar)){
+	  return Messages.SonarPublisher_EnvVarTrue();
     } else if (isSkipIfBuildFails() && build.getResult().isWorseThan(Result.UNSTABLE)) {
       return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
     } else if (build.getResult().isWorseThan(Result.FAILURE)) {
