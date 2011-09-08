@@ -20,6 +20,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
 import hudson.plugins.sonar.Messages;
+import hudson.plugins.sonar.SonarParameterDefinition;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
 
@@ -34,8 +35,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
  */
 public class TriggersConfig implements Serializable {
 
-  public static final String ENV_VARIABLE = "SKIP_SONAR";
-	
   private boolean scmBuilds;
 
   private boolean timerBuilds;
@@ -113,7 +112,7 @@ public class TriggersConfig implements Serializable {
   }
 
   public String isSkipSonar(AbstractBuild<?, ?> build) {
-	String skipVar = build.getBuildVariableResolver().resolve(ENV_VARIABLE);
+	String skipVar = build.getBuildVariableResolver().resolve(SonarParameterDefinition.ENV_SKIP_SONAR);
 	if(isSkipIfEnvVarTrue() && "true".equalsIgnoreCase(skipVar)){
 	  return Messages.SonarPublisher_EnvVarTrue();
     } else if (isSkipIfBuildFails() && build.getResult().isWorseThan(Result.UNSTABLE)) {
