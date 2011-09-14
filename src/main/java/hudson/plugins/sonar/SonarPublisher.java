@@ -288,23 +288,13 @@ public class SonarPublisher extends Notifier {
   }
 
   public SonarInstallation getInstallation() {
-    DescriptorImpl sonarDescriptor = Hudson.getInstance().getDescriptorByType(DescriptorImpl.class);
-    if (StringUtils.isEmpty(getInstallationName()) && sonarDescriptor.getInstallations().length > 0) {
-      return sonarDescriptor.getInstallations()[0];
-    }
-    for (SonarInstallation si : sonarDescriptor.getInstallations()) {
-      if (StringUtils.equals(getInstallationName(), si.getName())) {
-        return si;
-      }
-    }
-    return null;
+    return SonarInstallation.get(getInstallationName());
   }
 
   private boolean isSkip(AbstractBuild<?, ?> build, BuildListener listener, SonarInstallation sonarInstallation) {
     final String skipLaunchMsg;
     if (sonarInstallation == null) {
-      skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(),
-          Hudson.getInstance().getDescriptorByType(DescriptorImpl.class).getInstallations().length);
+      skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(), SonarInstallation.all().length);
     } else if (sonarInstallation.isDisabled()) {
       skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
     } else if (isUseGlobalTriggers()) {

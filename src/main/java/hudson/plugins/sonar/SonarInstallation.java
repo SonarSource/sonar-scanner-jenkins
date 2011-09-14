@@ -15,12 +15,45 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.model.Hudson;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.MagicNames;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SonarInstallation {
+
+  /**
+   * @return all available installations, never <tt>null</tt>
+   * @since 1.7
+   */
+  public static final SonarInstallation[] all() {
+    Hudson hudson = Hudson.getInstance();
+    if (hudson == null) { // for unit test
+      return new SonarInstallation[0];
+    }
+    SonarPublisher.DescriptorImpl sonarDescriptor = Hudson.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
+    return sonarDescriptor.getInstallations();
+  }
+
+  /**
+   * @return installation by name, <tt>null</tt> if not found
+   * @since 1.7
+   */
+  public static final SonarInstallation get(String name) {
+    SonarInstallation[] available = all();
+    if (StringUtils.isEmpty(name) && available.length > 0) {
+      return available[0];
+    }
+    for (SonarInstallation si : available) {
+      if (StringUtils.equals(name, si.getName())) {
+        return si;
+      }
+    }
+    return null;
+  }
+
   private final String name;
   private final boolean disabled;
   private final String serverUrl;
