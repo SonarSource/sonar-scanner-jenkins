@@ -13,7 +13,6 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-
 package hudson.plugins.sonar;
 
 import hudson.model.BuildBadgeAction;
