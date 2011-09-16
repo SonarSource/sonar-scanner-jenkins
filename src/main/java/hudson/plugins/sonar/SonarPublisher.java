@@ -170,7 +170,6 @@ public class SonarPublisher extends Notifier {
    * 
    * @return this
    */
-  @SuppressWarnings({ "UnusedDeclaration" })
   public Object readResolve() {
     // Default unspecified to v0
     if (configVersion == null) {
@@ -273,7 +272,6 @@ public class SonarPublisher extends Notifier {
     return lightProject;
   }
 
-  @SuppressWarnings({ "UnusedDeclaration" })
   public static boolean isMavenBuilder(AbstractProject currentProject) {
     return currentProject instanceof MavenModuleSet;
   }
@@ -332,15 +330,6 @@ public class SonarPublisher extends Notifier {
     if (StringUtils.isEmpty(pomName)) {
       pomName = "pom.xml";
     }
-    return pomName;
-  }
-
-  private String getPomName(AbstractBuild<?, ?> build, BuildListener listener) throws IOException, InterruptedException {
-    String pomName = getPomName(build);
-    // TODO Godin: why we should expand it?
-    // Expand, because pomName can be "${VAR}/pom.xml"
-    EnvVars env = build.getEnvironment(listener);
-    pomName = env.expand(pomName);
     return pomName;
   }
 
@@ -475,13 +464,11 @@ public class SonarPublisher extends Notifier {
       return true;
     }
 
-    @SuppressWarnings({ "UnusedDeclaration", "ThrowableResultOfMethodCallIgnored" })
     public FormValidation doCheckMandatory(@QueryParameter String value) {
       return StringUtils.isBlank(value) ?
           FormValidation.error(Messages.SonarPublisher_MandatoryProperty()) : FormValidation.ok();
     }
 
-    @SuppressWarnings({ "UnusedDeclaration", "ThrowableResultOfMethodCallIgnored" })
     public FormValidation doCheckMandatoryAndNoSpaces(@QueryParameter String value) {
       return (StringUtils.isBlank(value) || value.contains(" ")) ?
           FormValidation.error(Messages.SonarPublisher_MandatoryPropertySpaces()) : FormValidation.ok();

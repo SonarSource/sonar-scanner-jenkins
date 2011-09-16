@@ -103,7 +103,7 @@ public class TriggersConfig implements Serializable {
     if (result != null) {
       if (isSkipIfBuildFails() && result.isWorseThan(Result.UNSTABLE)) {
         return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
-      } else if (result != null && result.isWorseThan(Result.FAILURE)) {
+      } else if (result.isWorseThan(Result.FAILURE)) {
         return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
       }
     }
