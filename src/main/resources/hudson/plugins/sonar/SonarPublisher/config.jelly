@@ -40,7 +40,7 @@
       <f:entry title="${%MavenVersion}">
         <select class="setting-input" name="sonar.mavenInstallationName">
           <option value="">(Default)</option>
-          <j:forEach var="inst" items="${instance.mavenInstallations}">
+          <j:forEach var="inst" items="${descriptor.mavenInstallations}">
             <f:option selected="${inst.name==instance.getMavenInstallationName()}" value="${inst.name}">
               ${inst.name}
             </f:option>

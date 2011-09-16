@@ -38,7 +38,14 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.util.FormValidation;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.List;
+import java.util.logging.Logger;
+
 import net.sf.json.JSONObject;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -46,12 +53,6 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Old fields should be left so that old config data can be read in, but
@@ -277,16 +278,6 @@ public class SonarPublisher extends Notifier {
     return currentProject instanceof MavenModuleSet;
   }
 
-  /**
-   * Returns list of configured Maven installations. This method used in UI.
-   * 
-   * @return list of configured Maven installations
-   */
-  @SuppressWarnings({ "UnusedDeclaration" })
-  public static List<MavenInstallation> getMavenInstallations() {
-    return Arrays.asList(Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations());
-  }
-
   public SonarInstallation getInstallation() {
     return SonarInstallation.get(getInstallationName());
   }
@@ -466,6 +457,15 @@ public class SonarPublisher extends Notifier {
     public void setInstallations(SonarInstallation... installations) {
       this.installations = installations;
       save();
+    }
+
+    /**
+     * This method is used in UI, so signature and location of this method is important (see SONARPLUGINS-1337).
+     * 
+     * @return all configured {@link hudson.tasks.Maven.MavenInstallation}
+     */
+    public MavenInstallation[] getMavenInstallations() {
+      return Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations();
     }
 
     @Override
