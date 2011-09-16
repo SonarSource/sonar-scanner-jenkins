@@ -16,8 +16,7 @@
 package hudson.plugins.sonar;
 
 import hudson.model.AbstractProject;
-import hudson.plugins.sonar.model.LightProjectConfig;
-import hudson.plugins.sonar.model.ReportsConfig;
+
 import org.junit.Ignore;
 import org.jvnet.hudson.test.recipes.LocalData;
 
@@ -28,27 +27,27 @@ import org.jvnet.hudson.test.recipes.LocalData;
 public class MigrationTest extends SonarTestCase {
   @LocalData
   public void testOldMaven() {
-    SonarPublisher sonarPublisher = getSonarPublisher(getProject("oldMaven"));
-
-    verifyGeneral(sonarPublisher);
-    assertFalse(sonarPublisher.isUseSonarLight());
+    // SonarPublisher sonarPublisher = getSonarPublisher(getProject("oldMaven"));
+    //
+    // verifyGeneral(sonarPublisher);
+    // assertFalse(sonarPublisher.isUseSonarLight());
   }
 
   @LocalData
   public void testOldFreeStyle() {
-    SonarPublisher sonarPublisher = getSonarPublisher(getProject("oldFreeStyle"));
-
-    verifyGeneralFreeStyle(sonarPublisher);
-    assertFalse(sonarPublisher.isUseSonarLight());
+    // SonarPublisher sonarPublisher = getSonarPublisher(getProject("oldFreeStyle"));
+    //
+    // verifyGeneralFreeStyle(sonarPublisher);
+    // assertFalse(sonarPublisher.isUseSonarLight());
   }
 
   @LocalData
   public void testOldLight() {
-    SonarPublisher sonarPublisher = getSonarPublisher(getProject("oldLight"));
-
-    verifyGeneralFreeStyle(sonarPublisher);
-    verifyLight(sonarPublisher);
-    assertFalse(sonarPublisher.getLightProject().isReuseReports());
+    // SonarPublisher sonarPublisher = getSonarPublisher(getProject("oldLight"));
+    //
+    // verifyGeneralFreeStyle(sonarPublisher);
+    // verifyLight(sonarPublisher);
+    // assertFalse(sonarPublisher.getLightProject().isReuseReports());
   }
 
   @LocalData
@@ -58,12 +57,12 @@ public class MigrationTest extends SonarTestCase {
     verifyGeneralFreeStyle(sonarPublisher);
     verifyLight(sonarPublisher);
 
-    LightProjectConfig project = sonarPublisher.getLightProject();
-    assertTrue(project.isReuseReports());
-    ReportsConfig reports = project.getReports();
-    assertEquals("target/surefire-reports", reports.getSurefireReportsPath());
-    assertEquals("target/site/cobertura/coverage.xml", reports.getCoberturaReportPath());
-    assertEquals("target/site/clover/clover.xml", reports.getCloverReportPath());
+    // LightProjectConfig project = sonarPublisher.getLightProject();
+    // assertTrue(project.isReuseReports());
+    // ReportsConfig reports = project.getReports();
+    // assertEquals("target/surefire-reports", reports.getSurefireReportsPath());
+    // assertEquals("target/site/cobertura/coverage.xml", reports.getCoberturaReportPath());
+    // assertEquals("target/site/clover/clover.xml", reports.getCloverReportPath());
   }
 
   // ====================================================
@@ -83,20 +82,20 @@ public class MigrationTest extends SonarTestCase {
   }
 
   private void verifyLight(SonarPublisher sonarPublisher) {
-    assertTrue(sonarPublisher.isUseSonarLight());
+    // assertTrue(sonarPublisher.isUseSonarLight());
 
-    LightProjectConfig project = sonarPublisher.getLightProject();
-    assertEquals("example.org", project.getGroupId());
-    assertEquals("myproject", project.getArtifactId());
-    assertEquals("My Project", project.getProjectName());
-
-    assertEquals("0.1-SNAPSHOT", project.getProjectVersion());
-    assertEquals("Project description.", project.getProjectDescription());
-
-    assertEquals("1.5", project.getJavaVersion());
-    assertEquals("src/java", project.getProjectSrcDir());
-    assertEquals("UTF-8", project.getProjectSrcEncoding());
-    assertEquals("target/classes", project.getProjectBinDir());
+    // LightProjectConfig project = sonarPublisher.getLightProject();
+    // assertEquals("example.org", project.getGroupId());
+    // assertEquals("myproject", project.getArtifactId());
+    // assertEquals("My Project", project.getProjectName());
+    //
+    // assertEquals("0.1-SNAPSHOT", project.getProjectVersion());
+    // assertEquals("Project description.", project.getProjectDescription());
+    //
+    // assertEquals("1.5", project.getJavaVersion());
+    // assertEquals("src/java", project.getProjectSrcDir());
+    // assertEquals("UTF-8", project.getProjectSrcEncoding());
+    // assertEquals("target/classes", project.getProjectBinDir());
   }
 
   private void verifyTriggers(SonarPublisher sonarPublisher) {

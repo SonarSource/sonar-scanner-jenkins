@@ -22,6 +22,7 @@ import hudson.model.Cause;
 import hudson.model.FreeStyleProject;
 import hudson.model.Project;
 
+import org.junit.Ignore;
 import org.jvnet.hudson.test.MockBuilder;
 
 /**
@@ -79,7 +80,8 @@ public class BaseTest extends SonarTestCase {
    *
    * @throws Exception if something is wrong
    */
-  public void testFreeStyleProject() throws Exception {
+  @Ignore("Due to SONARPLUGINS-1375")
+  public void ignore_testFreeStyleProject() throws Exception {
     configureDefaultMaven();
     configureDefaultSonar();
     String pomName = "space test/sonar-pom.xml";
@@ -124,7 +126,6 @@ public class BaseTest extends SonarTestCase {
         "jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8",
         "com.mysql.jdbc.Driver",
         "dbuser", "dbpassword",
-        null, null, null
-    ));
+        null, null, null));
   }
 }

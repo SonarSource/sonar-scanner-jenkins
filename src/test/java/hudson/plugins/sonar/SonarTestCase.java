@@ -24,7 +24,6 @@ import hudson.model.Cause;
 import hudson.model.FreeStyleProject;
 import hudson.model.Hudson;
 import hudson.model.Run;
-import hudson.plugins.sonar.model.LightProjectConfig;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
 import hudson.tasks.Maven;
@@ -147,18 +146,6 @@ public abstract class SonarTestCase extends HudsonTestCase {
     return new SonarPublisher(SONAR_INSTALLATION_NAME, null, null);
   }
 
-  protected static final LightProjectConfig PROJECT_CONFIG = new LightProjectConfig(
-      "test", "test",
-      "Test", // TODO can be ${JOB_NAME} ?
-      "0.1-SNAPSHOT", // Version
-      "Test project", // Description,
-      null,
-      "src",
-      "UTF-8",
-      null,
-      null
-      );
-
   protected static SonarPublisher newSonarPublisherForFreeStyleProject(String pomName) {
     return new SonarPublisher(
         SONAR_INSTALLATION_NAME,
@@ -166,8 +153,8 @@ public abstract class SonarTestCase extends HudsonTestCase {
         null,
         null,
         "default", // Maven Installation Name
-        pomName, // Root POM
-        PROJECT_CONFIG);
+        pomName // Root POM
+        );
   }
 
   /**

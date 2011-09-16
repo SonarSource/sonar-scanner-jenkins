@@ -19,6 +19,8 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.StringParameterDefinition;
+
+import org.junit.Ignore;
 import org.jvnet.hudson.test.Bug;
 
 /**
@@ -28,6 +30,7 @@ import org.jvnet.hudson.test.Bug;
  * @author Evgeny Mandrikov
  */
 @Bug(305)
+@Ignore("Due to SONARPLUGINS-1375")
 public class EnvVariablesTest extends SonarTestCase {
   /**
    * TODO add more variables
@@ -59,8 +62,7 @@ public class EnvVariablesTest extends SonarTestCase {
         null, // Maven OPTS
         "default", // Maven Installation Name
 //        varPomName,
-        pomName,
-        PROJECT_CONFIG
+        pomName
     ));
     AbstractBuild build = build(project);
 

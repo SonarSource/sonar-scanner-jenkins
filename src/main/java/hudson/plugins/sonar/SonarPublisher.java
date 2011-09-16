@@ -15,7 +15,10 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.*;
+import hudson.CopyOnWrite;
+import hudson.Extension;
+import hudson.Launcher;
+import hudson.Util;
 import hudson.maven.AbstractMavenProject;
 import hudson.maven.ModuleName;
 import hudson.maven.MavenModule;
@@ -26,9 +29,7 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
-import hudson.plugins.sonar.model.LightProjectConfig;
 import hudson.plugins.sonar.model.TriggersConfig;
-import hudson.plugins.sonar.template.SonarPomGenerator;
 import hudson.plugins.sonar.utils.MagicNames;
 import hudson.plugins.sonar.utils.SonarMaven;
 import hudson.tasks.BuildStepDescriptor;
@@ -42,7 +43,6 @@ import hudson.util.FormValidation;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
 
@@ -60,8 +60,6 @@ import org.kohsuke.stapler.StaplerRequest;
  * when writing back
  */
 public class SonarPublisher extends Notifier {
-  private static final Logger LOG = Logger.getLogger(SonarPublisher.class.getName());
-
   /**
    * Store a config version, so we're able to migrate config on various
    * functionality upgrades.
@@ -114,40 +112,31 @@ public class SonarPublisher extends Notifier {
    */
   private String rootPom;
 
-  /**
-   * If not null, then we should generate pom.xml.
-   * 
-   * @since 1.2
-   */
-  private LightProjectConfig lightProject;
-
   public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
-    this(installationName, new TriggersConfig(), jobAdditionalProperties, mavenOpts, null, null, null);
+    this(installationName, new TriggersConfig(), jobAdditionalProperties, mavenOpts, null, null);
   }
 
   public SonarPublisher(
       String installationName,
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts) {
-    this(installationName, triggers, jobAdditionalProperties, mavenOpts, null, null, null);
+    this(installationName, triggers, jobAdditionalProperties, mavenOpts, null, null);
   }
 
   public SonarPublisher(String installationName,
-                        TriggersConfig triggers,
-                        String jobAdditionalProperties, String mavenOpts,
-                        String mavenInstallationName, String rootPom,
-                        LightProjectConfig lightProject) {
-    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, lightProject);
+      TriggersConfig triggers,
+      String jobAdditionalProperties, String mavenOpts,
+      String mavenInstallationName, String rootPom) {
+    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom);
   }
 
   @DataBoundConstructor
   public SonarPublisher(String installationName,
-                        String branch,
-                        String language,
-                        TriggersConfig triggers,
-                        String jobAdditionalProperties, String mavenOpts,
-                        String mavenInstallationName, String rootPom,
-                        LightProjectConfig lightProject) {
+      String branch,
+      String language,
+      TriggersConfig triggers,
+      String jobAdditionalProperties, String mavenOpts,
+      String mavenInstallationName, String rootPom) {
     super();
     this.configVersion = 1;
     this.installationName = installationName;
@@ -161,8 +150,6 @@ public class SonarPublisher extends Notifier {
     // Non Maven Project
     this.mavenInstallationName = mavenInstallationName;
     this.rootPom = rootPom;
-    // Sonar Light
-    this.lightProject = lightProject;
   }
 
   /**
@@ -258,20 +245,6 @@ public class SonarPublisher extends Notifier {
     return StringUtils.trimToEmpty(rootPom);
   }
 
-  /**
-   * @return true, if we should generate pom.xml
-   */
-  public boolean isUseSonarLight() {
-    return lightProject != null;
-  }
-
-  /**
-   * @return configuration for Sonar Light
-   */
-  public LightProjectConfig getLightProject() {
-    return lightProject;
-  }
-
   public static boolean isMavenBuilder(AbstractProject currentProject) {
     return currentProject instanceof MavenModuleSet;
   }
@@ -311,7 +284,7 @@ public class SonarPublisher extends Notifier {
       // returning false has no effect on the global build status so need to do it manually
       build.setResult(Result.FAILURE);
     }
-    LOG.info("Sonar build completed: " + build.getResult());
+    listener.getLogger().println("Sonar analysis completed: " + build.getResult());
     return sonarSuccess;
   }
 
@@ -336,11 +309,6 @@ public class SonarPublisher extends Notifier {
   private boolean executeSonar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
     try {
       String pomName = getPomName(build);
-      FilePath root = build.getModuleRoot();
-      if (isUseSonarLight()) {
-        LOG.info("Generating " + pomName);
-        SonarPomGenerator.generatePomForNonMavenProject(getLightProject(), root, pomName);
-      }
       String mavenInstallationName = getMavenInstallationName();
       if (isMavenBuilder(build.getProject())) {
         MavenModuleSet mavenModuleSet = getMavenProject(build);
