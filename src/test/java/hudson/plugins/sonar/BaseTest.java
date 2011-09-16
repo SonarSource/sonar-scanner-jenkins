@@ -16,10 +16,12 @@
 package hudson.plugins.sonar;
 
 import hudson.maven.MavenModuleSet;
-import hudson.model.*;
-import hudson.plugins.sonar.model.TriggersConfig;
-import hudson.triggers.SCMTrigger;
-import hudson.triggers.TimerTrigger;
+import hudson.model.Result;
+import hudson.model.AbstractBuild;
+import hudson.model.Cause;
+import hudson.model.FreeStyleProject;
+import hudson.model.Project;
+
 import org.jvnet.hudson.test.MockBuilder;
 
 /**
@@ -88,63 +90,6 @@ public class BaseTest extends SonarTestCase {
     assertSonarExecution(build, "-f \"" + getPom(build, pomName) + "\"");
     // Check that POM generated
     assertTrue(build.getWorkspace().child(pomName).exists());
-  }
-
-  /**
-   * SONARPLUGINS-153, SONARPLUGINS-216: Triggers
-   * SONARPLUGINS-378
-   * SONARPLUGINS-461
-   *
-   * @throws Exception if something wrong
-   */
-  public void testTriggers() throws Exception {
-    configureDefaultMaven();
-    configureDefaultSonar();
-    FreeStyleProject project = setupFreeStyleProject();
-    TriggersConfig triggers = project.getPublishersList().get(SonarPublisher.class).getTriggers();
-    triggers.setUserBuilds(false);
-    triggers.setScmBuilds(false);
-    triggers.setTimerBuilds(false);
-    triggers.setSnapshotDependencyBuilds(false);
-    triggers.setSkipIfBuildFails(true);
-    AbstractBuild build;
-
-    setBuildResult(project, Result.SUCCESS);
-    // SONARPLUGINS-378
-    build = build(project, new CustomCause(), null);
-    assertNoSonarExecution(build, Messages.SonarPublisher_UserBuild());
-    // Disable sonar on user build command execution
-    build = build(project, new Cause.UserCause(), null);
-    assertNoSonarExecution(build, Messages.SonarPublisher_UserBuild());
-    // Disable sonar on SCM build
-    build = build(project, new SCMTrigger.SCMTriggerCause(), null);
-    assertNoSonarExecution(build, Messages.SonarPublisher_SCMBuild());
-    // Disable sonar on Timer build
-    build = build(project, new TimerTrigger.TimerTriggerCause(), null);
-    assertNoSonarExecution(build, Messages.SonarPublisher_TimerBuild());
-    // Disable sonar on Upstream build
-    build = build(project, new Cause.UpstreamCause((Run) build), null);
-    assertNoSonarExecution(build, Messages.SonarPublisher_SnapshotDepBuild());
-    // Disable sonar on build failure
-    setBuildResult(project, Result.FAILURE);
-    build = build(project);
-    assertNoSonarExecution(build, Messages.SonarPublisher_BadBuildStatus(Result.FAILURE));
-    // Enable sonar on build failure
-    triggers.setSkipIfBuildFails(false);
-    build = build(project);
-    assertSonarExecution(build);
-    // Disable sonar if build status worse than failure
-    setBuildResult(project, Result.ABORTED);
-    build = build(project);
-    assertNoSonarExecution(build, Messages.SonarPublisher_BadBuildStatus(Result.ABORTED));
-    // Enable sonar on build unstable
-    setBuildResult(project, Result.UNSTABLE);
-    build = build(project);
-    assertSonarExecution(build);
-    // Enable sonar on build success
-    setBuildResult(project, Result.SUCCESS);
-    build = build(project);
-    assertSonarExecution(build);
   }
 
   protected void setBuildResult(Project project, Result result) throws Exception {

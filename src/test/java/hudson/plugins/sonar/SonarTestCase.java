@@ -29,10 +29,11 @@ import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
 import hudson.tasks.Maven;
 import hudson.util.jna.GNUCLibrary;
-import org.jvnet.hudson.test.HudsonTestCase;
-import org.jvnet.hudson.test.SingleFileSCM;
 
 import java.io.File;
+
+import org.jvnet.hudson.test.HudsonTestCase;
+import org.jvnet.hudson.test.SingleFileSCM;
 
 /**
  * @author Evgeny Mandrikov
@@ -131,7 +132,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   }
 
   protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project, Result expectedStatus) throws Exception {
-    return build(project, new Cause.RemoteCause("", ""), expectedStatus);
+    return build(project, new TriggersConfig.SonarCause(), expectedStatus);
   }
 
   protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project, Cause cause, Result expectedStatus) throws Exception {

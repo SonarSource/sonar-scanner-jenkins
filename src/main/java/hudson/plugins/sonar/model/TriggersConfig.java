@@ -15,17 +15,18 @@
  */
 package hudson.plugins.sonar.model;
 
+import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
-import hudson.model.Result;
 import hudson.plugins.sonar.Messages;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
-import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.Serializable;
 import java.util.List;
+
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author Evgeny Mandrikov
@@ -98,20 +99,39 @@ public class TriggersConfig implements Serializable {
   }
 
   public String isSkipSonar(AbstractBuild<?, ?> build) {
-    if (isSkipIfBuildFails() && build.getResult().isWorseThan(Result.UNSTABLE)) {
-      return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
-    } else if (build.getResult() != null && build.getResult().isWorseThan(Result.FAILURE)) {
-      return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
-    } else if (!isScmBuilds() && isTrigger(build, SCMTrigger.SCMTriggerCause.class)) {
-      return Messages.SonarPublisher_SCMBuild();
-    } else if (!isTimerBuilds() && isTrigger(build, TimerTrigger.TimerTriggerCause.class)) {
-      return Messages.SonarPublisher_TimerBuild();
-    } else if (!isUserBuilds() && isTrigger(build, Cause.UserCause.class)) {
-      return Messages.SonarPublisher_UserBuild();
-    } else if (!isSnapshotDependencyBuilds() && isTrigger(build, Cause.UpstreamCause.class)) {
-      return Messages.SonarPublisher_SnapshotDepBuild();
+    Result result = build.getResult();
+    if (result != null) {
+      if (isSkipIfBuildFails() && result.isWorseThan(Result.UNSTABLE)) {
+        return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
+      } else if (result != null && result.isWorseThan(Result.FAILURE)) {
+        return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
+      }
     }
-    return null;
+
+    if (isTrigger(build, SonarCause.class)) {
+      return null;
+    }
+
+    if (isScmBuilds() && isTrigger(build, SCMTrigger.SCMTriggerCause.class)) {
+      return null;
+    }
+    // return Messages.SonarPublisher_SCMBuild();
+    if (isTimerBuilds() && isTrigger(build, TimerTrigger.TimerTriggerCause.class)) {
+      return null;
+    }
+    // return Messages.SonarPublisher_TimerBuild();
+
+    if (isUserBuilds() && isTrigger(build, Cause.UserCause.class)) {
+      return null;
+    }
+    // return Messages.SonarPublisher_UserBuild();
+
+    if (isSnapshotDependencyBuilds() && isTrigger(build, Cause.UpstreamCause.class)) {
+      return null;
+    }
+    // return Messages.SonarPublisher_SnapshotDepBuild();
+
+    return "Skipping sonar analysis"; // FIXME i18n
   }
 
   /**
@@ -130,5 +150,15 @@ public class TriggersConfig implements Serializable {
       }
     }
     return false;
+  }
+
+  /**
+   * For internal use only.
+   */
+  public static class SonarCause extends Cause {
+    @Override
+    public String getShortDescription() {
+      return null;
+    }
   }
 }
