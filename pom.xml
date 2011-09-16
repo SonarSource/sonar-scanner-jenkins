@@ -88,6 +88,28 @@
     <hudson.version>${project.parent.version}</hudson.version>
   </properties>
 
+  <dependencyManagement>
+    <dependencies>
+      <!-- Godin: see SONARPLUGINS-1378
+      I didn't found a better way in order to not embed unnecessary dependencies,
+      than managing their scope to provided.
+      Also note that all they come from a dependency on maven-plugin.
+      -->
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>1.1</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.4</version>
+        <scope>provided</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>commons-lang</groupId>
