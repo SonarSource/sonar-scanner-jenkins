@@ -15,6 +15,7 @@
  */
 package hudson.plugins.sonar.utils;
 
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.maven.MavenModuleSet;
 import hudson.model.BuildListener;
@@ -24,9 +25,11 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.tasks.Maven;
 import hudson.util.ArgumentListBuilder;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author Evgeny Mandrikov
@@ -101,7 +104,19 @@ public final class SonarMaven extends Maven {
     String alternateSettings = null;
     if (mavenModuleProject != null) {
       usesPrivateRepository = mavenModuleProject.usesPrivateRepository();
+
+      // This logic was copied from hudson.maven.MavenModuleSetBuild version 1.378 (see SONARPLUGINS-910)
       alternateSettings = mavenModuleProject.getAlternateSettings();
+      if (alternateSettings != null) {
+        if (!isAbsolute(alternateSettings)) {
+          FilePath mrSettings = build.getModuleRoot().child(alternateSettings);
+          FilePath wsSettings = build.getWorkspace().child(alternateSettings);
+          if (!wsSettings.exists() && mrSettings.exists()) {
+            wsSettings = mrSettings;
+          }
+          alternateSettings = wsSettings.getRemote();
+        }
+      }
     }
     // Other properties
     String installationProperties = sonarInstallation.getAdditionalProperties();
@@ -114,5 +129,13 @@ public final class SonarMaven extends Maven {
     pom = build.getModuleRoot().child(pom).getRemote(); // SONARPLUGINS-487
     return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, usesPrivateRepository, sonarPublisher)
         .perform(build, launcher, listener);
+  }
+
+  /**
+   * This method available in hudson.util.IOUtils in version 1.378, but not in 1.344, so we did a copy-paste.
+   */
+  private static boolean isAbsolute(String path) {
+    Pattern DRIVE_PATTERN = Pattern.compile("[A-Za-z]:[\\\\/].*");
+    return path.startsWith("/") || DRIVE_PATTERN.matcher(path).matches();
   }
 }
