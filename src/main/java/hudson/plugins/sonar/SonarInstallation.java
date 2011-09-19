@@ -15,9 +15,11 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.Util;
 import hudson.model.Hudson;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.MagicNames;
+import hudson.util.Scrambler;
 
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -71,7 +73,7 @@ public class SonarInstallation {
   private final String databaseUrl;
   private final String databaseDriver;
   private final String databaseLogin;
-  private final String databasePassword;
+  private String databasePassword;
   private final String additionalProperties;
 
   private TriggersConfig triggers;
@@ -92,7 +94,7 @@ public class SonarInstallation {
     this.databaseUrl = databaseUrl;
     this.databaseDriver = databaseDriver;
     this.databaseLogin = databaseLogin;
-    this.databasePassword = databasePassword;
+    setDatabasePassword(databasePassword);
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
     this.triggers = triggers;
@@ -111,7 +113,7 @@ public class SonarInstallation {
   }
 
   /**
-   * @return publically available URL for users of Sonar server
+   * @return publicly available URL for users of Sonar server
    * @since 1.4
    */
   public String getServerPublicUrl() {
@@ -119,7 +121,7 @@ public class SonarInstallation {
   }
 
   /**
-   * @param serverPublicUrl publically available URL for users of Sonar server
+   * @param serverPublicUrl publicly available URL for users of Sonar server
    * @since 1.4
    */
   public void setServerPublicUrl(String serverPublicUrl) {
@@ -147,6 +149,22 @@ public class SonarInstallation {
   }
 
   public String getDatabasePassword() {
+    return Scrambler.descramble(databasePassword);
+  }
+
+  /**
+   * @since 1.7
+   */
+  public void setDatabasePassword(String password) {
+    this.databasePassword = Scrambler.scramble(Util.fixEmptyAndTrim(password));
+  }
+
+  /**
+   * For internal use only. Allows to perform migration.
+   * 
+   * @since 1.7
+   */
+  public String getScrambledDatabasePassword() {
     return databasePassword;
   }
 

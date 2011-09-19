@@ -60,11 +60,6 @@ import org.kohsuke.stapler.StaplerRequest;
  * when writing back
  */
 public class SonarPublisher extends Notifier {
-  /**
-   * Store a config version, so we're able to migrate config on various
-   * functionality upgrades.
-   */
-  private Integer configVersion;
 
   /**
    * Sonar installation name.
@@ -138,7 +133,6 @@ public class SonarPublisher extends Notifier {
       String jobAdditionalProperties, String mavenOpts,
       String mavenInstallationName, String rootPom) {
     super();
-    this.configVersion = 1;
     this.installationName = installationName;
     this.branch = branch;
     this.language = language;
@@ -150,30 +144,6 @@ public class SonarPublisher extends Notifier {
     // Non Maven Project
     this.mavenInstallationName = mavenInstallationName;
     this.rootPom = rootPom;
-  }
-
-  /**
-   * Migrate data.
-   * 
-   * @return this
-   */
-  public Object readResolve() {
-    // Default unspecified to v0
-    if (configVersion == null) {
-      configVersion = 0;
-    }
-    if (configVersion < 1) {
-      // No migration - see http://jira.codehaus.org/browse/SONARPLUGINS-402
-      configVersion = 1;
-    }
-    return this;
-  }
-
-  /**
-   * @return config version
-   */
-  public Integer getConfigVersion() {
-    return configVersion;
   }
 
   /**

@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson.plugins.sonar.SonarPublisher_-DescriptorImpl>
+  <installations>
+    <hudson.plugins.sonar.SonarInstallation>
+      <name>Server1</name>
+      <disabled>false</disabled>
+      <databasePassword>secret1</databasePassword>
+    </hudson.plugins.sonar.SonarInstallation>
+    <hudson.plugins.sonar.SonarInstallation>
+      <name>Server2</name>
+      <disabled>false</disabled>
+      <databasePassword>secret2</databasePassword>
+    </hudson.plugins.sonar.SonarInstallation>
+  </installations>
+</hudson.plugins.sonar.SonarPublisher_-DescriptorImpl>
