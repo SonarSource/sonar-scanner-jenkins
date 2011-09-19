@@ -1,7 +1,7 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
   <!-- Sonar Installation -->
-  <j:set var="sonars" value="${instance.getSonarInstallations()}"/>
+  <j:set var="sonars" value="${descriptor.getSonarInstallations()}"/>
   <j:if test="${empty(sonars)}">
     <!-- no Sonar installation is configured, so warn the user now -->
     <f:entry title="${%SonarInstallation}">
@@ -19,18 +19,16 @@
     </f:entry>
   </j:if>
 
-  <!-- Path to file with project properties -->
-  <f:entry title="Project properties" field="project">
+  <f:entry title="${%PathToProjectProperties}" field="project">
     <f:textbox />
   </f:entry>
   
-  <!-- Additional properties -->
-  <f:entry title="Properties" field="properties" help="/plugin/sonar/help-runner-properties.html">
+  <f:entry title="${%ProjectProperties}" field="properties" help="/plugin/sonar/help-runner-properties.html">
     <f:expandableTextbox />
   </f:entry>
   
   <!-- The Java options to be used -->
-  <f:entry title="JVM Options" field="javaOpts">
+  <f:entry title="${%JVMOptions}" field="javaOpts">
     <f:expandableTextbox />
   </f:entry>
 

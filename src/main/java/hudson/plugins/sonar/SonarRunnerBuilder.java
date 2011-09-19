@@ -74,13 +74,6 @@ public class SonarRunnerBuilder extends Builder {
     return Util.fixNull(javaOpts);
   }
 
-  /**
-   * Used from config.jelly
-   */
-  public SonarInstallation[] getSonarInstallations() {
-    return SonarInstallation.all();
-  }
-
   public SonarInstallation getSonarInstallation() {
     return SonarInstallation.get(getInstallationName());
   }
@@ -109,6 +102,15 @@ public class SonarRunnerBuilder extends Builder {
 
   @Extension
   public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
+
+    /**
+     * This method is used in UI, so signature and location of this method is important.
+     * 
+     * @return all configured {@link hudson.plugins.sonar.SonarInstallation}
+     */
+    public SonarInstallation[] getSonarInstallations() {
+      return SonarInstallation.all();
+    }
 
     @Override
     public boolean isApplicable(Class<? extends AbstractProject> jobType) {
