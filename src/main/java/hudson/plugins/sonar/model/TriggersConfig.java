@@ -114,19 +114,34 @@ public class TriggersConfig implements Serializable {
    * triggers configuration, {@code false} otherwise.
    */
   public boolean doPerformSonar(AbstractBuild<?, ?> build) {
-    if (build.getResult().isWorseThan(Result.FAILURE) ||
-            isSkipIfBuildFails() && build.getResult().isWorseThan(Result.UNSTABLE)) { // Skip analysis on build failure
-      return false;
-    }
-    else if (isScmBuilds() && isTrigger(build, SCMTrigger.SCMTriggerCause.class) || // Poll SCM
-            isTimerBuilds() && isTrigger(build, TimerTrigger.TimerTriggerCause.class) || // Build periodically
-            isUserBuilds() && isTrigger(build, Cause.UserCause.class) || // Manually started by user
-            isDescendantOfUserBuilds() && isAscendantTrigger(build, Cause.UserCause.class) || // Descendant of a build manually started by user
-            isSnapshotDependencyBuilds() && isTrigger(build, Cause.UpstreamCause.class)) { // Build whenever a SNAPSHOT dependency is built
-      return true;
+    boolean doPerformSonar = false;
+
+    // Skip analysis on build failure
+    if (!(build.getResult().isWorseThan(Result.FAILURE) ||
+            isSkipIfBuildFails() && build.getResult().isWorseThan(Result.UNSTABLE))) {
+        if (isScmBuilds() && isTrigger(build, SCMTrigger.SCMTriggerCause.class)) {
+          // "Poll SCM" trigger is satisfied ==> analysis can be run
+          doPerformSonar = true;
+        }
+        else if (isTimerBuilds() && isTrigger(build, TimerTrigger.TimerTriggerCause.class)) {
+          // "Build periodically" trigger is satisfied ==> analysis can be run
+          doPerformSonar = true;
+        }
+        else if (isUserBuilds() && isTrigger(build, Cause.UserCause.class)) {
+          // "Manually started by user" trigger is satisfied ==> analysis can be run
+          doPerformSonar = true;
+        }
+        else if (isDescendantOfUserBuilds() && isAscendantTrigger(build, Cause.UserCause.class)) {
+          // "Descendant of a build manually started by user" trigger is satisfied ==> analysis can be run
+          doPerformSonar = true;
+        }
+        else if (isSnapshotDependencyBuilds() && isTrigger(build, Cause.UpstreamCause.class)) {
+          // "Build whenever a SNAPSHOT dependency is built" trigger is satisfied ==> analysis can be run
+          doPerformSonar = true;
+        }
     }
 
-    return false;
+    return doPerformSonar;
   }
 
   /**
