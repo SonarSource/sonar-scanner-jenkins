@@ -81,4 +81,12 @@ public class SonarRunnerTest {
     assertThat("windows", runner.getClasspathDelimiter(), is(';'));
   }
 
+  @Test
+  public void shouldExtract() throws Exception {
+    runner.extract();
+    assertThat(workDir.list().size(), is(2));
+    runner.cleanup();
+    assertThat(workDir.list().size(), is(0));
+  }
+
 }

@@ -87,7 +87,7 @@ public class SonarRunnerBuilder extends Builder {
 
   @Override
   public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    // TODO kid of copy-paste from SonarPublisher#isSkip
+    // TODO kind of copy-paste from SonarPublisher#isSkip
     final String skipLaunchMsg;
     SonarInstallation sonarInstallation = getSonarInstallation();
     if (sonarInstallation == null) {
@@ -103,6 +103,7 @@ public class SonarRunnerBuilder extends Builder {
     }
 
     SonarRunner sonarRunner = new SonarRunner(build.getProject(), launcher, build.getEnvironment(listener), build.getWorkspace());
+    build.addAction(new BuildSonarAction());
     return sonarRunner.launch(listener, this) == 0;
   }
 

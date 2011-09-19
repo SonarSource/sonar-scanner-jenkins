@@ -25,7 +25,7 @@
   </f:entry>
   
   <!-- Additional properties -->
-  <f:entry title="Properties" field="properties">
+  <f:entry title="Properties" field="properties" help="/plugin/sonar/help-runner-properties.html">
     <f:expandableTextbox />
   </f:entry>
   
