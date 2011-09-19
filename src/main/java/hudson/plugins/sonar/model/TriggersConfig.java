@@ -15,6 +15,7 @@
  */
 package hudson.plugins.sonar.model;
 
+import hudson.Util;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.Cause;
@@ -46,16 +47,22 @@ public class TriggersConfig implements Serializable {
 
   private boolean skipIfBuildFails;
 
+  /**
+   * @since 1.7
+   */
+  private String envVar;
+
   public TriggersConfig() {
   }
 
   @DataBoundConstructor
-  public TriggersConfig(boolean scmBuilds, boolean timerBuilds, boolean userBuilds, boolean snapshotDependencyBuilds, boolean skipIfBuildFails) {
+  public TriggersConfig(boolean scmBuilds, boolean timerBuilds, boolean userBuilds, boolean snapshotDependencyBuilds, boolean skipIfBuildFails, String envVar) {
     this.scmBuilds = scmBuilds;
     this.timerBuilds = timerBuilds;
     this.userBuilds = userBuilds;
     this.snapshotDependencyBuilds = snapshotDependencyBuilds;
     this.skipIfBuildFails = skipIfBuildFails;
+    this.envVar = envVar;
   }
 
   public boolean isScmBuilds() {
@@ -98,6 +105,14 @@ public class TriggersConfig implements Serializable {
     this.skipIfBuildFails = skipIfBuildFails;
   }
 
+  public String getEnvVar() {
+    return Util.fixEmptyAndTrim(envVar);
+  }
+
+  public void setEnvVar(String envVar) {
+    this.envVar = envVar;
+  }
+
   public String isSkipSonar(AbstractBuild<?, ?> build) {
     Result result = build.getResult();
     if (result != null) {
@@ -105,6 +120,12 @@ public class TriggersConfig implements Serializable {
         return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
       } else if (result.isWorseThan(Result.FAILURE)) {
         return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
+      }
+    }
+    if (getEnvVar() != null) {
+      String value = build.getBuildVariableResolver().resolve(getEnvVar());
+      if ("true".equalsIgnoreCase(value)) {
+        return null;
       }
     }
     if (isTrigger(build, SonarCause.class)) {

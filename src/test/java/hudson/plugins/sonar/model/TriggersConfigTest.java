@@ -28,6 +28,8 @@ import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -135,6 +137,21 @@ public class TriggersConfigTest {
     AbstractBuild build = mockBuildWithCauses(
         new SCMTrigger.SCMTriggerCause(),
         new TimerTrigger.TimerTriggerCause());
+    assertThat(triggers.isSkipSonar(build), nullValue());
+  }
+
+  /**
+   * See SONARPLUGINS-1338
+   */
+  @Test
+  public void env_var() {
+    AbstractBuild build = mockBuildWithCauses(new Cause.UserCause());
+    Map<String, String> vars = new HashMap<String, String>();
+    when(build.getBuildVariables()).thenReturn(vars);
+    assertThat(triggers.isSkipSonar(build), not(nullValue()));
+    triggers.setEnvVar("RUN_SONAR");
+    assertThat(triggers.isSkipSonar(build), not(nullValue()));
+    vars.put("RUN_SONAR", "true");
     assertThat(triggers.isSkipSonar(build), nullValue());
   }
 
