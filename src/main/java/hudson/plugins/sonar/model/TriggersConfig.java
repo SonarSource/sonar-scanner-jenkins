@@ -107,31 +107,22 @@ public class TriggersConfig implements Serializable {
         return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
       }
     }
-
     if (isTrigger(build, SonarCause.class)) {
       return null;
     }
-
     if (isScmBuilds() && isTrigger(build, SCMTrigger.SCMTriggerCause.class)) {
       return null;
     }
-    // return Messages.SonarPublisher_SCMBuild();
     if (isTimerBuilds() && isTrigger(build, TimerTrigger.TimerTriggerCause.class)) {
       return null;
     }
-    // return Messages.SonarPublisher_TimerBuild();
-
     if (isUserBuilds() && isTrigger(build, Cause.UserCause.class)) {
       return null;
     }
-    // return Messages.SonarPublisher_UserBuild();
-
     if (isSnapshotDependencyBuilds() && isTrigger(build, Cause.UpstreamCause.class)) {
       return null;
     }
-    // return Messages.SonarPublisher_SnapshotDepBuild();
-
-    return "Skipping sonar analysis"; // FIXME i18n
+    return Messages.Skipping_Sonar_analysis();
   }
 
   /**
