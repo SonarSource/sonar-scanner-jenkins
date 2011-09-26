@@ -15,11 +15,11 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.utils.MagicNames;
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import hudson.plugins.sonar.utils.MagicNames;
+
+import org.junit.Test;
 
 /**
  * @author Evgeny Mandrikov
@@ -66,6 +66,6 @@ public class SonarInstallationTest {
   }
 
   private SonarInstallation create(String url) {
-    return new SonarInstallation("default", false, url, null, "", "", "", "", null, "", null);
+    return new SonarInstallation("default", false, url, null, "", "", "", "", null, "");
   }
 }

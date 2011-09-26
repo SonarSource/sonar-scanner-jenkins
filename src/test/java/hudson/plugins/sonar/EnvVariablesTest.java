@@ -44,8 +44,7 @@ public class EnvVariablesTest extends SonarTestCase {
         false,
         SONAR_HOST, null,
         null, null, null, null, // Database Properties
-        null, "-P${VAR_PROFILE}", // Additinal Properties
-        null
+        null, "-P${VAR_PROFILE}" // Additinal Properties
     ));
 
     FreeStyleProject project = createFreeStyleProject("FreeStyleProject");
@@ -57,7 +56,6 @@ public class EnvVariablesTest extends SonarTestCase {
     String pomName = "subdir/pom.xml";
     project.getPublishersList().add(new SonarPublisher(
         SONAR_INSTALLATION_NAME,
-        null,
         "-Ddir=${VAR_SUBDIR}",
         null, // Maven OPTS
         "default", // Maven Installation Name

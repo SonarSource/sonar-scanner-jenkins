@@ -49,9 +49,6 @@
               <f:textbox name="sonar.additionalProperties" value="${inst.getAdditionalProperties()}"/>
             </f:entry>
 
-            <f:section title="${%BuildTriggers}" name="triggers">
-              <st:include class="${descriptor.clazz}" page="triggers.jelly" it="${inst.getTriggers()}"/>
-            </f:section>
           </f:advanced>
 
           <f:entry title="">

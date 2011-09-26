@@ -24,7 +24,6 @@ import hudson.model.Cause;
 import hudson.model.FreeStyleProject;
 import hudson.model.Hudson;
 import hudson.model.Run;
-import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
 import hudson.tasks.Maven;
 import hudson.util.jna.GNUCLibrary;
@@ -131,7 +130,10 @@ public abstract class SonarTestCase extends HudsonTestCase {
   }
 
   protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project, Result expectedStatus) throws Exception {
-    return build(project, new TriggersConfig.SonarCause(), expectedStatus);
+    return build(project, new CustomCause(), expectedStatus);
+  }
+
+  public static class CustomCause extends Cause.UserCause {
   }
 
   protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project, Cause cause, Result expectedStatus) throws Exception {
@@ -149,7 +151,6 @@ public abstract class SonarTestCase extends HudsonTestCase {
   protected static SonarPublisher newSonarPublisherForFreeStyleProject(String pomName) {
     return new SonarPublisher(
         SONAR_INSTALLATION_NAME,
-        new TriggersConfig(),
         null,
         null,
         "default", // Maven Installation Name

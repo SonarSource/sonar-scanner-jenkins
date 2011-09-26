@@ -29,7 +29,6 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
-import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.MagicNames;
 import hudson.plugins.sonar.utils.SonarMaven;
 import hudson.tasks.BuildStepDescriptor;
@@ -90,13 +89,6 @@ public class SonarPublisher extends Notifier {
    */
   private final String jobAdditionalProperties;
 
-  /**
-   * Triggers. If null, then we should use triggers from {@link SonarInstallation}.
-   * 
-   * @since 1.2
-   */
-  private TriggersConfig triggers;
-
   // =================================================
   // Next fields available only for free-style projects
 
@@ -107,37 +99,28 @@ public class SonarPublisher extends Notifier {
    */
   private String rootPom;
 
-  public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
-    this(installationName, new TriggersConfig(), jobAdditionalProperties, mavenOpts, null, null);
-  }
-
   public SonarPublisher(
       String installationName,
-      TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts) {
-    this(installationName, triggers, jobAdditionalProperties, mavenOpts, null, null);
+    this(installationName, jobAdditionalProperties, mavenOpts, null, null);
   }
 
   public SonarPublisher(String installationName,
-      TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
       String mavenInstallationName, String rootPom) {
-    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom);
+    this(installationName, null, null, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom);
   }
 
   @DataBoundConstructor
   public SonarPublisher(String installationName,
       String branch,
       String language,
-      TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
       String mavenInstallationName, String rootPom) {
     super();
     this.installationName = installationName;
     this.branch = branch;
     this.language = language;
-    // Triggers
-    this.triggers = triggers;
     // Maven
     this.mavenOpts = mavenOpts;
     this.jobAdditionalProperties = jobAdditionalProperties;
@@ -168,17 +151,6 @@ public class SonarPublisher extends Notifier {
   }
 
   /**
-   * @return true, if we should use triggers from {@link SonarInstallation}
-   */
-  public boolean isUseGlobalTriggers() {
-    return triggers == null;
-  }
-
-  public boolean isUseLocalTriggers() {
-    return !isUseGlobalTriggers();
-  }
-
-  /**
    * See <a href="http://docs.codehaus.org/display/SONAR/Advanced+parameters#Advancedparameters-ManageSCMbranches">Sonar Branch option</a>.
    * 
    * @return branch
@@ -190,13 +162,6 @@ public class SonarPublisher extends Notifier {
 
   public String getLanguage() {
     return StringUtils.trimToEmpty(language);
-  }
-
-  /**
-   * @return triggers configuration
-   */
-  public TriggersConfig getTriggers() {
-    return triggers;
   }
 
   /**
@@ -229,10 +194,8 @@ public class SonarPublisher extends Notifier {
       skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(), SonarInstallation.all().length);
     } else if (sonarInstallation.isDisabled()) {
       skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else if (isUseGlobalTriggers()) {
-      skipLaunchMsg = sonarInstallation.getTriggers().isSkipSonar(build);
     } else {
-      skipLaunchMsg = getTriggers().isSkipSonar(build);
+      skipLaunchMsg = null;
     }
     if (skipLaunchMsg != null) {
       listener.getLogger().println(skipLaunchMsg);
