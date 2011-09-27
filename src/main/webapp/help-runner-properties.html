@@ -1,8 +1,13 @@
 <div>
-<pre>
+  <p>
+    This field allows to pass some configuration parameters to Sonar.
+    Parameters defined here take precedence over the ones potentially defined in the specified sonar-project.properties file.
+    It is even possible to specify all Sonar parameters here and leave the "Path to project properties" input field empty.
+  </p>
+<pre style="border: solid #BBBBBB 1px; padding: 1em">
 # required metadata
 sonar.projectKey=my:project
-sonar.projectName=My
+sonar.projectName="My Project"
 sonar.projectVersion=1.0
 
 # path to source directories (required)
