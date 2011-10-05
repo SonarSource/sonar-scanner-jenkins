@@ -113,12 +113,14 @@ public class TriggersConfig implements Serializable {
       }
     }
 
+    // skip analysis by environment variable
     if (getEnvVar() != null) {
       String value = build.getBuildVariableResolver().resolve(getEnvVar());
       if ("true".equalsIgnoreCase(value)) {
-        return null;
+        return Messages.Skipping_Sonar_analysis();
       }
     }
+
     if (isTrigger(build, SonarCause.class)) {
       return null;
     }

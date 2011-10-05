@@ -124,14 +124,14 @@ public class TriggersConfigTest {
    */
   @Test
   public void env_var() {
-    AbstractBuild build = mockBuildWithCauses(new Cause.UserCause());
+    AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     Map<String, String> vars = new HashMap<String, String>();
     when(build.getBuildVariables()).thenReturn(vars);
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    triggers.setEnvVar("RUN_SONAR");
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    vars.put("RUN_SONAR", "true");
     assertThat(triggers.isSkipSonar(build), nullValue());
+    triggers.setEnvVar("SKIP_SONAR");
+    assertThat(triggers.isSkipSonar(build), nullValue());
+    vars.put("SKIP_SONAR", "true");
+    assertThat(triggers.isSkipSonar(build), not(nullValue()));
   }
 
   private static class CustomCause extends Cause {
