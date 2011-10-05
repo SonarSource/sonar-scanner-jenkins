@@ -88,7 +88,7 @@ public class SonarRunnerBuilder extends Builder {
     } else if (sonarInstallation.isDisabled()) {
       skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
     } else {
-      skipLaunchMsg = sonarInstallation.getTriggers().isSkipSonar(build);
+      skipLaunchMsg = null;
     }
     if (skipLaunchMsg != null) {
       listener.getLogger().println(skipLaunchMsg);
