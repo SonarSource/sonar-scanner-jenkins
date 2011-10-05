@@ -25,9 +25,4 @@
     <f:textbox name="envVar" value="${it.getEnvVar()}"/>
   </f:entry>
 
-  <f:entry title="${%SkipIfBuildFails}" help="/plugin/sonar/help-trigger-build-failure.html">
-    <f:checkbox name="skipIfBuildFails" checked="${it.isSkipIfBuildFails()}"
-                default="false"/>
-  </f:entry>
-
 </j:jelly>

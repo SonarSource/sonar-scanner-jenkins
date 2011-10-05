@@ -45,8 +45,6 @@ public class TriggersConfig implements Serializable {
 
   private boolean snapshotDependencyBuilds;
 
-  private boolean skipIfBuildFails;
-
   /**
    * @since 1.7
    */
@@ -56,12 +54,11 @@ public class TriggersConfig implements Serializable {
   }
 
   @DataBoundConstructor
-  public TriggersConfig(boolean scmBuilds, boolean timerBuilds, boolean userBuilds, boolean snapshotDependencyBuilds, boolean skipIfBuildFails, String envVar) {
+  public TriggersConfig(boolean scmBuilds, boolean timerBuilds, boolean userBuilds, boolean snapshotDependencyBuilds, String envVar) {
     this.scmBuilds = scmBuilds;
     this.timerBuilds = timerBuilds;
     this.userBuilds = userBuilds;
     this.snapshotDependencyBuilds = snapshotDependencyBuilds;
-    this.skipIfBuildFails = skipIfBuildFails;
     this.envVar = envVar;
   }
 
@@ -97,14 +94,6 @@ public class TriggersConfig implements Serializable {
     this.snapshotDependencyBuilds = snapshotDependencyBuilds;
   }
 
-  public boolean isSkipIfBuildFails() {
-    return skipIfBuildFails;
-  }
-
-  public void setSkipIfBuildFails(boolean skipIfBuildFails) {
-    this.skipIfBuildFails = skipIfBuildFails;
-  }
-
   public String getEnvVar() {
     return Util.fixEmptyAndTrim(envVar);
   }
@@ -115,13 +104,15 @@ public class TriggersConfig implements Serializable {
 
   public String isSkipSonar(AbstractBuild<?, ?> build) {
     Result result = build.getResult();
+
     if (result != null) {
-      if (isSkipIfBuildFails() && result.isWorseThan(Result.UNSTABLE)) {
-        return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
-      } else if (result.isWorseThan(Result.FAILURE)) {
+      // skip analysis if build failed
+      // unstable means that build completed, but there were some test failures, which is not critical for analysis
+      if (result.isWorseThan(Result.UNSTABLE)) {
         return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
       }
     }
+
     if (getEnvVar() != null) {
       String value = build.getBuildVariableResolver().resolve(getEnvVar());
       if ("true".equalsIgnoreCase(value)) {

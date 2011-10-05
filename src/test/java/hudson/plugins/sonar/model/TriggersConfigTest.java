@@ -44,6 +44,24 @@ public class TriggersConfigTest {
   }
 
   @Test
+  public void our_internal_cause() {
+    AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
+    assertThat(triggers.isSkipSonar(build), nullValue());
+  }
+
+  @Test
+  public void skip_if_build_fails() {
+    AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
+    when(build.getResult()).thenReturn(null, Result.SUCCESS, Result.UNSTABLE, Result.FAILURE, Result.NOT_BUILT, Result.ABORTED);
+    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build), not(nullValue()));
+    assertThat(triggers.isSkipSonar(build), not(nullValue()));
+    assertThat(triggers.isSkipSonar(build), not(nullValue()));
+  }
+
+  @Test
   public void timer_cause() {
     AbstractBuild build = mockBuildWithCauses(new TimerTrigger.TimerTriggerCause());
     assertThat(triggers.isSkipSonar(build), not(nullValue()));
@@ -67,12 +85,6 @@ public class TriggersConfigTest {
     assertThat(triggers.isSkipSonar(build), nullValue());
   }
 
-  @Test
-  public void our_internal_cause() {
-    AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
-    assertThat(triggers.isSkipSonar(build), nullValue());
-  }
-
   /**
    * See SONARPLUGINS-216
    */
@@ -82,39 +94,6 @@ public class TriggersConfigTest {
     assertThat(triggers.isSkipSonar(build), not(nullValue()));
     triggers.setUserBuilds(true);
     assertThat(triggers.isSkipSonar(build), nullValue());
-  }
-
-  /**
-   * See SONARPLUGINS-461
-   */
-  @Test
-  public void skip_if_build_fails() {
-    triggers.setUserBuilds(true);
-    triggers.setSkipIfBuildFails(true);
-    AbstractBuild build = mockBuildWithCauses(new Cause.UserCause());
-    when(build.getResult()).thenReturn(null, Result.SUCCESS, Result.UNSTABLE, Result.FAILURE, Result.NOT_BUILT, Result.ABORTED);
-    assertThat(triggers.isSkipSonar(build), nullValue());
-    assertThat(triggers.isSkipSonar(build), nullValue());
-    assertThat(triggers.isSkipSonar(build), nullValue());
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-  }
-
-  /**
-   * See SONARPLUGINS-461
-   */
-  @Test
-  public void do_not_skip_if_build_fails() {
-    triggers.setUserBuilds(true);
-    AbstractBuild build = mockBuildWithCauses(new Cause.UserCause());
-    when(build.getResult()).thenReturn(null, Result.SUCCESS, Result.UNSTABLE, Result.FAILURE, Result.NOT_BUILT, Result.ABORTED);
-    assertThat(triggers.isSkipSonar(build), nullValue());
-    assertThat(triggers.isSkipSonar(build), nullValue());
-    assertThat(triggers.isSkipSonar(build), nullValue());
-    assertThat(triggers.isSkipSonar(build), nullValue());
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
   }
 
   /**
