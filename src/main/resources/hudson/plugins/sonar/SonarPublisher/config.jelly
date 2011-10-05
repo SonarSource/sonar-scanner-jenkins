@@ -64,6 +64,18 @@
              help="/plugin/sonar/help-properties.html">
       <f:expandableTextbox name="sonar.jobAdditionalProperties" value="${instance.getJobAdditionalProperties()}"/>
     </f:entry>
+    <!-- Build Triggers -->
+    <f:nested>
+      <table width="100%">
+        <f:optionalBlock name="sonar.triggers" title="${%DontUseGlobalTriggers}"
+                         checked="${instance.isUseLocalTriggers()}"
+                         help="/plugin/sonar/help-trigger-global.html">
+          <f:section title="${%BuildTriggers}">
+            <st:include class="${descriptor.clazz}" page="triggers.jelly" it="${instance.getTriggers()}"/>
+          </f:section>
+        </f:optionalBlock>
+      </table>
+    </f:nested>
   </f:advanced>
 
 </j:jelly>

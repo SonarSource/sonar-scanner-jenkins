@@ -17,6 +17,7 @@ package hudson.plugins.sonar;
 
 import hudson.Util;
 import hudson.model.Hudson;
+import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.MagicNames;
 import hudson.util.Scrambler;
 
@@ -75,15 +76,17 @@ public class SonarInstallation {
   private String databasePassword;
   private final String additionalProperties;
 
+  private TriggersConfig triggers;
+
   public SonarInstallation(String name) {
-    this(name, false, null, null, null, null, null, null, null, null);
+    this(name, false, null, null, null, null, null, null, null, null, null);
   }
 
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled,
                            String serverUrl, String serverPublicUrl,
                            String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
-      String mojoVersion, String additionalProperties) {
+                           String mojoVersion, String additionalProperties, TriggersConfig triggers) {
     this.name = name;
     this.disabled = disabled;
     this.serverUrl = serverUrl;
@@ -94,6 +97,7 @@ public class SonarInstallation {
     setDatabasePassword(databasePassword);
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
+    this.triggers = triggers;
   }
 
   public String getName() {
@@ -166,6 +170,13 @@ public class SonarInstallation {
 
   public String getAdditionalProperties() {
     return additionalProperties;
+  }
+
+  public TriggersConfig getTriggers() {
+    if (triggers == null) {
+      triggers = new TriggersConfig();
+    }
+    return triggers;
   }
 
   public String getServerLink() {
