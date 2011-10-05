@@ -19,12 +19,12 @@ import hudson.Util;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.Cause;
-import hudson.model.CauseAction;
 import hudson.plugins.sonar.Messages;
 import hudson.triggers.SCMTrigger;
-import hudson.triggers.TimerTrigger;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -34,16 +34,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @since 1.2
  */
 public class TriggersConfig implements Serializable {
-  private boolean scmBuilds;
 
-  private boolean timerBuilds;
+  private boolean skipScmCause;
 
-  /**
-   * @since 1.2
-   */
-  private boolean userBuilds;
-
-  private boolean snapshotDependencyBuilds;
+  private boolean skipUpstreamCause;
 
   /**
    * @since 1.7
@@ -54,44 +48,26 @@ public class TriggersConfig implements Serializable {
   }
 
   @DataBoundConstructor
-  public TriggersConfig(boolean scmBuilds, boolean timerBuilds, boolean userBuilds, boolean snapshotDependencyBuilds, String envVar) {
-    this.scmBuilds = scmBuilds;
-    this.timerBuilds = timerBuilds;
-    this.userBuilds = userBuilds;
-    this.snapshotDependencyBuilds = snapshotDependencyBuilds;
+  public TriggersConfig(boolean skipScmCause, boolean skipUpstreamCause, String envVar) {
+    this.skipScmCause = skipScmCause;
+    this.skipUpstreamCause = skipUpstreamCause;
     this.envVar = envVar;
   }
 
-  public boolean isScmBuilds() {
-    return scmBuilds;
+  public boolean isSkipScmCause() {
+    return skipScmCause;
   }
 
-  public void setScmBuilds(boolean scmBuilds) {
-    this.scmBuilds = scmBuilds;
+  public void setSkipScmCause(boolean b) {
+    this.skipScmCause = b;
   }
 
-  public boolean isTimerBuilds() {
-    return timerBuilds;
+  public boolean isSkipUpstreamCause() {
+    return skipUpstreamCause;
   }
 
-  public void setTimerBuilds(boolean timerBuilds) {
-    this.timerBuilds = timerBuilds;
-  }
-
-  public boolean isUserBuilds() {
-    return userBuilds;
-  }
-
-  public void setUserBuilds(boolean userBuilds) {
-    this.userBuilds = userBuilds;
-  }
-
-  public boolean isSnapshotDependencyBuilds() {
-    return snapshotDependencyBuilds;
-  }
-
-  public void setSnapshotDependencyBuilds(boolean snapshotDependencyBuilds) {
-    this.snapshotDependencyBuilds = snapshotDependencyBuilds;
+  public void setSkipUpstreamCause(boolean b) {
+    this.skipUpstreamCause = b;
   }
 
   public String getEnvVar() {
@@ -121,40 +97,18 @@ public class TriggersConfig implements Serializable {
       }
     }
 
-    if (isTrigger(build, SonarCause.class)) {
-      return null;
-    }
-    if (isScmBuilds() && isTrigger(build, SCMTrigger.SCMTriggerCause.class)) {
-      return null;
-    }
-    if (isTimerBuilds() && isTrigger(build, TimerTrigger.TimerTriggerCause.class)) {
-      return null;
-    }
-    if (isUserBuilds() && isTrigger(build, Cause.UserCause.class)) {
-      return null;
-    }
-    if (isSnapshotDependencyBuilds() && isTrigger(build, Cause.UpstreamCause.class)) {
-      return null;
-    }
-    return Messages.Skipping_Sonar_analysis();
-  }
-
-  /**
-   * Returns true, if specified build triggered by specified trigger.
-   *
-   * @param build   build
-   * @param trigger trigger
-   * @return true, if specified build triggered by specified trigger
-   */
-  private static boolean isTrigger(AbstractBuild<?, ?> build, Class<? extends hudson.model.Cause> trigger) {
-    CauseAction buildCause = build.getAction(CauseAction.class);
-    List<Cause> buildCauses = buildCause.getCauses();
-    for (Cause cause : buildCauses) {
-      if (trigger.isInstance(cause)) {
-        return true;
+    // skip analysis, when all causes from blacklist
+    List<Cause> causes = new ArrayList<Cause>(build.getCauses());
+    Iterator<Cause> iter = causes.iterator();
+    while (iter.hasNext()) {
+      Cause cause = iter.next();
+      if (SCMTrigger.SCMTriggerCause.class.isInstance(cause) && isSkipScmCause()) {
+        iter.remove();
+      } else if (Cause.UpstreamCause.class.isInstance(cause) && isSkipUpstreamCause()) {
+        iter.remove();
       }
     }
-    return false;
+    return causes.isEmpty() ? Messages.Skipping_Sonar_analysis() : null;
   }
 
   /**

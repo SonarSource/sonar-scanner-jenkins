@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.Cause;
-import hudson.model.CauseAction;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
 
@@ -32,9 +31,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TriggersConfigTest {
+
+  private static final Cause UPSTREAM_CAUSE = mock(Cause.UpstreamCause.class);
+  private static final Cause SCM_CAUSE = mock(SCMTrigger.SCMTriggerCause.class);
+  private static final Cause TIMER_CAUSE = mock(TimerTrigger.TimerTriggerCause.class);
 
   private TriggersConfig triggers;
 
@@ -63,59 +67,46 @@ public class TriggersConfigTest {
 
   @Test
   public void timer_cause() {
-    AbstractBuild build = mockBuildWithCauses(new TimerTrigger.TimerTriggerCause());
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    triggers.setTimerBuilds(true);
+    AbstractBuild build = mockBuildWithCauses(TIMER_CAUSE);
     assertThat(triggers.isSkipSonar(build), nullValue());
   }
 
   @Test
   public void scm_change_cause() {
-    AbstractBuild build = mockBuildWithCauses(new SCMTrigger.SCMTriggerCause());
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    triggers.setScmBuilds(true);
+    AbstractBuild build = mockBuildWithCauses(SCM_CAUSE);
     assertThat(triggers.isSkipSonar(build), nullValue());
+    triggers.setSkipScmCause(true);
+    assertThat(triggers.isSkipSonar(build), not(nullValue()));
   }
 
   @Test
   public void upstream_cause() {
-    AbstractBuild build = mockBuildWithCauses(mock(Cause.UpstreamCause.class));
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    triggers.setSnapshotDependencyBuilds(true);
+    AbstractBuild build = mockBuildWithCauses(UPSTREAM_CAUSE);
     assertThat(triggers.isSkipSonar(build), nullValue());
-  }
-
-  /**
-   * See SONARPLUGINS-216
-   */
-  @Test
-  public void user_cause() {
-    AbstractBuild build = mockBuildWithCauses(new Cause.UserCause());
+    triggers.setSkipUpstreamCause(true);
     assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    triggers.setUserBuilds(true);
-    assertThat(triggers.isSkipSonar(build), nullValue());
   }
 
   /**
    * See SONARPLUGINS-378
    */
+  @Ignore("Ignored due to changed behavior - black list strategy")
   @Test
   public void custom_cause() {
     AbstractBuild build = mockBuildWithCauses(new CustomCause());
     assertThat(triggers.isSkipSonar(build), not(nullValue()));
   }
 
-  /**
-   * See SONARPLUGINS-973.
-   * Given: Sonar configured to be launched by timer, build was caused due to both SCM change and timer.
-   * Expected: Sonar should be executed.
-   */
   @Test
   public void multiple_causes() {
-    triggers.setTimerBuilds(true);
-    AbstractBuild build = mockBuildWithCauses(
-        new SCMTrigger.SCMTriggerCause(),
-        new TimerTrigger.TimerTriggerCause());
+    triggers.setSkipScmCause(true);
+    triggers.setSkipUpstreamCause(true);
+    AbstractBuild build = mockBuildWithCauses(SCM_CAUSE, TIMER_CAUSE);
+    assertThat(triggers.isSkipSonar(build), nullValue());
+
+    build = mockBuildWithCauses(SCM_CAUSE, UPSTREAM_CAUSE);
+    assertThat(triggers.isSkipSonar(build), not(nullValue()));
+    triggers.setSkipScmCause(false);
     assertThat(triggers.isSkipSonar(build), nullValue());
   }
 
@@ -142,10 +133,8 @@ public class TriggersConfigTest {
   }
 
   private static AbstractBuild mockBuildWithCauses(Cause... causes) {
-    CauseAction causeAction = mock(CauseAction.class);
-    when(causeAction.getCauses()).thenReturn(Arrays.asList(causes));
     AbstractBuild build = mock(AbstractBuild.class);
-    when(build.getAction(CauseAction.class)).thenReturn(causeAction);
+    when(build.getCauses()).thenReturn(Arrays.asList(causes));
     return build;
   }
 }
