@@ -70,7 +70,7 @@
         <f:optionalBlock name="sonar.triggers" title="${%DontUseGlobalTriggers}"
                          checked="${instance.isUseLocalTriggers()}"
                          help="/plugin/sonar/help-trigger-global.html">
-          <f:section title="${%BuildTriggers}">
+          <f:section title="${%TriggerExclusions}">
             <st:include class="${descriptor.clazz}" page="triggers.jelly" it="${instance.getTriggers()}"/>
           </f:section>
         </f:optionalBlock>

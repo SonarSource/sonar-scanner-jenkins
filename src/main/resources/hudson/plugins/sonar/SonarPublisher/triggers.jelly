@@ -2,12 +2,12 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
   <f:entry title="${%SkipOnScmCause}">
-    <f:checkbox name="scmBuilds" checked="${it.isSkipScmCause()}"
+    <f:checkbox name="skipScmCause" checked="${it.isSkipScmCause()}"
                 default="false"/>
   </f:entry>
 
   <f:entry title="${%SkipOnUpstreamCause}">
-    <f:checkbox name="snapshotDependencyBuilds" checked="${it.isSkipUpstreamCause()}"
+    <f:checkbox name="skipUpstreamCause" checked="${it.isSkipUpstreamCause()}"
                 default="false"/>
   </f:entry>
 
