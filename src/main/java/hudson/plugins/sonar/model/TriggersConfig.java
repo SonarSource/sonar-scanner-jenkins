@@ -39,6 +39,8 @@ public class TriggersConfig implements Serializable {
 
   private boolean skipUpstreamCause;
 
+  private boolean skipUserCause;
+
   /**
    * @since 1.7
    */
@@ -48,9 +50,10 @@ public class TriggersConfig implements Serializable {
   }
 
   @DataBoundConstructor
-  public TriggersConfig(boolean skipScmCause, boolean skipUpstreamCause, String envVar) {
+  public TriggersConfig(boolean skipScmCause, boolean skipUpstreamCause, boolean skipUserCause, String envVar) {
     this.skipScmCause = skipScmCause;
     this.skipUpstreamCause = skipUpstreamCause;
+    this.skipUserCause = skipUserCause;
     this.envVar = envVar;
   }
 
@@ -68,6 +71,14 @@ public class TriggersConfig implements Serializable {
 
   public void setSkipUpstreamCause(boolean b) {
     this.skipUpstreamCause = b;
+  }
+
+  public boolean isSkipUserCause() {
+    return skipUserCause;
+  }
+
+  public void setSkipUserCause(boolean b) {
+    this.skipUserCause = b;
   }
 
   public String getEnvVar() {
@@ -106,6 +117,8 @@ public class TriggersConfig implements Serializable {
         iter.remove();
       } else if (Cause.UpstreamCause.class.isInstance(cause) && isSkipUpstreamCause()) {
         iter.remove();
+      } else if (Cause.UserCause.class.isInstance(cause) && isSkipUserCause()) {
+          iter.remove();
       }
     }
     return causes.isEmpty() ? Messages.Skipping_Sonar_analysis() : null;

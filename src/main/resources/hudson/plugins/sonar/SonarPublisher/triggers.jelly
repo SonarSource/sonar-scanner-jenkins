@@ -11,6 +11,11 @@
                 default="false"/>
   </f:entry>
 
+  <f:entry title="${%SkipOnUserCause}">
+    <f:checkbox name="skipUserCause" checked="${it.isSkipUserCause()}"
+                default="false"/>
+  </f:entry>
+
   <f:entry title="${%EnvVar}" help="/plugin/sonar/help-trigger-env-var.html">
     <f:textbox name="envVar" value="${it.getEnvVar()}"/>
   </f:entry>
