@@ -33,6 +33,11 @@ public final class MagicNames {
   public static final String ICON = PLUGIN_HOME + "/images/sonar-wave.png";
 
   /**
+   * Build with Sonar Plugin icon.
+   */
+  public static final String BUILD_WITH_SONAR_ICON = PLUGIN_HOME + "/images/sonar-wave-clock.png";
+
+  /**
    * Default URL of Sonar.
    */
   public static final String DEFAULT_SONAR_URL = "http://localhost:9000";
