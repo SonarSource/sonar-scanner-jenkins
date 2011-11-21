@@ -10,10 +10,10 @@
   </j:if>
   <j:if test="${sonars.size() gt 1}">
     <!-- choise not necessary if there's no choice -->
-    <f:entry title="${%SonarInstallation}" field="installationName">
-      <select class="setting-input">
+    <f:entry title="${%SonarInstallation}">
+      <select class="setting-input" name="sonar.installationName">
         <j:forEach var="inst" items="${sonars}">
-          <f:option value="${inst.name}" selected="${inst.name==instance.installation.name}">${inst.name}</f:option>
+          <f:option value="${inst.name}" selected="${inst.name==instance.installationName}">${inst.name}</f:option>
         </j:forEach>
       </select>
     </f:entry>
