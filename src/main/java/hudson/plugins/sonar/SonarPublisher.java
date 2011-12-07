@@ -15,6 +15,12 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.maven.MavenModuleSetBuild;
+
+import java.io.File;
+
+import java.util.ArrayList;
+
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.Launcher;
@@ -90,6 +96,8 @@ public class SonarPublisher extends Notifier {
    */
   private final String jobAdditionalProperties;
 
+  private final boolean aggregator;
+
   /**
    * Triggers. If null, then we should use triggers from {@link SonarInstallation}.
    * 
@@ -101,7 +109,7 @@ public class SonarPublisher extends Notifier {
   // Next fields available only for free-style projects
 
   private String mavenInstallationName;
-
+  
   /**
    * @since 1.2
    */
@@ -122,7 +130,7 @@ public class SonarPublisher extends Notifier {
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
       String mavenInstallationName, String rootPom) {
-    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom);
+    this(installationName, null, null, triggers, jobAdditionalProperties, false, mavenOpts, mavenInstallationName, rootPom);
   }
 
   @DataBoundConstructor
@@ -130,12 +138,13 @@ public class SonarPublisher extends Notifier {
       String branch,
       String language,
       TriggersConfig triggers,
-      String jobAdditionalProperties, String mavenOpts,
+      String jobAdditionalProperties, boolean aggregator, String mavenOpts,
       String mavenInstallationName, String rootPom) {
     super();
     this.installationName = installationName;
     this.branch = branch;
     this.language = language;
+    this.aggregator = aggregator;
     // Triggers
     this.triggers = triggers;
     // Maven
@@ -204,6 +213,10 @@ public class SonarPublisher extends Notifier {
    */
   public String getMavenInstallationName() {
     return mavenInstallationName;
+  }
+  
+  public boolean isAggregator() {
+    return aggregator;
   }
 
   /**
@@ -278,7 +291,23 @@ public class SonarPublisher extends Notifier {
 
   private boolean executeSonar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
     try {
-      String pomName = getPomName(build);
+      boolean sonarSuccess = true;
+      List<String> pomNames = new ArrayList<String>();
+      if (isMavenBuilder(build.getProject()) && isAggregator()) {
+        listener.getLogger().println("Aggregator mode enabled");
+        MavenModuleSet mavenModuleSet = getMavenProject(build);
+        List<MavenModule> modules = mavenModuleSet.getRootModule().getChildren();
+        if (modules == null || modules.size() == 0) {
+          listener.getLogger().println("No module in root pom");
+          return true;
+        }
+        for (MavenModule m : modules) {
+          pomNames.add(m.getRelativePath() + File.separator + "pom.xml");
+        }
+      }
+      else {
+        pomNames.add(getPomName(build));
+      }
       String mavenInstallationName = getMavenInstallationName();
       if (isMavenBuilder(build.getProject())) {
         MavenModuleSet mavenModuleSet = getMavenProject(build);
@@ -287,8 +316,11 @@ public class SonarPublisher extends Notifier {
         }
       }
 
+      for (String pomName: pomNames) {
       // Execute maven
-      return SonarMaven.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this);
+        sonarSuccess = sonarSuccess && SonarMaven.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this);
+      }
+      return sonarSuccess;
     } catch (IOException e) {
       Util.displayIOException(e, listener);
       e.printStackTrace(listener.fatalError("command execution failed"));
