@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>sonar</artifactId>
-  <version>1.7.2</version>
+  <version>1.8-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <name>Jenkins Sonar Plugin</name>
