@@ -29,6 +29,7 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
+import hudson.plugins.sonar.model.LightProjectConfig;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.MagicNames;
 import hudson.plugins.sonar.utils.SonarMaven;
@@ -106,6 +107,15 @@ public class SonarPublisher extends Notifier {
    * @since 1.2
    */
   private String rootPom;
+
+  /**
+   * Prior to version 1.7: if not null, then pom.xml should be generated.
+   * Removed in 1.7, but was restored in 1.8 for migration - see SONARPLUGINS-1553.
+   * 
+   * @since 1.2
+   * @deprecated in 1.7
+   */
+  public LightProjectConfig lightProject;
 
   public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
     this(installationName, new TriggersConfig(), jobAdditionalProperties, mavenOpts, null, null);
