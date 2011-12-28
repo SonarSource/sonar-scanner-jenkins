@@ -18,7 +18,6 @@ package hudson.plugins.sonar;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Util;
 import hudson.model.BuildListener;
 import hudson.model.AbstractProject;
 import hudson.model.Executor;
@@ -26,7 +25,10 @@ import hudson.model.JDK;
 import hudson.model.Node;
 import hudson.util.ArgumentListBuilder;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -86,25 +88,27 @@ public class SonarRunner {
     }
     // Path to project properties
     appendArg(args, "project.settings", conf.getProject());
-    // Additional properties
-    for (String p : Util.tokenize(conf.getProperties())) {
-      args.add("-D", p);
-    }
 
+    // Additional properties
+    Properties p = new Properties();
+    p.load(new ByteArrayInputStream(conf.getProperties().getBytes()));
+    for (Entry<Object, Object> entry : p.entrySet()) {
+      args.add("-D" + entry.getKey() + "=" + entry.getValue().toString());
+    }
     return args;
   }
 
   private static void appendArg(ArgumentListBuilder args, String name, String value) {
     value = StringUtils.trimToEmpty(value);
     if (StringUtils.isNotEmpty(value)) {
-      args.add("-D").add(name + "=" + value);
+      args.add("-D" + name + "=" + value);
     }
   }
 
   private static void appendMaskedArg(ArgumentListBuilder args, String name, String value) {
     value = StringUtils.trimToEmpty(value);
     if (StringUtils.isNotEmpty(value)) {
-      args.add("-D").addMasked(name + "=" + value);
+      args.addMasked("-D" + name + "=" + value);
     }
   }
 

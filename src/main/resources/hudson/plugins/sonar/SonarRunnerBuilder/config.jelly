@@ -24,7 +24,7 @@
   </f:entry>
   
   <f:entry title="${%ProjectProperties}" field="properties" help="/plugin/sonar/help-runner-properties.html">
-    <f:expandableTextbox />
+    <f:textarea />
   </f:entry>
   
   <!-- The Java options to be used -->

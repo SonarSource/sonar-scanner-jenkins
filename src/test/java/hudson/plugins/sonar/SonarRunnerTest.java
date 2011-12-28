@@ -16,6 +16,7 @@
 package hudson.plugins.sonar;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertThat;
@@ -29,6 +30,7 @@ import hudson.model.AbstractProject;
 import hudson.util.ArgumentListBuilder;
 
 import java.io.File;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -66,12 +68,23 @@ public class SonarRunnerTest {
   @Test
   public void shouldBuildCmdLine() throws Exception {
     runner.extract();
-    ArgumentListBuilder args = runner.buildCmdLine(listener, new SonarRunnerBuilder(null, null, "sonar.branch=1.0", "-Xmx200m"));
-    String cmdLine = args.toStringWithQuote();
+    String properties = new StringBuilder()
+        .append("# comment\n") // comment should be ignored - see SONARPLUGINS-1461
+        .append("sonar.branch = 1.0\n")
+        .toString();
+    String javaOpts = "-Xmx200m";
+    ArgumentListBuilder args = runner.buildCmdLine(listener, new SonarRunnerBuilder(null, "project.properties", properties, javaOpts));
+
+    List<String> cmdLine = args.toList();
     System.out.println(cmdLine);
-    assertThat(cmdLine, startsWith("java -Xmx200m -cp"));
-    assertThat(cmdLine, containsString("org.sonar.runner.Main"));
-    assertThat(cmdLine, containsString("-D sonar.branch=1.0"));
+    // Note that first 5 parameters should have strict order:
+    assertThat(cmdLine.get(0), is("java"));
+    assertThat(cmdLine.get(1), is("-Xmx200m"));
+    assertThat(cmdLine.get(2), is("-cp"));
+    assertThat(cmdLine.get(3), containsString(".jar"));
+    assertThat(cmdLine.get(4), is("org.sonar.runner.Main"));
+    assertThat(cmdLine, hasItem("-Dsonar.branch=1.0"));
+    assertThat(cmdLine, hasItem("-Dproject.settings=project.properties"));
   }
 
   @Test
