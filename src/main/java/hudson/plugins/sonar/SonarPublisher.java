@@ -43,6 +43,8 @@ import hudson.util.FormValidation;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import net.sf.json.JSONObject;
@@ -208,6 +210,17 @@ public class SonarPublisher extends Notifier {
   public TriggersConfig getTriggers() {
     return triggers;
   }
+  
+  /*
+   * Return the triggers that should be considered
+   */
+  private TriggersConfig getActiveTriggers() {
+    if (isUseGlobalTriggers()) {
+      return getInstallation().getTriggers();
+    } else {
+      return getTriggers();
+    }
+  }
 
   /**
    * @return name of {@link hudson.tasks.Maven.MavenInstallation}
@@ -239,10 +252,8 @@ public class SonarPublisher extends Notifier {
       skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(), SonarInstallation.all().length);
     } else if (sonarInstallation.isDisabled()) {
       skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else if (isUseGlobalTriggers()) {
-      skipLaunchMsg = sonarInstallation.getTriggers().isSkipSonar(build);
     } else {
-      skipLaunchMsg = getTriggers().isSkipSonar(build);
+      skipLaunchMsg = getActiveTriggers().isSkipSonar(build);
     }
     if (skipLaunchMsg != null) {
       listener.getLogger().println(skipLaunchMsg);
@@ -355,8 +366,16 @@ public class SonarPublisher extends Notifier {
   }
 
   @Override
-  public Action getProjectAction(AbstractProject<?, ?> project) {
-    return new ProjectSonarAction(getSonarUrl(project));
+  public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
+    Collection<Action> projectActions = new ArrayList<Action>();
+    
+    TriggersConfig triggers = getActiveTriggers();
+    if (triggers.isSkipUserCause()) {
+      projectActions.add(new BuildWithSonarAction(project));
+    }
+    projectActions.add(new ProjectSonarAction(getSonarUrl(project)));
+    
+    return projectActions;
   }
 
   public BuildStepMonitor getRequiredMonitorService() {

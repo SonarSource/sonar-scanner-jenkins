@@ -1,0 +1,20 @@
+<!--
+  Displays the form to choose the tag name.
+
+  This belongs to a build view.
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<l:layout>
+	<st:include it="${it.project}" page="sidepanel.jelly" />
+	<l:main-panel>
+		<table width="100%">
+			<tr><td>
+                          Run a build with Sonar enabled.
+                          <f:form method="post" action="submit">
+                            <f:submit value="${%Build with Sonar}"/>
+                          </f:form>
+			</td></tr>
+		</table>
+    </l:main-panel>
+  </l:layout>
+</j:jelly>
