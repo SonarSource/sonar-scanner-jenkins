@@ -96,7 +96,10 @@ public class SonarRunnerBuilder extends Builder {
     }
 
     SonarRunner sonarRunner = new SonarRunner(build.getProject(), launcher, build.getEnvironment(listener), build.getWorkspace());
-    build.addAction(new BuildSonarAction());
+    // Badge should be added only once - SONARPLUGINS-1521
+    if (build.getAction(BuildSonarAction.class) == null) {
+      build.addAction(new BuildSonarAction());
+    }
     return sonarRunner.launch(listener, this) == 0;
   }
 
