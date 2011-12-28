@@ -41,14 +41,19 @@ public final class SonarMaven extends Maven {
    */
   private static final String TARGET = "-e -B";
 
-  private SonarPublisher publisher;
+  private final SonarPublisher publisher;
+  private final String additionalProperties;
 
-  public SonarMaven(String targets, String name, String pom, String jvmOptions, boolean usePrivateRepository, SonarPublisher publisher) {
-    super(targets + " " + getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, usePrivateRepository);
+  public SonarMaven(String additionalProperties, String name, String pom, String jvmOptions, boolean usePrivateRepository, SonarPublisher publisher) {
+    super(getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, usePrivateRepository);
+    this.additionalProperties = additionalProperties;
     this.publisher = publisher;
   }
 
-  private static String getTarget(SonarInstallation installation) {
+  /**
+   * Visibility of a method has been relaxed for tests.
+   */
+  static String getTarget(SonarInstallation installation) {
     if (StringUtils.isBlank(installation.getMojoVersion())) {
       return TARGET + " sonar:sonar";
     } else {
@@ -64,6 +69,9 @@ public final class SonarMaven extends Maven {
   protected void wrapUpArguments(ArgumentListBuilder args, String normalizedTarget, AbstractBuild<?, ?> build, Launcher launcher,
       BuildListener listener)
       throws IOException, InterruptedException {
+
+    args.addTokenized(additionalProperties);
+
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
     argsBuilder.append("sonar.jdbc.driver", getInstallation().getDatabaseDriver());
     argsBuilder.append("sonar.jdbc.url", getInstallation().getDatabaseUrl()); // TODO can be masked
