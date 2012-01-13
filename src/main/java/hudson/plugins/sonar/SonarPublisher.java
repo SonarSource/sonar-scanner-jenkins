@@ -40,13 +40,7 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.util.FormValidation;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.List;
-
 import net.sf.json.JSONObject;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -54,6 +48,10 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.List;
 
 /**
  * Old fields should be left so that old config data can be read in, but
@@ -69,14 +67,14 @@ public class SonarPublisher extends Notifier {
 
   /**
    * Optional.
-   * 
+   *
    * @since 1.4
    */
   private String branch;
 
   /**
    * Optional.
-   * 
+   *
    * @since 1.6
    */
   private String language;
@@ -93,7 +91,7 @@ public class SonarPublisher extends Notifier {
 
   /**
    * Triggers. If null, then we should use triggers from {@link SonarInstallation}.
-   * 
+   *
    * @since 1.2
    */
   private TriggersConfig triggers;
@@ -111,10 +109,11 @@ public class SonarPublisher extends Notifier {
   /**
    * Prior to version 1.7: if not null, then pom.xml should be generated.
    * Removed in 1.7, but was restored in 1.8 for migration - see SONARPLUGINS-1553.
-   * 
+   *
    * @since 1.2
    * @deprecated in 1.7
    */
+  @Deprecated
   public LightProjectConfig lightProject;
 
   public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
@@ -190,7 +189,7 @@ public class SonarPublisher extends Notifier {
 
   /**
    * See <a href="http://docs.codehaus.org/display/SONAR/Advanced+parameters#Advancedparameters-ManageSCMbranches">Sonar Branch option</a>.
-   * 
+   *
    * @return branch
    * @since 1.4
    */
@@ -218,7 +217,7 @@ public class SonarPublisher extends Notifier {
 
   /**
    * Root POM. Should be applied only for free-style projects.
-   * 
+   *
    * @return Root POM
    */
   public String getRootPom() {
@@ -398,7 +397,7 @@ public class SonarPublisher extends Notifier {
 
     /**
      * This method is used in UI, so signature and location of this method is important (see SONARPLUGINS-1337).
-     * 
+     *
      * @return all configured {@link hudson.tasks.Maven.MavenInstallation}
      */
     public MavenInstallation[] getMavenInstallations() {

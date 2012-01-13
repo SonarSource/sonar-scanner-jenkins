@@ -19,6 +19,7 @@ package hudson.plugins.sonar.model;
  * @since 1.2
  * @deprecated in 1.7
  */
+@Deprecated
 public class ReportsConfig {
   /**
    * Optional.

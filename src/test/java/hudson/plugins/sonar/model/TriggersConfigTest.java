@@ -15,24 +15,23 @@
  */
 package hudson.plugins.sonar.model;
 
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.Cause;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TriggersConfigTest {
 
@@ -84,16 +83,6 @@ public class TriggersConfigTest {
     AbstractBuild build = mockBuildWithCauses(UPSTREAM_CAUSE);
     assertThat(triggers.isSkipSonar(build), nullValue());
     triggers.setSkipUpstreamCause(true);
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-  }
-
-  /**
-   * See SONARPLUGINS-378
-   */
-  @Ignore("Ignored due to changed behavior - black list strategy")
-  @Test
-  public void custom_cause() {
-    AbstractBuild build = mockBuildWithCauses(new CustomCause());
     assertThat(triggers.isSkipSonar(build), not(nullValue()));
   }
 

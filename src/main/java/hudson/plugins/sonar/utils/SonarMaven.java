@@ -143,7 +143,7 @@ public final class SonarMaven extends Maven {
    * This method available in hudson.util.IOUtils in version 1.378, but not in 1.344, so we did a copy-paste.
    */
   private static boolean isAbsolute(String path) {
-    Pattern DRIVE_PATTERN = Pattern.compile("[A-Za-z]:[\\\\/].*");
-    return path.startsWith("/") || DRIVE_PATTERN.matcher(path).matches();
+    Pattern drivePattern = Pattern.compile("[A-Za-z]:[\\\\/].*");
+    return path.startsWith("/") || drivePattern.matcher(path).matches();
   }
 }

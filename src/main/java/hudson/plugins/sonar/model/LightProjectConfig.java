@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
  * @since 1.2
  * @deprecated in 1.7
  */
+@Deprecated
 public class LightProjectConfig {
   /**
    * Mandatory and no spaces.
