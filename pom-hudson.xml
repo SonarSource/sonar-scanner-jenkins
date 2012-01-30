@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>sonar</artifactId>
-  <version>1.9-SNAPSHOT</version>
+  <version>1.8</version>
   <packaging>hpi</packaging>
 
   <name>Sonar Plugin</name>
@@ -73,14 +73,16 @@
     <url>http://ci.codehaus.org/browse/SONAR-HUDSON</url>
   </ciManagement>
   <distributionManagement>
-    <repository>
-      <id>java.net-m2-repository</id>
-      <url>http://maven.hudson-labs.org:8081/content/repositories/releases/</url>
-    </repository>
-    <snapshotRepository>
-      <id>${snapshotRepositoryId}</id>
-      <url>${snapshotRepositoryUrl}</url>
-    </snapshotRepository>
+         <snapshotRepository>
+             <id>sonatype-nexus-snapshots</id>
+             <name>Sonatype Nexus Snapshots</name>
+             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+         </snapshotRepository>
+         <repository>
+             <id>sonatype-nexus-staging</id>
+             <name>Nexus Release Repository</name>
+             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+         </repository>
   </distributionManagement>
 
   <properties>
@@ -234,7 +236,7 @@
                 <artifactItem>
                   <groupId>org.codehaus.sonar-plugins</groupId>
                   <artifactId>sonar-runner</artifactId>
-                  <version>1.2</version>
+                  <version>1.1</version>
                   <outputDirectory>${project.build.directory}/classes</outputDirectory>
                   <destFileName>sonar-runner.jar</destFileName>
                 </artifactItem>
@@ -283,6 +285,19 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>      
     </plugins>
   </build>
 
