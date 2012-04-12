@@ -162,18 +162,37 @@
     </dependency>
   </dependencies>
 
+  <!--
+  IMPORTANT NOTE:
+  Repository with id "m.g.o-public" comes from one of dependencies.
+  Which is a cause of troubles at least for Maven 2.2.1, because of change in location of this repository.
+  Moreover - in a better world definitely better to rely only on Maven central repository.
+  That's why this repository was disabled here:
+  -->
   <repositories>
     <repository>
       <id>m.g.o-public</id>
       <url>https://maven.glassfish.org/content/groups/public/</url>
       <releases>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
       </releases>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
     </repository>
   </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>m.g.o-public</id>
+      <url>https://maven.glassfish.org/content/groups/public/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
 
   <build>
     <pluginManagement>
