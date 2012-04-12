@@ -64,6 +64,12 @@
              help="/plugin/sonar/help-properties.html">
       <f:expandableTextbox name="sonar.jobAdditionalProperties" value="${instance.getJobAdditionalProperties()}"/>
     </f:entry>
+    
+    <f:entry title="${%Aggregator}" description="${%AggregatorDescr}">
+      <f:checkbox name="sonar.aggregator" checked="${instance.isAggregator()}"
+                default="false"/>
+    </f:entry>
+    
     <!-- Build Triggers -->
     <f:nested>
       <table width="100%">
