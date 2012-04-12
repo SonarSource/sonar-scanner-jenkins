@@ -227,6 +227,11 @@
           <artifactId>maven-license-plugin</artifactId>
           <version>1.9.0</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.4</version>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -334,9 +339,9 @@
                 </goals>
               </execution>
             </executions>
-          </plugin>      
+          </plugin>
         </plugins>
-      </build>      
+      </build>
     </profile>
 
     <profile>
@@ -350,7 +355,7 @@
           <id>${snapshotRepositoryId}</id>
           <url>${snapshotRepositoryUrl}</url>
         </snapshotRepository>
-      </distributionManagement>      
+      </distributionManagement>
     </profile>
 
     <profile>
