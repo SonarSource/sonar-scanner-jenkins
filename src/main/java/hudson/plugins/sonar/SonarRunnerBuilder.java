@@ -15,6 +15,7 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.Util;
@@ -74,15 +75,16 @@ public class SonarRunnerBuilder extends Builder {
     return Util.fixNull(javaOpts);
   }
 
-  public SonarInstallation getSonarInstallation() {
-    return SonarInstallation.get(getInstallationName());
+  public SonarInstallation getSonarInstallation(EnvVars envVars) {
+    return SonarInstallation.get(envVars.expand(getInstallationName()));
   }
 
   @Override
   public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
     // TODO kind of copy-paste from SonarPublisher#isSkip
     final String skipLaunchMsg;
-    SonarInstallation sonarInstallation = getSonarInstallation();
+    final EnvVars envVars = build.getEnvironment(listener);
+    SonarInstallation sonarInstallation = getSonarInstallation(envVars);
     if (sonarInstallation == null) {
       skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(), SonarInstallation.all().length);
     } else if (sonarInstallation.isDisabled()) {
@@ -95,7 +97,7 @@ public class SonarRunnerBuilder extends Builder {
       return true;
     }
 
-    SonarRunner sonarRunner = new SonarRunner(build.getProject(), launcher, build.getEnvironment(listener), build.getWorkspace());
+    SonarRunner sonarRunner = new SonarRunner(build.getProject(), launcher, envVars, build.getWorkspace());
     // Badge should be added only once - SONARPLUGINS-1521
     if (build.getAction(BuildSonarAction.class) == null) {
       build.addAction(new BuildSonarAction());

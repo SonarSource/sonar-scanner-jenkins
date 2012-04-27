@@ -78,7 +78,7 @@ public class SonarRunner {
     // Main class
     args.add("org.sonar.runner.Main");
     // Server properties
-    SonarInstallation si = conf.getSonarInstallation();
+    SonarInstallation si = conf.getSonarInstallation(envVars);
     if (si != null) {
       appendArg(args, "sonar.jdbc.driver", si.getDatabaseDriver());
       appendArg(args, "sonar.jdbc.url", si.getDatabaseUrl()); // TODO can be masked
@@ -87,11 +87,11 @@ public class SonarRunner {
       appendArg(args, "sonar.host.url", si.getServerUrl());
     }
     // Path to project properties
-    appendArg(args, "project.settings", conf.getProject());
+    appendArg(args, "project.settings", envVars.expand(conf.getProject()));
 
     // Additional properties
     Properties p = new Properties();
-    p.load(new ByteArrayInputStream(conf.getProperties().getBytes()));
+    p.load(new ByteArrayInputStream(envVars.expand(conf.getProperties()).getBytes()));
     for (Entry<Object, Object> entry : p.entrySet()) {
       args.add("-D" + entry.getKey() + "=" + entry.getValue().toString());
     }
