@@ -15,6 +15,7 @@
  */
 package hudson.plugins.sonar.utils;
 
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.maven.MavenModuleSet;
@@ -98,6 +99,7 @@ public final class SonarMaven extends Maven {
       SonarPublisher sonarPublisher
       ) throws IOException, InterruptedException {
     MavenModuleSet mavenModuleProject = sonarPublisher.getMavenProject(build);
+    EnvVars envVars = build.getEnvironment(listener);
     /**
      * MAVEN_OPTS
      */
@@ -107,6 +109,7 @@ public final class SonarMaven extends Maven {
         jvmOptions = mavenModuleProject.getMavenOpts();
       }
     }
+    jvmOptions = envVars.expand(jvmOptions);
     // Private Repository and Alternate Settings
     boolean usesPrivateRepository = false;
     String alternateSettings = null;
@@ -128,7 +131,7 @@ public final class SonarMaven extends Maven {
     }
     // Other properties
     String installationProperties = sonarInstallation.getAdditionalProperties();
-    String jobProperties = sonarPublisher.getJobAdditionalProperties();
+    String jobProperties = envVars.expand(sonarPublisher.getJobAdditionalProperties());
     String aditionalProperties = ""
         + (StringUtils.isNotBlank(installationProperties) ? installationProperties : "") + " "
         + (StringUtils.isNotBlank(jobProperties) ? jobProperties : "") + " "
