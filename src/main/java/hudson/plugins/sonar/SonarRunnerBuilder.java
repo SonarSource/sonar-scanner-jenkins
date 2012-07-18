@@ -23,10 +23,9 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
-
-import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @since 1.7

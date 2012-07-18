@@ -15,10 +15,9 @@
  */
 package hudson.plugins.sonar;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 import org.junit.Test;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 public class SonarRunnerBuilderTest {
 
@@ -26,10 +25,10 @@ public class SonarRunnerBuilderTest {
   public void shouldBeEmptyInsteadOfNull() {
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null);
 
-    assertThat(builder.getInstallationName(), is(""));
-    assertThat(builder.getJavaOpts(), is(""));
-    assertThat(builder.getProject(), is(""));
-    assertThat(builder.getProperties(), is(""));
+    assertThat(builder.getInstallationName()).isEmpty();
+    assertThat(builder.getJavaOpts()).isEmpty();
+    assertThat(builder.getProject()).isEmpty();
+    assertThat(builder.getProperties()).isEmpty();
   }
 
 }

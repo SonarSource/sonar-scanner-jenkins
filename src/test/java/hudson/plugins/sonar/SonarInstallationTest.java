@@ -52,8 +52,7 @@ public class SonarInstallationTest {
     SonarInstallation installation = create("http://localhost/sonar");
     assertThat(
         installation.getProjectLink("org.example", "myproject", null),
-        is("http://localhost/sonar/project/index/org.example:myproject")
-    );
+        is("http://localhost/sonar/project/index/org.example:myproject"));
   }
 
   @Test
@@ -61,8 +60,7 @@ public class SonarInstallationTest {
     SonarInstallation installation = create("http://localhost/sonar");
     assertThat(
         installation.getProjectLink("org.example", "myproject", "1.2"),
-        is("http://localhost/sonar/project/index/org.example:myproject:1.2")
-    );
+        is("http://localhost/sonar/project/index/org.example:myproject:1.2"));
   }
 
   private SonarInstallation create(String url) {

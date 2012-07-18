@@ -20,7 +20,6 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Mailer;
-
 import org.junit.Ignore;
 import org.jvnet.hudson.test.Bug;
 import org.jvnet.mock_javamail.Mailbox;

@@ -46,6 +46,17 @@
         <role>Developer</role>
       </roles>
     </developer>
+    <developer>
+      <id>dgageot</id>
+      <name>David Gageot</name>
+      <email>david@gageot.net</email>
+      <timezone>+1</timezone>
+      <organization>SonarSource</organization>
+      <organizationUrl>http://www.sonarsource.com/</organizationUrl>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
   </developers>
 
   <contributors>
@@ -114,7 +125,7 @@
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
-      <version>2.1</version>
+      <version>2.4</version>
     </dependency>
     <dependency>
       <groupId>org.jvnet.hudson.main</groupId>
@@ -144,21 +155,19 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.8.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <!-- 29.04.2010 Godin: version 1.2 not available in central repo -->
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <version>1.1</version>
+      <version>4.10</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>1.8.5</version>
+      <artifactId>mockito-core</artifactId>
+      <version>1.9.5-rc1</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-assert</artifactId>
+      <version>1.4</version>
     </dependency>
   </dependencies>
 
@@ -200,7 +209,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.3.2</version>
+          <version>2.5.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -210,12 +219,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.6</version>
+          <version>2.12</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>1.0</version>
+          <version>1.0.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>

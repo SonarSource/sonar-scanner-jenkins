@@ -27,9 +27,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,41 +47,41 @@ public class TriggersConfigTest {
   @Test
   public void our_internal_cause() {
     AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
-    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build)).isNull();
   }
 
   @Test
   public void skip_if_build_fails() {
     AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     when(build.getResult()).thenReturn(null, Result.SUCCESS, Result.UNSTABLE, Result.FAILURE, Result.NOT_BUILT, Result.ABORTED);
-    assertThat(triggers.isSkipSonar(build), nullValue());
-    assertThat(triggers.isSkipSonar(build), nullValue());
-    assertThat(triggers.isSkipSonar(build), nullValue());
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
+    assertThat(triggers.isSkipSonar(build)).isNull();
+    assertThat(triggers.isSkipSonar(build)).isNull();
+    assertThat(triggers.isSkipSonar(build)).isNull();
+    assertThat(triggers.isSkipSonar(build)).isNotNull();
+    assertThat(triggers.isSkipSonar(build)).isNotNull();
+    assertThat(triggers.isSkipSonar(build)).isNotNull();
   }
 
   @Test
   public void timer_cause() {
     AbstractBuild build = mockBuildWithCauses(TIMER_CAUSE);
-    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build)).isNull();
   }
 
   @Test
   public void scm_change_cause() {
     AbstractBuild build = mockBuildWithCauses(SCM_CAUSE);
-    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build)).isNull();
     triggers.setSkipScmCause(true);
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
+    assertThat(triggers.isSkipSonar(build)).isNotNull();
   }
 
   @Test
   public void upstream_cause() {
     AbstractBuild build = mockBuildWithCauses(UPSTREAM_CAUSE);
-    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build)).isNull();
     triggers.setSkipUpstreamCause(true);
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
+    assertThat(triggers.isSkipSonar(build)).isNotNull();
   }
 
   @Test
@@ -91,12 +89,12 @@ public class TriggersConfigTest {
     triggers.setSkipScmCause(true);
     triggers.setSkipUpstreamCause(true);
     AbstractBuild build = mockBuildWithCauses(SCM_CAUSE, TIMER_CAUSE);
-    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build)).isNull();
 
     build = mockBuildWithCauses(SCM_CAUSE, UPSTREAM_CAUSE);
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
+    assertThat(triggers.isSkipSonar(build)).isNotNull();
     triggers.setSkipScmCause(false);
-    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build)).isNull();
   }
 
   /**
@@ -107,18 +105,11 @@ public class TriggersConfigTest {
     AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     Map<String, String> vars = new HashMap<String, String>();
     when(build.getBuildVariables()).thenReturn(vars);
-    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build)).isNull();
     triggers.setEnvVar("SKIP_SONAR");
-    assertThat(triggers.isSkipSonar(build), nullValue());
+    assertThat(triggers.isSkipSonar(build)).isNull();
     vars.put("SKIP_SONAR", "true");
-    assertThat(triggers.isSkipSonar(build), not(nullValue()));
-  }
-
-  private static class CustomCause extends Cause {
-    @Override
-    public String getShortDescription() {
-      return null;
-    }
+    assertThat(triggers.isSkipSonar(build)).isNotNull();
   }
 
   private static AbstractBuild mockBuildWithCauses(Cause... causes) {

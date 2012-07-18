@@ -15,21 +15,19 @@
  */
 package hudson.plugins.sonar.utils;
 
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.util.ArgumentListBuilder;
+import org.junit.Test;
 
 import java.util.List;
 
-import org.junit.Test;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SonarMavenTest {
 
@@ -51,14 +49,14 @@ public class SonarMavenTest {
     sonarMaven.wrapUpArguments(args, "sonar:sonar", mock(AbstractBuild.class), mock(Launcher.class), mock(BuildListener.class));
 
     List<String> result = args.toList();
-    assertThat(result, hasItem("-Dprop=value"));
-    assertThat(result, hasItem("-Dsonar.jdbc.driver=driver"));
-    assertThat(result, hasItem("-Dsonar.jdbc.url=databaseUrl"));
-    assertThat(result, hasItem("-Dsonar.jdbc.username=login"));
-    assertThat(result, hasItem("-Dsonar.jdbc.password=password"));
-    assertThat(result, hasItem("-Dsonar.host.url=hostUrl"));
-    assertThat(result, hasItem("-Dsonar.branch=branch"));
-    assertThat(result, hasItem("-Dsonar.language=language"));
+    assertThat(result).contains("-Dprop=value");
+    assertThat(result).contains("-Dsonar.jdbc.driver=driver");
+    assertThat(result).contains("-Dsonar.jdbc.url=databaseUrl");
+    assertThat(result).contains("-Dsonar.jdbc.username=login");
+    assertThat(result).contains("-Dsonar.jdbc.password=password");
+    assertThat(result).contains("-Dsonar.host.url=hostUrl");
+    assertThat(result).contains("-Dsonar.branch=branch");
+    assertThat(result).contains("-Dsonar.language=language");
   }
 
   @Test
@@ -67,8 +65,8 @@ public class SonarMavenTest {
     when(installation.getMojoVersion())
         .thenReturn("")
         .thenReturn("1.0-beta-2");
-    assertThat(SonarMaven.getTarget(installation), is("-e -B sonar:sonar"));
-    assertThat(SonarMaven.getTarget(installation), is("-e -B org.codehaus.mojo:sonar-maven-plugin:1.0-beta-2:sonar"));
+    assertThat(SonarMaven.getTarget(installation)).isEqualTo("-e -B sonar:sonar");
+    assertThat(SonarMaven.getTarget(installation)).isEqualTo("-e -B org.codehaus.mojo:sonar-maven-plugin:1.0-beta-2:sonar");
   }
 
 }

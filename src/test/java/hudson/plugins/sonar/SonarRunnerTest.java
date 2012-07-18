@@ -15,26 +15,22 @@
  */
 package hudson.plugins.sonar;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.model.AbstractProject;
 import hudson.util.ArgumentListBuilder;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SonarRunnerTest {
 
@@ -76,30 +72,31 @@ public class SonarRunnerTest {
     ArgumentListBuilder args = runner.buildCmdLine(listener, new SonarRunnerBuilder(null, "project.properties", properties, javaOpts));
 
     List<String> cmdLine = args.toList();
-    System.out.println(cmdLine);
     // Note that first 5 parameters should have strict order:
-    assertThat(cmdLine.get(0), is("java"));
-    assertThat(cmdLine.get(1), is("-Xmx200m"));
-    assertThat(cmdLine.get(2), is("-cp"));
-    assertThat(cmdLine.get(3), containsString(".jar"));
-    assertThat(cmdLine.get(4), is("org.sonar.runner.Main"));
-    assertThat(cmdLine, hasItem("-Dsonar.branch=1.0"));
-    assertThat(cmdLine, hasItem("-Dproject.settings=project.properties"));
+    assertThat(cmdLine.get(0)).isEqualTo("java");
+    assertThat(cmdLine.get(1)).isEqualTo(("-Xmx200m"));
+    assertThat(cmdLine.get(2)).isEqualTo("-cp");
+    assertThat(cmdLine.get(3)).contains(".jar");
+    assertThat(cmdLine.get(4)).isEqualTo("org.sonar.runner.Main");
+    assertThat(cmdLine).contains("-Dsonar.branch=1.0");
+    assertThat(cmdLine).contains("-Dproject.settings=project.properties");
   }
 
   @Test
   public void shouldReturnClasspathDelimiter() {
-    when(launcher.isUnix()).thenReturn(true).thenReturn(false);
-    assertThat("linux", runner.getClasspathDelimiter(), is(':'));
-    assertThat("windows", runner.getClasspathDelimiter(), is(';'));
+    when(launcher.isUnix()).thenReturn(true);
+    assertThat(runner.getClasspathDelimiter()).describedAs("linux").isEqualTo(':');
+
+    when(launcher.isUnix()).thenReturn(false);
+    assertThat(runner.getClasspathDelimiter()).describedAs("windows").isEqualTo(';');
   }
 
   @Test
   public void shouldExtract() throws Exception {
     runner.extract();
-    assertThat(workDir.list().size(), is(2));
+    assertThat(workDir.list()).hasSize(2);
     runner.cleanup();
-    assertThat(workDir.list().size(), is(0));
+    assertThat(workDir.list()).isEmpty();
   }
 
 }

@@ -24,13 +24,12 @@ import hudson.model.Executor;
 import hudson.model.JDK;
 import hudson.model.Node;
 import hudson.util.ArgumentListBuilder;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.Properties;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Allows to execute embedded sonar-runner.

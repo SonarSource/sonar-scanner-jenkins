@@ -15,11 +15,9 @@
  */
 package hudson.plugins.sonar;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-
 import org.jvnet.hudson.test.recipes.LocalData;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 public class MigrationTest extends SonarTestCase {
 
@@ -31,12 +29,11 @@ public class MigrationTest extends SonarTestCase {
     SonarInstallation installation;
 
     installation = SonarInstallation.get("Server1");
-    assertThat(installation.getDatabasePassword(), equalTo("secret1"));
-    assertThat(installation.getScrambledDatabasePassword(), not(equalTo("secret1")));
+    assertThat(installation.getDatabasePassword()).isEqualTo("secret1");
+    assertThat(installation.getScrambledDatabasePassword()).isNotEqualTo("secret1");
 
     installation = SonarInstallation.get("Server2");
-    assertThat(installation.getDatabasePassword(), equalTo("secret2"));
-    assertThat(installation.getScrambledDatabasePassword(), not(equalTo("secret2")));
+    assertThat(installation.getDatabasePassword()).isEqualTo("secret2");
+    assertThat(installation.getScrambledDatabasePassword()).isNotEqualTo("secret2");
   }
-
 }

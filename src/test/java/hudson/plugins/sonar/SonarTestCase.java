@@ -28,11 +28,10 @@ import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
 import hudson.tasks.Maven;
 import hudson.util.jna.GNUCLibrary;
-
-import java.io.File;
-
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.jvnet.hudson.test.SingleFileSCM;
+
+import java.io.File;
 
 /**
  * @author Evgeny Mandrikov
@@ -154,7 +153,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
         null,
         "default", // Maven Installation Name
         pomName // Root POM
-        );
+    );
   }
 
   /**

@@ -21,7 +21,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.Cause;
 import hudson.model.FreeStyleProject;
 import hudson.model.Project;
-
 import org.junit.Ignore;
 import org.jvnet.hudson.test.MockBuilder;
 

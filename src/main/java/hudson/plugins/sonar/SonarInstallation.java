@@ -20,7 +20,6 @@ import hudson.model.Hudson;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.MagicNames;
 import hudson.util.Scrambler;
-
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -84,9 +83,9 @@ public class SonarInstallation {
 
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled,
-                           String serverUrl, String serverPublicUrl,
-                           String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
-                           String mojoVersion, String additionalProperties, TriggersConfig triggers) {
+      String serverUrl, String serverPublicUrl,
+      String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
+      String mojoVersion, String additionalProperties, TriggersConfig triggers) {
     this.name = name;
     this.disabled = disabled;
     this.serverUrl = serverUrl;
@@ -183,7 +182,7 @@ public class SonarInstallation {
     String url = StringUtils.defaultIfEmpty(
         StringUtils.trimToEmpty(getServerPublicUrl()),
         StringUtils.trimToEmpty(getServerUrl())
-    );
+        );
     url = StringUtils.defaultIfEmpty(url, MagicNames.DEFAULT_SONAR_URL);
     return StringUtils.chomp(url, "/");
   }

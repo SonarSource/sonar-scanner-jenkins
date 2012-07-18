@@ -25,11 +25,10 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.tasks.Maven;
 import hudson.util.ArgumentListBuilder;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * @author Evgeny Mandrikov
@@ -130,9 +129,9 @@ public final class SonarMaven extends Maven {
     String installationProperties = sonarInstallation.getAdditionalProperties();
     String jobProperties = sonarPublisher.getJobAdditionalProperties();
     String aditionalProperties = ""
-        + (StringUtils.isNotBlank(installationProperties) ? installationProperties : "") + " "
-        + (StringUtils.isNotBlank(jobProperties) ? jobProperties : "") + " "
-        + (StringUtils.isNotBlank(alternateSettings) ? "-s " + alternateSettings : "");
+      + (StringUtils.isNotBlank(installationProperties) ? installationProperties : "") + " "
+      + (StringUtils.isNotBlank(jobProperties) ? jobProperties : "") + " "
+      + (StringUtils.isNotBlank(alternateSettings) ? "-s " + alternateSettings : "");
     // Execute Maven
     pom = build.getModuleRoot().child(pom).getRemote(); // SONARPLUGINS-487
     return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, usesPrivateRepository, sonarPublisher)

@@ -21,13 +21,12 @@ import hudson.model.AbstractBuild;
 import hudson.model.Cause;
 import hudson.plugins.sonar.Messages;
 import hudson.triggers.SCMTrigger;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author Evgeny Mandrikov
