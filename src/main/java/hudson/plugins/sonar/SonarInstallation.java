@@ -181,8 +181,7 @@ public class SonarInstallation {
   public String getServerLink() {
     String url = StringUtils.defaultIfEmpty(
         StringUtils.trimToEmpty(getServerPublicUrl()),
-        StringUtils.trimToEmpty(getServerUrl())
-        );
+        StringUtils.trimToEmpty(getServerUrl()));
     url = StringUtils.defaultIfEmpty(url, MagicNames.DEFAULT_SONAR_URL);
     return StringUtils.chomp(url, "/");
   }
