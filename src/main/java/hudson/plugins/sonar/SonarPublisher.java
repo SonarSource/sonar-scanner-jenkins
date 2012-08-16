@@ -339,7 +339,7 @@ public class SonarPublisher extends Notifier {
         MavenXpp3Reader reader = new MavenXpp3Reader();
         Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
         String groupId = model.getGroupId();
-        if (groupId == null) {
+        if (groupId == null && model.getParent() != null) {
           groupId = model.getParent().getGroupId();
         }
         String artifactId = model.getArtifactId();
