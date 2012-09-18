@@ -94,6 +94,16 @@ public class TriggersConfig implements Serializable {
       if ("true".equalsIgnoreCase(value)) {
         return Messages.Skipping_Sonar_analysis();
       }
+      
+      try {
+    	  value = build.getEnvironment(null).get(getEnvVar());
+    	  if ("true".equalsIgnoreCase(value)) {
+    		  return Messages.Skipping_Sonar_analysis();
+    	  }
+      } 
+      catch (Exception e) {
+    	// ignore
+      } 
     }
 
     // skip analysis, when all causes from blacklist
