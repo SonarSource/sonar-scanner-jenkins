@@ -1,0 +1,37 @@
+<div>
+  <p>
+    Ce champ permet de passer des paramètres de configuration à Sonar.
+    Les paramètres définis ici auront la priorité sur ceux potentiellement définis dans le fichier sonar-project.properties spécifié.
+    Il est même possible de spécifier tous les paramètres de Sonar ici et de laisser vide le champ "Chemin vers les propriétés du projet"
+  </p>
+<pre style="border: solid #BBBBBB 1px; padding: 1em">
+# required metadata
+sonar.projectKey=my:project
+sonar.projectName="My Project"
+sonar.projectVersion=1.0
+
+# path to source directories (required)
+sources=srcDir1,srcDir2
+
+# path to test source directories (optional)
+tests=testDir1,testDir2
+
+# path to project binaries (optional), for example directory of Java bytecode
+binaries=binDir
+
+# optional comma-separated list of paths to libraries. Only path to JAR file and path to directory of classes are supported.
+libraries=path/to/library.jar,path/to/classes/dir
+
+# Uncomment those lines if some features of java 5 or java 6 like annotations, enum, ...
+# are used in the source code to be analysed
+#sonar.java.source=1.5
+#sonar.java.target=1.5
+
+# Uncomment this line to analyse a project which is not a java project.
+# The value of the property must be the key of the language.
+#sonar.language=cobol
+
+# Advanced parameters
+my.property=value
+</pre>
+</div>

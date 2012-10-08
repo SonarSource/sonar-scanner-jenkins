@@ -3,9 +3,9 @@
   <f:section title="Sonar">
     <f:entry title="${%SonarInstallations}" description="${%SonarInstallationsDescr}">
       <!-- TODO l10n -->
-      <f:repeatable var="inst" items="${descriptor.installations}" add="Add Sonar">
+      <f:repeatable var="inst" items="${descriptor.installations}" add="${%AddSonar}">
         <table width="100%">
-          <f:entry title="Name">
+          <f:entry title="${%Name}">
             <f:textbox name="sonar.name" value="${inst.getName()}"
                        checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
           </f:entry>
@@ -56,7 +56,7 @@
 
           <f:entry title="">
             <div align="right">
-              <f:repeatableDeleteButton value="Delete Sonar"/>
+              <f:repeatableDeleteButton value="${%DeleteSonar}"/>
             </div>
           </f:entry>
         </table>
