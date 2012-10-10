@@ -38,7 +38,7 @@ public class BaseTest extends SonarTestCase {
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(ROOT_POM));
     AbstractBuild build = build(project);
 
-    assertNoSonarExecution(build, Messages.SonarPublisher_NoInstallation(0));
+    assertNoSonarExecution(build, Messages.SonarPublisher_NoMatchInstallation(SONAR_INSTALLATION_NAME, 0));
   }
 
   /**
