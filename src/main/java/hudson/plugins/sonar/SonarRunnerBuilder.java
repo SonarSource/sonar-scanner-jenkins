@@ -178,7 +178,7 @@ public class SonarRunnerBuilder extends Builder {
       args.add(exe);
       env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
-    populateConfiguration(args, build.getWorkspace().getRemote());
+    populateConfiguration(args, build.getWorkspace().getRemote(), env);
     // Java
     env.put("JAVA_HOME", getJavaExecutable(build.getProject(), listener, env));
     // Java options
@@ -202,7 +202,7 @@ public class SonarRunnerBuilder extends Builder {
     }
   }
 
-  private void populateConfiguration(ArgumentListBuilder args, String projectBaseDir) throws IOException {
+  private void populateConfiguration(ArgumentListBuilder args, String projectBaseDir, EnvVars env) throws IOException {
     // Server properties
     SonarInstallation si = getSonarInstallation();
     if (si != null) {
@@ -224,7 +224,7 @@ public class SonarRunnerBuilder extends Builder {
 
     // Additional properties
     Properties p = new Properties();
-    p.load(new ByteArrayInputStream(getProperties().getBytes()));
+    p.load(new ByteArrayInputStream(env.expand(getProperties()).getBytes()));
     loadProperties(args, p);
   }
 
