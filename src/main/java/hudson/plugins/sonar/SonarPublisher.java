@@ -233,12 +233,8 @@ public class SonarPublisher extends Notifier {
   }
 
   private boolean isSkip(AbstractBuild<?, ?> build, BuildListener listener, SonarInstallation sonarInstallation) {
-    final String skipLaunchMsg;
-    if (sonarInstallation == null) {
-      skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(), SonarInstallation.all().length);
-    } else if (sonarInstallation.isDisabled()) {
-      skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else if (isUseGlobalTriggers()) {
+    String skipLaunchMsg;
+    if (isUseGlobalTriggers()) {
       skipLaunchMsg = sonarInstallation.getTriggers().isSkipSonar(build);
     } else {
       skipLaunchMsg = getTriggers().isSkipSonar(build);
@@ -252,7 +248,26 @@ public class SonarPublisher extends Notifier {
 
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
-    final SonarInstallation sonarInstallation = getInstallation();
+    String failureMsg;
+    SonarInstallation sonarInstallation = getInstallation();
+    if (sonarInstallation == null) {
+      if (StringUtils.isBlank(getInstallationName())) {
+        failureMsg = Messages.SonarPublisher_NoInstallation(SonarInstallation.all().length);
+      }
+      else {
+        failureMsg = Messages.SonarPublisher_NoMatchInstallation(getInstallationName(), SonarInstallation.all().length);
+      }
+      failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();
+    } else if (sonarInstallation.isDisabled()) {
+      failureMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
+    } else {
+      failureMsg = null;
+    }
+    if (failureMsg != null) {
+      listener.getLogger().println(failureMsg);
+      return false;
+    }
+
     if (isSkip(build, listener, sonarInstallation)) {
       return true;
     }

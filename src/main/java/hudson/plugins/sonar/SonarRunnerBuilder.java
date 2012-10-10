@@ -133,19 +133,25 @@ public class SonarRunnerBuilder extends Builder {
 
   @Override
   public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    // TODO kind of copy-paste from SonarPublisher#isSkip
-    final String skipLaunchMsg;
+    // TODO copy-paste from SonarPublisher#perform
+    String failureMsg;
     SonarInstallation sonarInstallation = getSonarInstallation();
     if (sonarInstallation == null) {
-      skipLaunchMsg = Messages.SonarPublisher_NoInstallation(getInstallationName(), SonarInstallation.all().length);
+      if (StringUtils.isBlank(getInstallationName())) {
+        failureMsg = Messages.SonarPublisher_NoInstallation(SonarInstallation.all().length);
+      }
+      else {
+        failureMsg = Messages.SonarPublisher_NoMatchInstallation(getInstallationName(), SonarInstallation.all().length);
+      }
+      failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();
     } else if (sonarInstallation.isDisabled()) {
-      skipLaunchMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
+      failureMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
     } else {
-      skipLaunchMsg = null;
+      failureMsg = null;
     }
-    if (skipLaunchMsg != null) {
-      listener.getLogger().println(skipLaunchMsg);
-      return true;
+    if (failureMsg != null) {
+      listener.getLogger().println(failureMsg);
+      return false;
     }
 
     // Badge should be added only once - SONARPLUGINS-1521
