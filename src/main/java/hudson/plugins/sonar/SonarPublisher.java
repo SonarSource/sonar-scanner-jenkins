@@ -232,12 +232,12 @@ public class SonarPublisher extends Notifier {
     return SonarInstallation.get(getInstallationName());
   }
 
-  private boolean isSkip(AbstractBuild<?, ?> build, BuildListener listener, SonarInstallation sonarInstallation) {
+  private boolean isSkip(AbstractBuild<?, ?> build, BuildListener listener, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
     String skipLaunchMsg;
     if (isUseGlobalTriggers()) {
-      skipLaunchMsg = sonarInstallation.getTriggers().isSkipSonar(build);
+      skipLaunchMsg = sonarInstallation.getTriggers().isSkipSonar(build, listener);
     } else {
-      skipLaunchMsg = getTriggers().isSkipSonar(build);
+      skipLaunchMsg = getTriggers().isSkipSonar(build, listener);
     }
     if (skipLaunchMsg != null) {
       listener.getLogger().println(skipLaunchMsg);
@@ -247,7 +247,7 @@ public class SonarPublisher extends Notifier {
   }
 
   @Override
-  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
     String failureMsg;
     SonarInstallation sonarInstallation = getInstallation();
     if (sonarInstallation == null) {

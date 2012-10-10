@@ -15,6 +15,12 @@
  */
 package hudson.plugins.sonar.model;
 
+import hudson.util.VariableResolver;
+
+import hudson.model.BuildListener;
+
+import hudson.EnvVars;
+
 import hudson.Util;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
@@ -23,6 +29,7 @@ import hudson.plugins.sonar.Messages;
 import hudson.triggers.SCMTrigger;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -77,7 +84,7 @@ public class TriggersConfig implements Serializable {
     this.envVar = envVar;
   }
 
-  public String isSkipSonar(AbstractBuild<?, ?> build) {
+  public String isSkipSonar(AbstractBuild<?, ?> build, BuildListener listener) throws IOException, InterruptedException {
     Result result = build.getResult();
 
     if (result != null) {
@@ -88,9 +95,16 @@ public class TriggersConfig implements Serializable {
       }
     }
 
-    // skip analysis by environment variable
+    // skip analysis by environment variable or build parameter
     if (getEnvVar() != null) {
+      //check against build parameters
       String value = build.getBuildVariableResolver().resolve(getEnvVar());
+      if ("true".equalsIgnoreCase(value)) {
+        return Messages.Skipping_Sonar_analysis();
+      }
+      //check against environment variable
+      EnvVars envVars = build.getEnvironment(listener);
+      value = new VariableResolver.ByMap<String>(envVars).resolve(getEnvVar());
       if ("true".equalsIgnoreCase(value)) {
         return Messages.Skipping_Sonar_analysis();
       }
