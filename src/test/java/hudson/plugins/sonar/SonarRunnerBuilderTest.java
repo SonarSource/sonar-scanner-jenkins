@@ -31,4 +31,5 @@ public class SonarRunnerBuilderTest {
     assertThat(builder.getProperties()).isEmpty();
   }
 
+
 }

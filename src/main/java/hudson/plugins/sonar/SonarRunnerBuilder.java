@@ -15,31 +15,61 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Computer;
+import hudson.model.Executor;
+import hudson.model.Hudson;
+import hudson.model.JDK;
+import hudson.model.Node;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.util.ArgumentListBuilder;
+import hudson.util.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 /**
  * @since 1.7
  */
 public class SonarRunnerBuilder extends Builder {
 
+  /**
+   * Identifies {@link SonarInstallation} to be used.
+   */
   private final String installationName;
   private final String project;
   private final String properties;
   private final String javaOpts;
 
-  @DataBoundConstructor
+  /**
+   * Identifies {@link SonarRunnerInstallation} to be used.
+   * @since 2.0
+   */
+  private final String sonarRunnerName;
+
+  @Deprecated
   public SonarRunnerBuilder(String installationName, String project, String properties, String javaOpts) {
+    this(installationName, null, project, properties, javaOpts);
+  }
+
+  @DataBoundConstructor
+  public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts) {
     this.installationName = installationName;
+    this.sonarRunnerName = sonarRunnerName;
     this.javaOpts = javaOpts;
     this.project = project;
     this.properties = properties;
@@ -50,6 +80,13 @@ public class SonarRunnerBuilder extends Builder {
    */
   public String getInstallationName() {
     return Util.fixNull(installationName);
+  }
+
+  /**
+   * @return name of {@link hudson.plugins.sonar.SonarRunnerInstallation}
+   */
+  public String getSonarRunnerName() {
+    return Util.fixNull(sonarRunnerName);
   }
 
   /**
@@ -78,6 +115,23 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   @Override
+  public DescriptorImpl getDescriptor() {
+    return (DescriptorImpl) super.getDescriptor();
+  }
+
+  public SonarRunnerInstallation getSonarRunnerInstallation() {
+    for (SonarRunnerInstallation i : getDescriptor().getSonarRunnerInstallations()) {
+      if (sonarRunnerName != null && sonarRunnerName.equals(i.getName()))
+        return i;
+    }
+    //If no installation match then take the first one
+    if (getDescriptor().getSonarRunnerInstallations().length > 0) {
+      return getDescriptor().getSonarRunnerInstallations()[0];
+    }
+    return null;
+  }
+
+  @Override
   public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
     // TODO kind of copy-paste from SonarPublisher#isSkip
     final String skipLaunchMsg;
@@ -94,12 +148,133 @@ public class SonarRunnerBuilder extends Builder {
       return true;
     }
 
-    SonarRunner sonarRunner = new SonarRunner(build.getProject(), launcher, build.getEnvironment(listener), build.getWorkspace());
     // Badge should be added only once - SONARPLUGINS-1521
     if (build.getAction(BuildSonarAction.class) == null) {
       build.addAction(new BuildSonarAction());
     }
-    return sonarRunner.launch(listener, this) == 0;
+
+    ArgumentListBuilder args = new ArgumentListBuilder();
+
+    EnvVars env = build.getEnvironment(listener);
+    env.overrideAll(build.getBuildVariables());
+
+    SonarRunnerInstallation sri = getSonarRunnerInstallation();
+    if(sri==null) {
+      args.add(launcher.isUnix() ? "sonar-runner" : "sonar-runner.bat");
+    } else {
+      sri = sri.forNode(Computer.currentComputer().getNode(), listener);
+      sri = sri.forEnvironment(env);
+      String exe = sri.getExecutable(launcher);
+      if (exe == null) {
+        listener.fatalError(Messages.SonarRunner_ExecutableNotFound(sri.getName()));
+        return false;
+      }
+      args.add(exe);
+      env.put("SONAR_RUNNER_HOME", sri.getHome());
+    }
+    populateConfiguration(args, build.getWorkspace().getRemote());
+    // Java
+    env.put("JAVA_HOME", getJavaExecutable(build.getProject(), listener, env));
+    // Java options
+    env.put("SONAR_RUNNER_OPTS", getJavaOpts());
+
+    long startTime = System.currentTimeMillis();
+    try {
+        int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getWorkspace()).join();
+        return r==0;
+    } catch (IOException e) {
+        Util.displayIOException(e,listener);
+
+        String errorMessage = Messages.SonarRunner_ExecFailed();
+        if(sri==null && (System.currentTimeMillis()-startTime)<1000) {
+            if(getDescriptor().getSonarRunnerInstallations()==null)
+                // looks like the user didn't configure any Sonar Runner installation
+                errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
+        }
+        e.printStackTrace( listener.fatalError(errorMessage) );
+        return false;
+    }
+  }
+
+  private void populateConfiguration(ArgumentListBuilder args, String projectBaseDir) throws IOException {
+    // Server properties
+    SonarInstallation si = getSonarInstallation();
+    if (si != null) {
+      appendArg(args, "sonar.jdbc.driver", si.getDatabaseDriver());
+      appendArg(args, "sonar.jdbc.url", si.getDatabaseUrl()); // TODO can be masked
+      appendMaskedArg(args, "sonar.jdbc.username", si.getDatabaseLogin());
+      appendMaskedArg(args, "sonar.jdbc.password", si.getDatabasePassword());
+      appendArg(args, "sonar.host.url", si.getServerUrl());
+    }
+
+    appendArg(args, "sonar.projectBaseDir", projectBaseDir);
+
+    // Project properties
+    if (StringUtils.isNotBlank(getProject())) {
+      File projectSettings = new File(getProject());
+      Properties p = toProperties(projectSettings);
+      loadProperties(args, p);
+    }
+
+    // Additional properties
+    Properties p = new Properties();
+    p.load(new ByteArrayInputStream(getProperties().getBytes()));
+    loadProperties(args, p);
+  }
+
+  private void loadProperties(ArgumentListBuilder args, Properties p) {
+    for (Entry<Object, Object> entry : p.entrySet()) {
+      appendArg(args, entry.getKey().toString(), entry.getValue().toString());
+    }
+  }
+
+  public void appendArg(ArgumentListBuilder args, String name, String value) {
+    value = StringUtils.trimToEmpty(value);
+    if (StringUtils.isNotEmpty(value)) {
+      args.add("-D" + name + "=" + value);
+    }
+  }
+
+  public void appendMaskedArg(ArgumentListBuilder args, String name, String value) {
+    value = StringUtils.trimToEmpty(value);
+    if (StringUtils.isNotEmpty(value)) {
+      args.addMasked("-D" + name + "=" + value);
+    }
+  }
+
+  // TODO Duplicated from Sonar Runner Main
+  private Properties toProperties(File file) {
+    InputStream in = null;
+    Properties properties = new Properties();
+    try {
+      in = new FileInputStream(file);
+      properties.load(in);
+      return properties;
+
+    } catch (Exception e) {
+      throw new IllegalStateException("Fail to load file: " + file.getAbsolutePath(), e);
+
+    } finally {
+      IOUtils.closeQuietly(in);
+    }
+  }
+
+  /**
+   * @return path to Java executable to be used with this project, never <tt>null</tt>
+   */
+  private String getJavaExecutable(AbstractProject project, BuildListener listener, EnvVars envVars) throws IOException, InterruptedException {
+    JDK jdk = project.getJDK();
+    if (jdk != null) {
+      jdk = jdk.forNode(getCurrentNode(), listener).forEnvironment(envVars);
+    }
+    return jdk == null ? "java" : jdk.getHome() + "/bin/java";
+  }
+
+  /**
+   * @return the current {@link Node} on which we are building
+   */
+  private Node getCurrentNode() {
+    return Executor.currentExecutor().getOwner().getNode();
   }
 
   @Extension
@@ -107,7 +282,7 @@ public class SonarRunnerBuilder extends Builder {
 
     /**
      * This method is used in UI, so signature and location of this method is important.
-     * 
+     *
      * @return all configured {@link hudson.plugins.sonar.SonarInstallation}
      */
     public SonarInstallation[] getSonarInstallations() {
@@ -121,7 +296,11 @@ public class SonarRunnerBuilder extends Builder {
 
     @Override
     public String getDisplayName() {
-      return "Invoke Standalone Sonar Analysis";
+      return Messages.SonarRunnerBuilder_DisplayName();
+    }
+
+    public SonarRunnerInstallation[] getSonarRunnerInstallations() {
+      return Hudson.getInstance().getDescriptorByType(SonarRunnerInstallation.DescriptorImpl.class).getInstallations();
     }
 
   }

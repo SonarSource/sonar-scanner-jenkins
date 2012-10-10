@@ -246,37 +246,6 @@
 
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy-sonar-runner</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.codehaus.sonar</groupId>
-                  <artifactId>sonar-batch-bootstrapper</artifactId>
-                  <version>2.6</version>
-                  <outputDirectory>${project.build.directory}/classes</outputDirectory>
-                  <destFileName>sonar-batch-bootstrapper.jar</destFileName>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.codehaus.sonar-plugins</groupId>
-                  <artifactId>sonar-runner</artifactId>
-                  <version>1.2</version>
-                  <outputDirectory>${project.build.directory}/classes</outputDirectory>
-                  <destFileName>sonar-runner.jar</destFileName>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.jvnet.hudson.tools</groupId>
         <artifactId>maven-hpi-plugin</artifactId>
         <configuration>
@@ -385,19 +354,6 @@
               <configuration>
                 <lifecycleMappingMetadata>
                   <pluginExecutions>
-                    <pluginExecution>
-                      <pluginExecutionFilter>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <versionRange>[2.0,)</versionRange>
-                        <goals>
-                          <goal>copy</goal>
-                        </goals>
-                      </pluginExecutionFilter>
-                      <action>
-                        <ignore />
-                      </action>
-                    </pluginExecution>
                     <pluginExecution>
                       <pluginExecutionFilter>
                         <groupId>org.jvnet.hudson.tools</groupId>

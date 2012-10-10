@@ -18,15 +18,26 @@
       </select>
     </f:entry>
   </j:if>
+  <!-- Sonar Runner -->
+  <f:entry title="${%SonarRunner}">
+    <select class="setting-input" name="sonar.sonarRunnerName">
+      <option value="(Default)">(${%Default})</option>
+      <j:if test="${!empty(descriptor.getSonarRunnerInstallations())}">
+        <j:forEach var="inst" items="${descriptor.getSonarRunnerInstallations()}">
+          <f:option selected="${inst.name==instance.sonarRunnerName}" value="${inst.name}">${inst.name}</f:option>
+        </j:forEach>
+      </j:if>
+    </select>
+  </f:entry>
 
   <f:entry title="${%PathToProjectProperties}" field="project">
     <f:textbox />
   </f:entry>
-  
+
   <f:entry title="${%ProjectProperties}" field="properties" help="/plugin/sonar/help-runner-properties.html">
     <f:textarea />
   </f:entry>
-  
+
   <!-- The Java options to be used -->
   <f:entry title="${%JVMOptions}" field="javaOpts">
     <f:expandableTextbox />
