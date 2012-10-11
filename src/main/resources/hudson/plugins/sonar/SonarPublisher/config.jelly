@@ -35,11 +35,21 @@
       <f:textbox name="sonar.language" value="${instance.getLanguage()}"/>
     </f:entry>
 
+    <j:set var="jdks" value="${app.JDKs}" />
+    <f:entry title="JDK" description="${%JDK to be used for this sonar analysis}">
+      <select class="setting-input validated" name="jdk" checkUrl="'${rootURL}/defaultJDKCheck?value='+this.value">
+        <option>${%InheritFromJob}</option>
+        <j:forEach var="inst" items="${jdks}">
+          <f:option selected="${inst.name==instance.JDK.name}" value="${inst.name}">${inst.name}</f:option>
+        </j:forEach>
+      </select>
+    </f:entry>
+
     <j:if test="${!isMavenBuilder}">
       <!-- Maven version -->
       <f:entry title="${%MavenVersion}">
         <select class="setting-input" name="sonar.mavenInstallationName">
-          <option value="">(Default)</option>
+          <option>${%default.value}</option>
           <j:forEach var="inst" items="${descriptor.mavenInstallations}">
             <f:option selected="${inst.name==instance.getMavenInstallationName()}" value="${inst.name}">
               ${inst.name}

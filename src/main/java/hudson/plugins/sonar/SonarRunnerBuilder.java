@@ -27,6 +27,7 @@ import hudson.model.Executor;
 import hudson.model.Hudson;
 import hudson.model.JDK;
 import hudson.model.Node;
+import hudson.model.Project;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
@@ -56,6 +57,18 @@ public class SonarRunnerBuilder extends Builder {
   private final String javaOpts;
 
   /**
+   * Identifies {@link JDK} to be used.
+   * Null if no explicit configuration is required.
+   *
+   * <p>
+   * Can't store {@link JDK} directly because {@link Jenkins} and {@link Project}
+   * are saved independently.
+   *
+   * @see Jenkins#getJDK(String)
+   */
+  private String jdk;
+
+  /**
    * Identifies {@link SonarRunnerInstallation} to be used.
    * @since 2.0
    */
@@ -63,16 +76,22 @@ public class SonarRunnerBuilder extends Builder {
 
   @Deprecated
   public SonarRunnerBuilder(String installationName, String project, String properties, String javaOpts) {
-    this(installationName, null, project, properties, javaOpts);
+    this(installationName, null, project, properties, javaOpts, null);
+  }
+
+  @Deprecated
+  public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts) {
+    this(installationName, sonarRunnerName, project, properties, javaOpts, null);
   }
 
   @DataBoundConstructor
-  public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts) {
+  public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk) {
     this.installationName = installationName;
     this.sonarRunnerName = sonarRunnerName;
     this.javaOpts = javaOpts;
     this.project = project;
     this.properties = properties;
+    this.jdk = jdk;
   }
 
   /**
@@ -87,6 +106,14 @@ public class SonarRunnerBuilder extends Builder {
    */
   public String getSonarRunnerName() {
     return Util.fixNull(sonarRunnerName);
+  }
+
+
+  /**
+   * Gets the JDK that this Sonar builder is configured with, or null.
+   */
+  public JDK getJDK() {
+    return Hudson.getInstance().getJDK(jdk);
   }
 
   /**
@@ -179,8 +206,17 @@ public class SonarRunnerBuilder extends Builder {
       env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
     populateConfiguration(args, build.getWorkspace().getRemote(), env);
+
     // Java
-    env.put("JAVA_HOME", getJavaExecutable(build.getProject(), listener, env));
+    JDK jdk = getJdkToUse(build.getProject());
+    if (jdk != null) {
+      Computer computer = Computer.currentComputer();
+      if (computer != null) { // just in case were not in a build
+        jdk = jdk.forNode(computer.getNode(), listener);
+      }
+      jdk.buildEnvVars(env);
+    }
+
     // Java options
     env.put("SONAR_RUNNER_OPTS", getJavaOpts());
 
@@ -266,14 +302,14 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   /**
-   * @return path to Java executable to be used with this project, never <tt>null</tt>
+   * @return JDK to be used with this project.
    */
-  private String getJavaExecutable(AbstractProject project, BuildListener listener, EnvVars envVars) throws IOException, InterruptedException {
-    JDK jdk = project.getJDK();
-    if (jdk != null) {
-      jdk = jdk.forNode(getCurrentNode(), listener).forEnvironment(envVars);
+  private JDK getJdkToUse(AbstractProject project) {
+    JDK jdk = getJDK();
+    if (jdk == null) {
+      jdk = project.getJDK();
     }
-    return jdk == null ? "java" : jdk.getHome() + "/bin/java";
+    return jdk;
   }
 
   /**

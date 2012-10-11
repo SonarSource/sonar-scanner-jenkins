@@ -15,6 +15,10 @@
  */
 package hudson.plugins.sonar.utils;
 
+import hudson.model.Computer;
+
+import hudson.model.JDK;
+
 import hudson.EnvVars;
 
 import hudson.FilePath;
@@ -44,11 +48,15 @@ public final class SonarMaven extends Maven {
 
   private final SonarPublisher publisher;
   private final String additionalProperties;
+  private JDK jdk;
+  private final BuildListener listener;
 
-  public SonarMaven(String additionalProperties, String name, String pom, String jvmOptions, boolean usePrivateRepository, SonarPublisher publisher) {
+  public SonarMaven(String additionalProperties, String name, String pom, String jvmOptions, boolean usePrivateRepository, SonarPublisher publisher, BuildListener listener, JDK jdk) {
     super(getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, usePrivateRepository);
     this.additionalProperties = additionalProperties;
     this.publisher = publisher;
+    this.jdk = jdk;
+    this.listener = listener;
   }
 
   /**
@@ -96,7 +104,8 @@ public final class SonarMaven extends Maven {
       String mavenName,
       String pom,
       SonarInstallation sonarInstallation,
-      SonarPublisher sonarPublisher
+      SonarPublisher sonarPublisher,
+      JDK jdk
       ) throws IOException, InterruptedException {
     MavenModuleSet mavenModuleProject = sonarPublisher.getMavenProject(build);
     EnvVars envVars = build.getEnvironment(listener);
@@ -137,8 +146,21 @@ public final class SonarMaven extends Maven {
       + (StringUtils.isNotBlank(alternateSettings) ? "-s " + alternateSettings : "");
     // Execute Maven
     pom = build.getModuleRoot().child(pom).getRemote(); // SONARPLUGINS-487
-    return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, usesPrivateRepository, sonarPublisher)
+    return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, usesPrivateRepository, sonarPublisher, listener, jdk)
         .perform(build, launcher, listener);
+  }
+
+  @Override
+  protected void buildEnvVars(EnvVars env, MavenInstallation mi) throws IOException, InterruptedException {
+    super.buildEnvVars(env, mi);
+    //Override JDK in case it is set on Sonar publisher
+    if (jdk != null) {
+      Computer computer = Computer.currentComputer();
+      if (computer != null) { // just in case were not in a build
+        jdk = jdk.forNode(computer.getNode(), listener);
+      }
+      jdk.buildEnvVars(env);
+    }
   }
 
   /**

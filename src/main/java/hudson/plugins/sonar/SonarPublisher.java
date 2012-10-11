@@ -15,6 +15,8 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.model.JDK;
+
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.Launcher;
@@ -59,6 +61,18 @@ import java.util.List;
  * when writing back
  */
 public class SonarPublisher extends Notifier {
+
+  /**
+   * Identifies {@link JDK} to be used.
+   * Null if no explicit configuration is required.
+   *
+   * <p>
+   * Can't store {@link JDK} directly because {@link Jenkins} and {@link Project}
+   * are saved independently.
+   *
+   * @see Jenkins#getJDK(String)
+   */
+  private String jdk;
 
   /**
    * Sonar installation name.
@@ -124,14 +138,22 @@ public class SonarPublisher extends Notifier {
       String installationName,
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts) {
-    this(installationName, triggers, jobAdditionalProperties, mavenOpts, null, null);
+    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, null, null, null);
   }
 
   public SonarPublisher(String installationName,
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
       String mavenInstallationName, String rootPom) {
-    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom);
+    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null);
+  }
+  public SonarPublisher(String installationName,
+      String branch,
+      String language,
+      TriggersConfig triggers,
+      String jobAdditionalProperties, String mavenOpts,
+      String mavenInstallationName, String rootPom) {
+    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null);
   }
 
   @DataBoundConstructor
@@ -140,7 +162,7 @@ public class SonarPublisher extends Notifier {
       String language,
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
-      String mavenInstallationName, String rootPom) {
+      String mavenInstallationName, String rootPom, String jdk) {
     super();
     this.installationName = installationName;
     this.branch = branch;
@@ -153,6 +175,14 @@ public class SonarPublisher extends Notifier {
     // Non Maven Project
     this.mavenInstallationName = mavenInstallationName;
     this.rootPom = rootPom;
+    this.jdk = jdk;
+  }
+
+  /**
+   * Gets the JDK that this Sonar publisher is configured with, or null.
+   */
+  public JDK getJDK() {
+    return Hudson.getInstance().getJDK(jdk);
   }
 
   /**
@@ -312,7 +342,7 @@ public class SonarPublisher extends Notifier {
       }
 
       // Execute maven
-      return SonarMaven.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this);
+      return SonarMaven.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this, getJDK());
     } catch (IOException e) {
       Util.displayIOException(e, listener);
       e.printStackTrace(listener.fatalError("command execution failed"));

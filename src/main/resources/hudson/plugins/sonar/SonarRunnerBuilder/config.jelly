@@ -9,7 +9,7 @@
     </f:entry>
   </j:if>
   <j:if test="${sonars.size() gt 1}">
-    <!-- choise not necessary if there's no choice -->
+    <!-- choice not necessary if there's no choice -->
     <f:entry title="${%SonarInstallation}">
       <select class="setting-input" name="sonar.installationName">
         <j:forEach var="inst" items="${sonars}">
@@ -18,10 +18,22 @@
       </select>
     </f:entry>
   </j:if>
+
+  <!-- JDK -->
+  <j:set var="jdks" value="${app.JDKs}" />
+  <f:entry title="JDK" description="${%JDK to be used for this sonar analysis}">
+    <select class="setting-input validated" name="jdk" checkUrl="'${rootURL}/defaultJDKCheck?value='+this.value">
+      <option>${%InheritFromJob}</option>
+      <j:forEach var="inst" items="${jdks}">
+        <f:option selected="${inst.name==instance.JDK.name}" value="${inst.name}">${inst.name}</f:option>
+      </j:forEach>
+    </select>
+  </f:entry>
+
   <!-- Sonar Runner -->
   <f:entry title="${%SonarRunner}">
     <select class="setting-input" name="sonar.sonarRunnerName">
-      <option value="(Default)">(${%Default})</option>
+      <option>${%default.value}</option>
       <j:if test="${!empty(descriptor.getSonarRunnerInstallations())}">
         <j:forEach var="inst" items="${descriptor.getSonarRunnerInstallations()}">
           <f:option selected="${inst.name==instance.sonarRunnerName}" value="${inst.name}">${inst.name}</f:option>
