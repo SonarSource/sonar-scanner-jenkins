@@ -21,7 +21,7 @@
 
   <!-- JDK -->
   <j:set var="jdks" value="${app.JDKs}" />
-  <f:entry title="JDK" description="${%JDK to be used for this sonar analysis}">
+  <f:entry title="JDK" description="${%JDKDesc}">
     <select class="setting-input validated" name="jdk" checkUrl="'${rootURL}/defaultJDKCheck?value='+this.value">
       <option>${%InheritFromJob}</option>
       <j:forEach var="inst" items="${jdks}">
