@@ -31,16 +31,26 @@
   </f:entry>
 
   <!-- Sonar Runner -->
-  <f:entry title="${%SonarRunner}">
-    <select class="setting-input" name="sonar.sonarRunnerName">
-      <option>${%default.value}</option>
-      <j:if test="${!empty(descriptor.getSonarRunnerInstallations())}">
+  <j:set var="runners" value="${descriptor.getSonarRunnerInstallations()}" />
+  <j:if test="${empty(runners)}">
+    <!-- no runner installation is configured. this will be an error, so warn the user now -->
+    <f:entry title="${%SonarRunner}">
+      <div class="error">
+        ${%Sonar Runner Version.error.1}&lt;br>
+        ${%Sonar Runner Version.error.2(rootURL)}
+      </div>
+    </f:entry>
+  </j:if>
+  <j:if test="${runners.size() gt 1}">
+    <!-- choice not necessary if there's no choice -->
+    <f:entry title="${%SonarRunner}">
+      <select class="setting-input" name="sonar.sonarRunnerName">
         <j:forEach var="inst" items="${descriptor.getSonarRunnerInstallations()}">
           <f:option selected="${inst.name==instance.sonarRunnerName}" value="${inst.name}">${inst.name}</f:option>
         </j:forEach>
-      </j:if>
-    </select>
-  </f:entry>
+      </select>
+    </f:entry>
+  </j:if>
 
   <f:entry title="${%PathToProjectProperties}" field="project">
     <f:textbox />
