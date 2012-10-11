@@ -76,11 +76,17 @@ public class SonarRunnerBuilder extends Builder {
    */
   private final String sonarRunnerName;
 
+  /**
+   * @deprecated in 2.0
+   */
   @Deprecated
   public SonarRunnerBuilder(String installationName, String project, String properties, String javaOpts) {
     this(installationName, null, project, properties, javaOpts, null);
   }
 
+  /**
+   * @deprecated in 2.0
+   */
   @Deprecated
   public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts) {
     this(installationName, sonarRunnerName, project, properties, javaOpts, null);
@@ -149,9 +155,10 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   public SonarRunnerInstallation getSonarRunnerInstallation() {
-    for (SonarRunnerInstallation i : getDescriptor().getSonarRunnerInstallations()) {
-      if (sonarRunnerName != null && sonarRunnerName.equals(i.getName()))
-        return i;
+    for (SonarRunnerInstallation sri : getDescriptor().getSonarRunnerInstallations()) {
+      if (sonarRunnerName != null && sonarRunnerName.equals(sri.getName())) {
+        return sri;
+      }
     }
     //If no installation match then take the first one
     if (getDescriptor().getSonarRunnerInstallations().length > 0) {
@@ -162,25 +169,7 @@ public class SonarRunnerBuilder extends Builder {
 
   @Override
   public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    // TODO copy-paste from SonarPublisher#perform
-    String failureMsg;
-    SonarInstallation sonarInstallation = getSonarInstallation();
-    if (sonarInstallation == null) {
-      if (StringUtils.isBlank(getInstallationName())) {
-        failureMsg = Messages.SonarPublisher_NoInstallation(SonarInstallation.all().length);
-      }
-      else {
-        failureMsg = Messages.SonarPublisher_NoMatchInstallation(getInstallationName(), SonarInstallation.all().length);
-      }
-      failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();
-    } else if (sonarInstallation.isDisabled()) {
-      failureMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else {
-      failureMsg = null;
-    }
-    if (failureMsg != null) {
-      Logger.printFailureMessage(listener);
-      listener.fatalError(failureMsg);
+    if (!isSonarInstallationValid(getInstallationName(), listener)) {
       return false;
     }
 
@@ -243,6 +232,30 @@ public class SonarRunnerBuilder extends Builder {
     }
   }
 
+  public static boolean isSonarInstallationValid(String sonarInstallationName, BuildListener listener) {
+    String failureMsg;
+    SonarInstallation sonarInstallation = SonarInstallation.get(sonarInstallationName);
+    if (sonarInstallation == null) {
+      if (StringUtils.isBlank(sonarInstallationName)) {
+        failureMsg = Messages.SonarPublisher_NoInstallation(SonarInstallation.all().length);
+      }
+      else {
+        failureMsg = Messages.SonarPublisher_NoMatchInstallation(sonarInstallationName, SonarInstallation.all().length);
+      }
+      failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();
+    } else if (sonarInstallation.isDisabled()) {
+      failureMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
+    } else {
+      failureMsg = null;
+    }
+    if (failureMsg != null) {
+      Logger.printFailureMessage(listener);
+      listener.fatalError(failureMsg);
+      return false;
+    }
+    return true;
+  }
+
   private void populateConfiguration(ArgumentListBuilder args, String projectBaseDir, EnvVars env) throws IOException {
     // Server properties
     SonarInstallation si = getSonarInstallation();
@@ -292,11 +305,11 @@ public class SonarRunnerBuilder extends Builder {
   // TODO Duplicated from Sonar Runner Main
   private Properties toProperties(File file) {
     InputStream in = null;
-    Properties properties = new Properties();
+    Properties props = new Properties();
     try {
       in = new FileInputStream(file);
-      properties.load(in);
-      return properties;
+      props.load(in);
+      return props;
 
     } catch (Exception e) {
       throw new IllegalStateException("Fail to load file: " + file.getAbsolutePath(), e);

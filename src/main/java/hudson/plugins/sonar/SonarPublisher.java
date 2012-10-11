@@ -280,26 +280,10 @@ public class SonarPublisher extends Notifier {
 
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    String failureMsg;
-    SonarInstallation sonarInstallation = getInstallation();
-    if (sonarInstallation == null) {
-      if (StringUtils.isBlank(getInstallationName())) {
-        failureMsg = Messages.SonarPublisher_NoInstallation(SonarInstallation.all().length);
-      }
-      else {
-        failureMsg = Messages.SonarPublisher_NoMatchInstallation(getInstallationName(), SonarInstallation.all().length);
-      }
-      failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();
-    } else if (sonarInstallation.isDisabled()) {
-      failureMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else {
-      failureMsg = null;
-    }
-    if (failureMsg != null) {
-      Logger.printFailureMessage(listener);
-      listener.fatalError(failureMsg);
+    if (!SonarRunnerBuilder.isSonarInstallationValid(getInstallationName(), listener)) {
       return false;
     }
+    SonarInstallation sonarInstallation = getInstallation();
 
     if (isSkip(build, listener, sonarInstallation)) {
       return true;

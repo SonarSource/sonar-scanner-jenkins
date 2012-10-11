@@ -63,8 +63,9 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
     return launcher.getChannel().call(new Callable<String, IOException>() {
       public String call() throws IOException {
         File exe = getExeFile();
-        if (exe.exists())
+        if (exe.exists()) {
           return exe.getPath();
+        }
         return null;
       }
     });
