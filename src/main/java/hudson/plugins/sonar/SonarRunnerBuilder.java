@@ -15,6 +15,8 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.plugins.sonar.utils.Logger;
+
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
@@ -177,7 +179,8 @@ public class SonarRunnerBuilder extends Builder {
       failureMsg = null;
     }
     if (failureMsg != null) {
-      listener.getLogger().println(failureMsg);
+      Logger.printFailureMessage(listener);
+      listener.fatalError(failureMsg);
       return false;
     }
 
@@ -199,6 +202,7 @@ public class SonarRunnerBuilder extends Builder {
       sri = sri.forEnvironment(env);
       String exe = sri.getExecutable(launcher);
       if (exe == null) {
+        Logger.printFailureMessage(listener);
         listener.fatalError(Messages.SonarRunner_ExecutableNotFound(sri.getName()));
         return false;
       }
@@ -222,19 +226,20 @@ public class SonarRunnerBuilder extends Builder {
 
     long startTime = System.currentTimeMillis();
     try {
-        int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getWorkspace()).join();
-        return r==0;
+      int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getWorkspace()).join();
+      return r==0;
     } catch (IOException e) {
-        Util.displayIOException(e,listener);
+      Logger.printFailureMessage(listener);
+      Util.displayIOException(e,listener);
 
-        String errorMessage = Messages.SonarRunner_ExecFailed();
-        if(sri==null && (System.currentTimeMillis()-startTime)<1000) {
-            if(getDescriptor().getSonarRunnerInstallations()==null)
-                // looks like the user didn't configure any Sonar Runner installation
-                errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
-        }
-        e.printStackTrace( listener.fatalError(errorMessage) );
-        return false;
+      String errorMessage = Messages.SonarRunner_ExecFailed();
+      if(sri==null && (System.currentTimeMillis()-startTime)<1000) {
+        if(getDescriptor().getSonarRunnerInstallations()==null)
+          // looks like the user didn't configure any Sonar Runner installation
+          errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
+      }
+      e.printStackTrace( listener.fatalError(errorMessage) );
+      return false;
     }
   }
 

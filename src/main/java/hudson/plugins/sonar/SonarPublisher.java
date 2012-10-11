@@ -15,6 +15,8 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.plugins.sonar.utils.Logger;
+
 import hudson.model.JDK;
 
 import hudson.CopyOnWrite;
@@ -294,7 +296,8 @@ public class SonarPublisher extends Notifier {
       failureMsg = null;
     }
     if (failureMsg != null) {
-      listener.getLogger().println(failureMsg);
+      Logger.printFailureMessage(listener);
+      listener.fatalError(failureMsg);
       return false;
     }
 
@@ -344,12 +347,14 @@ public class SonarPublisher extends Notifier {
       // Execute maven
       return SonarMaven.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this, getJDK());
     } catch (IOException e) {
+      Logger.printFailureMessage(listener);
       Util.displayIOException(e, listener);
       e.printStackTrace(listener.fatalError("command execution failed"));
       return false;
     } catch (InterruptedException e) {
       return false;
     } catch (Exception e) {
+      Logger.printFailureMessage(listener);
       e.printStackTrace(listener.fatalError("command execution failed"));
       return false;
     }
