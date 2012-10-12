@@ -155,7 +155,7 @@ public class SonarPublisher extends Notifier {
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
       String mavenInstallationName, String rootPom) {
-    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null);
+    this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null);
   }
 
   @DataBoundConstructor
@@ -382,7 +382,6 @@ public class SonarPublisher extends Notifier {
       // ignore
     } catch (NullPointerException e) {
       // ignore something in the line can be null for maven project
-      // Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
     }
     return url;
   }

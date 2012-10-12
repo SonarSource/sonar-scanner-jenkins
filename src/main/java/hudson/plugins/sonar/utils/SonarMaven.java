@@ -51,7 +51,8 @@ public final class SonarMaven extends Maven {
   private JDK jdk;
   private final BuildListener listener;
 
-  public SonarMaven(String additionalProperties, String name, String pom, String jvmOptions, boolean usePrivateRepository, SonarPublisher publisher, BuildListener listener, JDK jdk) {
+  public SonarMaven(String additionalProperties, String name, String pom, String jvmOptions, boolean usePrivateRepository,
+      SonarPublisher publisher, BuildListener listener, JDK jdk) {
     super(getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, usePrivateRepository);
     this.additionalProperties = additionalProperties;
     this.publisher = publisher;

@@ -21,7 +21,11 @@ import hudson.model.BuildListener;
  * @author Julien HENRY
  * @since 2.0
  */
-public class Logger {
+public final class Logger {
+
+  private Logger() {
+    //Utility class
+  }
 
   public static void printFailureMessage(BuildListener listener) {
     listener.getLogger().println("------------------------------------------------------------------------");

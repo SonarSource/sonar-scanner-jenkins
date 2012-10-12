@@ -15,8 +15,6 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.utils.Logger;
-
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
@@ -25,11 +23,10 @@ import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
-import hudson.model.Executor;
 import hudson.model.Hudson;
 import hudson.model.JDK;
-import hudson.model.Node;
 import hudson.model.Project;
+import hudson.plugins.sonar.utils.Logger;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
@@ -201,13 +198,13 @@ public class SonarRunnerBuilder extends Builder {
     populateConfiguration(args, build.getWorkspace().getRemote(), env);
 
     // Java
-    JDK jdk = getJdkToUse(build.getProject());
-    if (jdk != null) {
+    JDK jdkToUse = getJdkToUse(build.getProject());
+    if (jdkToUse != null) {
       Computer computer = Computer.currentComputer();
       if (computer != null) { // just in case were not in a build
-        jdk = jdk.forNode(computer.getNode(), listener);
+        jdkToUse = jdkToUse.forNode(computer.getNode(), listener);
       }
-      jdk.buildEnvVars(env);
+      jdkToUse.buildEnvVars(env);
     }
 
     // Java options
@@ -222,8 +219,7 @@ public class SonarRunnerBuilder extends Builder {
       Util.displayIOException(e,listener);
 
       String errorMessage = Messages.SonarRunner_ExecFailed();
-      if(sri==null && (System.currentTimeMillis()-startTime)<1000) {
-        if(getDescriptor().getSonarRunnerInstallations()==null)
+      if(sri == null && (System.currentTimeMillis() - startTime) < 1000 && getDescriptor().getSonarRunnerInstallations() == null) {
           // looks like the user didn't configure any Sonar Runner installation
           errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
       }
@@ -261,7 +257,7 @@ public class SonarRunnerBuilder extends Builder {
     SonarInstallation si = getSonarInstallation();
     if (si != null) {
       appendArg(args, "sonar.jdbc.driver", si.getDatabaseDriver());
-      appendArg(args, "sonar.jdbc.url", si.getDatabaseUrl()); // TODO can be masked
+      appendArg(args, "sonar.jdbc.url", si.getDatabaseUrl());
       appendMaskedArg(args, "sonar.jdbc.username", si.getDatabaseLogin());
       appendMaskedArg(args, "sonar.jdbc.password", si.getDatabasePassword());
       appendArg(args, "sonar.host.url", si.getServerUrl());
@@ -323,18 +319,11 @@ public class SonarRunnerBuilder extends Builder {
    * @return JDK to be used with this project.
    */
   private JDK getJdkToUse(AbstractProject project) {
-    JDK jdk = getJDK();
-    if (jdk == null) {
-      jdk = project.getJDK();
+    JDK jdkToUse = getJDK();
+    if (jdkToUse == null) {
+      jdkToUse = project.getJDK();
     }
-    return jdk;
-  }
-
-  /**
-   * @return the current {@link Node} on which we are building
-   */
-  private Node getCurrentNode() {
-    return Executor.currentExecutor().getOwner().getNode();
+    return jdkToUse;
   }
 
   @Extension
