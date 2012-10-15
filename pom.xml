@@ -57,6 +57,17 @@
         <role>Developer</role>
       </roles>
     </developer>
+    <developer>
+      <id>henryju</id>
+      <name>Julien Henry</name>
+      <email>henryju@yahoo.fr</email>
+      <timezone>+1</timezone>
+      <organization>SonarSource</organization>
+      <organizationUrl>http://www.sonarsource.com/</organizationUrl>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
   </developers>
 
   <contributors>
