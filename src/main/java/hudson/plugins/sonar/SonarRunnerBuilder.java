@@ -113,7 +113,6 @@ public class SonarRunnerBuilder extends Builder {
     return Util.fixNull(sonarRunnerName);
   }
 
-
   /**
    * Gets the JDK that this Sonar builder is configured with, or null.
    */
@@ -157,7 +156,7 @@ public class SonarRunnerBuilder extends Builder {
         return sri;
       }
     }
-    //If no installation match then take the first one
+    // If no installation match then take the first one
     if (getDescriptor().getSonarRunnerInstallations().length > 0) {
       return getDescriptor().getSonarRunnerInstallations()[0];
     }
@@ -181,7 +180,7 @@ public class SonarRunnerBuilder extends Builder {
     env.overrideAll(build.getBuildVariables());
 
     SonarRunnerInstallation sri = getSonarRunnerInstallation();
-    if(sri==null) {
+    if (sri == null) {
       args.add(launcher.isUnix() ? "sonar-runner" : "sonar-runner.bat");
     } else {
       sri = sri.forNode(Computer.currentComputer().getNode(), listener);
@@ -213,17 +212,17 @@ public class SonarRunnerBuilder extends Builder {
     long startTime = System.currentTimeMillis();
     try {
       int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getWorkspace()).join();
-      return r==0;
+      return r == 0;
     } catch (IOException e) {
       Logger.printFailureMessage(listener);
-      Util.displayIOException(e,listener);
+      Util.displayIOException(e, listener);
 
       String errorMessage = Messages.SonarRunner_ExecFailed();
-      if(sri == null && (System.currentTimeMillis() - startTime) < 1000 && getDescriptor().getSonarRunnerInstallations() == null) {
-          // looks like the user didn't configure any Sonar Runner installation
-          errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
+      if (sri == null && (System.currentTimeMillis() - startTime) < 1000 && getDescriptor().getSonarRunnerInstallations() == null) {
+        // looks like the user didn't configure any Sonar Runner installation
+        errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
       }
-      e.printStackTrace( listener.fatalError(errorMessage) );
+      e.printStackTrace(listener.fatalError(errorMessage));
       return false;
     }
   }
