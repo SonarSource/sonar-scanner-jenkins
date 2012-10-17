@@ -7,31 +7,26 @@
 <pre style="border: solid #BBBBBB 1px; padding: 1em">
 # required metadata
 sonar.projectKey=my:project
-sonar.projectName="My Project"
+sonar.projectName=My project
 sonar.projectVersion=1.0
 
 # path to source directories (required)
-sources=srcDir1,srcDir2
+sonar.sources=srcDir1,srcDir2
 
 # path to test source directories (optional)
-tests=testDir1,testDir2
+sonar.tests=testDir1,testDir2
 
 # path to project binaries (optional), for example directory of Java bytecode
-binaries=binDir
+sonar.binaries=binDir
 
 # optional comma-separated list of paths to libraries. Only path to JAR file and path to directory of classes are supported.
-libraries=path/to/library.jar,path/to/classes/dir
-
-# Uncomment those lines if some features of java 5 or java 6 like annotations, enum, ...
-# are used in the source code to be analysed
-#sonar.java.source=1.5
-#sonar.java.target=1.5
+sonar.libraries=path/to/library.jar,path/to/classes/dir
 
 # Uncomment this line to analyse a project which is not a java project.
 # The value of the property must be the key of the language.
-#sonar.language=cobol
+sonar.language=cobol
 
-# Advanced parameters
-my.property=value
+# Additional parameters
+sonar.my.property=value
 </pre>
 </div>
