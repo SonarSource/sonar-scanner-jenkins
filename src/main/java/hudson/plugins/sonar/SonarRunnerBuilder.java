@@ -26,6 +26,7 @@ import hudson.model.Computer;
 import hudson.model.Hudson;
 import hudson.model.JDK;
 import hudson.model.Project;
+import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
@@ -194,7 +195,8 @@ public class SonarRunnerBuilder extends Builder {
       args.add(exe);
       env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
-    populateConfiguration(args, build.getWorkspace().getRemote(), env);
+    ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
+    populateConfiguration(argsBuilder, build.getWorkspace().getRemote(), env);
 
     // Java
     JDK jdkToUse = getJdkToUse(build.getProject());
@@ -251,18 +253,18 @@ public class SonarRunnerBuilder extends Builder {
     return true;
   }
 
-  private void populateConfiguration(ArgumentListBuilder args, String projectBaseDir, EnvVars env) throws IOException {
+  private void populateConfiguration(ExtendedArgumentListBuilder args, String projectBaseDir, EnvVars env) throws IOException {
     // Server properties
     SonarInstallation si = getSonarInstallation();
     if (si != null) {
-      appendArg(args, "sonar.jdbc.driver", si.getDatabaseDriver());
-      appendArg(args, "sonar.jdbc.url", si.getDatabaseUrl());
-      appendMaskedArg(args, "sonar.jdbc.username", si.getDatabaseLogin());
-      appendMaskedArg(args, "sonar.jdbc.password", si.getDatabasePassword());
-      appendArg(args, "sonar.host.url", si.getServerUrl());
+      args.append("sonar.jdbc.driver", si.getDatabaseDriver());
+      args.append("sonar.jdbc.url", si.getDatabaseUrl());
+      args.appendMasked("sonar.jdbc.username", si.getDatabaseLogin());
+      args.appendMasked("sonar.jdbc.password", si.getDatabasePassword());
+      args.append("sonar.host.url", si.getServerUrl());
     }
 
-    appendArg(args, "sonar.projectBaseDir", projectBaseDir);
+    args.append("sonar.projectBaseDir", projectBaseDir);
 
     // Project properties
     if (StringUtils.isNotBlank(getProject())) {
@@ -277,23 +279,9 @@ public class SonarRunnerBuilder extends Builder {
     loadProperties(args, p);
   }
 
-  private void loadProperties(ArgumentListBuilder args, Properties p) {
+  private void loadProperties(ExtendedArgumentListBuilder args, Properties p) {
     for (Entry<Object, Object> entry : p.entrySet()) {
-      appendArg(args, entry.getKey().toString(), entry.getValue().toString());
-    }
-  }
-
-  public void appendArg(ArgumentListBuilder args, String name, String value) {
-    value = StringUtils.trimToEmpty(value);
-    if (StringUtils.isNotEmpty(value)) {
-      args.add("-D" + name + "=" + value);
-    }
-  }
-
-  public void appendMaskedArg(ArgumentListBuilder args, String name, String value) {
-    value = StringUtils.trimToEmpty(value);
-    if (StringUtils.isNotEmpty(value)) {
-      args.addMasked("-D" + name + "=" + value);
+      args.append(entry.getKey().toString(), entry.getValue().toString());
     }
   }
 
