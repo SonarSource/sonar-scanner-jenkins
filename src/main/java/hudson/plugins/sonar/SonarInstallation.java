@@ -77,15 +77,32 @@ public class SonarInstallation {
 
   private TriggersConfig triggers;
 
+  /**
+   * @since 2.0.1
+   */
+  private String sonarLogin;
+  private String sonarPassword;
+
+  @Deprecated
   public SonarInstallation(String name) {
     this(name, false, null, null, null, null, null, null, null, null, null);
+  }
+
+  @Deprecated
+  public SonarInstallation(String name, boolean disabled,
+      String serverUrl, String serverPublicUrl,
+      String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
+      String mojoVersion, String additionalProperties, TriggersConfig triggers) {
+    this(name, disabled, serverUrl, serverPublicUrl, databaseUrl, databaseDriver, databaseLogin, databasePassword, mojoVersion, additionalProperties,
+        triggers, null, null);
   }
 
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled,
       String serverUrl, String serverPublicUrl,
       String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
-      String mojoVersion, String additionalProperties, TriggersConfig triggers) {
+      String mojoVersion, String additionalProperties, TriggersConfig triggers,
+      String sonarLogin, String sonarPassword) {
     this.name = name;
     this.disabled = disabled;
     this.serverUrl = serverUrl;
@@ -97,6 +114,8 @@ public class SonarInstallation {
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
     this.triggers = triggers;
+    this.sonarLogin = sonarLogin;
+    setSonarPassword(sonarPassword);
   }
 
   public String getName() {
@@ -160,7 +179,7 @@ public class SonarInstallation {
 
   /**
    * For internal use only. Allows to perform migration.
-   * 
+   *
    * @since 1.7
    */
   public String getScrambledDatabasePassword() {
@@ -213,5 +232,23 @@ public class SonarInstallation {
 
   public String getComponentLink(String groupId, String artifactId) {
     return getServerLink("/components/index/", groupId, artifactId);
+  }
+
+  /**
+   * @since 2.0.1
+   */
+  public String getSonarLogin() {
+    return sonarLogin;
+  }
+
+  /**
+   * @since 2.0.1
+   */
+  public String getSonarPassword() {
+    return Scrambler.descramble(sonarPassword);
+  }
+
+  public void setSonarPassword(String sonarPassword) {
+    this.sonarPassword = Scrambler.scramble(Util.fixEmptyAndTrim(sonarPassword));
   }
 }

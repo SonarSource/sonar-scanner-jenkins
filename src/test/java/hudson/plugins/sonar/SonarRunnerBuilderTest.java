@@ -27,6 +27,8 @@ import hudson.scm.SCM;
 import hudson.util.ArgumentListBuilder;
 import org.apache.commons.io.FileUtils;
 import org.fest.util.Files;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -41,6 +43,37 @@ import static org.mockito.Mockito.when;
 
 public class SonarRunnerBuilderTest {
 
+  private File moduleDir;
+  private ExtendedArgumentListBuilder argsBuilder;
+  private MyBuild build;
+  private BuildListener listener;
+  private EnvVars env;
+  private File workspace;
+  private ArgumentListBuilder args;
+
+  @Before
+  public void prepareMockWorkspace() throws IOException {
+    workspace = Files.newTemporaryFolder();
+    moduleDir = new File(workspace, "trunk");
+    FileUtils.forceMkdir(moduleDir);
+    args = new ArgumentListBuilder();
+    argsBuilder = new ExtendedArgumentListBuilder(args, false);
+    AbstractProject p = mock(AbstractProject.class);
+    SCM scm = mock(SCM.class);
+    FilePath workspacePath = new FilePath(workspace);
+    when(scm.getModuleRoot(workspacePath)).thenReturn(new FilePath(moduleDir));
+    when(p.getScm()).thenReturn(scm);
+    build = new MyBuild(p);
+    build.setWorkspace(workspacePath);
+    listener = mock(BuildListener.class);
+    env = new EnvVars();
+  }
+
+  @After
+  public void cleanWorkspace() {
+    FileUtils.deleteQuietly(workspace);
+  }
+
   @Test
   public void shouldBeEmptyInsteadOfNull() {
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null);
@@ -53,29 +86,34 @@ public class SonarRunnerBuilderTest {
 
   @Test
   public void shouldPopulateProjectSettingsParameter() throws IOException, InterruptedException {
-    File workspace = Files.newTemporaryFolder();
-    File moduleDir = new File(workspace, "trunk"); // Emulate a checkout in a subfolder
     File projectSettings = new File(moduleDir, "myCustomProjectSettings.properties");
-    FileUtils.forceMkdir(moduleDir);
     projectSettings.createNewFile();
 
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null);
-    ArgumentListBuilder args = new ArgumentListBuilder();
-    ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, false);
-    AbstractProject p = mock(AbstractProject.class);
-    SCM scm = mock(SCM.class);
-    FilePath workspacePath = new FilePath(workspace);
-    when(scm.getModuleRoot(workspacePath)).thenReturn(new FilePath(moduleDir));
-    when(p.getScm()).thenReturn(scm);
-    MyBuild build = new MyBuild(p);
-    build.setWorkspace(workspacePath);
-    BuildListener listener = mock(BuildListener.class);
-    EnvVars env = new EnvVars();
-    builder.populateConfiguration(argsBuilder, build, listener, env);
+    builder.populateConfiguration(argsBuilder, build, listener, env, null);
 
     assertThat(args.toStringWithQuote())
         .contains("-Dsonar.projectBaseDir=" + moduleDir)
         .contains("-Dproject.settings=" + projectSettings);
+  }
+
+  @Test
+  public void shouldPopulateSonarLoginPasswordParameters() throws IOException, InterruptedException {
+    SonarInstallation installation = mock(SonarInstallation.class);
+    when(installation.getServerUrl()).thenReturn("hostUrl");
+    when(installation.getDatabaseUrl()).thenReturn("databaseUrl");
+    when(installation.getDatabaseDriver()).thenReturn("driver");
+    when(installation.getDatabaseLogin()).thenReturn("login");
+    when(installation.getDatabasePassword()).thenReturn("password");
+    when(installation.getSonarLogin()).thenReturn("sonarlogin");
+    when(installation.getSonarPassword()).thenReturn("sonarpassword");
+
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null);
+    builder.populateConfiguration(argsBuilder, build, listener, env, installation);
+
+    assertThat(args.toStringWithQuote())
+        .contains("-Dsonar.login=sonarlogin")
+        .contains("-Dsonar.password=sonarpassword");
   }
 
   /**

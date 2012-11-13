@@ -2,7 +2,6 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <f:section title="Sonar">
     <f:entry title="${%SonarInstallations}" description="${%SonarInstallationsDescr}">
-      <!-- TODO l10n -->
       <f:repeatable var="inst" items="${descriptor.installations}" add="${%AddSonar}">
         <table width="100%">
           <f:entry title="${%Name}">
@@ -17,6 +16,14 @@
           <f:advanced>
             <f:entry title="${%ServerUrl}" description="${%ServerUrlDescr}">
               <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}"/>
+            </f:entry>
+
+            <f:entry title="${%ServerLogin}" description="${%ServerLoginDescr}">
+              <f:textbox name="sonar.sonarLogin" value="${inst.getSonarLogin()}"/>
+            </f:entry>
+
+            <f:entry title="${%ServerPass}" description="${%ServerPassDescr}">
+              <f:password name="sonar.sonarPassword" value="${inst.getSonarPassword()}"/>
             </f:entry>
 
             <f:entry title="${%ServerPublicUrl}" description="${%ServerPublicUrlDescr}">

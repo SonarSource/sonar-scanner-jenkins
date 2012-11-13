@@ -194,7 +194,7 @@ public class SonarRunnerBuilder extends Builder {
       env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    if (!populateConfiguration(argsBuilder, build, listener, env)) {
+    if (!populateConfiguration(argsBuilder, build, listener, env, getSonarInstallation())) {
       return false;
     }
 
@@ -255,15 +255,17 @@ public class SonarRunnerBuilder extends Builder {
 
   @VisibleForTesting
   boolean populateConfiguration(ExtendedArgumentListBuilder args, AbstractBuild build,
-      BuildListener listener, EnvVars env) throws IOException, InterruptedException {
-    // Server properties
-    SonarInstallation si = getSonarInstallation();
+      BuildListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.jdbc.driver", si.getDatabaseDriver());
       args.append("sonar.jdbc.url", si.getDatabaseUrl());
       args.appendMasked("sonar.jdbc.username", si.getDatabaseLogin());
       args.appendMasked("sonar.jdbc.password", si.getDatabasePassword());
       args.append("sonar.host.url", si.getServerUrl());
+      if (StringUtils.isNotBlank(si.getSonarLogin())) {
+        args.appendMasked("sonar.login", si.getSonarLogin());
+        args.appendMasked("sonar.password", si.getSonarPassword());
+      }
     }
 
     args.append("sonar.projectBaseDir", build.getModuleRoot().getRemote());

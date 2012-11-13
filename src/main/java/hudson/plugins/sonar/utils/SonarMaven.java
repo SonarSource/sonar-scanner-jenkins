@@ -15,18 +15,15 @@
  */
 package hudson.plugins.sonar.utils;
 
-import hudson.model.Computer;
-
-import hudson.model.JDK;
-
 import hudson.EnvVars;
-
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.maven.MavenModuleSet;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
+import hudson.model.Computer;
 import hudson.model.Hudson;
+import hudson.model.JDK;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.tasks.Maven;
@@ -91,6 +88,11 @@ public final class SonarMaven extends Maven {
 
     argsBuilder.append("sonar.branch", publisher.getBranch());
     argsBuilder.append("sonar.language", publisher.getLanguage());
+
+    if (StringUtils.isNotBlank(getInstallation().getSonarLogin())) {
+      argsBuilder.appendMasked("sonar.login", getInstallation().getSonarLogin());
+      argsBuilder.appendMasked("sonar.password", getInstallation().getSonarPassword());
+    }
   }
 
   @Override
@@ -154,7 +156,7 @@ public final class SonarMaven extends Maven {
   @Override
   protected void buildEnvVars(EnvVars env, MavenInstallation mi) throws IOException, InterruptedException {
     super.buildEnvVars(env, mi);
-    //Override JDK in case it is set on Sonar publisher
+    // Override JDK in case it is set on Sonar publisher
     if (jdk != null) {
       Computer computer = Computer.currentComputer();
       if (computer != null) { // just in case were not in a build

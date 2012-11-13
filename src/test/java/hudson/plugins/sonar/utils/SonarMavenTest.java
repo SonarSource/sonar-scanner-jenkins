@@ -40,6 +40,8 @@ public class SonarMavenTest {
     when(installation.getDatabaseDriver()).thenReturn("driver");
     when(installation.getDatabaseLogin()).thenReturn("login");
     when(installation.getDatabasePassword()).thenReturn("password");
+    when(installation.getSonarLogin()).thenReturn("sonarlogin");
+    when(installation.getSonarPassword()).thenReturn("sonarpassword");
     when(publisher.getInstallation()).thenReturn(installation);
     when(publisher.getBranch()).thenReturn("branch");
     when(publisher.getLanguage()).thenReturn("language");
@@ -57,6 +59,8 @@ public class SonarMavenTest {
     assertThat(result).contains("-Dsonar.host.url=hostUrl");
     assertThat(result).contains("-Dsonar.branch=branch");
     assertThat(result).contains("-Dsonar.language=language");
+    assertThat(result).contains("-Dsonar.login=sonarlogin");
+    assertThat(result).contains("-Dsonar.password=sonarpassword");
   }
 
   @Test
