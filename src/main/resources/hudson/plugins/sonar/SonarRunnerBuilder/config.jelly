@@ -52,7 +52,7 @@
     </f:entry>
   </j:if>
 
-  <f:entry title="${%PathToProjectProperties}" field="project">
+  <f:entry title="${%PathToProjectProperties}" field="project" help="/plugin/sonar/help-runner-props-path.html">
     <f:textbox />
   </f:entry>
 

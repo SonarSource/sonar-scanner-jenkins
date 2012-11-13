@@ -15,8 +15,10 @@
  */
 package hudson.plugins.sonar;
 
+import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.BuildListener;
@@ -31,15 +33,11 @@ import hudson.plugins.sonar.utils.Logger;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
-import hudson.util.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -196,7 +194,9 @@ public class SonarRunnerBuilder extends Builder {
       env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    populateConfiguration(argsBuilder, build.getWorkspace().getRemote(), env);
+    if (!populateConfiguration(argsBuilder, build, listener, env)) {
+      return false;
+    }
 
     // Java
     JDK jdkToUse = getJdkToUse(build.getProject());
@@ -213,7 +213,7 @@ public class SonarRunnerBuilder extends Builder {
 
     long startTime = System.currentTimeMillis();
     try {
-      int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getWorkspace()).join();
+      int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getModuleRoot()).join();
       return r == 0;
     } catch (IOException e) {
       Logger.printFailureMessage(listener);
@@ -253,7 +253,9 @@ public class SonarRunnerBuilder extends Builder {
     return true;
   }
 
-  private void populateConfiguration(ExtendedArgumentListBuilder args, String projectBaseDir, EnvVars env) throws IOException {
+  @VisibleForTesting
+  boolean populateConfiguration(ExtendedArgumentListBuilder args, AbstractBuild build,
+      BuildListener listener, EnvVars env) throws IOException, InterruptedException {
     // Server properties
     SonarInstallation si = getSonarInstallation();
     if (si != null) {
@@ -264,41 +266,43 @@ public class SonarRunnerBuilder extends Builder {
       args.append("sonar.host.url", si.getServerUrl());
     }
 
-    args.append("sonar.projectBaseDir", projectBaseDir);
+    args.append("sonar.projectBaseDir", build.getModuleRoot().getRemote());
 
     // Project properties
     if (StringUtils.isNotBlank(getProject())) {
-      File projectSettings = new File(getProject());
-      Properties p = toProperties(projectSettings);
-      loadProperties(args, p);
+      String projectSettingsFile = env.expand(getProject());
+      FilePath projectSettingsFilePath = build.getModuleRoot().child(projectSettingsFile);
+      if (!projectSettingsFilePath.exists()) {
+        // because of the poor choice of getModuleRoot() with CVS/Subversion, people often get confused
+        // with where the build file path is relative to. Now it's too late to change this behavior
+        // due to compatibility issue, but at least we can make this less painful by looking for errors
+        // and diagnosing it nicely. See HUDSON-1782
+
+        // first check if this appears to be a valid relative path from workspace root
+        FilePath projectSettingsFilePath2 = build.getWorkspace().child(projectSettingsFile);
+        if (projectSettingsFilePath2.exists()) {
+          // This must be what the user meant. Let it continue.
+          projectSettingsFilePath = projectSettingsFilePath2;
+        } else {
+          // neither file exists. So this now really does look like an error.
+          listener.fatalError("Unable to find Sonar project settings at " + projectSettingsFilePath);
+          return false;
+        }
+      }
+      args.append("project.settings", projectSettingsFilePath.getRemote());
     }
 
     // Additional properties
     Properties p = new Properties();
     p.load(new ByteArrayInputStream(env.expand(getProperties()).getBytes()));
     loadProperties(args, p);
+
+    return true;
   }
 
   private void loadProperties(ExtendedArgumentListBuilder args, Properties p) {
     for (Entry<Object, Object> entry : p.entrySet()) {
       args.append(entry.getKey().toString(), entry.getValue().toString());
-    }
-  }
-
-  // TODO Duplicated from Sonar Runner Main
-  private Properties toProperties(File file) {
-    InputStream in = null;
-    Properties props = new Properties();
-    try {
-      in = new FileInputStream(file);
-      props.load(in);
-      return props;
-
-    } catch (Exception e) {
-      throw new IllegalStateException("Fail to load file: " + file.getAbsolutePath(), e);
-
-    } finally {
-      IOUtils.closeQuietly(in);
     }
   }
 
