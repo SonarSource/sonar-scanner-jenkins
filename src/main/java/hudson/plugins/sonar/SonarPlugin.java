@@ -26,7 +26,8 @@ public class SonarPlugin extends Plugin {
 
   @Override
   public void postInitialize() throws Exception {
-    load(); // IMPORTANT, otherwise configVersion would be always null
+    // IMPORTANT, otherwise configVersion would be always null
+    load();
 
     if (configVersion == null) {
       configVersion = 0;

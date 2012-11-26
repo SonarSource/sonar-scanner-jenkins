@@ -202,7 +202,8 @@ public class SonarRunnerBuilder extends Builder {
     JDK jdkToUse = getJdkToUse(build.getProject());
     if (jdkToUse != null) {
       Computer computer = Computer.currentComputer();
-      if (computer != null) { // just in case were not in a build
+      // just in case we are not in a build
+      if (computer != null) {
         jdkToUse = jdkToUse.forNode(computer.getNode(), listener);
       }
       jdkToUse.buildEnvVars(env);

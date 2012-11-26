@@ -15,10 +15,6 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.utils.Logger;
-
-import hudson.model.JDK;
-
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.Launcher;
@@ -33,8 +29,10 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
+import hudson.model.JDK;
 import hudson.plugins.sonar.model.LightProjectConfig;
 import hudson.plugins.sonar.model.TriggersConfig;
+import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.MagicNames;
 import hudson.plugins.sonar.utils.SonarMaven;
 import hudson.tasks.BuildStepDescriptor;
@@ -149,6 +147,7 @@ public class SonarPublisher extends Notifier {
       String mavenInstallationName, String rootPom) {
     this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null);
   }
+
   public SonarPublisher(String installationName,
       String branch,
       String language,
@@ -320,16 +319,16 @@ public class SonarPublisher extends Notifier {
   private boolean executeSonar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
     try {
       String pomName = getPomName(build);
-      String mavenInstallationName = getMavenInstallationName();
+      String mavenInstallName = getMavenInstallationName();
       if (isMavenBuilder(build.getProject())) {
         MavenModuleSet mavenModuleSet = getMavenProject(build);
         if (null != mavenModuleSet.getMaven().getName()) {
-          mavenInstallationName = mavenModuleSet.getMaven().getName();
+          mavenInstallName = mavenModuleSet.getMaven().getName();
         }
       }
 
       // Execute maven
-      return SonarMaven.executeMaven(build, launcher, listener, mavenInstallationName, pomName, sonarInstallation, this, getJDK());
+      return SonarMaven.executeMaven(build, launcher, listener, mavenInstallName, pomName, sonarInstallation, this, getJDK());
     } catch (IOException e) {
       Logger.printFailureMessage(listener);
       Util.displayIOException(e, listener);
@@ -399,7 +398,7 @@ public class SonarPublisher extends Notifier {
   public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
     @CopyOnWrite
-    private volatile SonarInstallation[] installations = new SonarInstallation[0]; // NOSONAR
+    private volatile SonarInstallation[] installations = new SonarInstallation[0];
 
     public DescriptorImpl() {
       super();

@@ -15,18 +15,15 @@
  */
 package hudson.plugins.sonar.model;
 
-import hudson.util.VariableResolver;
-
-import hudson.model.BuildListener;
-
 import hudson.EnvVars;
-
 import hudson.Util;
+import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.Cause;
 import hudson.plugins.sonar.Messages;
 import hudson.triggers.SCMTrigger;
+import hudson.util.VariableResolver;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
@@ -87,22 +84,20 @@ public class TriggersConfig implements Serializable {
   public String isSkipSonar(AbstractBuild<?, ?> build, BuildListener listener) throws IOException, InterruptedException {
     Result result = build.getResult();
 
-    if (result != null) {
+    if (result != null && result.isWorseThan(Result.UNSTABLE)) {
       // skip analysis if build failed
       // unstable means that build completed, but there were some test failures, which is not critical for analysis
-      if (result.isWorseThan(Result.UNSTABLE)) {
-        return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
-      }
+      return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
     }
 
     // skip analysis by environment variable or build parameter
     if (getEnvVar() != null) {
-      //check against build parameters
+      // check against build parameters
       String value = build.getBuildVariableResolver().resolve(getEnvVar());
       if ("true".equalsIgnoreCase(value)) {
         return Messages.Skipping_Sonar_analysis();
       }
-      //check against environment variable
+      // check against environment variable
       EnvVars envVars = build.getEnvironment(listener);
       value = new VariableResolver.ByMap<String>(envVars).resolve(getEnvVar());
       if ("true".equalsIgnoreCase(value)) {

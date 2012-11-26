@@ -74,14 +74,13 @@ public final class SonarMaven extends Maven {
 
   @Override
   protected void wrapUpArguments(ArgumentListBuilder args, String normalizedTarget, AbstractBuild<?, ?> build, Launcher launcher,
-      BuildListener listener)
-      throws IOException, InterruptedException {
+      BuildListener listener) throws IOException, InterruptedException {
 
     args.addTokenized(additionalProperties);
 
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
     argsBuilder.append("sonar.jdbc.driver", getInstallation().getDatabaseDriver());
-    argsBuilder.append("sonar.jdbc.url", getInstallation().getDatabaseUrl()); // TODO can be masked
+    argsBuilder.append("sonar.jdbc.url", getInstallation().getDatabaseUrl());
     argsBuilder.appendMasked("sonar.jdbc.username", getInstallation().getDatabaseLogin());
     argsBuilder.appendMasked("sonar.jdbc.password", getInstallation().getDatabasePassword());
     argsBuilder.append("sonar.host.url", getInstallation().getServerUrl());
@@ -108,8 +107,7 @@ public final class SonarMaven extends Maven {
       String pom,
       SonarInstallation sonarInstallation,
       SonarPublisher sonarPublisher,
-      JDK jdk
-      ) throws IOException, InterruptedException {
+      JDK jdk) throws IOException, InterruptedException {
     MavenModuleSet mavenModuleProject = sonarPublisher.getMavenProject(build);
     EnvVars envVars = build.getEnvironment(listener);
     /**
@@ -129,15 +127,13 @@ public final class SonarMaven extends Maven {
 
       // This logic was copied from hudson.maven.MavenModuleSetBuild version 1.378 (see SONARPLUGINS-910)
       alternateSettings = mavenModuleProject.getAlternateSettings();
-      if (alternateSettings != null) {
-        if (!isAbsolute(alternateSettings)) {
-          FilePath mrSettings = build.getModuleRoot().child(alternateSettings);
-          FilePath wsSettings = build.getWorkspace().child(alternateSettings);
-          if (!wsSettings.exists() && mrSettings.exists()) {
-            wsSettings = mrSettings;
-          }
-          alternateSettings = wsSettings.getRemote();
+      if (alternateSettings != null && !isAbsolute(alternateSettings)) {
+        FilePath mrSettings = build.getModuleRoot().child(alternateSettings);
+        FilePath wsSettings = build.getWorkspace().child(alternateSettings);
+        if (!wsSettings.exists() && mrSettings.exists()) {
+          wsSettings = mrSettings;
         }
+        alternateSettings = wsSettings.getRemote();
       }
     }
     // Other properties
@@ -148,7 +144,8 @@ public final class SonarMaven extends Maven {
       + (StringUtils.isNotBlank(jobProperties) ? jobProperties : "") + " "
       + (StringUtils.isNotBlank(alternateSettings) ? "-s " + alternateSettings : "");
     // Execute Maven
-    pom = build.getModuleRoot().child(pom).getRemote(); // SONARPLUGINS-487
+    // SONARPLUGINS-487
+    pom = build.getModuleRoot().child(pom).getRemote();
     return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, usesPrivateRepository, sonarPublisher, listener, jdk)
         .perform(build, launcher, listener);
   }
@@ -159,7 +156,8 @@ public final class SonarMaven extends Maven {
     // Override JDK in case it is set on Sonar publisher
     if (jdk != null) {
       Computer computer = Computer.currentComputer();
-      if (computer != null) { // just in case were not in a build
+      if (computer != null) {
+        // just in case were not in a build
         jdk = jdk.forNode(computer.getNode(), listener);
       }
       jdk.buildEnvVars(env);

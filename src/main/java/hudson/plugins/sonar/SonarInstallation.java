@@ -31,7 +31,8 @@ public class SonarInstallation {
    */
   public static final SonarInstallation[] all() {
     Hudson hudson = Hudson.getInstance();
-    if (hudson == null) { // for unit test
+    if (hudson == null) {
+      // for unit test
       return new SonarInstallation[0];
     }
     SonarPublisher.DescriptorImpl sonarDescriptor = Hudson.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
@@ -83,11 +84,17 @@ public class SonarInstallation {
   private String sonarLogin;
   private String sonarPassword;
 
+  /**
+   * @deprecated
+   */
   @Deprecated
   public SonarInstallation(String name) {
     this(name, false, null, null, null, null, null, null, null, null, null);
   }
 
+  /**
+   * @deprecated
+   */
   @Deprecated
   public SonarInstallation(String name, boolean disabled,
       String serverUrl, String serverPublicUrl,
@@ -173,7 +180,7 @@ public class SonarInstallation {
   /**
    * @since 1.7
    */
-  public void setDatabasePassword(String password) {
+  public final void setDatabasePassword(String password) {
     this.databasePassword = Scrambler.scramble(Util.fixEmptyAndTrim(password));
   }
 
@@ -248,7 +255,7 @@ public class SonarInstallation {
     return Scrambler.descramble(sonarPassword);
   }
 
-  public void setSonarPassword(String sonarPassword) {
+  public final void setSonarPassword(String sonarPassword) {
     this.sonarPassword = Scrambler.scramble(Util.fixEmptyAndTrim(sonarPassword));
   }
 }
