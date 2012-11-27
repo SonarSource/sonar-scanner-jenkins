@@ -94,16 +94,6 @@
     <system>Bamboo</system>
     <url>http://ci.codehaus.org/browse/SONAR-HUDSON</url>
   </ciManagement>
-  <distributionManagement>
-    <repository>
-      <id>java.net-m2-repository</id>
-      <url>http://maven.hudson-labs.org:8081/content/repositories/releases/</url>
-    </repository>
-    <snapshotRepository>
-      <id>${snapshotRepositoryId}</id>
-      <url>${snapshotRepositoryUrl}</url>
-    </snapshotRepository>
-  </distributionManagement>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
