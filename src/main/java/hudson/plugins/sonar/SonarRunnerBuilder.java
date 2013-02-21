@@ -27,7 +27,6 @@ import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Hudson;
 import hudson.model.JDK;
-import hudson.model.Project;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.tasks.BuildStepDescriptor;
@@ -59,7 +58,7 @@ public class SonarRunnerBuilder extends Builder {
    * Null if no explicit configuration is required.
    *
    * <p>
-   * Can't store {@link JDK} directly because {@link Jenkins} and {@link Project}
+   * Can't store {@link JDK} directly because {@link Jenkins} and {@link hudson.model.Project}
    * are saved independently.
    *
    * @see Jenkins#getJDK(String)
