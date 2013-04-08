@@ -45,6 +45,7 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Parent;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -351,27 +352,35 @@ public class SonarPublisher extends Notifier {
         }
       }
     }
-    /**
-     * Free-style job:
-     * If project was built by maven, then pom.xml already exists
-     * If project wasn't built by maven, then there is should be generated pom.xml
-     */
-    try {
-      AbstractBuild<?, ?> lastBuild = project.getLastBuild();
-      if (lastBuild != null) {
-        MavenXpp3Reader reader = new MavenXpp3Reader();
-        Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
-        String groupId = model.getGroupId();
-        String artifactId = model.getArtifactId();
-        String branchInPom = model.getProperties().getProperty("sonar.branch");
-        url = sonarInstallation.getProjectLink(groupId, artifactId, StringUtils.isBlank(getBranch()) ? branchInPom : getBranch());
+    else {
+      /**
+       * Free-style job:
+       * If project was built by maven, then pom.xml already exists
+       * If project wasn't built by maven, then there is should be generated pom.xml
+       */
+      try {
+        AbstractBuild<?, ?> lastBuild = project.getLastBuild();
+        if (lastBuild != null) {
+          MavenXpp3Reader reader = new MavenXpp3Reader();
+          Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
+          String groupId = model.getGroupId();
+          if (StringUtils.isBlank(groupId)) {
+            Parent parent = model.getParent();
+            if (parent != null) {
+              groupId = parent.getGroupId();
+            }
+          }
+          String artifactId = model.getArtifactId();
+          String branchInPom = model.getProperties().getProperty("sonar.branch");
+          url = sonarInstallation.getProjectLink(groupId, artifactId, StringUtils.isBlank(getBranch()) ? branchInPom : getBranch());
+        }
+      } catch (IOException e) {
+        // ignore
+      } catch (XmlPullParserException e) {
+        // ignore
+      } catch (NullPointerException e) {
+        // ignore something in the line can be null for maven project
       }
-    } catch (IOException e) {
-      // ignore
-    } catch (XmlPullParserException e) {
-      // ignore
-    } catch (NullPointerException e) {
-      // ignore something in the line can be null for maven project
     }
     return url;
   }
