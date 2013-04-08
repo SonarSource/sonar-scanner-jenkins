@@ -363,7 +363,8 @@ public class SonarPublisher extends Notifier {
         Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
         String groupId = model.getGroupId();
         String artifactId = model.getArtifactId();
-        url = sonarInstallation.getProjectLink(groupId, artifactId, getBranch());
+        String branchInPom = model.getProperties().getProperty("sonar.branch");
+        url = sonarInstallation.getProjectLink(groupId, artifactId, StringUtils.isBlank(getBranch()) ? branchInPom : getBranch());
       }
     } catch (IOException e) {
       // ignore
