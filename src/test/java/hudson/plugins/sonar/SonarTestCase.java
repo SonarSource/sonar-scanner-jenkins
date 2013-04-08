@@ -15,6 +15,7 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.Functions;
 import hudson.UDPBroadcastThread;
 import hudson.maven.MavenModuleSet;
 import hudson.model.Result;
@@ -22,7 +23,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Cause;
 import hudson.model.FreeStyleProject;
-import hudson.model.Hudson;
 import hudson.model.Run;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
@@ -65,14 +65,14 @@ public abstract class SonarTestCase extends HudsonTestCase {
 
   /**
    * Returns Fake Maven Installation.
-   * 
+   *
    * @return Fake Maven Installation
    * @throws Exception if something is wrong
    */
   @Override
   protected Maven.MavenInstallation configureDefaultMaven() throws Exception {
     File mvn = new File(getClass().getResource("SonarTestCase/maven/bin/mvn").toURI().getPath());
-    if (!Hudson.isWindows()) {
+    if (!Functions.isWindows()) {
       // noinspection OctalInteger
       GNUCLibrary.LIBC.chmod(mvn.getPath(), 0755);
     }
@@ -95,7 +95,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
     return setupMavenProject("pom.xml");
   }
 
-  protected String getPom(AbstractBuild build, String pomName) {
+  protected String getPom(AbstractBuild<?, ?> build, String pomName) {
     return build.getWorkspace().child(pomName).getRemote();
   }
 
@@ -158,12 +158,12 @@ public abstract class SonarTestCase extends HudsonTestCase {
 
   /**
    * Asserts that Sonar executed with given arguments.
-   * 
+   *
    * @param build build
    * @param args command line arguments
    * @throws Exception if something is wrong
    */
-  protected void assertSonarExecution(AbstractBuild build, String args) throws Exception {
+  protected void assertSonarExecution(AbstractBuild<?, ?> build, String args) throws Exception {
     // Check command line arguments
     assertLogContains(args + " -e -B", build);
     // Check that plugin was invoked
@@ -183,11 +183,11 @@ public abstract class SonarTestCase extends HudsonTestCase {
     // assertNotNull(project.getAction(ProjectSonarAction.class));
   }
 
-  protected void assertSonarExecution(AbstractBuild build) throws Exception {
+  protected void assertSonarExecution(AbstractBuild<?, ?> build) throws Exception {
     assertSonarExecution(build, "");
   }
 
-  protected void assertNoSonarExecution(AbstractBuild build, String cause) throws Exception {
+  protected void assertNoSonarExecution(AbstractBuild<?, ?> build, String cause) throws Exception {
     assertLogContains(cause, build);
     // SONARPLUGINS-320: Check that small badge was not added to build history
     assertNull(
@@ -197,12 +197,12 @@ public abstract class SonarTestCase extends HudsonTestCase {
 
   /**
    * Asserts that the console output of the build doesn't contains the given substring.
-   * 
+   *
    * @param substring substring to check
    * @param run run to check
    * @throws Exception if something wrong
    */
-  protected void assertLogDoesntContains(String substring, Run run) throws Exception {
+  protected void assertLogDoesntContains(String substring, Run<?, ?> run) throws Exception {
     String log = getLog(run);
     if (!log.contains(substring)) {
       return; // good!

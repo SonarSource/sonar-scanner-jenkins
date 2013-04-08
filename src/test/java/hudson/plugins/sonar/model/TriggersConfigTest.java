@@ -16,9 +16,7 @@
 package hudson.plugins.sonar.model;
 
 import hudson.EnvVars;
-
 import hudson.model.BuildListener;
-
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.Cause;
@@ -53,13 +51,13 @@ public class TriggersConfigTest {
 
   @Test
   public void our_internal_cause() throws IOException, InterruptedException {
-    AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
+    AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
   }
 
   @Test
   public void skip_if_build_fails() throws IOException, InterruptedException {
-    AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
+    AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     when(build.getResult()).thenReturn(null, Result.SUCCESS, Result.UNSTABLE, Result.FAILURE, Result.NOT_BUILT, Result.ABORTED);
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
@@ -71,13 +69,13 @@ public class TriggersConfigTest {
 
   @Test
   public void timer_cause() throws IOException, InterruptedException {
-    AbstractBuild build = mockBuildWithCauses(TIMER_CAUSE);
+    AbstractBuild<?, ?> build = mockBuildWithCauses(TIMER_CAUSE);
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
   }
 
   @Test
   public void scm_change_cause() throws IOException, InterruptedException {
-    AbstractBuild build = mockBuildWithCauses(SCM_CAUSE);
+    AbstractBuild<?, ?> build = mockBuildWithCauses(SCM_CAUSE);
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
     triggers.setSkipScmCause(true);
     assertThat(triggers.isSkipSonar(build, listener)).isNotNull();
@@ -85,7 +83,7 @@ public class TriggersConfigTest {
 
   @Test
   public void upstream_cause() throws IOException, InterruptedException {
-    AbstractBuild build = mockBuildWithCauses(UPSTREAM_CAUSE);
+    AbstractBuild<?, ?> build = mockBuildWithCauses(UPSTREAM_CAUSE);
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
     triggers.setSkipUpstreamCause(true);
     assertThat(triggers.isSkipSonar(build, listener)).isNotNull();
@@ -95,7 +93,7 @@ public class TriggersConfigTest {
   public void multiple_causes() throws IOException, InterruptedException {
     triggers.setSkipScmCause(true);
     triggers.setSkipUpstreamCause(true);
-    AbstractBuild build = mockBuildWithCauses(SCM_CAUSE, TIMER_CAUSE);
+    AbstractBuild<?, ?> build = mockBuildWithCauses(SCM_CAUSE, TIMER_CAUSE);
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
 
     build = mockBuildWithCauses(SCM_CAUSE, UPSTREAM_CAUSE);
@@ -109,7 +107,7 @@ public class TriggersConfigTest {
    */
   @Test
   public void build_parameters() throws IOException, InterruptedException {
-    AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
+    AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     EnvVars env_vars = new EnvVars();
     when(build.getEnvironment(listener)).thenReturn(env_vars);
     Map<String, String> build_vars = new HashMap<String, String>();
@@ -120,13 +118,13 @@ public class TriggersConfigTest {
     build_vars.put("SKIP_SONAR", "true");
     assertThat(triggers.isSkipSonar(build, listener)).isNotNull();
   }
-  
+
   /**
    * See SONARPLUGINS-1886
    */
   @Test
   public void env_var() throws IOException, InterruptedException {
-    AbstractBuild build = mockBuildWithCauses(new TriggersConfig.SonarCause());
+    AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     EnvVars env_vars = new EnvVars();
     when(build.getEnvironment(listener)).thenReturn(env_vars);
     Map<String, String> build_vars = new HashMap<String, String>();
@@ -138,8 +136,8 @@ public class TriggersConfigTest {
     assertThat(triggers.isSkipSonar(build, listener)).isNotNull();
   }
 
-  private static AbstractBuild mockBuildWithCauses(Cause... causes) {
-    AbstractBuild build = mock(AbstractBuild.class);
+  private static AbstractBuild<?, ?> mockBuildWithCauses(Cause... causes) {
+    AbstractBuild<?, ?> build = mock(AbstractBuild.class);
     when(build.getCauses()).thenReturn(Arrays.asList(causes));
     return build;
   }

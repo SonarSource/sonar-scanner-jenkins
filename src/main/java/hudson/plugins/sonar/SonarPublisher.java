@@ -30,7 +30,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.JDK;
-import hudson.plugins.sonar.model.LightProjectConfig;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.MagicNames;
@@ -42,6 +41,7 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Model;
@@ -119,16 +119,6 @@ public class SonarPublisher extends Notifier {
    * @since 1.2
    */
   private String rootPom;
-
-  /**
-   * Prior to version 1.7: if not null, then pom.xml should be generated.
-   * Removed in 1.7, but was restored in 1.8 for migration - see SONARPLUGINS-1553.
-   *
-   * @since 1.2
-   * @deprecated in 1.7
-   */
-  @Deprecated
-  public LightProjectConfig lightProject;
 
   public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
     this(installationName, new TriggersConfig(), jobAdditionalProperties, mavenOpts, null, null);
@@ -255,7 +245,7 @@ public class SonarPublisher extends Notifier {
     return StringUtils.trimToEmpty(rootPom);
   }
 
-  public static boolean isMavenBuilder(AbstractProject currentProject) {
+  public static boolean isMavenBuilder(AbstractProject<?, ?> currentProject) {
     return currentProject instanceof MavenModuleSet;
   }
 
@@ -298,7 +288,7 @@ public class SonarPublisher extends Notifier {
     return sonarSuccess;
   }
 
-  public MavenModuleSet getMavenProject(AbstractBuild build) {
+  public MavenModuleSet getMavenProject(AbstractBuild<?, ?> build) {
     return (build.getProject() instanceof MavenModuleSet) ? (MavenModuleSet) build.getProject() : null;
   }
 
@@ -351,7 +341,7 @@ public class SonarPublisher extends Notifier {
     String url = sonarInstallation.getServerLink();
     if (project instanceof AbstractMavenProject) {
       // Maven Project
-      AbstractMavenProject mavenProject = (AbstractMavenProject) project;
+      AbstractMavenProject<?, ?> mavenProject = (AbstractMavenProject<?, ?>) project;
       if (mavenProject.getRootProject() instanceof MavenModuleSet) {
         MavenModuleSet mms = (MavenModuleSet) mavenProject.getRootProject();
         MavenModule rootModule = mms.getRootModule();

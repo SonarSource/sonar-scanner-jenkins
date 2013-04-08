@@ -32,7 +32,7 @@ public class SonarRunnerInstaller extends DownloadFromUrlInstaller {
   @Extension
   public static final class DescriptorImpl extends DownloadFromUrlInstaller.DescriptorImpl<SonarRunnerInstaller> {
     public String getDisplayName() {
-      return Messages.InstallFromCodehaus();
+      return Messages.InstallFromMavenCentral();
     }
 
     @Override

@@ -57,7 +57,7 @@ public class MailTest extends SonarTestCase {
     MavenModuleSet project = setupMavenProject();
     project.getPublishersList().add(mailer);
     inbox.clear();
-    AbstractBuild build = build(project, Result.FAILURE);
+    AbstractBuild<?, ?> build = build(project, Result.FAILURE);
 
     assertSonarExecution(build, "-f " + getPom(build, "pom.xml"));
     assertEquals(1, inbox.size());
@@ -67,7 +67,7 @@ public class MailTest extends SonarTestCase {
     FreeStyleProject project = setupFreeStyleProject();
     project.getPublishersList().add(mailer);
     inbox.clear();
-    AbstractBuild build = build(project, Result.FAILURE);
+    AbstractBuild<?, ?> build = build(project, Result.FAILURE);
 
     assertSonarExecution(build, "-f " + getPom(build, "sonar-pom.xml"));
     assertEquals(1, inbox.size());

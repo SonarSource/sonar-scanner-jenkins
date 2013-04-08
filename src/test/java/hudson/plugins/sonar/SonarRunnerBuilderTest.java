@@ -38,6 +38,8 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,7 +47,7 @@ public class SonarRunnerBuilderTest {
 
   private File moduleDir;
   private ExtendedArgumentListBuilder argsBuilder;
-  private MyBuild build;
+  private MyBuild<?, ?> build;
   private BuildListener listener;
   private EnvVars env;
   private File workspace;
@@ -58,10 +60,10 @@ public class SonarRunnerBuilderTest {
     FileUtils.forceMkdir(moduleDir);
     args = new ArgumentListBuilder();
     argsBuilder = new ExtendedArgumentListBuilder(args, false);
-    AbstractProject p = mock(AbstractProject.class);
+    AbstractProject<?, ?> p = mock(AbstractProject.class);
     SCM scm = mock(SCM.class);
     FilePath workspacePath = new FilePath(workspace);
-    when(scm.getModuleRoot(workspacePath)).thenReturn(new FilePath(moduleDir));
+    when(scm.getModuleRoot(eq(workspacePath), any(AbstractBuild.class))).thenReturn(new FilePath(moduleDir));
     when(p.getScm()).thenReturn(scm);
     build = new MyBuild(p);
     build.setWorkspace(workspacePath);

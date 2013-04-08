@@ -32,6 +32,7 @@ import hudson.plugins.sonar.utils.Logger;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -162,7 +163,7 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   @Override
-  public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
     if (!isSonarInstallationValid(getInstallationName(), listener)) {
       return false;
     }
@@ -254,7 +255,7 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   @VisibleForTesting
-  boolean populateConfiguration(ExtendedArgumentListBuilder args, AbstractBuild build,
+  boolean populateConfiguration(ExtendedArgumentListBuilder args, AbstractBuild<?, ?> build,
       BuildListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.jdbc.driver", si.getDatabaseDriver());
@@ -268,7 +269,8 @@ public class SonarRunnerBuilder extends Builder {
       }
     }
 
-    args.append("sonar.projectBaseDir", build.getModuleRoot().getRemote());
+    FilePath moduleRoot = build.getModuleRoot();
+    args.append("sonar.projectBaseDir", moduleRoot.getRemote());
 
     // Project properties
     if (StringUtils.isNotBlank(getProject())) {
@@ -311,7 +313,7 @@ public class SonarRunnerBuilder extends Builder {
   /**
    * @return JDK to be used with this project.
    */
-  private JDK getJdkToUse(AbstractProject project) {
+  private JDK getJdkToUse(AbstractProject<?, ?> project) {
     JDK jdkToUse = getJDK();
     if (jdkToUse == null) {
       jdkToUse = project.getJDK();

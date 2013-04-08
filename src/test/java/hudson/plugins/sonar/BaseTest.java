@@ -16,6 +16,7 @@
 package hudson.plugins.sonar;
 
 import hudson.maven.MavenModuleSet;
+import hudson.maven.local_repo.PerJobLocalRepositoryLocator;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.Cause;
@@ -36,7 +37,7 @@ public class BaseTest extends SonarTestCase {
   public void testNoSonarInstallation() throws Exception {
     FreeStyleProject project = setupFreeStyleProject();
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(ROOT_POM));
-    AbstractBuild build = build(project);
+    AbstractBuild<?, ?> build = build(project);
 
     assertNoSonarExecution(build, Messages.SonarPublisher_NoMatchInstallation(SONAR_INSTALLATION_NAME, 0));
   }
@@ -61,8 +62,8 @@ public class BaseTest extends SonarTestCase {
     String pomName = "space test/root-pom.xml";
     MavenModuleSet project = setupMavenProject(pomName);
     project.setAlternateSettings("/settings.xml");
-    project.setUsePrivateRepository(true);
-    AbstractBuild build = build(project);
+    project.setLocalRepository(new PerJobLocalRepositoryLocator());
+    AbstractBuild<?, ?> build = build(project);
 
     String repo = build.getWorkspace().child(".repository").getRemote();
     // TODO Check that there is no POM-generation for Maven project
@@ -87,19 +88,19 @@ public class BaseTest extends SonarTestCase {
     String pomName = "space test/sonar-pom.xml";
     FreeStyleProject project = setupFreeStyleProject(pomName);
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(pomName));
-    AbstractBuild build = build(project);
+    AbstractBuild<?, ?> build = build(project);
 
     assertSonarExecution(build, "-f \"" + getPom(build, pomName) + "\"");
     // Check that POM generated
     assertTrue(build.getWorkspace().child(pomName).exists());
   }
 
-  protected void setBuildResult(Project project, Result result) throws Exception {
+  protected void setBuildResult(Project<?, ?> project, Result result) throws Exception {
     project.getBuildersList().clear();
     project.getBuildersList().add(new MockBuilder(result));
   }
 
-  public static class CustomCause extends Cause.UserCause {
+  public static class CustomCause extends Cause.UserIdCause {
   }
 
   /**
@@ -112,7 +113,7 @@ public class BaseTest extends SonarTestCase {
     configureDefaultMaven();
     configureSecuredSonar();
     MavenModuleSet project = setupMavenProject();
-    AbstractBuild build = build(project);
+    AbstractBuild<?, ?> build = build(project);
 
     assertLogContains("sonar:sonar", build);
     assertLogDoesntContains("-Dsonar.jdbc.username=dbuser", build);
