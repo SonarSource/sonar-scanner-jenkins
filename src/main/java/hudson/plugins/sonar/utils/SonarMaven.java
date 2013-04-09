@@ -16,7 +16,6 @@
 package hudson.plugins.sonar.utils;
 
 import hudson.EnvVars;
-import hudson.FilePath;
 import hudson.Launcher;
 import hudson.maven.MavenModuleSet;
 import hudson.model.BuildListener;
@@ -28,6 +27,8 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.tasks.Maven;
 import hudson.util.ArgumentListBuilder;
+import jenkins.mvn.GlobalSettingsProvider;
+import jenkins.mvn.SettingsProvider;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
@@ -49,8 +50,8 @@ public final class SonarMaven extends Maven {
   private final BuildListener listener;
 
   public SonarMaven(String additionalProperties, String name, String pom, String jvmOptions, boolean usePrivateRepository,
-      SonarPublisher publisher, BuildListener listener, JDK jdk) {
-    super(getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, usePrivateRepository);
+      SonarPublisher publisher, BuildListener listener, JDK jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings) {
+    super(getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, usePrivateRepository, settings, globalSettings);
     this.additionalProperties = additionalProperties;
     this.publisher = publisher;
     this.jdk = jdk;
@@ -107,7 +108,9 @@ public final class SonarMaven extends Maven {
       String pom,
       SonarInstallation sonarInstallation,
       SonarPublisher sonarPublisher,
-      JDK jdk) throws IOException, InterruptedException {
+      JDK jdk,
+      SettingsProvider settings,
+      GlobalSettingsProvider globalSettings) throws IOException, InterruptedException {
     MavenModuleSet mavenModuleProject = sonarPublisher.getMavenProject(build);
     EnvVars envVars = build.getEnvironment(listener);
     /**
@@ -121,32 +124,24 @@ public final class SonarMaven extends Maven {
     }
     // Private Repository and Alternate Settings
     boolean usesPrivateRepository = false;
-    String alternateSettings = null;
+    SettingsProvider settingsToUse = settings;
+    GlobalSettingsProvider globalSettingsToUse = globalSettings;
     if (mavenModuleProject != null) {
+      // If we are on a Maven job then take values from the job itself
       usesPrivateRepository = mavenModuleProject.usesPrivateRepository();
-
-      // This logic was copied from hudson.maven.MavenModuleSetBuild version 1.378 (see SONARPLUGINS-910)
-      alternateSettings = mavenModuleProject.getAlternateSettings();
-      if (alternateSettings != null && !isAbsolute(alternateSettings)) {
-        FilePath mrSettings = build.getModuleRoot().child(alternateSettings);
-        FilePath wsSettings = build.getWorkspace().child(alternateSettings);
-        if (!wsSettings.exists() && mrSettings.exists()) {
-          wsSettings = mrSettings;
-        }
-        alternateSettings = wsSettings.getRemote();
-      }
+      settingsToUse = mavenModuleProject.getSettings();
+      globalSettingsToUse = mavenModuleProject.getGlobalSettings();
     }
     // Other properties
     String installationProperties = sonarInstallation.getAdditionalProperties();
     String jobProperties = envVars.expand(sonarPublisher.getJobAdditionalProperties());
     String aditionalProperties = ""
       + (StringUtils.isNotBlank(installationProperties) ? installationProperties : "") + " "
-      + (StringUtils.isNotBlank(jobProperties) ? jobProperties : "") + " "
-      + (StringUtils.isNotBlank(alternateSettings) ? "-s " + alternateSettings : "");
+      + (StringUtils.isNotBlank(jobProperties) ? jobProperties : "");
     // Execute Maven
     // SONARPLUGINS-487
     pom = build.getModuleRoot().child(pom).getRemote();
-    return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, usesPrivateRepository, sonarPublisher, listener, jdk)
+    return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, usesPrivateRepository, sonarPublisher, listener, jdk, settingsToUse, globalSettingsToUse)
         .perform(build, launcher, listener);
   }
 

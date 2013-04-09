@@ -62,6 +62,9 @@
                help="/plugin/maven-plugin/root-pom.html">
         <f:textbox name="sonar.rootPom" value="${instance.getRootPom()}"/>
       </f:entry>
+
+      <f:dropdownDescriptorSelector title="${%Settings file}" field="settings" descriptors="${descriptor.settingsProviders}"/>
+      <f:dropdownDescriptorSelector title="${%Global Settings file}" field="globalSettings"  descriptors="${descriptor.globalSettingsProviders}"/>
     </j:if>
 
     <!-- MAVEN_OPTS -->

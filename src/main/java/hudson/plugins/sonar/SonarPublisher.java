@@ -42,6 +42,10 @@ import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
+import jenkins.mvn.GlobalSettingsProvider;
+import jenkins.mvn.SettingsProvider;
+import jenkins.mvn.DefaultGlobalSettingsProvider;
+import jenkins.mvn.DefaultSettingsProvider;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Model;
@@ -115,6 +119,15 @@ public class SonarPublisher extends Notifier {
   // Next fields available only for free-style projects
 
   private String mavenInstallationName;
+  /**
+   * @since 2.1
+   */
+  private SettingsProvider settings = new DefaultSettingsProvider();
+
+  /**
+   * @since 2.1
+   */
+  private GlobalSettingsProvider globalSettings = new DefaultGlobalSettingsProvider();
 
   /**
    * @since 1.2
@@ -148,17 +161,27 @@ public class SonarPublisher extends Notifier {
     this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null);
   }
 
-  @DataBoundConstructor
   public SonarPublisher(String installationName,
       String branch,
       String language,
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
       String mavenInstallationName, String rootPom, String jdk) {
+    this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null, null, null);
+  }
+
+  @DataBoundConstructor
+  public SonarPublisher(String installationName,
+      String branch,
+      String language,
+      TriggersConfig triggers,
+      String jobAdditionalProperties, String mavenOpts,
+      String mavenInstallationName, String rootPom, String jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings) {
     super();
     this.installationName = installationName;
     this.branch = branch;
     this.language = language;
+    this.jdk = jdk;
     // Triggers
     this.triggers = triggers;
     // Maven
@@ -167,7 +190,8 @@ public class SonarPublisher extends Notifier {
     // Non Maven Project
     this.mavenInstallationName = mavenInstallationName;
     this.rootPom = rootPom;
-    this.jdk = jdk;
+    this.settings = settings != null ? settings : new DefaultSettingsProvider();
+    this.globalSettings = globalSettings != null ? globalSettings : new DefaultGlobalSettingsProvider();
   }
 
   /**
@@ -319,7 +343,7 @@ public class SonarPublisher extends Notifier {
       }
 
       // Execute maven
-      return SonarMaven.executeMaven(build, launcher, listener, mavenInstallName, pomName, sonarInstallation, this, getJDK());
+      return SonarMaven.executeMaven(build, launcher, listener, mavenInstallName, pomName, sonarInstallation, this, getJDK(), getSettings(), getGlobalSettings());
     } catch (IOException e) {
       Logger.printFailureMessage(listener);
       Util.displayIOException(e, listener);
@@ -392,6 +416,20 @@ public class SonarPublisher extends Notifier {
 
   public BuildStepMonitor getRequiredMonitorService() {
     return BuildStepMonitor.BUILD;
+  }
+
+  /**
+   * @since 2.1
+   */
+  public SettingsProvider getSettings() {
+    return settings != null ? settings : new DefaultSettingsProvider();
+  }
+
+  /**
+   * @since 2.1
+   */
+  public GlobalSettingsProvider getGlobalSettings() {
+    return globalSettings != null ? globalSettings : new DefaultGlobalSettingsProvider();
   }
 
   @Extension(ordinal = 1000)

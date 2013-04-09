@@ -47,7 +47,7 @@ public class SonarMavenTest {
     when(publisher.getLanguage()).thenReturn("language");
 
     ArgumentListBuilder args = new ArgumentListBuilder();
-    SonarMaven sonarMaven = new SonarMaven("-Dprop=value", "Default Maven", "pom.xml", "", false, publisher, mock(BuildListener.class), null);
+    SonarMaven sonarMaven = new SonarMaven("-Dprop=value", "Default Maven", "pom.xml", "", false, publisher, mock(BuildListener.class), null, null, null);
     sonarMaven.wrapUpArguments(args, "sonar:sonar", mock(AbstractBuild.class), mock(Launcher.class), mock(BuildListener.class));
 
     List<String> result = args.toList();
