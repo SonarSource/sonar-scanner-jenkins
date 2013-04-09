@@ -29,6 +29,7 @@ import hudson.model.Hudson;
 import hudson.model.JDK;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.plugins.sonar.utils.Logger;
+import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
@@ -168,11 +169,6 @@ public class SonarRunnerBuilder extends Builder {
       return false;
     }
 
-    // Badge should be added only once - SONARPLUGINS-1521
-    if (build.getAction(BuildSonarAction.class) == null) {
-      build.addAction(new BuildSonarAction());
-    }
-
     ArgumentListBuilder args = new ArgumentListBuilder();
 
     EnvVars env = build.getEnvironment(listener);
@@ -215,6 +211,15 @@ public class SonarRunnerBuilder extends Builder {
     long startTime = System.currentTimeMillis();
     try {
       int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getModuleRoot()).join();
+      if (build.getAction(BuildSonarAction.class) == null) {
+        if (r != 0) {
+          build.addAction(new BuildSonarAction());
+        }
+        else {
+          String url = SonarUtils.extractSonarProjectURLFromLogs(build);
+          build.addAction(new BuildSonarAction(url));
+        }
+      }
       return r == 0;
     } catch (IOException e) {
       Logger.printFailureMessage(listener);
@@ -226,6 +231,10 @@ public class SonarRunnerBuilder extends Builder {
         errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
       }
       e.printStackTrace(listener.fatalError(errorMessage));
+      // Badge should be added only once - SONARPLUGINS-1521
+      if (build.getAction(BuildSonarAction.class) == null) {
+        build.addAction(new BuildSonarAction());
+      }
       return false;
     }
   }

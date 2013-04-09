@@ -19,9 +19,6 @@ import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.maven.AbstractMavenProject;
-import hudson.maven.ModuleName;
-import hudson.maven.MavenModule;
 import hudson.maven.MavenModuleSet;
 import hudson.model.Action;
 import hudson.model.BuildListener;
@@ -30,10 +27,12 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.JDK;
+import hudson.model.Run;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.MagicNames;
 import hudson.plugins.sonar.utils.SonarMaven;
+import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
@@ -41,6 +40,7 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.util.FormValidation;
+import hudson.util.RunList;
 import jenkins.model.Jenkins;
 import jenkins.mvn.GlobalSettingsProvider;
 import jenkins.mvn.SettingsProvider;
@@ -48,16 +48,13 @@ import jenkins.mvn.DefaultGlobalSettingsProvider;
 import jenkins.mvn.DefaultSettingsProvider;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Parent;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -302,12 +299,16 @@ public class SonarPublisher extends Notifier {
     if (isSkip(build, listener, sonarInstallation)) {
       return true;
     }
-    build.addAction(new BuildSonarAction());
 
     boolean sonarSuccess = executeSonar(build, launcher, listener, sonarInstallation);
     if (!sonarSuccess) {
       // returning false has no effect on the global build status so need to do it manually
       build.setResult(Result.FAILURE);
+      build.addAction(new BuildSonarAction());
+    }
+    else {
+      String url = SonarUtils.extractSonarProjectURLFromLogs(build);
+      build.addAction(new BuildSonarAction(url));
     }
     listener.getLogger().println("Sonar analysis completed: " + build.getResult());
     return sonarSuccess;
@@ -358,60 +359,25 @@ public class SonarPublisher extends Notifier {
     }
   }
 
-  protected String getSonarUrl(AbstractProject<?, ?> project) {
-    SonarInstallation sonarInstallation = getInstallation();
-    if (sonarInstallation == null) {
-      return null;
-    }
-    String url = sonarInstallation.getServerLink();
-    if (project instanceof AbstractMavenProject) {
-      // Maven Project
-      AbstractMavenProject<?, ?> mavenProject = (AbstractMavenProject<?, ?>) project;
-      if (mavenProject.getRootProject() instanceof MavenModuleSet) {
-        MavenModuleSet mms = (MavenModuleSet) mavenProject.getRootProject();
-        MavenModule rootModule = mms.getRootModule();
-        if (rootModule != null) {
-          ModuleName moduleName = rootModule.getModuleName();
-          url = sonarInstallation.getProjectLink(moduleName.groupId, moduleName.artifactId, getBranch());
-        }
+  protected String getLastSonarUrl(AbstractProject<?, ?> project) {
+    RunList<? extends Run<?, ?>> builds = project.getBuilds();
+    for (Run<?, ?> run : builds) {
+      BuildSonarAction action = run.getAction(BuildSonarAction.class);
+      if (action != null) {
+        return action.getUrlName();
       }
     }
-    else {
-      /**
-       * Free-style job:
-       * If project was built by maven, then pom.xml already exists
-       * If project wasn't built by maven, then there is should be generated pom.xml
-       */
-      try {
-        AbstractBuild<?, ?> lastBuild = project.getLastBuild();
-        if (lastBuild != null) {
-          MavenXpp3Reader reader = new MavenXpp3Reader();
-          Model model = reader.read(new InputStreamReader(lastBuild.getWorkspace().child(getPomName(lastBuild)).read()));
-          String groupId = model.getGroupId();
-          if (StringUtils.isBlank(groupId)) {
-            Parent parent = model.getParent();
-            if (parent != null) {
-              groupId = parent.getGroupId();
-            }
-          }
-          String artifactId = model.getArtifactId();
-          String branchInPom = model.getProperties().getProperty("sonar.branch");
-          url = sonarInstallation.getProjectLink(groupId, artifactId, StringUtils.isBlank(getBranch()) ? branchInPom : getBranch());
-        }
-      } catch (IOException e) {
-        // ignore
-      } catch (XmlPullParserException e) {
-        // ignore
-      } catch (NullPointerException e) {
-        // ignore something in the line can be null for maven project
-      }
-    }
-    return url;
+    return null;
   }
 
   @Override
-  public Action getProjectAction(AbstractProject<?, ?> project) {
-    return new ProjectSonarAction(getSonarUrl(project));
+  public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
+    List<Action> actions = new ArrayList<Action>(super.getProjectActions(project));
+    String lastSonarURL = getLastSonarUrl(project);
+    if (lastSonarURL != null) {
+      actions.add(new ProjectSonarAction(lastSonarURL));
+    }
+    return actions;
   }
 
   public BuildStepMonitor getRequiredMonitorService() {

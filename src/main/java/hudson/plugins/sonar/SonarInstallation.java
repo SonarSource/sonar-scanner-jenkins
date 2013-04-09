@@ -18,7 +18,6 @@ package hudson.plugins.sonar;
 import hudson.Util;
 import hudson.model.Hudson;
 import hudson.plugins.sonar.model.TriggersConfig;
-import hudson.plugins.sonar.utils.MagicNames;
 import hudson.util.Scrambler;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -61,11 +60,6 @@ public class SonarInstallation {
   private final String serverUrl;
 
   /**
-   * @since 1.4
-   */
-  private String serverPublicUrl;
-
-  /**
    * @since 1.5
    */
   private String mojoVersion;
@@ -89,7 +83,7 @@ public class SonarInstallation {
    */
   @Deprecated
   public SonarInstallation(String name) {
-    this(name, false, null, null, null, null, null, null, null, null, null);
+    this(name, false, null, null, null, null, null, null, null, null);
   }
 
   /**
@@ -97,23 +91,22 @@ public class SonarInstallation {
    */
   @Deprecated
   public SonarInstallation(String name, boolean disabled,
-      String serverUrl, String serverPublicUrl,
+      String serverUrl,
       String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
       String mojoVersion, String additionalProperties, TriggersConfig triggers) {
-    this(name, disabled, serverUrl, serverPublicUrl, databaseUrl, databaseDriver, databaseLogin, databasePassword, mojoVersion, additionalProperties,
+    this(name, disabled, serverUrl, databaseUrl, databaseDriver, databaseLogin, databasePassword, mojoVersion, additionalProperties,
         triggers, null, null);
   }
 
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled,
-      String serverUrl, String serverPublicUrl,
+      String serverUrl,
       String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
       String mojoVersion, String additionalProperties, TriggersConfig triggers,
       String sonarLogin, String sonarPassword) {
     this.name = name;
     this.disabled = disabled;
     this.serverUrl = serverUrl;
-    this.serverPublicUrl = serverPublicUrl;
     this.databaseUrl = databaseUrl;
     this.databaseDriver = databaseDriver;
     this.databaseLogin = databaseLogin;
@@ -135,22 +128,6 @@ public class SonarInstallation {
 
   public String getServerUrl() {
     return serverUrl;
-  }
-
-  /**
-   * @return publicly available URL for users of Sonar server
-   * @since 1.4
-   */
-  public String getServerPublicUrl() {
-    return serverPublicUrl;
-  }
-
-  /**
-   * @param serverPublicUrl publicly available URL for users of Sonar server
-   * @since 1.4
-   */
-  public void setServerPublicUrl(String serverPublicUrl) {
-    this.serverPublicUrl = serverPublicUrl;
   }
 
   /**
@@ -202,43 +179,6 @@ public class SonarInstallation {
       triggers = new TriggersConfig();
     }
     return triggers;
-  }
-
-  public String getServerLink() {
-    String url = StringUtils.defaultIfEmpty(
-        StringUtils.trimToEmpty(getServerPublicUrl()),
-        StringUtils.trimToEmpty(getServerUrl()));
-    url = StringUtils.defaultIfEmpty(url, MagicNames.DEFAULT_SONAR_URL);
-    return StringUtils.chomp(url, "/");
-  }
-
-  private String getServerLink(String prefix, String groupId, String artifactId) {
-    return getServerLink(prefix, groupId, artifactId, null);
-  }
-
-  private String getServerLink(String prefix, String groupId, String artifactId, String branch) {
-    StringBuilder builder = new StringBuilder();
-    builder.append(getServerLink())
-        .append(prefix)
-        .append(groupId).append(':').append(artifactId);
-    if (StringUtils.isNotEmpty(branch)) {
-      builder.append(':').append(branch);
-    }
-    return builder.toString();
-  }
-
-  /**
-   * @param groupId    Group ID
-   * @param artifactId Artifact ID
-   * @param branch     branch
-   * @return URL of Sonar project dashboard
-   */
-  public String getProjectLink(String groupId, String artifactId, String branch) {
-    return getServerLink("/project/index/", groupId, artifactId, branch);
-  }
-
-  public String getComponentLink(String groupId, String artifactId) {
-    return getServerLink("/components/index/", groupId, artifactId);
   }
 
   /**

@@ -17,6 +17,8 @@ package hudson.plugins.sonar;
 
 import hudson.model.BuildBadgeAction;
 import hudson.plugins.sonar.utils.MagicNames;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 /**
  * {@link BuildBadgeAction} that shows the build contains Sonar analysis.
@@ -24,7 +26,19 @@ import hudson.plugins.sonar.utils.MagicNames;
  * @author Evgeny Mandrikov
  * @since 1.2
  */
+@ExportedBean
 public final class BuildSonarAction implements BuildBadgeAction {
+
+  public final String url;
+
+  public BuildSonarAction() {
+    this.url = null;
+  }
+
+  public BuildSonarAction(String url) {
+    this.url = url;
+  }
+
   public String getTooltip() {
     return Messages.BuildSonarAction_Tooltip();
   }
@@ -42,6 +56,11 @@ public final class BuildSonarAction implements BuildBadgeAction {
   }
 
   public String getUrlName() {
-    return null;
+    return url;
+  }
+
+  @Exported(visibility = 2)
+  public String getUrl() {
+    return url;
   }
 }
