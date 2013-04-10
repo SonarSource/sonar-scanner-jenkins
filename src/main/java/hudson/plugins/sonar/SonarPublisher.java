@@ -20,6 +20,8 @@ import hudson.Extension;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.maven.MavenModuleSet;
+import hudson.maven.local_repo.DefaultLocalRepositoryLocator;
+import hudson.maven.local_repo.LocalRepositoryLocator;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Result;
@@ -116,6 +118,12 @@ public class SonarPublisher extends Notifier {
   // Next fields available only for free-style projects
 
   private String mavenInstallationName;
+
+  /**
+   * @since 1.2
+   */
+  private String rootPom;
+
   /**
    * @since 2.1
    */
@@ -127,9 +135,9 @@ public class SonarPublisher extends Notifier {
   private GlobalSettingsProvider globalSettings = new DefaultGlobalSettingsProvider();
 
   /**
-   * @since 1.2
+   * @since 2.1
    */
-  private String rootPom;
+  private LocalRepositoryLocator localRepository = null;
 
   public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
     this(installationName, new TriggersConfig(), jobAdditionalProperties, mavenOpts, null, null);
@@ -344,7 +352,8 @@ public class SonarPublisher extends Notifier {
       }
 
       // Execute maven
-      return SonarMaven.executeMaven(build, launcher, listener, mavenInstallName, pomName, sonarInstallation, this, getJDK(), getSettings(), getGlobalSettings());
+      return SonarMaven.executeMaven(build, launcher, listener, mavenInstallName, pomName, sonarInstallation, this, getJDK(),
+          getSettings(), getGlobalSettings(), getLocalRepository());
     } catch (IOException e) {
       Logger.printFailureMessage(listener);
       Util.displayIOException(e, listener);
@@ -396,6 +405,18 @@ public class SonarPublisher extends Notifier {
    */
   public GlobalSettingsProvider getGlobalSettings() {
     return globalSettings != null ? globalSettings : new DefaultGlobalSettingsProvider();
+  }
+
+  /**
+   * @since 2.1
+   * Never null
+   */
+  public LocalRepositoryLocator getLocalRepository() {
+    return localRepository != null ? localRepository : new DefaultLocalRepositoryLocator();
+  }
+
+  public LocalRepositoryLocator getExplicitLocalRepository() {
+    return localRepository;
   }
 
   @Extension(ordinal = 1000)

@@ -16,6 +16,7 @@
 package hudson.plugins.sonar.utils;
 
 import hudson.Launcher;
+import hudson.maven.local_repo.DefaultLocalRepositoryLocator;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.plugins.sonar.SonarInstallation;
@@ -47,7 +48,8 @@ public class SonarMavenTest {
     when(publisher.getLanguage()).thenReturn("language");
 
     ArgumentListBuilder args = new ArgumentListBuilder();
-    SonarMaven sonarMaven = new SonarMaven("-Dprop=value", "Default Maven", "pom.xml", "", false, publisher, mock(BuildListener.class), null, null, null);
+    SonarMaven sonarMaven = new SonarMaven("-Dprop=value", "Default Maven", "pom.xml", "", new DefaultLocalRepositoryLocator(), publisher, mock(BuildListener.class), null, null,
+        null);
     sonarMaven.wrapUpArguments(args, "sonar:sonar", mock(AbstractBuild.class), mock(Launcher.class), mock(BuildListener.class));
 
     List<String> result = args.toList();
