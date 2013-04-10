@@ -74,6 +74,12 @@ public class SonarRunnerBuilder extends Builder {
   private final String sonarRunnerName;
 
   /**
+   * Optional task to run
+   * @since 2.1
+   */
+  private final String task;
+
+  /**
    * @deprecated in 2.0
    */
   @Deprecated
@@ -89,14 +95,22 @@ public class SonarRunnerBuilder extends Builder {
     this(installationName, sonarRunnerName, project, properties, javaOpts, null);
   }
 
-  @DataBoundConstructor
+  /**
+   * @deprecated in 2.1
+   */
   public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk) {
+    this(installationName, sonarRunnerName, project, properties, javaOpts, null, null);
+  }
+
+  @DataBoundConstructor
+  public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk, String task) {
     this.installationName = installationName;
     this.sonarRunnerName = sonarRunnerName;
     this.javaOpts = javaOpts;
     this.project = project;
     this.properties = properties;
     this.jdk = jdk;
+    this.task = task;
   }
 
   /**
@@ -145,6 +159,10 @@ public class SonarRunnerBuilder extends Builder {
     return SonarInstallation.get(getInstallationName());
   }
 
+  public String getTask() {
+    return task;
+  }
+
   @Override
   public DescriptorImpl getDescriptor() {
     return (DescriptorImpl) super.getDescriptor();
@@ -188,6 +206,9 @@ public class SonarRunnerBuilder extends Builder {
       }
       args.add(exe);
       env.put("SONAR_RUNNER_HOME", sri.getHome());
+    }
+    if (StringUtils.isNotBlank(getTask())) {
+      args.add(task);
     }
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
     if (!populateConfiguration(argsBuilder, build, listener, env, getSonarInstallation())) {

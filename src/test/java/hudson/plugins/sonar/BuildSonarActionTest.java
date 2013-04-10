@@ -25,11 +25,12 @@ import static org.junit.Assert.assertThat;
 /**
  * @author Evgeny Mandrikov
  */
-public class BuildSonarActionTest {
+public class BuildSonarActionTest extends SonarTestCase {
   private BuildSonarAction action;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
+    super.setUp();
     action = new BuildSonarAction();
   }
 
