@@ -22,15 +22,11 @@ package hudson.plugins.sonar.utils;
  * @since 1.2
  */
 public final class MagicNames {
-  /**
-   * Plugin home.
-   */
-  public static final String PLUGIN_HOME = "/plugin/sonar";
 
   /**
    * Plugin icon.
    */
-  public static final String ICON = PLUGIN_HOME + "/images/sonar-wave.png";
+  public static final String ICON = "sonar-wave.png";
 
   /**
    * Default URL of Sonar.

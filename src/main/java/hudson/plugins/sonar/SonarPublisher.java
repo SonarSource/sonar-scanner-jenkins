@@ -447,6 +447,15 @@ public class SonarPublisher extends Notifier {
       save();
     }
 
+    @Override
+    public String getHelpFile(String fieldName) {
+      if ("globalSettings".equals(fieldName) || "settings".equals(fieldName)) {
+        // Reuse help from Maven plugin
+        return Jenkins.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getHelpFile("settings");
+      }
+      return super.getHelpFile(fieldName);
+    }
+
     /**
      * This method is used in UI, so signature and location of this method is important (see SONARPLUGINS-1337).
      *

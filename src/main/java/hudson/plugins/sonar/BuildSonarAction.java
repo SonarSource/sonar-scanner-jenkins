@@ -15,8 +15,10 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.PluginWrapper;
 import hudson.model.BuildBadgeAction;
 import hudson.plugins.sonar.utils.MagicNames;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -43,14 +45,17 @@ public final class BuildSonarAction implements BuildBadgeAction {
     return Messages.BuildSonarAction_Tooltip();
   }
 
-  public String getIcon() {
-    return MagicNames.ICON;
-  }
-
   public String getDisplayName() {
     return Messages.SonarAction_Sonar();
   }
 
+  public String getIcon() {
+    PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
+        .getPlugin(SonarPlugin.class);
+    return "/plugin/" + wrapper.getShortName() + "/images/" + MagicNames.ICON;
+  }
+
+  // non use interface methods
   public String getIconFileName() {
     return null;
   }

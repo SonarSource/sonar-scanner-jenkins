@@ -15,8 +15,10 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.PluginWrapper;
 import hudson.model.ProminentProjectAction;
 import hudson.plugins.sonar.utils.MagicNames;
+import jenkins.model.Jenkins;
 
 /**
  * {@link ProminentProjectAction} that allows user to go to the Sonar Dashboard.
@@ -32,7 +34,9 @@ public final class ProjectSonarAction implements ProminentProjectAction {
   }
 
   public String getIconFileName() {
-    return MagicNames.ICON;
+    PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
+        .getPlugin(SonarPlugin.class);
+    return "/plugin/" + wrapper.getShortName() + "/images/" + MagicNames.ICON;
   }
 
   public String getDisplayName() {

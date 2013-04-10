@@ -15,7 +15,7 @@
   </j:if>
   <j:if test="${sonars.size() gt 1}">
     <!-- choise not necessary if there's no choice -->
-    <f:entry title="${%SonarInstallation}">
+    <f:entry title="${%SonarInstallation}" help="/plugin/sonar/help-sonar-installation.html">
       <select class="setting-input" name="sonar.installationName">
         <j:forEach var="inst" items="${sonars}">
           <f:option value="${inst.name}" selected="${inst.name==instance.installation.name}">${inst.name}
@@ -26,17 +26,16 @@
   </j:if>
 
   <f:advanced>
-    <f:entry title="${%Branch}" description="${%BranchDescr}"
-             help="/plugin/sonar/help-branch.html">
+    <f:entry title="${%Branch}" description="${%BranchDescr}" help="/plugin/sonar/help-branch.html">
       <f:textbox name="sonar.branch" value="${instance.getBranch()}"/>
     </f:entry>
 
-    <f:entry title="${%Language}" description="${%LanguageDescr}">
+    <f:entry title="${%Language}" description="${%LanguageDescr}" help="/plugin/sonar/help-language.html">
       <f:textbox name="sonar.language" value="${instance.getLanguage()}"/>
     </f:entry>
 
     <j:set var="jdks" value="${app.JDKs}" />
-    <f:entry title="JDK" description="${%JDKDesc}">
+    <f:entry title="JDK" description="${%JDKDesc}" help="/plugin/sonar/help-sonar-jdk.html">
       <select class="setting-input validated" name="jdk" checkUrl="'${rootURL}/defaultJDKCheck?value='+this.value">
         <option>${%InheritFromJob}</option>
         <j:forEach var="inst" items="${jdks}">
