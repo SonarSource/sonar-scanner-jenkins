@@ -32,7 +32,6 @@ import hudson.model.JDK;
 import hudson.model.Run;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.Logger;
-import hudson.plugins.sonar.utils.MagicNames;
 import hudson.plugins.sonar.utils.SonarMaven;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
@@ -172,7 +171,7 @@ public class SonarPublisher extends Notifier {
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
       String mavenInstallationName, String rootPom, String jdk) {
-    this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null, null, null);
+    this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null, null, null, null);
   }
 
   @DataBoundConstructor
@@ -181,7 +180,7 @@ public class SonarPublisher extends Notifier {
       String language,
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
-      String mavenInstallationName, String rootPom, String jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings) {
+      String mavenInstallationName, String rootPom, String jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings, LocalRepositoryLocator localRepository) {
     super();
     this.installationName = installationName;
     this.branch = branch;
@@ -197,6 +196,7 @@ public class SonarPublisher extends Notifier {
     this.rootPom = rootPom;
     this.settings = settings != null ? settings : new DefaultSettingsProvider();
     this.globalSettings = globalSettings != null ? globalSettings : new DefaultGlobalSettingsProvider();
+    this.localRepository = localRepository;
   }
 
   /**
@@ -433,11 +433,6 @@ public class SonarPublisher extends Notifier {
     @Override
     public String getDisplayName() {
       return "Sonar";
-    }
-
-    @Override
-    public String getHelpFile() {
-      return MagicNames.PLUGIN_HOME + "/help.html";
     }
 
     /**
