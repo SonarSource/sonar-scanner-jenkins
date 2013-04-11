@@ -29,7 +29,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.JDK;
-import hudson.model.Run;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarMaven;
@@ -41,7 +40,6 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.util.FormValidation;
-import hudson.util.RunList;
 import jenkins.model.Jenkins;
 import jenkins.mvn.GlobalSettingsProvider;
 import jenkins.mvn.SettingsProvider;
@@ -54,8 +52,6 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -368,25 +364,13 @@ public class SonarPublisher extends Notifier {
     }
   }
 
-  protected String getLastSonarUrl(AbstractProject<?, ?> project) {
-    RunList<? extends Run<?, ?>> builds = project.getBuilds();
-    for (Run<?, ?> run : builds) {
-      BuildSonarAction action = run.getAction(BuildSonarAction.class);
-      if (action != null) {
-        return action.getUrlName();
-      }
+  @Override
+  public Action getProjectAction(AbstractProject<?, ?> project) {
+    String lastSonarURL = SonarUtils.getLastSonarUrl(project);
+    if (lastSonarURL != null) {
+      return new ProjectSonarAction(lastSonarURL);
     }
     return null;
-  }
-
-  @Override
-  public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
-    List<Action> actions = new ArrayList<Action>(super.getProjectActions(project));
-    String lastSonarURL = getLastSonarUrl(project);
-    if (lastSonarURL != null) {
-      actions.add(new ProjectSonarAction(lastSonarURL));
-    }
-    return actions;
   }
 
   public BuildStepMonitor getRequiredMonitorService() {

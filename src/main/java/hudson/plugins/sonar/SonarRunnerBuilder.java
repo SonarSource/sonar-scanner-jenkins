@@ -21,6 +21,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -349,6 +350,15 @@ public class SonarRunnerBuilder extends Builder {
       jdkToUse = project.getJDK();
     }
     return jdkToUse;
+  }
+
+  @Override
+  public Action getProjectAction(AbstractProject<?, ?> project) {
+    String lastSonarURL = SonarUtils.getLastSonarUrl(project);
+    if (lastSonarURL != null) {
+      return new ProjectSonarAction(lastSonarURL);
+    }
+    return null;
   }
 
   @Extension

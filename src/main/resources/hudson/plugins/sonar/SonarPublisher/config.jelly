@@ -64,7 +64,7 @@
 
       <f:optionalBlock name="maven.usePrivateRepository" title="${%Use private Maven repository}" help="/plugin/maven-plugin/private-repository.html"
                        checked="${instance.getExplicitLocalRepository()!=null}" inline="true">
-        <f:dropdownDescriptorSelector title="${%Strategy}" field="localRepository" />
+        <f:dropdownDescriptorSelector title="${%Strategy}" field="explicitLocalRepository" />
       </f:optionalBlock>
 
       <f:dropdownDescriptorSelector title="${%Settings file}" field="settings" descriptors="${descriptor.settingsProviders}"/>

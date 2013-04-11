@@ -16,6 +16,10 @@
 package hudson.plugins.sonar.utils;
 
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Run;
+import hudson.plugins.sonar.BuildSonarAction;
+import hudson.util.RunList;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
@@ -40,6 +44,9 @@ public final class SonarUtils {
   private SonarUtils() {
   }
 
+  /**
+   * Read logs of the build to find URL of the project dashboard in Sonar
+   */
   public static String extractSonarProjectURLFromLogs(AbstractBuild<?, ?> build) throws IOException {
     BufferedReader br = null;
     String url = null;
@@ -57,5 +64,19 @@ public final class SonarUtils {
       IOUtils.closeQuietly(br);
     }
     return url;
+  }
+
+  /**
+   * Iterate previous build of this project and return the last Sonar URL
+   */
+  public static String getLastSonarUrl(AbstractProject<?, ?> project) {
+    RunList<? extends Run<?, ?>> builds = project.getBuilds();
+    for (Run<?, ?> run : builds) {
+      BuildSonarAction action = run.getAction(BuildSonarAction.class);
+      if (action != null) {
+        return action.getUrlName();
+      }
+    }
+    return null;
   }
 }
