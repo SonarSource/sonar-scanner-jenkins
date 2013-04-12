@@ -29,11 +29,6 @@ public final class MagicNames {
   public static final String ICON = "sonar-wave.png";
 
   /**
-   * Default URL of Sonar.
-   */
-  public static final String DEFAULT_SONAR_URL = "http://localhost:9000";
-
-  /**
    * Hide utility-class constructor.
    */
   private MagicNames() {

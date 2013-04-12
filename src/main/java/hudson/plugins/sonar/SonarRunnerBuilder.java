@@ -354,11 +354,7 @@ public class SonarRunnerBuilder extends Builder {
 
   @Override
   public Action getProjectAction(AbstractProject<?, ?> project) {
-    String lastSonarURL = SonarUtils.getLastSonarUrl(project);
-    if (lastSonarURL != null) {
-      return new ProjectSonarAction(lastSonarURL);
-    }
-    return null;
+    return new ProjectSonarAction(project);
   }
 
   @Extension

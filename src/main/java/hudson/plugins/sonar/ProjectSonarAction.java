@@ -17,7 +17,9 @@ package hudson.plugins.sonar;
 
 import hudson.PluginWrapper;
 import hudson.model.ProminentProjectAction;
+import hudson.model.AbstractProject;
 import hudson.plugins.sonar.utils.MagicNames;
+import hudson.plugins.sonar.utils.SonarUtils;
 import jenkins.model.Jenkins;
 
 /**
@@ -27,10 +29,10 @@ import jenkins.model.Jenkins;
  * @since 1.2
  */
 public final class ProjectSonarAction implements ProminentProjectAction {
-  private final String url;
+  private final AbstractProject<?, ?> project;
 
-  public ProjectSonarAction(String url) {
-    this.url = url;
+  public ProjectSonarAction(AbstractProject<?, ?> project) {
+    this.project = project;
   }
 
   public String getIconFileName() {
@@ -44,6 +46,6 @@ public final class ProjectSonarAction implements ProminentProjectAction {
   }
 
   public String getUrlName() {
-    return url;
+    return SonarUtils.getLastSonarUrl(project);
   }
 }

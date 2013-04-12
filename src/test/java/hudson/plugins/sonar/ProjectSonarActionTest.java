@@ -15,13 +15,14 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.utils.MagicNames;
+import hudson.model.AbstractProject;
+import hudson.util.RunList;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Evgeny Mandrikov
@@ -32,13 +33,15 @@ public class ProjectSonarActionTest extends SonarTestCase {
   @Before
   public void setUp() throws Exception {
     super.setUp();
-    action = new ProjectSonarAction(MagicNames.DEFAULT_SONAR_URL);
+    AbstractProject project = mock(AbstractProject.class);
+    action = new ProjectSonarAction(project);
+    when(project.getBuilds()).thenReturn(new RunList());
   }
 
   @Test
   public void test() throws Exception {
-    assertThat(action.getDisplayName(), notNullValue());
-    assertThat(action.getIconFileName(), notNullValue());
-    assertThat(action.getUrlName(), is(MagicNames.DEFAULT_SONAR_URL));
+    assertThat(action.getDisplayName()).isNotNull();
+    assertThat(action.getIconFileName()).isNotNull();
+    assertThat(action.getUrlName()).isNull();
   }
 }
