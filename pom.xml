@@ -91,8 +91,8 @@
     <url>http://jira.codehaus.org/browse/SONARPLUGINS/component/13726</url>
   </issueManagement>
   <ciManagement>
-    <system>Bamboo</system>
-    <url>http://ci.codehaus.org/browse/SONAR-HUDSON</url>
+    <system>Jenkins</system>
+    <url>http://sonarplugins.ci.cloudbees.com/job/jenkins</url>
   </ciManagement>
 
   <properties>
