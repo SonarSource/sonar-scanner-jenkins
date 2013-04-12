@@ -16,9 +16,12 @@
 package hudson.plugins.sonar.utils;
 
 import hudson.EnvVars;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.maven.MavenModuleSet;
+import hudson.maven.MavenModuleSetBuild;
 import hudson.maven.local_repo.DefaultLocalRepositoryLocator;
+import hudson.maven.local_repo.PerJobLocalRepositoryLocator;
 import hudson.maven.local_repo.LocalRepositoryLocator;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
@@ -50,12 +53,14 @@ public final class SonarMaven extends Maven {
   private final String additionalProperties;
   private JDK jdk;
   private final BuildListener listener;
+  private final LocalRepositoryLocator locaRepository;
 
   public SonarMaven(String additionalProperties, String name, String pom, String jvmOptions, LocalRepositoryLocator locaRepository,
       SonarPublisher publisher, BuildListener listener, JDK jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings) {
-    super(getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, !(locaRepository instanceof DefaultLocalRepositoryLocator),
+    super(getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, false,
         settings, globalSettings);
     this.additionalProperties = additionalProperties;
+    this.locaRepository = locaRepository;
     this.publisher = publisher;
     this.jdk = jdk;
     this.listener = listener;
@@ -96,6 +101,16 @@ public final class SonarMaven extends Maven {
       argsBuilder.appendMasked("sonar.login", getInstallation().getSonarLogin());
       argsBuilder.appendMasked("sonar.password", getInstallation().getSonarPassword());
     }
+
+    if (build instanceof MavenModuleSetBuild) {
+      FilePath localRepo = locaRepository.locate((MavenModuleSetBuild) build);
+      if (localRepo != null) {
+        args.add("-Dmaven.repo.local=" + localRepo.getRemote());
+      }
+    }
+    else if (locaRepository instanceof PerJobLocalRepositoryLocator) {
+      args.add("-Dmaven.repo.local=" + build.getWorkspace().child(".repository"));
+    }
   }
 
   @Override
@@ -114,7 +129,7 @@ public final class SonarMaven extends Maven {
       JDK jdk,
       SettingsProvider settings,
       GlobalSettingsProvider globalSettings,
-      LocalRepositoryLocator locaRepository) throws IOException, InterruptedException {
+      boolean usesLocalRepository) throws IOException, InterruptedException {
     MavenModuleSet mavenModuleProject = sonarPublisher.getMavenProject(build);
     EnvVars envVars = build.getEnvironment(listener);
     /**
@@ -127,7 +142,7 @@ public final class SonarMaven extends Maven {
       }
     }
     // Private Repository and Alternate Settings
-    LocalRepositoryLocator locaRepositoryToUse = locaRepository;
+    LocalRepositoryLocator locaRepositoryToUse = usesLocalRepository ? new PerJobLocalRepositoryLocator() : new DefaultLocalRepositoryLocator();
     SettingsProvider settingsToUse = settings;
     GlobalSettingsProvider globalSettingsToUse = globalSettings;
     if (mavenModuleProject != null) {

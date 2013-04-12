@@ -20,8 +20,6 @@ import hudson.Extension;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.maven.MavenModuleSet;
-import hudson.maven.local_repo.DefaultLocalRepositoryLocator;
-import hudson.maven.local_repo.LocalRepositoryLocator;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Result;
@@ -130,9 +128,12 @@ public class SonarPublisher extends Notifier {
   private GlobalSettingsProvider globalSettings = new DefaultGlobalSettingsProvider();
 
   /**
+   * If true, the build will use its own local Maven repository
+   * via "-Dmaven.repo.local=...".
+   *
    * @since 2.1
    */
-  private LocalRepositoryLocator localRepository = null;
+  public boolean usePrivateRepository = false;
 
   public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
     this(installationName, new TriggersConfig(), jobAdditionalProperties, mavenOpts, null, null);
@@ -167,7 +168,7 @@ public class SonarPublisher extends Notifier {
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
       String mavenInstallationName, String rootPom, String jdk) {
-    this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null, null, null, null);
+    this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null, null, null, false);
   }
 
   @DataBoundConstructor
@@ -176,7 +177,7 @@ public class SonarPublisher extends Notifier {
       String language,
       TriggersConfig triggers,
       String jobAdditionalProperties, String mavenOpts,
-      String mavenInstallationName, String rootPom, String jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings, LocalRepositoryLocator localRepository) {
+      String mavenInstallationName, String rootPom, String jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings, boolean usePrivateRepository) {
     super();
     this.installationName = installationName;
     this.branch = branch;
@@ -192,7 +193,7 @@ public class SonarPublisher extends Notifier {
     this.rootPom = rootPom;
     this.settings = settings != null ? settings : new DefaultSettingsProvider();
     this.globalSettings = globalSettings != null ? globalSettings : new DefaultGlobalSettingsProvider();
-    this.localRepository = localRepository;
+    this.usePrivateRepository = usePrivateRepository;
   }
 
   /**
@@ -349,7 +350,7 @@ public class SonarPublisher extends Notifier {
 
       // Execute maven
       return SonarMaven.executeMaven(build, launcher, listener, mavenInstallName, pomName, sonarInstallation, this, getJDK(),
-          getSettings(), getGlobalSettings(), getLocalRepository());
+          getSettings(), getGlobalSettings(), usesPrivateRepository());
     } catch (IOException e) {
       Logger.printFailureMessage(listener);
       Util.displayIOException(e, listener);
@@ -389,14 +390,13 @@ public class SonarPublisher extends Notifier {
 
   /**
    * @since 2.1
-   * Never null
    */
-  public LocalRepositoryLocator getLocalRepository() {
-    return localRepository != null ? localRepository : new DefaultLocalRepositoryLocator();
+  public void setUsePrivateRepository(boolean usePrivateRepository) {
+    this.usePrivateRepository = usePrivateRepository;
   }
 
-  public LocalRepositoryLocator getExplicitLocalRepository() {
-    return localRepository;
+  public boolean usesPrivateRepository() {
+    return usePrivateRepository;
   }
 
   @Extension(ordinal = 1000)

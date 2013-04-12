@@ -62,10 +62,9 @@
         <f:textbox name="sonar.rootPom" value="${instance.getRootPom()}"/>
       </f:entry>
 
-      <f:optionalBlock name="maven.usePrivateRepository" title="${%Use private Maven repository}" help="/plugin/maven-plugin/private-repository.html"
-                       checked="${instance.getExplicitLocalRepository()!=null}" inline="true">
-        <f:dropdownDescriptorSelector title="${%Strategy}" field="explicitLocalRepository" />
-      </f:optionalBlock>
+      <f:entry field="usePrivateRepository" title="${%Use private Maven repository}" help="/plugin/maven-plugin/private-repository.html">
+        <f:checkbox checked="${it.usesPrivateRepository()}" />
+      </f:entry>
 
       <f:dropdownDescriptorSelector title="${%Settings file}" field="settings" descriptors="${descriptor.settingsProviders}"/>
       <f:dropdownDescriptorSelector title="${%Global Settings file}" field="globalSettings"  descriptors="${descriptor.globalSettingsProviders}"/>
