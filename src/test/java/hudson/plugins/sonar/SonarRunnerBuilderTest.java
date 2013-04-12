@@ -78,12 +78,23 @@ public class SonarRunnerBuilderTest {
 
   @Test
   public void shouldBeEmptyInsteadOfNull() {
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null);
+    assertEmptyInsteadOfNull(builder);
+    // Test other constructors
+    builder = new SonarRunnerBuilder(null, null, null, null);
+    assertEmptyInsteadOfNull(builder);
+    builder = new SonarRunnerBuilder(null, null, null, null, null);
+    assertEmptyInsteadOfNull(builder);
+    builder = new SonarRunnerBuilder(null, null, null, null, null, null);
+    assertEmptyInsteadOfNull(builder);
+  }
 
+  private void assertEmptyInsteadOfNull(SonarRunnerBuilder builder) {
     assertThat(builder.getInstallationName()).isEmpty();
     assertThat(builder.getJavaOpts()).isEmpty();
     assertThat(builder.getProject()).isEmpty();
     assertThat(builder.getProperties()).isEmpty();
+    assertThat(builder.getSonarRunnerName()).isEmpty();
   }
 
   @Test
@@ -91,7 +102,7 @@ public class SonarRunnerBuilderTest {
     File projectSettings = new File(moduleDir, "myCustomProjectSettings.properties");
     projectSettings.createNewFile();
 
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null);
     builder.populateConfiguration(argsBuilder, build, listener, env, null);
 
     assertThat(args.toStringWithQuote())
@@ -110,7 +121,7 @@ public class SonarRunnerBuilderTest {
     when(installation.getSonarLogin()).thenReturn("sonarlogin");
     when(installation.getSonarPassword()).thenReturn("sonarpassword");
 
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null);
     builder.populateConfiguration(argsBuilder, build, listener, env, installation);
 
     assertThat(args.toStringWithQuote())
