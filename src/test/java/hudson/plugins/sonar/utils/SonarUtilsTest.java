@@ -16,10 +16,15 @@
 package hudson.plugins.sonar.utils;
 
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Run;
+import hudson.plugins.sonar.BuildSonarAction;
+import hudson.util.RunList;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Arrays;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -36,9 +41,26 @@ public class SonarUtilsTest {
     assertThat(SonarUtils.extractSonarProjectURLFromLogs(mockedBuild(log))).isEqualTo("http://sonar:9000/dashboard/index/myproject:onbranch");
   }
 
+  @Test
+  public void shouldGetLastUrl() throws Exception {
+    AbstractProject<?, ?> project = mock(AbstractProject.class);
+    Run<?, ?> build1 = mockedRunWithSonarAction(null);
+    Run<?, ?> build2 = mockedRunWithSonarAction("http://foo");
+    RunList list = mock(RunList.class);
+    when(list.iterator()).thenReturn(Arrays.asList(build1, build2).iterator());
+    when(project.getBuilds()).thenReturn(list);
+    assertThat(SonarUtils.getLastSonarUrl(project)).isEqualTo("http://foo");
+  }
+
   private AbstractBuild<?, ?> mockedBuild(String log) throws IOException {
     AbstractBuild<?, ?> build = mock(AbstractBuild.class);
     when(build.getLogReader()).thenReturn(new StringReader(log));
+    return build;
+  }
+
+  private Run<?, ?> mockedRunWithSonarAction(String url) throws IOException {
+    Run<?, ?> build = mock(Run.class);
+    when(build.getAction(BuildSonarAction.class)).thenReturn(url != null ? new BuildSonarAction(url) : null);
     return build;
   }
 
