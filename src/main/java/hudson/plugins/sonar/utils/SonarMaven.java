@@ -37,7 +37,6 @@ import jenkins.mvn.SettingsProvider;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
-import java.util.regex.Pattern;
 
 /**
  * @author Evgeny Mandrikov
@@ -109,7 +108,10 @@ public final class SonarMaven extends Maven {
       }
     }
     else if (locaRepository instanceof PerJobLocalRepositoryLocator) {
-      args.add("-Dmaven.repo.local=" + build.getWorkspace().child(".repository"));
+      FilePath workspace = build.getWorkspace();
+      if (workspace != null) {
+        args.add("-Dmaven.repo.local=" + workspace.child(".repository"));
+      }
     }
   }
 
@@ -136,10 +138,10 @@ public final class SonarMaven extends Maven {
      * MAVEN_OPTS
      */
     String jvmOptions = sonarPublisher.getMavenOpts();
-    if (StringUtils.isEmpty(jvmOptions)) {
-      if (mavenModuleProject != null && StringUtils.isNotEmpty(mavenModuleProject.getMavenOpts())) {
-        jvmOptions = mavenModuleProject.getMavenOpts();
-      }
+    if (StringUtils.isEmpty(jvmOptions)
+      && mavenModuleProject != null
+      && StringUtils.isNotEmpty(mavenModuleProject.getMavenOpts())) {
+      jvmOptions = mavenModuleProject.getMavenOpts();
     }
     // Private Repository and Alternate Settings
     LocalRepositoryLocator locaRepositoryToUse = usesLocalRepository ? new PerJobLocalRepositoryLocator() : new DefaultLocalRepositoryLocator();
@@ -176,13 +178,5 @@ public final class SonarMaven extends Maven {
       }
       jdk.buildEnvVars(env);
     }
-  }
-
-  /**
-   * This method available in hudson.util.IOUtils in version 1.378, but not in 1.344, so we did a copy-paste.
-   */
-  private static boolean isAbsolute(String path) {
-    Pattern drivePattern = Pattern.compile("[A-Za-z]:[\\\\/].*");
-    return path.startsWith("/") || drivePattern.matcher(path).matches();
   }
 }

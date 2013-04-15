@@ -79,7 +79,7 @@ public class SonarInstallation {
   private String sonarPassword;
 
   /**
-   * @deprecated
+   * @deprecated in 2.0
    */
   @Deprecated
   public SonarInstallation(String name) {
@@ -87,7 +87,7 @@ public class SonarInstallation {
   }
 
   /**
-   * @deprecated
+   * @deprecated in 2.0.1
    */
   @Deprecated
   public SonarInstallation(String name, boolean disabled,

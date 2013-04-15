@@ -34,7 +34,6 @@ import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
-import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -61,10 +60,10 @@ public class SonarRunnerBuilder extends Builder {
    * Null if no explicit configuration is required.
    *
    * <p>
-   * Can't store {@link JDK} directly because {@link Jenkins} and {@link hudson.model.Project}
+   * Can't store {@link JDK} directly because {@link jenkins.model.Jenkins} and {@link hudson.model.Project}
    * are saved independently.
    *
-   * @see Jenkins#getJDK(String)
+   * @see jenkins.model.Jenkins#getJDK(String)
    */
   private String jdk;
 
@@ -99,6 +98,7 @@ public class SonarRunnerBuilder extends Builder {
   /**
    * @deprecated in 2.1
    */
+  @Deprecated
   public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk) {
     this(installationName, sonarRunnerName, project, properties, javaOpts, null, null);
   }
@@ -208,15 +208,61 @@ public class SonarRunnerBuilder extends Builder {
       args.add(exe);
       env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
-    if (StringUtils.isNotBlank(getTask())) {
-      args.add(task);
-    }
+    addTaskArgument(args);
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
     if (!populateConfiguration(argsBuilder, build, listener, env, getSonarInstallation())) {
       return false;
     }
 
     // Java
+    computeJdkToUse(build, listener, env);
+
+    // Java options
+    env.put("SONAR_RUNNER_OPTS", getJavaOpts());
+
+    long startTime = System.currentTimeMillis();
+    int r;
+    try {
+      r = executeSonarRunner(build, launcher, listener, args, env);
+    } catch (IOException e) {
+      handleErrors(build, listener, sri, startTime, e);
+      r = -1;
+    }
+    return r == 0;
+  }
+
+  private void handleErrors(AbstractBuild<?, ?> build, BuildListener listener, SonarRunnerInstallation sri, long startTime, IOException e) {
+    Logger.printFailureMessage(listener);
+    Util.displayIOException(e, listener);
+
+    String errorMessage = Messages.SonarRunner_ExecFailed();
+    if (sri == null && (System.currentTimeMillis() - startTime) < 1000 && getDescriptor().getSonarRunnerInstallations() == null) {
+      // looks like the user didn't configure any Sonar Runner installation
+      errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
+    }
+    e.printStackTrace(listener.fatalError(errorMessage));
+    // Badge should be added only once - SONARPLUGINS-1521
+    if (build.getAction(BuildSonarAction.class) == null) {
+      build.addAction(new BuildSonarAction());
+    }
+  }
+
+  private int executeSonarRunner(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
+      InterruptedException {
+    int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getModuleRoot()).join();
+    if (build.getAction(BuildSonarAction.class) == null) {
+      if (r != 0) {
+        build.addAction(new BuildSonarAction());
+      }
+      else {
+        String url = SonarUtils.extractSonarProjectURLFromLogs(build);
+        build.addAction(new BuildSonarAction(url));
+      }
+    }
+    return r;
+  }
+
+  private void computeJdkToUse(AbstractBuild<?, ?> build, BuildListener listener, EnvVars env) throws IOException, InterruptedException {
     JDK jdkToUse = getJdkToUse(build.getProject());
     if (jdkToUse != null) {
       Computer computer = Computer.currentComputer();
@@ -226,38 +272,11 @@ public class SonarRunnerBuilder extends Builder {
       }
       jdkToUse.buildEnvVars(env);
     }
+  }
 
-    // Java options
-    env.put("SONAR_RUNNER_OPTS", getJavaOpts());
-
-    long startTime = System.currentTimeMillis();
-    try {
-      int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getModuleRoot()).join();
-      if (build.getAction(BuildSonarAction.class) == null) {
-        if (r != 0) {
-          build.addAction(new BuildSonarAction());
-        }
-        else {
-          String url = SonarUtils.extractSonarProjectURLFromLogs(build);
-          build.addAction(new BuildSonarAction(url));
-        }
-      }
-      return r == 0;
-    } catch (IOException e) {
-      Logger.printFailureMessage(listener);
-      Util.displayIOException(e, listener);
-
-      String errorMessage = Messages.SonarRunner_ExecFailed();
-      if (sri == null && (System.currentTimeMillis() - startTime) < 1000 && getDescriptor().getSonarRunnerInstallations() == null) {
-        // looks like the user didn't configure any Sonar Runner installation
-        errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
-      }
-      e.printStackTrace(listener.fatalError(errorMessage));
-      // Badge should be added only once - SONARPLUGINS-1521
-      if (build.getAction(BuildSonarAction.class) == null) {
-        build.addAction(new BuildSonarAction());
-      }
-      return false;
+  private void addTaskArgument(ArgumentListBuilder args) {
+    if (StringUtils.isNotBlank(getTask())) {
+      args.add(task);
     }
   }
 
@@ -314,7 +333,12 @@ public class SonarRunnerBuilder extends Builder {
         // and diagnosing it nicely. See HUDSON-1782
 
         // first check if this appears to be a valid relative path from workspace root
-        FilePath projectSettingsFilePath2 = build.getWorkspace().child(projectSettingsFile);
+        FilePath workspace = build.getWorkspace();
+        if (workspace == null) {
+          listener.fatalError("Project workspace is null");
+          return false;
+        }
+        FilePath projectSettingsFilePath2 = workspace.child(projectSettingsFile);
         if (projectSettingsFilePath2.exists()) {
           // This must be what the user meant. Let it continue.
           projectSettingsFilePath = projectSettingsFilePath2;

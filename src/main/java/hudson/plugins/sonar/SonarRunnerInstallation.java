@@ -15,12 +15,7 @@
  */
 package hudson.plugins.sonar;
 
-import net.sf.json.JSONObject;
-
-import org.kohsuke.stapler.StaplerRequest;
-
 import hudson.CopyOnWrite;
-
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Functions;
@@ -35,7 +30,9 @@ import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import hudson.tools.ToolInstallation;
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -113,7 +110,7 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
     }
 
     @Override
-    public SonarRunnerInstallation newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+    public SonarRunnerInstallation newInstance(StaplerRequest req, JSONObject formData) {
       return (SonarRunnerInstallation) req.bindJSON(clazz, formData);
     }
 
