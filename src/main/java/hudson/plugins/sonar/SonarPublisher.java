@@ -16,6 +16,7 @@
 package hudson.plugins.sonar;
 
 import hudson.CopyOnWrite;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.Util;
@@ -323,11 +324,12 @@ public class SonarPublisher extends Notifier {
     return (build.getProject() instanceof MavenModuleSet) ? (MavenModuleSet) build.getProject() : null;
   }
 
-  private String getPomName(AbstractBuild<?, ?> build) {
+  private String getPomName(AbstractBuild<?, ?> build, BuildListener listener) throws IOException, InterruptedException {
     String pomName;
     MavenModuleSet mavenModuleProject = getMavenProject(build);
     if (mavenModuleProject != null) {
-      pomName = mavenModuleProject.getRootPOM();
+      EnvVars envVars = build.getEnvironment(listener);
+      pomName = mavenModuleProject.getRootPOM(envVars);
     } else {
       pomName = getRootPom();
     }
@@ -339,7 +341,7 @@ public class SonarPublisher extends Notifier {
 
   private boolean executeSonar(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, SonarInstallation sonarInstallation) {
     try {
-      String pomName = getPomName(build);
+      String pomName = getPomName(build, listener);
       String mavenInstallName = getMavenInstallationName();
       if (isMavenBuilder(build.getProject())) {
         MavenModuleSet mavenModuleSet = getMavenProject(build);

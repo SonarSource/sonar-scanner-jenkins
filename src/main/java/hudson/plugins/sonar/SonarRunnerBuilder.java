@@ -100,7 +100,7 @@ public class SonarRunnerBuilder extends Builder {
    */
   @Deprecated
   public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk) {
-    this(installationName, sonarRunnerName, project, properties, javaOpts, null, null);
+    this(installationName, sonarRunnerName, project, properties, javaOpts, jdk, null);
   }
 
   @DataBoundConstructor
