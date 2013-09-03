@@ -137,11 +137,11 @@ public final class SonarMaven extends Maven {
     /**
      * MAVEN_OPTS
      */
-    String jvmOptions = sonarPublisher.getMavenOpts();
-    if (StringUtils.isEmpty(jvmOptions)
+    String mvnOptions = sonarPublisher.getMavenOpts();
+    if (StringUtils.isEmpty(mvnOptions)
       && mavenModuleProject != null
       && StringUtils.isNotEmpty(mavenModuleProject.getMavenOpts())) {
-      jvmOptions = mavenModuleProject.getMavenOpts();
+      mvnOptions = mavenModuleProject.getMavenOpts();
     }
     // Private Repository and Alternate Settings
     LocalRepositoryLocator locaRepositoryToUse = usesLocalRepository ? new PerJobLocalRepositoryLocator() : new DefaultLocalRepositoryLocator();
@@ -162,7 +162,7 @@ public final class SonarMaven extends Maven {
     // Execute Maven
     // SONARPLUGINS-487
     pom = build.getModuleRoot().child(pom).getRemote();
-    return new SonarMaven(aditionalProperties, mavenName, pom, jvmOptions, locaRepositoryToUse, sonarPublisher, listener, jdk, settingsToUse, globalSettingsToUse)
+    return new SonarMaven(aditionalProperties, mavenName, pom, mvnOptions, locaRepositoryToUse, sonarPublisher, listener, jdk, settingsToUse, globalSettingsToUse)
         .perform(build, launcher, listener);
   }
 
