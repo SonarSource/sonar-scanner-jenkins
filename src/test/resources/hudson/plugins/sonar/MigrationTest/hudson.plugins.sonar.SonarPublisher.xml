@@ -2,14 +2,22 @@
 <hudson.plugins.sonar.SonarPublisher_-DescriptorImpl>
   <installations>
     <hudson.plugins.sonar.SonarInstallation>
-      <name>Server1</name>
+      <name>Plaintext</name>
       <disabled>false</disabled>
-      <databasePassword>secret1</databasePassword>
+      <databasePassword>plainDbPasswd</databasePassword>
+      <sonarPassword>plainSonarPasswd</sonarPassword>
     </hudson.plugins.sonar.SonarInstallation>
     <hudson.plugins.sonar.SonarInstallation>
-      <name>Server2</name>
+      <name>Scrambled</name>
       <disabled>false</disabled>
-      <databasePassword>secret2</databasePassword>
+      <databasePassword>scrambledDbPasswd</databasePassword>
+      <sonarPassword>scrambledSonarPasswd</sonarPassword>
+    </hudson.plugins.sonar.SonarInstallation>
+    <hudson.plugins.sonar.SonarInstallation>
+      <name>Secret</name>
+      <disabled>false</disabled>
+      <databaseSecret>cXEoUIU12iBbe4QAci6Y095S5/DGx/M81bcRcsy7MJ4=</databaseSecret>
+      <sonarSecret>TFe7SmGlMsB4CAQNJpWL4UtDlJWvy5Wy9Nkaafir5s0=</sonarSecret>
     </hudson.plugins.sonar.SonarInstallation>
   </installations>
 </hudson.plugins.sonar.SonarPublisher_-DescriptorImpl>

@@ -16,13 +16,17 @@
 package hudson.plugins.sonar;
 
 import hudson.Plugin;
-import hudson.model.Hudson;
-
-import java.io.IOException;
 
 public class SonarPlugin extends Plugin {
 
-  private Integer configVersion;
+  /**
+   * @deprecated Used to track version changes in {@link SonarInstallation}. Moved to the right class.
+   *
+   * 0: Passwords stored in plain text
+   * 1: Scrambled passwords
+   * 2: Secret passwords. Field deprecated since this version.
+   */
+  /*package*/ @Deprecated Integer configVersion;
 
   @Override
   public void postInitialize() throws Exception {
@@ -32,25 +36,5 @@ public class SonarPlugin extends Plugin {
     if (configVersion == null) {
       configVersion = 0;
     }
-    if (configVersion < 1) {
-      migrateToVersion1();
-    }
   }
-
-  /**
-   * Scramble passwords.
-   */
-  private void migrateToVersion1() throws IOException {
-    SonarPublisher.DescriptorImpl sonarDescriptor = Hudson.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
-    SonarInstallation[] installations = sonarDescriptor.getInstallations();
-    if (installations != null) {
-      for (SonarInstallation installation : installations) {
-        installation.setDatabasePassword(installation.getScrambledDatabasePassword());
-        sonarDescriptor.save();
-      }
-    }
-    configVersion = 1;
-    save();
-  }
-
 }

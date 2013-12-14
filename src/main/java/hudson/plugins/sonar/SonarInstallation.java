@@ -19,6 +19,8 @@ import hudson.Util;
 import hudson.model.Hudson;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Scrambler;
+import hudson.util.Secret;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -67,7 +69,7 @@ public class SonarInstallation {
   private final String databaseUrl;
   private final String databaseDriver;
   private final String databaseLogin;
-  private String databasePassword;
+  @Deprecated private transient String databasePassword;
   private final String additionalProperties;
 
   private TriggersConfig triggers;
@@ -76,7 +78,13 @@ public class SonarInstallation {
    * @since 2.0.1
    */
   private String sonarLogin;
-  private String sonarPassword;
+  @Deprecated private transient String sonarPassword;
+
+  /**
+   * @since 2.2
+   */
+  private Secret databaseSecret;
+  private Secret sonarSecret;
 
   /**
    * @deprecated in 2.0
@@ -151,14 +159,14 @@ public class SonarInstallation {
   }
 
   public String getDatabasePassword() {
-    return Scrambler.descramble(databasePassword);
+    return Secret.toString(databaseSecret);
   }
 
   /**
    * @since 1.7
    */
   public final void setDatabasePassword(String password) {
-    this.databasePassword = Scrambler.scramble(Util.fixEmptyAndTrim(password));
+    databaseSecret = Secret.fromString(Util.fixEmptyAndTrim(password));
   }
 
   /**
@@ -167,7 +175,7 @@ public class SonarInstallation {
    * @since 1.7
    */
   public String getScrambledDatabasePassword() {
-    return databasePassword;
+    return databaseSecret.getEncryptedValue();
   }
 
   public String getAdditionalProperties() {
@@ -192,10 +200,38 @@ public class SonarInstallation {
    * @since 2.0.1
    */
   public String getSonarPassword() {
-    return Scrambler.descramble(sonarPassword);
+    return Secret.toString(sonarSecret);
   }
 
   public final void setSonarPassword(String sonarPassword) {
-    this.sonarPassword = Scrambler.scramble(Util.fixEmptyAndTrim(sonarPassword));
+    sonarSecret = Secret.fromString(Util.fixEmptyAndTrim(sonarPassword));
+  }
+
+  @SuppressWarnings("deprecation")
+  private Object readResolve() {
+    // Perform password migration to configVersion=2.
+    // Data will be persisted when SonarPublisher.DescriptorImpl is saved.
+
+    SonarPlugin plugin = Hudson.getInstance().getPlugin(SonarPlugin.class);
+
+    if (databaseSecret == null) {
+      if (plugin.configVersion == 1) {
+        databasePassword = Scrambler.descramble(databasePassword);
+      }
+      setDatabasePassword(databasePassword);
+      databasePassword = null;
+    }
+
+    if (sonarSecret == null) {
+      if (plugin.configVersion == 1) {
+        sonarPassword = Scrambler.descramble(sonarPassword);
+      }
+      setSonarPassword(sonarPassword);
+      sonarPassword = null;
+    }
+
+    plugin.configVersion = 2;
+
+    return this;
   }
 }
