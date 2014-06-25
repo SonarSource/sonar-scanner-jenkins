@@ -213,7 +213,7 @@ public class SonarRunnerBuilder extends Builder {
     if (!populateConfiguration(argsBuilder, build, listener, env, getSonarInstallation())) {
       return false;
     }
-
+  
     // Java
     computeJdkToUse(build, listener, env);
 
@@ -354,9 +354,22 @@ public class SonarRunnerBuilder extends Builder {
     // Additional properties
     Properties p = new Properties();
     p.load(new ByteArrayInputStream(env.expand(getProperties()).getBytes()));
+    escapeProperties(p);
     loadProperties(args, p);
-
     return true;
+  }
+
+  /**
+   * Escapes properties inorder that they are Sonar compliant.
+   * Currently, this process affects only sonar.branch. sonar.branch indicates the particular branch of the code base under scrutiny.
+   * Sonar does not accept a forward slash / in the branch name, even though it commonly occurs particularly in projects that follow gitflow.
+   */
+  private void escapeProperties(Properties properties){
+    String sonar_branch = properties.getProperty("sonar.branch");
+    if (sonar_branch != null) {
+      sonar_branch = sonar_branch.replaceAll("/","-");
+      properties.setProperty("sonar.branch", sonar_branch);
+    }
   }
 
   private void loadProperties(ExtendedArgumentListBuilder args, Properties p) {
