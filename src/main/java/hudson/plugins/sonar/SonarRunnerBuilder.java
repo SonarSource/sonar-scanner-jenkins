@@ -213,7 +213,7 @@ public class SonarRunnerBuilder extends Builder {
     if (!populateConfiguration(argsBuilder, build, listener, env, getSonarInstallation())) {
       return false;
     }
-  
+
     // Java
     computeJdkToUse(build, listener, env);
 
