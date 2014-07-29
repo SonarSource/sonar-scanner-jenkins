@@ -30,7 +30,6 @@ public class BuildSonarActionTest extends SonarTestCase {
 
   @Before
   public void setUp() throws Exception {
-    super.setUp();
     action = new BuildSonarAction();
   }
 

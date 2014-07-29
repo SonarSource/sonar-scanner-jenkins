@@ -20,9 +20,14 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Mailer;
+import jenkins.model.JenkinsLocationConfiguration;
+import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.jvnet.hudson.test.Bug;
 import org.jvnet.mock_javamail.Mailbox;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * SONARPLUGINS-286:
@@ -39,13 +44,12 @@ public class MailTest extends SonarTestCase {
   private Mailbox inbox;
   private Mailer mailer;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUp() throws Exception {
     configureDefaultMaven();
     configureDefaultSonar();
     // Configure Mailer and Mailbox
-    Mailer.descriptor().setAdminAddress("admin@example.org");
+    JenkinsLocationConfiguration.get().setAdminAddress("admin@example.org");
     String recipient = "me@example.org";
     inbox = Mailbox.get(recipient);
     mailer = new Mailer();
@@ -60,9 +64,10 @@ public class MailTest extends SonarTestCase {
     AbstractBuild<?, ?> build = build(project, Result.FAILURE);
 
     assertSonarExecution(build, "-f " + getPom(build, "pom.xml"));
-    assertEquals(1, inbox.size());
+    assertThat(inbox.size()).isEqualTo(1);
   }
 
+  @Test
   public void testFreeStyleProject() throws Exception {
     FreeStyleProject project = setupFreeStyleProject();
     project.getPublishersList().add(mailer);
@@ -70,6 +75,6 @@ public class MailTest extends SonarTestCase {
     AbstractBuild<?, ?> build = build(project, Result.FAILURE);
 
     assertSonarExecution(build, "-f " + getPom(build, "sonar-pom.xml"));
-    assertEquals(1, inbox.size());
+    assertThat(inbox.size()).isEqualTo(1);
   }
 }

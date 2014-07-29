@@ -25,6 +25,8 @@ import hudson.model.Project;
 import org.junit.Ignore;
 import org.jvnet.hudson.test.MockBuilder;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 /**
  * @author Evgeny Mandrikov
  */
@@ -92,7 +94,7 @@ public class BaseTest extends SonarTestCase {
 
     assertSonarExecution(build, "-f \"" + getPom(build, pomName) + "\"");
     // Check that POM generated
-    assertTrue(build.getWorkspace().child(pomName).exists());
+    assertThat(build.getWorkspace().child(pomName).exists()).isTrue();
   }
 
   protected void setBuildResult(Project<?, ?> project, Result result) throws Exception {
@@ -122,12 +124,12 @@ public class BaseTest extends SonarTestCase {
 
   private void configureSecuredSonar() {
     configureSonar(new SonarInstallation(
-        SONAR_INSTALLATION_NAME,
-        false,
-        SONAR_HOST,
-        "jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8",
-        "com.mysql.jdbc.Driver",
-        "dbuser", "dbpassword",
-        null, null, null, null, null));
+      SONAR_INSTALLATION_NAME,
+      false,
+      SONAR_HOST,
+      "jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8",
+      "com.mysql.jdbc.Driver",
+      "dbuser", "dbpassword",
+      null, null, null, null, null));
   }
 }

@@ -32,7 +32,6 @@ public class ProjectSonarActionTest extends SonarTestCase {
 
   @Before
   public void setUp() throws Exception {
-    super.setUp();
     AbstractProject project = mock(AbstractProject.class);
     action = new ProjectSonarAction(project);
     when(project.getBuilds()).thenReturn(new RunList());

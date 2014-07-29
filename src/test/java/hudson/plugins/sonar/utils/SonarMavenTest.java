@@ -22,7 +22,9 @@ import hudson.model.AbstractBuild;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.util.ArgumentListBuilder;
+import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.List;
 
@@ -31,6 +33,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SonarMavenTest {
+
+  @Rule
+  public JenkinsRule j = new JenkinsRule();
 
   @Test
   public void shouldWrapUpArguments() throws Exception {
@@ -49,7 +54,7 @@ public class SonarMavenTest {
 
     ArgumentListBuilder args = new ArgumentListBuilder();
     SonarMaven sonarMaven = new SonarMaven("-Dprop=value", "Default Maven", "pom.xml", "", new DefaultLocalRepositoryLocator(), publisher, mock(BuildListener.class), null, null,
-        null);
+      null);
     sonarMaven.wrapUpArguments(args, "sonar:sonar", mock(AbstractBuild.class), mock(Launcher.class), mock(BuildListener.class));
 
     List<String> result = args.toList();
@@ -69,8 +74,8 @@ public class SonarMavenTest {
   public void shouldReturnTarget() {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getMojoVersion())
-        .thenReturn("")
-        .thenReturn("1.0-beta-2");
+      .thenReturn("")
+      .thenReturn("1.0-beta-2");
     assertThat(SonarMaven.getTarget(installation)).isEqualTo("-e -B sonar:sonar");
     assertThat(SonarMaven.getTarget(installation)).isEqualTo("-e -B org.codehaus.mojo:sonar-maven-plugin:1.0-beta-2:sonar");
   }

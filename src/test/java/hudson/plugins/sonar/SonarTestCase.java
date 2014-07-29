@@ -16,7 +16,6 @@
 package hudson.plugins.sonar;
 
 import hudson.Functions;
-import hudson.UDPBroadcastThread;
 import hudson.maven.MavenModuleSet;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
@@ -28,15 +27,23 @@ import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
 import hudson.tasks.Maven;
 import hudson.util.jna.GNUCLibrary;
-import org.jvnet.hudson.test.HudsonTestCase;
+import org.junit.Rule;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.SingleFileSCM;
 
 import java.io.File;
+import java.io.IOException;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * @author Evgeny Mandrikov
  */
-public abstract class SonarTestCase extends HudsonTestCase {
+public abstract class SonarTestCase {
+
+  @Rule
+  public JenkinsRule j = new JenkinsRule();
+
   /**
    * Setting this to non-existent host, allows us to avoid intersection with exist Sonar.
    */
@@ -47,29 +54,11 @@ public abstract class SonarTestCase extends HudsonTestCase {
   public static final String SONAR_INSTALLATION_NAME = "default";
 
   /**
-   * We should override default port defined in {@link hudson.UDPBroadcastThread#PORT} to avoid intersections with real Hudson on Nemo.
-   */
-  public static final Integer UdpBroadcastPort = 33849;
-
-  /**
-   * @throws Exception if something is wrong
-   */
-  @Override
-  protected void setUp() throws Exception {
-    System.setProperty("hudson.udp", UdpBroadcastPort.toString());
-    if (UDPBroadcastThread.PORT != 33849) {
-      throw new RuntimeException("UdpBroadcastPort");
-    }
-    super.setUp();
-  }
-
-  /**
    * Returns Fake Maven Installation.
    *
    * @return Fake Maven Installation
    * @throws Exception if something is wrong
    */
-  @Override
   protected Maven.MavenInstallation configureDefaultMaven() throws Exception {
     File mvn = new File(getClass().getResource("SonarTestCase/maven/bin/mvn").toURI().getPath());
     if (!Functions.isWindows()) {
@@ -77,8 +66,8 @@ public abstract class SonarTestCase extends HudsonTestCase {
       GNUCLibrary.LIBC.chmod(mvn.getPath(), 0755);
     }
     String home = mvn.getParentFile().getParentFile().getAbsolutePath();
-    Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default", home, NO_PROPERTIES);
-    hudson.getDescriptorByType(Maven.DescriptorImpl.class).setInstallations(mavenInstallation);
+    Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default", home, JenkinsRule.NO_PROPERTIES);
+    j.jenkins.getDescriptorByType(Maven.DescriptorImpl.class).setInstallations(mavenInstallation);
     return mavenInstallation;
   }
 
@@ -87,7 +76,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   }
 
   protected SonarInstallation configureSonar(SonarInstallation sonarInstallation) {
-    hudson.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setInstallations(sonarInstallation);
+    j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setInstallations(sonarInstallation);
     return sonarInstallation;
   }
 
@@ -100,7 +89,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   }
 
   protected MavenModuleSet setupMavenProject(String pomName) throws Exception {
-    MavenModuleSet project = super.createMavenProject("MavenProject");
+    MavenModuleSet project = j.createMavenProject("MavenProject");
     // Setup SCM
     project.setScm(new SingleFileSCM(pomName, getClass().getResource("/hudson/plugins/sonar/SonarTestCase/pom.xml")));
     // Setup Maven
@@ -117,7 +106,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   }
 
   protected FreeStyleProject setupFreeStyleProject(String pomName) throws Exception {
-    FreeStyleProject project = super.createFreeStyleProject("FreeStyleProject");
+    FreeStyleProject project = j.createFreeStyleProject("FreeStyleProject");
     // Setup SCM
     project.setScm(new NullSCM());
     // Setup Sonar
@@ -136,7 +125,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
   protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project, Cause cause, Result expectedStatus) throws Exception {
     AbstractBuild<?, ?> build = project.scheduleBuild2(0, cause).get();
     if (expectedStatus != null) {
-      assertBuildStatus(expectedStatus, build);
+      j.assertBuildStatus(expectedStatus, build);
     }
     return build;
   }
@@ -147,12 +136,12 @@ public abstract class SonarTestCase extends HudsonTestCase {
 
   protected static SonarPublisher newSonarPublisherForFreeStyleProject(String pomName) {
     return new SonarPublisher(
-        SONAR_INSTALLATION_NAME,
-        new TriggersConfig(),
-        null,
-        null,
-        "default", // Maven Installation Name
-        pomName // Root POM
+      SONAR_INSTALLATION_NAME,
+      new TriggersConfig(),
+      null,
+      null,
+      "default", // Maven Installation Name
+      pomName // Root POM
     );
   }
 
@@ -173,9 +162,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
     // assertLogContains("[INFO] Sonar host: " + SONAR_HOST, build);
 
     // SONARPLUGINS-320: Check that small badge was added to build history
-    assertNotNull(
-        BuildSonarAction.class.getSimpleName() + " not found",
-        build.getAction(BuildSonarAction.class));
+    assertThat(build.getAction(BuildSonarAction.class)).as(BuildSonarAction.class.getSimpleName() + " not found").isNotNull();
 
     // SONARPLUGINS-165: Check that link added to project
     // FIXME Godin: I don't know why, but this don't work for FreeStyleProject
@@ -190,9 +177,12 @@ public abstract class SonarTestCase extends HudsonTestCase {
   protected void assertNoSonarExecution(AbstractBuild<?, ?> build, String cause) throws Exception {
     assertLogContains(cause, build);
     // SONARPLUGINS-320: Check that small badge was not added to build history
-    assertNull(
-        BuildSonarAction.class.getSimpleName() + " found",
-        build.getAction(BuildSonarAction.class));
+    assertThat(build.getAction(BuildSonarAction.class)).as(BuildSonarAction.class.getSimpleName() + " found").isNull();
+  }
+
+  protected void assertLogContains(String substring, Run<?, ?> run) throws IOException {
+    String log = JenkinsRule.getLog(run);
+    assertThat(log).contains(substring);
   }
 
   /**
@@ -203,11 +193,7 @@ public abstract class SonarTestCase extends HudsonTestCase {
    * @throws Exception if something wrong
    */
   protected void assertLogDoesntContains(String substring, Run<?, ?> run) throws Exception {
-    String log = getLog(run);
-    if (!log.contains(substring)) {
-      return; // good!
-    }
-    System.out.println(log);
-    fail("Console output of " + run + " contains " + substring);
+    String log = JenkinsRule.getLog(run);
+    assertThat(log).doesNotContain(substring);
   }
 }
