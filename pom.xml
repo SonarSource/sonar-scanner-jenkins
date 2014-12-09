@@ -235,8 +235,6 @@
               real Hudson on Nemo. -->
             <hudson.udp>33849</hudson.udp>
           </systemPropertyVariables>
-          <!-- Tests disabled on Jenkins because of JENKINS-21977 -->
-          <skipTests>false</skipTests>
         </configuration>
       </plugin>
     </plugins>
