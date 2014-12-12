@@ -13,7 +13,7 @@
   <packaging>hpi</packaging>
 
   <name>Jenkins Sonar Plugin</name>
-  <url>http://docs.codehaus.org/display/SONAR/Hudson+and+Jenkins+Plugin</url>
+  <url>http://redirect.sonarsource.com/plugins/jenkins.html</url>
   <inceptionYear>2007</inceptionYear>
   <licenses>
     <license>
