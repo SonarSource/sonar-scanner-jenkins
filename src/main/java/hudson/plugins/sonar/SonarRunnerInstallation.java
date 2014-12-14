@@ -31,6 +31,7 @@ import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import hudson.tools.ToolInstallation;
 import net.sf.json.JSONObject;
+import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -64,6 +65,9 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
           return exe.getPath();
         }
         return null;
+      }
+      public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+        // XXX implement role check?
       }
     });
   }

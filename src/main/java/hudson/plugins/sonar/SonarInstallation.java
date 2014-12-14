@@ -16,9 +16,9 @@
 package hudson.plugins.sonar;
 
 import hudson.Util;
-import hudson.model.Hudson;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Scrambler;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -28,13 +28,13 @@ public class SonarInstallation {
    * @return all available installations, never <tt>null</tt>
    * @since 1.7
    */
-  public static final SonarInstallation[] all() {
-    Hudson hudson = Hudson.getInstance();
-    if (hudson == null) {
+  public static SonarInstallation[] all() {
+    Jenkins jenkins = Jenkins.getInstance();
+    if (jenkins == null) {
       // for unit test
       return new SonarInstallation[0];
     }
-    SonarPublisher.DescriptorImpl sonarDescriptor = Hudson.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
+    SonarPublisher.DescriptorImpl sonarDescriptor = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
     return sonarDescriptor.getInstallations();
   }
 

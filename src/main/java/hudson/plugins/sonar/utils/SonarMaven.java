@@ -26,12 +26,12 @@ import hudson.maven.local_repo.LocalRepositoryLocator;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
-import hudson.model.Hudson;
 import hudson.model.JDK;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.tasks.Maven;
 import hudson.util.ArgumentListBuilder;
+import jenkins.model.Jenkins;
 import jenkins.mvn.GlobalSettingsProvider;
 import jenkins.mvn.SettingsProvider;
 import org.apache.commons.lang.StringUtils;
@@ -117,7 +117,7 @@ public final class SonarMaven extends Maven {
 
   @Override
   public DescriptorImpl getDescriptor() {
-    return (DescriptorImpl) Hudson.getInstance().getDescriptorOrDie(Maven.class);
+    return (DescriptorImpl) Jenkins.getInstance().getDescriptorOrDie(Maven.class);
   }
 
   public static boolean executeMaven(

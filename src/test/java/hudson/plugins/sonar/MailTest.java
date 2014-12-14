@@ -24,7 +24,7 @@ import jenkins.model.JenkinsLocationConfiguration;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.jvnet.hudson.test.Bug;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.mock_javamail.Mailbox;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -39,7 +39,7 @@ import static org.fest.assertions.Assertions.assertThat;
  *
  * @author Evgeny Mandrikov
  */
-@Bug(286)
+@Issue("SONARPLUGINS-286")
 public class MailTest extends SonarTestCase {
   private Mailbox inbox;
   private Mailer mailer;
@@ -52,8 +52,7 @@ public class MailTest extends SonarTestCase {
     JenkinsLocationConfiguration.get().setAdminAddress("admin@example.org");
     String recipient = "me@example.org";
     inbox = Mailbox.get(recipient);
-    mailer = new Mailer();
-    mailer.recipients = "me@example.org";
+    mailer = new Mailer("me@example.org", false, false);
   }
 
   @Ignore("Ingored due to changes in triggers")
