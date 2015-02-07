@@ -99,7 +99,7 @@ public class SonarPublisher extends Notifier {
   /**
    * Optional.
    */
-  private final String jobAdditionalProperties;
+  private String jobAdditionalProperties;
 
   /**
    * Triggers. If null, then we should use triggers from {@link SonarInstallation}.
@@ -225,6 +225,10 @@ public class SonarPublisher extends Notifier {
     return StringUtils.trimToEmpty(jobAdditionalProperties);
   }
 
+  public void setJobAdditionalProperties(final String jobAdditionalProperties) {
+    this.jobAdditionalProperties = jobAdditionalProperties;
+  }
+
   /**
    * @return true, if we should use triggers from {@link SonarInstallation}
    */
@@ -244,6 +248,10 @@ public class SonarPublisher extends Notifier {
    */
   public String getBranch() {
     return branch;
+  }
+
+  public void setBranch(final String branch) {
+      this.branch = branch;
   }
 
   public String getLanguage() {
