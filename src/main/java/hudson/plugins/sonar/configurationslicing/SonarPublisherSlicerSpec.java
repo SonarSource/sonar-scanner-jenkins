@@ -20,7 +20,6 @@ import hudson.maven.MavenModuleSet;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.tasks.Publisher;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +28,8 @@ import java.util.List;
  * @author drautureau
  */
 public abstract class SonarPublisherSlicerSpec extends UnorderedStringSlicerSpec<MavenModuleSet> {
-    private static final String DEFAULT = "(Empty)";
+
+    protected abstract String getDefaultValue();
 
     @Override
     public List getWorkDomain() {
@@ -49,7 +49,7 @@ public abstract class SonarPublisherSlicerSpec extends UnorderedStringSlicerSpec
 
     @Override
     public String getDefaultValueString() {
-        return DEFAULT;
+        return getDefaultValue();
     }
 
     protected SonarPublisher getSonarPublisher(final MavenModuleSet project) {
@@ -59,13 +59,5 @@ public abstract class SonarPublisherSlicerSpec extends UnorderedStringSlicerSpec
             }
         }
         return null;
-    }
-
-    protected String defaultValueIfBlank(final String value) {
-        return StringUtils.isBlank(value) ? DEFAULT : value;
-    }
-
-    protected String nullIfDefaultValue(final String value) {
-        return DEFAULT.equals(value) ? null : value;
     }
 }

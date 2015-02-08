@@ -33,7 +33,7 @@ public class BranchSlicer extends UnorderedStringSlicer<MavenModuleSet> {
         super(new BranchSlicerSpec());
     }
 
-    protected static class BranchSlicerSpec extends SonarPublisherSlicerSpec {
+    protected static class BranchSlicerSpec extends SonarPublisherEmptyDefaultSlicerSpec {
 
         @Override
         public String getName() {

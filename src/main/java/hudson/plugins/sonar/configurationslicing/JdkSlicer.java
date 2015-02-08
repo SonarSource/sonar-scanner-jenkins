@@ -18,6 +18,7 @@ package hudson.plugins.sonar.configurationslicing;
 import configurationslicing.UnorderedStringSlicer;
 import hudson.Extension;
 import hudson.maven.MavenModuleSet;
+import hudson.plugins.sonar.SonarPublisher;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,30 +27,30 @@ import java.util.List;
 /**
  * @author drautureau
  */
-@Extension(optional = true)
-public class JobAdditionalPropertiesSlicer extends UnorderedStringSlicer<MavenModuleSet> {
+@Extension
+public class JdkSlicer extends UnorderedStringSlicer<MavenModuleSet> {
 
-    public JobAdditionalPropertiesSlicer() {
-        super(new JobAdditionalPropertiesSlicerSpec());
+    public JdkSlicer() {
+        super(new JdkSlicerSpec());
     }
 
-    protected static class JobAdditionalPropertiesSlicerSpec extends SonarPublisherEmptyDefaultSlicerSpec {
+    protected static class JdkSlicerSpec extends SonarPublisherSlicerSpec {
 
         @Override
         public String getName() {
-            return "Sonar job additional properties";
+            return "Sonar JDK";
         }
 
         @Override
         public String getUrl() {
-            return "sonarjobadditionalproperties";
+            return "sonarjdk";
         }
 
         @Override
         public List<String> getValues(MavenModuleSet mavenModuleSet) {
             final List<String> values = new ArrayList<String>();
-            final String properties = getSonarPublisher(mavenModuleSet).getJobAdditionalProperties();
-            values.add(defaultValueIfBlank(properties));
+            final String jdk = getSonarPublisher(mavenModuleSet).getJdk();
+            values.add(jdk);
             return values;
         }
 
@@ -58,13 +59,18 @@ public class JobAdditionalPropertiesSlicer extends UnorderedStringSlicer<MavenMo
             if (list.isEmpty()) {
                 return false;
             }
-            getSonarPublisher(mavenModuleSet).setJobAdditionalProperties(nullIfDefaultValue(list.iterator().next()));
+            getSonarPublisher(mavenModuleSet).setJdk(list.iterator().next());
             try {
                 mavenModuleSet.save();
             } catch (IOException e) {
                 return false;
             }
             return true;
+        }
+
+        @Override
+        protected String getDefaultValue() {
+            return SonarPublisher.DescriptorImpl.getDefaultValue();
         }
     }
 }

@@ -197,6 +197,14 @@ public class SonarPublisher extends Notifier {
     this.usePrivateRepository = usePrivateRepository;
   }
 
+    public String getJdk() {
+        return jdk;
+    }
+
+    public void setJdk(final String jdk) {
+        this.jdk = jdk;
+    }
+
   /**
    * Gets the JDK that this Sonar publisher is configured with, or null.
    */
@@ -453,6 +461,13 @@ public class SonarPublisher extends Notifier {
      */
     public MavenInstallation[] getMavenInstallations() {
       return Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations();
+    }
+
+      /**
+       * @return the default value displayed for JDK
+       */
+    public static String getDefaultValue() {
+        return Messages.SonarPublisher_DefaultValue();
     }
 
     @Override
