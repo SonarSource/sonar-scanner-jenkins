@@ -26,10 +26,11 @@ import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.scm.SCM;
 import hudson.util.ArgumentListBuilder;
 import org.apache.commons.io.FileUtils;
-import org.fest.util.Files;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -37,13 +38,16 @@ import org.mockito.stubbing.Answer;
 import java.io.File;
 import java.io.IOException;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SonarRunnerBuilderTest {
+
+  @Rule
+  public TemporaryFolder temp = new TemporaryFolder();
 
   private File moduleDir;
   private ExtendedArgumentListBuilder argsBuilder;
@@ -55,7 +59,7 @@ public class SonarRunnerBuilderTest {
 
   @Before
   public void prepareMockWorkspace() throws IOException {
-    workspace = Files.newTemporaryFolder();
+    workspace = temp.newFolder();
     moduleDir = new File(workspace, "trunk");
     FileUtils.forceMkdir(moduleDir);
     args = new ArgumentListBuilder();
@@ -106,8 +110,8 @@ public class SonarRunnerBuilderTest {
     builder.populateConfiguration(argsBuilder, build, listener, env, null);
 
     assertThat(args.toStringWithQuote())
-        .contains("-Dsonar.projectBaseDir=" + moduleDir)
-        .contains("-Dproject.settings=" + projectSettings);
+      .contains("-Dsonar.projectBaseDir=" + moduleDir)
+      .contains("-Dproject.settings=" + projectSettings);
   }
 
   @Test
@@ -125,8 +129,8 @@ public class SonarRunnerBuilderTest {
     builder.populateConfiguration(argsBuilder, build, listener, env, installation);
 
     assertThat(args.toStringWithQuote())
-        .contains("-Dsonar.login=sonarlogin")
-        .contains("-Dsonar.password=sonarpassword");
+      .contains("-Dsonar.login=sonarlogin")
+      .contains("-Dsonar.password=sonarpassword");
   }
 
   /**

@@ -15,21 +15,16 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.CopyOnWrite;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.Functions;
-import hudson.Launcher;
-import hudson.Util;
+import hudson.*;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.TaskListener;
 import hudson.model.Node;
-import hudson.remoting.Callable;
 import hudson.slaves.NodeSpecific;
-import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
+import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
+import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -57,7 +52,7 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
   * Gets the executable path of this Sonar runner on the given target system.
   */
   public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-    return launcher.getChannel().call(new Callable<String, IOException>() {
+    return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
       public String call() throws IOException {
         File exe = getExeFile();
         if (exe.exists()) {

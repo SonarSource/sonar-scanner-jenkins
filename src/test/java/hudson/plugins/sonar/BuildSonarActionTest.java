@@ -18,9 +18,7 @@ package hudson.plugins.sonar;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Evgeny Mandrikov
@@ -35,11 +33,11 @@ public class BuildSonarActionTest extends SonarTestCase {
 
   @Test
   public void test() throws Exception {
-    assertThat(action.getIconFileName(), nullValue());
-    assertThat(action.getUrlName(), nullValue());
+    assertThat(action.getIconFileName()).isNull();
+    assertThat(action.getUrlName()).isNull();
 
-    assertThat(action.getDisplayName(), notNullValue());
-    assertThat(action.getIcon(), notNullValue());
-    assertThat(action.getTooltip(), notNullValue());
+    assertThat(action.getDisplayName()).isNotNull();
+    assertThat(action.getIcon()).isNotNull();
+    assertThat(action.getTooltip()).isNotNull();
   }
 }

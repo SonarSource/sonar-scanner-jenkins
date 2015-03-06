@@ -34,7 +34,7 @@ import org.jvnet.hudson.test.SingleFileSCM;
 import java.io.File;
 import java.io.IOException;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Evgeny Mandrikov

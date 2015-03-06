@@ -17,7 +17,7 @@ package hudson.plugins.sonar;
 
 import org.jvnet.hudson.test.recipes.LocalData;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MigrationTest extends SonarTestCase {
 
