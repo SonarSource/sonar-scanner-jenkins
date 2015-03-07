@@ -99,7 +99,7 @@ public class SonarPublisher extends Notifier {
   /**
    * Optional.
    */
-  private final String jobAdditionalProperties;
+  private String jobAdditionalProperties;
 
   /**
    * Triggers. If null, then we should use triggers from {@link SonarInstallation}.
@@ -197,6 +197,14 @@ public class SonarPublisher extends Notifier {
     this.usePrivateRepository = usePrivateRepository;
   }
 
+    public String getJdk() {
+        return jdk;
+    }
+
+    public void setJdk(final String jdk) {
+        this.jdk = jdk;
+    }
+
   /**
    * Gets the JDK that this Sonar publisher is configured with, or null.
    */
@@ -225,6 +233,10 @@ public class SonarPublisher extends Notifier {
     return StringUtils.trimToEmpty(jobAdditionalProperties);
   }
 
+  public void setJobAdditionalProperties(final String jobAdditionalProperties) {
+    this.jobAdditionalProperties = jobAdditionalProperties;
+  }
+
   /**
    * @return true, if we should use triggers from {@link SonarInstallation}
    */
@@ -244,6 +256,10 @@ public class SonarPublisher extends Notifier {
    */
   public String getBranch() {
     return branch;
+  }
+
+  public void setBranch(final String branch) {
+      this.branch = branch;
   }
 
   public String getLanguage() {
@@ -445,6 +461,13 @@ public class SonarPublisher extends Notifier {
      */
     public MavenInstallation[] getMavenInstallations() {
       return Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations();
+    }
+
+      /**
+       * @return the default value displayed for JDK
+       */
+    public static String getDefaultValue() {
+        return Messages.SonarPublisher_DefaultValue();
     }
 
     @Override
