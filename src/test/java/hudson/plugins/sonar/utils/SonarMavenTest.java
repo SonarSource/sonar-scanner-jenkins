@@ -61,7 +61,6 @@ public class SonarMavenTest {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
     when(installation.getDatabaseUrl()).thenReturn("databaseUrl");
-    when(installation.getDatabaseDriver()).thenReturn("driver");
     when(installation.getDatabaseLogin()).thenReturn("login");
     when(installation.getDatabasePassword()).thenReturn("password");
     when(installation.getSonarLogin()).thenReturn("sonarlogin");
@@ -76,7 +75,6 @@ public class SonarMavenTest {
 
     List<String> result = args.toList();
     assertThat(result).contains("-Dprop=value");
-    assertThat(result).contains("-Dsonar.jdbc.driver=driver");
     assertThat(result).contains("-Dsonar.jdbc.url=databaseUrl");
     assertThat(result).contains("-Dsonar.jdbc.username=login");
     assertThat(result).contains("-Dsonar.jdbc.password=password");

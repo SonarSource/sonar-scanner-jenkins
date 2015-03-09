@@ -322,7 +322,6 @@ public class SonarRunnerBuilder extends Builder {
   boolean populateConfiguration(ExtendedArgumentListBuilder args, AbstractBuild<?, ?> build,
     BuildListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
-      args.append("sonar.jdbc.driver", si.getDatabaseDriver());
       args.append("sonar.jdbc.url", si.getDatabaseUrl());
       args.appendMasked("sonar.jdbc.username", si.getDatabaseLogin());
       args.appendMasked("sonar.jdbc.password", si.getDatabasePassword());

@@ -83,7 +83,6 @@ public class SonarInstallation {
   private String mojoVersion;
 
   private final String databaseUrl;
-  private final String databaseDriver;
   private final String databaseLogin;
   private String databasePassword;
   private final String additionalProperties;
@@ -96,37 +95,16 @@ public class SonarInstallation {
   private String sonarLogin;
   private String sonarPassword;
 
-  /**
-   * @deprecated in 2.0
-   */
-  @Deprecated
-  public SonarInstallation(String name) {
-    this(name, false, null, null, null, null, null, null, null, null);
-  }
-
-  /**
-   * @deprecated in 2.0.1
-   */
-  @Deprecated
-  public SonarInstallation(String name, boolean disabled,
-    String serverUrl,
-    String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
-    String mojoVersion, String additionalProperties, TriggersConfig triggers) {
-    this(name, disabled, serverUrl, databaseUrl, databaseDriver, databaseLogin, databasePassword, mojoVersion, additionalProperties,
-      triggers, null, null);
-  }
-
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled,
     String serverUrl,
-    String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
+    String databaseUrl, String databaseLogin, String databasePassword,
     String mojoVersion, String additionalProperties, TriggersConfig triggers,
     String sonarLogin, String sonarPassword) {
     this.name = name;
     this.disabled = disabled;
     this.serverUrl = serverUrl;
     this.databaseUrl = databaseUrl;
-    this.databaseDriver = databaseDriver;
     this.databaseLogin = databaseLogin;
     setDatabasePassword(databasePassword);
     this.mojoVersion = mojoVersion;
@@ -158,10 +136,6 @@ public class SonarInstallation {
 
   public String getDatabaseUrl() {
     return databaseUrl;
-  }
-
-  public String getDatabaseDriver() {
-    return databaseDriver;
   }
 
   public String getDatabaseLogin() {

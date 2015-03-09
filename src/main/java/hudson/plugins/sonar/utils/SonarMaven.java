@@ -105,7 +105,6 @@ public final class SonarMaven extends Maven {
     args.addTokenized(additionalProperties);
 
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    argsBuilder.append("sonar.jdbc.driver", getInstallation().getDatabaseDriver());
     argsBuilder.append("sonar.jdbc.url", getInstallation().getDatabaseUrl());
     argsBuilder.appendMasked("sonar.jdbc.username", getInstallation().getDatabaseLogin());
     argsBuilder.appendMasked("sonar.jdbc.password", getInstallation().getDatabasePassword());

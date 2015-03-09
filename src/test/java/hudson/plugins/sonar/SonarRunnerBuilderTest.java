@@ -137,7 +137,6 @@ public class SonarRunnerBuilderTest {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
     when(installation.getDatabaseUrl()).thenReturn("databaseUrl");
-    when(installation.getDatabaseDriver()).thenReturn("driver");
     when(installation.getDatabaseLogin()).thenReturn("login");
     when(installation.getDatabasePassword()).thenReturn("password");
     when(installation.getSonarLogin()).thenReturn("sonarlogin");

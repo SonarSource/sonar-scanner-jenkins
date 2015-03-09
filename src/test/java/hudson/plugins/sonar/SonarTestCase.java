@@ -90,7 +90,7 @@ public abstract class SonarTestCase {
   }
 
   protected SonarInstallation configureDefaultSonar() {
-    return configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME));
+    return configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, false, null, null, null, null, null, null, null, null, null));
   }
 
   protected SonarInstallation configureSonar(SonarInstallation sonarInstallation) {
