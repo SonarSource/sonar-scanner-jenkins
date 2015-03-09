@@ -34,7 +34,7 @@
 package hudson.plugins.sonar;
 
 import hudson.Plugin;
-import hudson.model.Hudson;
+import jenkins.model.Jenkins;
 
 import java.io.IOException;
 
@@ -59,7 +59,7 @@ public class SonarPlugin extends Plugin {
    * Scramble passwords.
    */
   private void migrateToVersion1() throws IOException {
-    SonarPublisher.DescriptorImpl sonarDescriptor = Hudson.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
+    SonarPublisher.DescriptorImpl sonarDescriptor = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
     SonarInstallation[] installations = sonarDescriptor.getInstallations();
     if (installations != null) {
       for (SonarInstallation installation : installations) {

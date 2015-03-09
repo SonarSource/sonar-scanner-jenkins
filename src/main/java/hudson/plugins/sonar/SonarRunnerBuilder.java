@@ -40,7 +40,6 @@ import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
-import hudson.model.Hudson;
 import hudson.model.JDK;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.plugins.sonar.utils.Logger;
@@ -48,6 +47,7 @@ import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -146,7 +146,7 @@ public class SonarRunnerBuilder extends Builder {
    * Gets the JDK that this Sonar builder is configured with, or null.
    */
   public JDK getJDK() {
-    return Hudson.getInstance().getJDK(jdk);
+    return Jenkins.getInstance().getJDK(jdk);
   }
 
   /**
@@ -418,7 +418,7 @@ public class SonarRunnerBuilder extends Builder {
     }
 
     public SonarRunnerInstallation[] getSonarRunnerInstallations() {
-      return Hudson.getInstance().getDescriptorByType(SonarRunnerInstallation.DescriptorImpl.class).getInstallations();
+      return Jenkins.getInstance().getDescriptorByType(SonarRunnerInstallation.DescriptorImpl.class).getInstallations();
     }
 
   }

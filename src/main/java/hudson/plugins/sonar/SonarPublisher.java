@@ -40,7 +40,6 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Hudson;
 import hudson.model.JDK;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.Logger;
@@ -215,7 +214,7 @@ public class SonarPublisher extends Notifier {
    * Gets the JDK that this Sonar publisher is configured with, or null.
    */
   public JDK getJDK() {
-    return Hudson.getInstance().getJDK(jdk);
+    return Jenkins.getInstance().getJDK(jdk);
   }
 
   /**
@@ -458,7 +457,7 @@ public class SonarPublisher extends Notifier {
      * @return all configured {@link hudson.tasks.Maven.MavenInstallation}
      */
     public MavenInstallation[] getMavenInstallations() {
-      return Hudson.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations();
+      return Jenkins.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations();
     }
 
     @Override

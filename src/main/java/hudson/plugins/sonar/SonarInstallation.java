@@ -34,9 +34,9 @@
 package hudson.plugins.sonar;
 
 import hudson.Util;
-import hudson.model.Hudson;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Scrambler;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -47,12 +47,12 @@ public class SonarInstallation {
    * @since 1.7
    */
   public static final SonarInstallation[] all() {
-    Hudson hudson = Hudson.getInstance();
-    if (hudson == null) {
+    Jenkins jenkins = Jenkins.getInstance();
+    if (jenkins == null) {
       // for unit test
       return new SonarInstallation[0];
     }
-    SonarPublisher.DescriptorImpl sonarDescriptor = Hudson.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
+    SonarPublisher.DescriptorImpl sonarDescriptor = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
     return sonarDescriptor.getInstallations();
   }
 
@@ -109,19 +109,19 @@ public class SonarInstallation {
    */
   @Deprecated
   public SonarInstallation(String name, boolean disabled,
-      String serverUrl,
-      String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
-      String mojoVersion, String additionalProperties, TriggersConfig triggers) {
+    String serverUrl,
+    String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
+    String mojoVersion, String additionalProperties, TriggersConfig triggers) {
     this(name, disabled, serverUrl, databaseUrl, databaseDriver, databaseLogin, databasePassword, mojoVersion, additionalProperties,
-        triggers, null, null);
+      triggers, null, null);
   }
 
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled,
-      String serverUrl,
-      String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
-      String mojoVersion, String additionalProperties, TriggersConfig triggers,
-      String sonarLogin, String sonarPassword) {
+    String serverUrl,
+    String databaseUrl, String databaseDriver, String databaseLogin, String databasePassword,
+    String mojoVersion, String additionalProperties, TriggersConfig triggers,
+    String sonarLogin, String sonarPassword) {
     this.name = name;
     this.disabled = disabled;
     this.serverUrl = serverUrl;

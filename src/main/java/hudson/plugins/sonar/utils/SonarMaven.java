@@ -44,12 +44,12 @@ import hudson.maven.local_repo.LocalRepositoryLocator;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
-import hudson.model.Hudson;
 import hudson.model.JDK;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.tasks.Maven;
 import hudson.util.ArgumentListBuilder;
+import jenkins.model.Jenkins;
 import jenkins.mvn.GlobalSettingsProvider;
 import jenkins.mvn.SettingsProvider;
 import org.apache.commons.lang.StringUtils;
@@ -73,9 +73,9 @@ public final class SonarMaven extends Maven {
   private final LocalRepositoryLocator locaRepository;
 
   public SonarMaven(String additionalProperties, String name, String pom, String jvmOptions, LocalRepositoryLocator locaRepository,
-      SonarPublisher publisher, BuildListener listener, JDK jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings) {
+    SonarPublisher publisher, BuildListener listener, JDK jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings) {
     super(getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, false,
-        settings, globalSettings);
+      settings, globalSettings);
     this.additionalProperties = additionalProperties;
     this.locaRepository = locaRepository;
     this.publisher = publisher;
@@ -100,7 +100,7 @@ public final class SonarMaven extends Maven {
 
   @Override
   protected void wrapUpArguments(ArgumentListBuilder args, String normalizedTarget, AbstractBuild<?, ?> build, Launcher launcher,
-      BuildListener listener) throws IOException, InterruptedException {
+    BuildListener listener) throws IOException, InterruptedException {
 
     args.addTokenized(additionalProperties);
 
@@ -135,21 +135,21 @@ public final class SonarMaven extends Maven {
 
   @Override
   public DescriptorImpl getDescriptor() {
-    return (DescriptorImpl) Hudson.getInstance().getDescriptorOrDie(Maven.class);
+    return (DescriptorImpl) Jenkins.getInstance().getDescriptorOrDie(Maven.class);
   }
 
   public static boolean executeMaven(
-      AbstractBuild<?, ?> build,
-      Launcher launcher,
-      BuildListener listener,
-      String mavenName,
-      String pom,
-      SonarInstallation sonarInstallation,
-      SonarPublisher sonarPublisher,
-      JDK jdk,
-      SettingsProvider settings,
-      GlobalSettingsProvider globalSettings,
-      boolean usesLocalRepository) throws IOException, InterruptedException {
+    AbstractBuild<?, ?> build,
+    Launcher launcher,
+    BuildListener listener,
+    String mavenName,
+    String pom,
+    SonarInstallation sonarInstallation,
+    SonarPublisher sonarPublisher,
+    JDK jdk,
+    SettingsProvider settings,
+    GlobalSettingsProvider globalSettings,
+    boolean usesLocalRepository) throws IOException, InterruptedException {
     MavenModuleSet mavenModuleProject = sonarPublisher.getMavenProject(build);
     EnvVars envVars = build.getEnvironment(listener);
     /**
@@ -181,7 +181,7 @@ public final class SonarMaven extends Maven {
     // SONARPLUGINS-487
     pom = build.getModuleRoot().child(pom).getRemote();
     return new SonarMaven(aditionalProperties, mavenName, pom, mvnOptions, locaRepositoryToUse, sonarPublisher, listener, jdk, settingsToUse, globalSettingsToUse)
-        .perform(build, launcher, listener);
+      .perform(build, launcher, listener);
   }
 
   @Override
