@@ -33,11 +33,7 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.CopyOnWrite;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.Launcher;
-import hudson.Util;
+import hudson.*;
 import hudson.maven.MavenModuleSet;
 import hudson.model.Action;
 import hudson.model.BuildListener;
@@ -159,44 +155,44 @@ public class SonarPublisher extends Notifier {
   }
 
   public SonarPublisher(
-      String installationName,
-      TriggersConfig triggers,
-      String jobAdditionalProperties, String mavenOpts) {
+    String installationName,
+    TriggersConfig triggers,
+    String jobAdditionalProperties, String mavenOpts) {
     this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, null, null, null);
   }
 
   public SonarPublisher(String installationName,
-      TriggersConfig triggers,
-      String jobAdditionalProperties, String mavenOpts,
-      String mavenInstallationName, String rootPom) {
+    TriggersConfig triggers,
+    String jobAdditionalProperties, String mavenOpts,
+    String mavenInstallationName, String rootPom) {
     this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null);
   }
 
   public SonarPublisher(String installationName,
-      String branch,
-      String language,
-      TriggersConfig triggers,
-      String jobAdditionalProperties, String mavenOpts,
-      String mavenInstallationName, String rootPom) {
+    String branch,
+    String language,
+    TriggersConfig triggers,
+    String jobAdditionalProperties, String mavenOpts,
+    String mavenInstallationName, String rootPom) {
     this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null);
   }
 
   public SonarPublisher(String installationName,
-      String branch,
-      String language,
-      TriggersConfig triggers,
-      String jobAdditionalProperties, String mavenOpts,
-      String mavenInstallationName, String rootPom, String jdk) {
+    String branch,
+    String language,
+    TriggersConfig triggers,
+    String jobAdditionalProperties, String mavenOpts,
+    String mavenInstallationName, String rootPom, String jdk) {
     this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, jdk, null, null, false);
   }
 
   @DataBoundConstructor
   public SonarPublisher(String installationName,
-      String branch,
-      String language,
-      TriggersConfig triggers,
-      String jobAdditionalProperties, String mavenOpts,
-      String mavenInstallationName, String rootPom, String jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings, boolean usePrivateRepository) {
+    String branch,
+    String language,
+    TriggersConfig triggers,
+    String jobAdditionalProperties, String mavenOpts,
+    String mavenInstallationName, String rootPom, String jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings, boolean usePrivateRepository) {
     super();
     this.installationName = installationName;
     this.branch = branch;
@@ -255,7 +251,7 @@ public class SonarPublisher extends Notifier {
   }
 
   /**
-   * See <a href="http://docs.codehaus.org/display/SONAR/Advanced+parameters#Advancedparameters-ManageSCMbranches">Sonar Branch option</a>.
+   * See sonar.branch option.
    *
    * @return branch
    * @since 1.4
@@ -370,7 +366,7 @@ public class SonarPublisher extends Notifier {
 
       // Execute maven
       return SonarMaven.executeMaven(build, launcher, listener, mavenInstallName, pomName, sonarInstallation, this, getJDK(),
-          getSettings(), getGlobalSettings(), usesPrivateRepository());
+        getSettings(), getGlobalSettings(), usesPrivateRepository());
     } catch (IOException e) {
       Logger.printFailureMessage(listener);
       Util.displayIOException(e, listener);
@@ -474,12 +470,12 @@ public class SonarPublisher extends Notifier {
 
     public FormValidation doCheckMandatory(@QueryParameter String value) {
       return StringUtils.isBlank(value) ?
-          FormValidation.error(Messages.SonarPublisher_MandatoryProperty()) : FormValidation.ok();
+        FormValidation.error(Messages.SonarPublisher_MandatoryProperty()) : FormValidation.ok();
     }
 
     public FormValidation doCheckMandatoryAndNoSpaces(@QueryParameter String value) {
       return (StringUtils.isBlank(value) || value.contains(" ")) ?
-          FormValidation.error(Messages.SonarPublisher_MandatoryPropertySpaces()) : FormValidation.ok();
+        FormValidation.error(Messages.SonarPublisher_MandatoryPropertySpaces()) : FormValidation.ok();
     }
 
     @Override
