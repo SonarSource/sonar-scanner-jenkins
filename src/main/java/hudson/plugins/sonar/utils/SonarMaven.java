@@ -112,7 +112,6 @@ public final class SonarMaven extends Maven {
     argsBuilder.append("sonar.host.url", getInstallation().getServerUrl());
 
     argsBuilder.append("sonar.branch", publisher.getBranch());
-    argsBuilder.append("sonar.language", publisher.getLanguage());
 
     if (StringUtils.isNotBlank(getInstallation().getSonarLogin())) {
       argsBuilder.appendMasked("sonar.login", getInstallation().getSonarLogin());

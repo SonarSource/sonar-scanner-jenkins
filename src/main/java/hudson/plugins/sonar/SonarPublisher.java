@@ -33,6 +33,7 @@
  */
 package hudson.plugins.sonar;
 
+import com.google.common.annotations.VisibleForTesting;
 import hudson.*;
 import hudson.maven.MavenModuleSet;
 import hudson.model.Action;
@@ -83,7 +84,7 @@ public class SonarPublisher extends Notifier {
    *
    * @see Jenkins#getJDK(String)
    */
-  private String jdk;
+  private final String jdk;
 
   /**
    * Sonar installation name.
@@ -95,14 +96,17 @@ public class SonarPublisher extends Notifier {
    *
    * @since 1.4
    */
-  private String branch;
+  private final String branch;
 
   /**
    * Optional.
    *
    * @since 1.6
+   * @deprecated since 2.2 kept for progressive data migration
    */
-  private String language;
+  @VisibleForTesting
+  @Deprecated
+  String language;
 
   /**
    * Optional.
@@ -112,34 +116,34 @@ public class SonarPublisher extends Notifier {
   /**
    * Optional.
    */
-  private final String jobAdditionalProperties;
+  private String jobAdditionalProperties;
 
   /**
    * Triggers. If null, then we should use triggers from {@link SonarInstallation}.
    *
    * @since 1.2
    */
-  private TriggersConfig triggers;
+  private final TriggersConfig triggers;
 
   // =================================================
   // Next fields available only for free-style projects
 
-  private String mavenInstallationName;
+  private final String mavenInstallationName;
 
   /**
    * @since 1.2
    */
-  private String rootPom;
+  private final String rootPom;
 
   /**
    * @since 2.1
    */
-  private SettingsProvider settings = new DefaultSettingsProvider();
+  private final SettingsProvider settings;
 
   /**
    * @since 2.1
    */
-  private GlobalSettingsProvider globalSettings = new DefaultGlobalSettingsProvider();
+  private final GlobalSettingsProvider globalSettings;
 
   /**
    * If true, the build will use its own local Maven repository
@@ -147,55 +151,16 @@ public class SonarPublisher extends Notifier {
    *
    * @since 2.1
    */
-  public boolean usePrivateRepository = false;
-
-  public SonarPublisher(String installationName, String jobAdditionalProperties, String mavenOpts) {
-    this(installationName, new TriggersConfig(), jobAdditionalProperties, mavenOpts, null, null);
-  }
-
-  public SonarPublisher(
-    String installationName,
-    TriggersConfig triggers,
-    String jobAdditionalProperties, String mavenOpts) {
-    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, null, null, null);
-  }
-
-  public SonarPublisher(String installationName,
-    TriggersConfig triggers,
-    String jobAdditionalProperties, String mavenOpts,
-    String mavenInstallationName, String rootPom) {
-    this(installationName, null, null, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null);
-  }
-
-  public SonarPublisher(String installationName,
-    String branch,
-    String language,
-    TriggersConfig triggers,
-    String jobAdditionalProperties, String mavenOpts,
-    String mavenInstallationName, String rootPom) {
-    this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, null);
-  }
-
-  public SonarPublisher(String installationName,
-    String branch,
-    String language,
-    TriggersConfig triggers,
-    String jobAdditionalProperties, String mavenOpts,
-    String mavenInstallationName, String rootPom, String jdk) {
-    this(installationName, branch, language, triggers, jobAdditionalProperties, mavenOpts, mavenInstallationName, rootPom, jdk, null, null, false);
-  }
+  private final boolean usePrivateRepository;
 
   @DataBoundConstructor
   public SonarPublisher(String installationName,
     String branch,
-    String language,
     TriggersConfig triggers,
     String jobAdditionalProperties, String mavenOpts,
     String mavenInstallationName, String rootPom, String jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings, boolean usePrivateRepository) {
-    super();
     this.installationName = installationName;
     this.branch = branch;
-    this.language = language;
     this.jdk = jdk;
     // Triggers
     this.triggers = triggers;
@@ -208,6 +173,19 @@ public class SonarPublisher extends Notifier {
     this.settings = settings != null ? settings : new DefaultSettingsProvider();
     this.globalSettings = globalSettings != null ? globalSettings : new DefaultGlobalSettingsProvider();
     this.usePrivateRepository = usePrivateRepository;
+  }
+
+  // compatibility with earlier plugins
+  public Object readResolve() {
+    if (StringUtils.isNotBlank(this.language)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("-Dsonar.language=").append(language);
+      if (StringUtils.isNotBlank(this.jobAdditionalProperties)) {
+        sb.append(" ").append(this.jobAdditionalProperties);
+      }
+      this.jobAdditionalProperties = sb.toString();
+    }
+    return this;
   }
 
   /**
@@ -257,10 +235,6 @@ public class SonarPublisher extends Notifier {
    */
   public String getBranch() {
     return branch;
-  }
-
-  public String getLanguage() {
-    return StringUtils.trimToEmpty(language);
   }
 
   /**
@@ -403,13 +377,6 @@ public class SonarPublisher extends Notifier {
     return globalSettings != null ? globalSettings : new DefaultGlobalSettingsProvider();
   }
 
-  /**
-   * @since 2.1
-   */
-  public void setUsePrivateRepository(boolean usePrivateRepository) {
-    this.usePrivateRepository = usePrivateRepository;
-  }
-
   public boolean usesPrivateRepository() {
     return usePrivateRepository;
   }
@@ -421,8 +388,8 @@ public class SonarPublisher extends Notifier {
     private volatile SonarInstallation[] installations = new SonarInstallation[0];
 
     public DescriptorImpl() {
-      super();
       load();
+      save();
     }
 
     @Override

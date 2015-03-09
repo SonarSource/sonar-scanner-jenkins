@@ -30,10 +30,6 @@
       <f:textbox name="sonar.branch" value="${instance.getBranch()}"/>
     </f:entry>
 
-    <f:entry title="${%Language}" description="${%LanguageDescr}" help="/plugin/sonar/help-language.html">
-      <f:textbox name="sonar.language" value="${instance.getLanguage()}"/>
-    </f:entry>
-
     <j:set var="jdks" value="${app.JDKs}" />
     <f:entry title="JDK" description="${%JDKDesc}" help="/plugin/sonar/help-sonar-jdk.html">
       <select class="setting-input validated" name="sonar.jdk" checkUrl="'${rootURL}/defaultJDKCheck?value='+this.value">

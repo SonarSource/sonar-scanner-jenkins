@@ -149,18 +149,22 @@ public abstract class SonarTestCase {
   }
 
   protected static SonarPublisher newSonarPublisherForMavenProject() {
-    return new SonarPublisher(SONAR_INSTALLATION_NAME, null, null);
+    return new SonarPublisher(SONAR_INSTALLATION_NAME, null, null, null, null, null, null, null, null, null, false);
   }
 
   protected static SonarPublisher newSonarPublisherForFreeStyleProject(String pomName) {
     return new SonarPublisher(
       SONAR_INSTALLATION_NAME,
+      null,
       new TriggersConfig(),
       null,
       null,
       "default", // Maven Installation Name
-      pomName // Root POM
-    );
+      pomName, // Root POM
+      null,
+      null,
+      null,
+      false);
   }
 
   /**
