@@ -61,7 +61,7 @@
     <f:textbox />
   </f:entry>
 
-  <f:entry title="${%ProjectProperties}" field="properties" help="/plugin/sonar/help-runner-properties.html">
+  <f:entry title="${%AnalysisProperties}" field="properties" help="/plugin/sonar/help-runner-properties.html">
     <f:textarea />
   </f:entry>
 
