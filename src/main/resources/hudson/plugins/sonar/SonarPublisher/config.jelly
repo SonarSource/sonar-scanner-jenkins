@@ -5,10 +5,10 @@
     <j:arg value="${it}" type="hudson.model.AbstractProject"/>
   </j:invokeStatic>
 
-  <!-- Sonar Installation -->
+  <!-- SonarQube Installation -->
   <j:set var="sonars" value="${descriptor.installations}"/>
   <j:if test="${empty(sonars)}">
-    <!-- no Sonar installation is configured, so warn the user now -->
+    <!-- no SonarQube installation is configured, so warn the user now -->
     <f:entry title="${%SonarInstallation}">
       <div class="error">${%SonarInstallation.error(rootURL)}</div>
     </f:entry>

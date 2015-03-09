@@ -13,7 +13,7 @@
   <version>2.2-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
-  <name>Jenkins Sonar Plugin</name>
+  <name>Jenkins SonarQube Plugin</name>
   <url>http://redirect.sonarsource.com/plugins/jenkins.html</url>
   <inceptionYear>2007</inceptionYear>
   <licenses>

@@ -1,4 +1,22 @@
 /*
+ * Jenkins Plugin for SonarQube, open source software quality management tool.
+ * mailto:contact AT sonarsource DOT com
+ *
+ * Jenkins Plugin for SonarQube is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * Jenkins Plugin for SonarQube is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+/*
  * Sonar is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -16,11 +34,7 @@
 package hudson.plugins.sonar;
 
 import com.google.common.annotations.VisibleForTesting;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
+import hudson.*;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
@@ -237,7 +251,7 @@ public class SonarRunnerBuilder extends Builder {
 
     String errorMessage = Messages.SonarRunner_ExecFailed();
     if (sri == null && (System.currentTimeMillis() - startTime) < 1000 && getDescriptor().getSonarRunnerInstallations() == null) {
-      // looks like the user didn't configure any Sonar Runner installation
+      // looks like the user didn't configure any SonarQube Runner installation
       errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
     }
     e.printStackTrace(listener.fatalError(errorMessage));
@@ -248,7 +262,7 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   private int executeSonarRunner(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
-      InterruptedException {
+    InterruptedException {
     int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getModuleRoot()).join();
     if (build.getAction(BuildSonarAction.class) == null) {
       if (r != 0) {
@@ -306,7 +320,7 @@ public class SonarRunnerBuilder extends Builder {
 
   @VisibleForTesting
   boolean populateConfiguration(ExtendedArgumentListBuilder args, AbstractBuild<?, ?> build,
-      BuildListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
+    BuildListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.jdbc.driver", si.getDatabaseDriver());
       args.append("sonar.jdbc.url", si.getDatabaseUrl());

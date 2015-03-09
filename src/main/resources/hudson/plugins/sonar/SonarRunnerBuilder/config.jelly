@@ -1,9 +1,9 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  <!-- Sonar Installation -->
+  <!-- SonarQube Installation -->
   <j:set var="sonars" value="${descriptor.getSonarInstallations()}"/>
   <j:if test="${empty(sonars)}">
-    <!-- no Sonar installation is configured, so warn the user now -->
+    <!-- no SonarQube installation is configured, so warn the user now -->
     <f:entry title="${%SonarInstallation}">
       <div class="error">${%SonarInstallation.error(rootURL)}</div>
     </f:entry>
@@ -35,7 +35,7 @@
     </select>
   </f:entry>
 
-  <!-- Sonar Runner -->
+  <!-- SonarQube Runner -->
   <j:set var="runners" value="${descriptor.getSonarRunnerInstallations()}" />
   <j:if test="${empty(runners)}">
     <!-- no runner installation is configured. this will be an error, so warn the user now -->
