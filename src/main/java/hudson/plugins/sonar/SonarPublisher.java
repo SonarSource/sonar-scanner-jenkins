@@ -427,7 +427,7 @@ public class SonarPublisher extends Notifier {
 
     @Override
     public String getDisplayName() {
-      return "Sonar";
+      return "SonarQube";
     }
 
     /**
