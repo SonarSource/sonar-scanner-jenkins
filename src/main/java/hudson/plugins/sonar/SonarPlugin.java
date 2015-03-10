@@ -34,41 +34,7 @@
 package hudson.plugins.sonar;
 
 import hudson.Plugin;
-import jenkins.model.Jenkins;
-
-import java.io.IOException;
 
 public class SonarPlugin extends Plugin {
-
-  private Integer configVersion;
-
-  @Override
-  public void postInitialize() throws Exception {
-    // IMPORTANT, otherwise configVersion would be always null
-    load();
-
-    if (configVersion == null) {
-      configVersion = 0;
-    }
-    if (configVersion < 1) {
-      migrateToVersion1();
-    }
-  }
-
-  /**
-   * Scramble passwords.
-   */
-  private void migrateToVersion1() throws IOException {
-    SonarPublisher.DescriptorImpl sonarDescriptor = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
-    SonarInstallation[] installations = sonarDescriptor.getInstallations();
-    if (installations != null) {
-      for (SonarInstallation installation : installations) {
-        installation.setDatabasePassword(installation.getScrambledDatabasePassword());
-        sonarDescriptor.save();
-      }
-    }
-    configVersion = 1;
-    save();
-  }
 
 }

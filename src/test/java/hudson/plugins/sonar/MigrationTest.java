@@ -46,12 +46,16 @@ public class MigrationTest extends SonarTestCase {
   public void testShouldMigrateDatabasePasswords() {
     SonarInstallation installation;
 
-    installation = SonarInstallation.get("Server1");
-    assertThat(installation.getDatabasePassword()).isEqualTo("secret1");
-    assertThat(installation.getScrambledDatabasePassword()).isNotEqualTo("secret1");
+    installation = SonarInstallation.get("Plaintext");
+    assertThat(installation.getDatabasePassword()).isEqualTo("plainDbPasswd");
+    assertThat(installation.getSonarPassword()).isEqualTo("plainSonarPasswd");
 
-    installation = SonarInstallation.get("Server2");
-    assertThat(installation.getDatabasePassword()).isEqualTo("secret2");
-    assertThat(installation.getScrambledDatabasePassword()).isNotEqualTo("secret2");
+    installation = SonarInstallation.get("Scrambled");
+    assertThat(installation.getDatabasePassword()).isEqualTo("scrambledDbPasswd");
+    assertThat(installation.getSonarPassword()).isEqualTo("scrambledSonarPasswd");
+
+    installation = SonarInstallation.get("Secret");
+    assertThat(installation.getDatabasePassword()).isEqualTo("secretDbPasswd");
+    assertThat(installation.getSonarPassword()).isEqualTo("secretSonarPasswd");
   }
 }

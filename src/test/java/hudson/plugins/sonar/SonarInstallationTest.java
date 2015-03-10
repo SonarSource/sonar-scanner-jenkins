@@ -33,10 +33,60 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.Util;
+import hudson.plugins.sonar.SonarPublisher.DescriptorImpl;
+import hudson.plugins.sonar.model.TriggersConfig;
+import jenkins.model.Jenkins;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Evgeny Mandrikov
  */
-public class SonarInstallationTest {
+public class SonarInstallationTest extends SonarTestCase {
 
+  @Test
+  public void testRoundtrip() throws IOException {
+    TriggersConfig triggers = new TriggersConfig();
+    DescriptorImpl d = descriptor();
+    d.setInstallations(new SonarInstallation(
+      "Name",
+      false,
+      "server.url",
+      "db:url",
+      "dbLogin",
+      "dbPasswd",
+      "mojoVersion",
+      "props",
+      triggers,
+      "sonarLogin",
+      "sonarPasswd"
+      ));
+    d.save();
+
+    SonarInstallation i = descriptor().getInstallations()[0];
+    String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), d.getId() + ".xml"));
+
+    assertThat(i.getName()).isEqualTo("Name");
+    assertThat(i.isDisabled()).isFalse();
+    assertThat(i.getServerUrl()).isEqualTo("server.url");
+    assertThat(i.getDatabaseUrl()).isEqualTo("db:url");
+    assertThat(i.getDatabaseLogin()).isEqualTo("dbLogin");
+    assertThat(i.getDatabasePassword()).isEqualTo("dbPasswd");
+    assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
+    assertThat(i.getAdditionalProperties()).isEqualTo("props");
+    assertThat(i.getSonarLogin()).isEqualTo("sonarLogin");
+    assertThat(i.getSonarPassword()).isEqualTo("sonarPasswd");
+
+    assertThat(storedConfig).doesNotContain("dbPasswd");
+    assertThat(storedConfig).doesNotContain("sonarPasswd");
+  }
+
+  private SonarPublisher.DescriptorImpl descriptor() {
+    return new SonarPublisher.DescriptorImpl();
+  }
 }

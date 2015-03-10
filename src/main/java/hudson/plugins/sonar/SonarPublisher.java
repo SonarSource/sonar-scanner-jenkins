@@ -106,7 +106,7 @@ public class SonarPublisher extends Notifier {
    */
   @VisibleForTesting
   @Deprecated
-  String language;
+  transient String language;
 
   /**
    * Optional.
