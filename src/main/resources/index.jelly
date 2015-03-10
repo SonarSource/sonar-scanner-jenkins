@@ -1,4 +1,7 @@
+<!--
+This view is used to render the installed plugins page.
+-->
 <div>
-  Quickly benefit from <a href="http://www.sonarqube.org/">SonarQube</a>,
+  This plugin allow easy integration of <a href="http://www.sonarqube.org/">SonarQube</a>,
   the open source platform for Continuous Inspection of code quality.
 </div>
