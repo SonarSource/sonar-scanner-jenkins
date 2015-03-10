@@ -324,7 +324,7 @@ public class SonarPublisher extends Notifier {
       String url = SonarUtils.extractSonarProjectURLFromLogs(build);
       build.addAction(new BuildSonarAction(url));
     }
-    listener.getLogger().println("Sonar analysis completed: " + build.getResult());
+    listener.getLogger().println("SonarQube analysis completed: " + build.getResult());
     return sonarSuccess;
   }
 
