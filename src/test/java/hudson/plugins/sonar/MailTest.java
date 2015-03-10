@@ -40,7 +40,6 @@ import hudson.model.FreeStyleProject;
 import hudson.tasks.Mailer;
 import jenkins.model.JenkinsLocationConfiguration;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.mock_javamail.Mailbox;
@@ -65,6 +64,7 @@ public class MailTest extends SonarTestCase {
   @Before
   public void setUp() throws Exception {
     configureDefaultMaven();
+    configureDefaultSonarRunner(true);
     configureDefaultSonar();
     // Configure Mailer and Mailbox
     JenkinsLocationConfiguration.get().setAdminAddress("admin@example.org");
@@ -73,14 +73,14 @@ public class MailTest extends SonarTestCase {
     mailer = new Mailer("me@example.org", true, false);
   }
 
-  @Ignore("Ingored due to changes in triggers")
-  public void ignore_testMavenProject() throws Exception {
+  @Test
+  public void testMavenProject() throws Exception {
     MavenModuleSet project = setupMavenProject();
     project.getPublishersList().add(mailer);
     inbox.clear();
     AbstractBuild<?, ?> build = build(project, Result.FAILURE);
 
-    assertSonarExecution(build, "-f " + getPom(build, "pom.xml"));
+    assertSonarExecution(build, false);
     assertThat(inbox.size()).isEqualTo(1);
   }
 
@@ -91,7 +91,7 @@ public class MailTest extends SonarTestCase {
     inbox.clear();
     AbstractBuild<?, ?> build = build(project, Result.FAILURE);
 
-    assertSonarExecution(build, "-f " + getPom(build, "sonar-pom.xml"));
+    assertSonarExecution(build, "sonar-runner", false);
     assertThat(inbox.size()).isEqualTo(1);
   }
 }

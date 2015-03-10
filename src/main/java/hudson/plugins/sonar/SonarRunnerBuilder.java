@@ -93,30 +93,6 @@ public class SonarRunnerBuilder extends Builder {
    */
   private final String task;
 
-  /**
-   * @deprecated in 2.0
-   */
-  @Deprecated
-  public SonarRunnerBuilder(String installationName, String project, String properties, String javaOpts) {
-    this(installationName, null, project, properties, javaOpts, null);
-  }
-
-  /**
-   * @deprecated in 2.0
-   */
-  @Deprecated
-  public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts) {
-    this(installationName, sonarRunnerName, project, properties, javaOpts, null);
-  }
-
-  /**
-   * @deprecated in 2.1
-   */
-  @Deprecated
-  public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk) {
-    this(installationName, sonarRunnerName, project, properties, javaOpts, jdk, null);
-  }
-
   @DataBoundConstructor
   public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk, String task) {
     this.installationName = installationName;
@@ -265,10 +241,7 @@ public class SonarRunnerBuilder extends Builder {
     InterruptedException {
     int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getModuleRoot()).join();
     if (build.getAction(BuildSonarAction.class) == null) {
-      if (r != 0) {
-        build.addAction(new BuildSonarAction());
-      }
-      else {
+      if (r == 0) {
         String url = SonarUtils.extractSonarProjectURLFromLogs(build);
         build.addAction(new BuildSonarAction(url));
       }

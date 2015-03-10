@@ -320,9 +320,7 @@ public class SonarPublisher extends Notifier {
     if (!sonarSuccess) {
       // returning false has no effect on the global build status so need to do it manually
       build.setResult(Result.FAILURE);
-      build.addAction(new BuildSonarAction());
-    }
-    else {
+    } else {
       String url = SonarUtils.extractSonarProjectURLFromLogs(build);
       build.addAction(new BuildSonarAction(url));
     }

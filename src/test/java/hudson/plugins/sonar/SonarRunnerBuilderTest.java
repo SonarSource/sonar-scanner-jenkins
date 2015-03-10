@@ -102,13 +102,6 @@ public class SonarRunnerBuilderTest {
   public void shouldBeEmptyInsteadOfNull() {
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null);
     assertEmptyInsteadOfNull(builder);
-    // Test other constructors
-    builder = new SonarRunnerBuilder(null, null, null, null);
-    assertEmptyInsteadOfNull(builder);
-    builder = new SonarRunnerBuilder(null, null, null, null, null);
-    assertEmptyInsteadOfNull(builder);
-    builder = new SonarRunnerBuilder(null, null, null, null, null, null);
-    assertEmptyInsteadOfNull(builder);
   }
 
   private void assertEmptyInsteadOfNull(SonarRunnerBuilder builder) {
