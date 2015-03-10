@@ -31,59 +31,55 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.configurationslicing;
 
-import hudson.PluginWrapper;
-import hudson.model.BuildBadgeAction;
-import hudson.plugins.sonar.utils.MagicNames;
-import jenkins.model.Jenkins;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
+import configurationslicing.UnorderedStringSlicer;
+import hudson.Extension;
+import hudson.maven.MavenModuleSet;
 
-/**
- * {@link BuildBadgeAction} that shows the build contains Sonar analysis.
- *
- * @author Evgeny Mandrikov
- * @since 1.2
- */
-@ExportedBean
-public final class BuildSonarAction implements BuildBadgeAction {
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-  public final String url;
+@Extension
+public class BranchSlicer extends UnorderedStringSlicer<MavenModuleSet> {
 
-  public BuildSonarAction() {
-    this.url = null;
+  public BranchSlicer() {
+    super(new BranchSlicerSpec());
   }
 
-  public BuildSonarAction(String url) {
-    this.url = url;
-  }
+  protected static class BranchSlicerSpec extends SonarPublisherEmptyDefaultSlicerSpec {
 
-  public String getTooltip() {
-    return Messages.BuildSonarAction_Tooltip();
-  }
+    @Override
+    public String getName() {
+      return "SonarQube branch";
+    }
 
-  public String getDisplayName() {
-    return Messages.SonarAction_Sonar();
-  }
+    @Override
+    public String getUrl() {
+      return "sonarqubebranch";
+    }
 
-  public String getIcon() {
-    PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
-      .getPlugin(SonarPlugin.class);
-    return "/plugin/" + wrapper.getShortName() + "/images/" + MagicNames.ICON;
-  }
+    @Override
+    public List<String> getValues(MavenModuleSet mavenModuleSet) {
+      final List<String> values = new ArrayList<String>();
+      final String branch = getSonarPublisher(mavenModuleSet).getBranch();
+      values.add(defaultValueIfBlank(branch));
+      return values;
+    }
 
-  // non use interface methods
-  public String getIconFileName() {
-    return null;
-  }
-
-  public String getUrlName() {
-    return url;
-  }
-
-  @Exported(visibility = 2)
-  public String getUrl() {
-    return url;
+    @Override
+    public boolean setValues(MavenModuleSet mavenModuleSet, List<String> list) {
+      if (list.isEmpty()) {
+        return false;
+      }
+      getSonarPublisher(mavenModuleSet).setBranch(nullIfDefaultValue(list.iterator().next()));
+      try {
+        mavenModuleSet.save();
+      } catch (IOException e) {
+        return false;
+      }
+      return true;
+    }
   }
 }

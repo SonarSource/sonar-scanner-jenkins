@@ -42,7 +42,7 @@ import hudson.model.BuildListener;
 public final class Logger {
 
   private Logger() {
-    //Utility class
+    // Utility class
   }
 
   public static void printFailureMessage(BuildListener listener) {

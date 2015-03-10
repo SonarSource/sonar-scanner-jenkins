@@ -31,59 +31,50 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.configurationslicing;
 
-import hudson.PluginWrapper;
-import hudson.model.BuildBadgeAction;
-import hudson.plugins.sonar.utils.MagicNames;
-import jenkins.model.Jenkins;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
+import hudson.maven.MavenModuleSet;
+import hudson.plugins.sonar.SonarPublisher;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * {@link BuildBadgeAction} that shows the build contains Sonar analysis.
- *
- * @author Evgeny Mandrikov
- * @since 1.2
+ * @author drautureau
  */
-@ExportedBean
-public final class BuildSonarAction implements BuildBadgeAction {
+public class JdkSlicerTest {
 
-  public final String url;
+  @Rule
+  public JenkinsRule j = new JenkinsRule();
 
-  public BuildSonarAction() {
-    this.url = null;
+  @Test
+  public void availableMavenProjectsWithSonarPublisher() throws IOException {
+    final MavenModuleSet project = j.createMavenProject();
+    assertThat(new JdkSlicer().getWorkDomain().size()).isZero();
+    project.getPublishersList().add(new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false));
+    assertThat(new JdkSlicer().getWorkDomain().size()).isEqualTo(1);
   }
 
-  public BuildSonarAction(String url) {
-    this.url = url;
+  @Test
+  public void changeJobAdditionalProperties() throws Exception {
+    final MavenModuleSet project = j.createMavenProject();
+    final SonarPublisher mySonar = new SonarPublisher("MySonar", null, null, null, null, null, null, "1.7", null, null, false);
+    project.getPublishersList().add(mySonar);
+
+    final JdkSlicer.JdkSlicerSpec spec = new JdkSlicer.JdkSlicerSpec();
+    final List<String> values = spec.getValues(project);
+    assertThat(values.get(0)).isEqualTo("1.7");
+    final List<String> newValues = new ArrayList<String>();
+    newValues.add("1.7");
+    spec.setValues(project, newValues);
+
+    assertThat(mySonar.getJdk()).isEqualTo("1.7");
   }
 
-  public String getTooltip() {
-    return Messages.BuildSonarAction_Tooltip();
-  }
-
-  public String getDisplayName() {
-    return Messages.SonarAction_Sonar();
-  }
-
-  public String getIcon() {
-    PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
-      .getPlugin(SonarPlugin.class);
-    return "/plugin/" + wrapper.getShortName() + "/images/" + MagicNames.ICON;
-  }
-
-  // non use interface methods
-  public String getIconFileName() {
-    return null;
-  }
-
-  public String getUrlName() {
-    return url;
-  }
-
-  @Exported(visibility = 2)
-  public String getUrl() {
-    return url;
-  }
 }

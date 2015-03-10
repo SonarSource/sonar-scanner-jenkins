@@ -84,7 +84,7 @@ public class SonarPublisher extends Notifier {
    *
    * @see Jenkins#getJDK(String)
    */
-  private final String jdk;
+  private String jdk;
 
   /**
    * Sonar installation name.
@@ -96,7 +96,7 @@ public class SonarPublisher extends Notifier {
    *
    * @since 1.4
    */
-  private final String branch;
+  private String branch;
 
   /**
    * Optional.
@@ -128,6 +128,9 @@ public class SonarPublisher extends Notifier {
   // =================================================
   // Next fields available only for free-style projects
 
+  /**
+   * Null means to reuse job default
+   */
   private final String mavenInstallationName;
 
   /**
@@ -161,14 +164,14 @@ public class SonarPublisher extends Notifier {
     String mavenInstallationName, String rootPom, String jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings, boolean usePrivateRepository) {
     this.installationName = installationName;
     this.branch = branch;
-    this.jdk = jdk;
+    this.jdk = StringUtils.trimToNull(jdk);
     // Triggers
     this.triggers = triggers;
     // Maven
     this.mavenOpts = mavenOpts;
     this.jobAdditionalProperties = jobAdditionalProperties;
     // Non Maven Project
-    this.mavenInstallationName = mavenInstallationName;
+    this.mavenInstallationName = StringUtils.trimToNull(mavenInstallationName);
     this.rootPom = rootPom;
     this.settings = settings != null ? settings : new DefaultSettingsProvider();
     this.globalSettings = globalSettings != null ? globalSettings : new DefaultGlobalSettingsProvider();
@@ -186,6 +189,14 @@ public class SonarPublisher extends Notifier {
       this.jobAdditionalProperties = sb.toString();
     }
     return this;
+  }
+
+  public String getJdk() {
+    return jdk;
+  }
+
+  public void setJdk(final String jdk) {
+    this.jdk = jdk;
   }
 
   /**
@@ -216,6 +227,10 @@ public class SonarPublisher extends Notifier {
     return StringUtils.trimToEmpty(jobAdditionalProperties);
   }
 
+  public void setJobAdditionalProperties(final String jobAdditionalProperties) {
+    this.jobAdditionalProperties = jobAdditionalProperties;
+  }
+
   /**
    * @return true, if we should use triggers from {@link SonarInstallation}
    */
@@ -235,6 +250,14 @@ public class SonarPublisher extends Notifier {
    */
   public String getBranch() {
     return branch;
+  }
+
+  public void setBranch(final String branch) {
+    this.branch = branch;
+  }
+
+  public String getLanguage() {
+    return StringUtils.trimToEmpty(language);
   }
 
   /**

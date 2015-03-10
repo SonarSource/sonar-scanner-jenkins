@@ -55,7 +55,7 @@ public final class ProjectSonarAction implements ProminentProjectAction {
 
   public String getIconFileName() {
     PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
-        .getPlugin(SonarPlugin.class);
+      .getPlugin(SonarPlugin.class);
     return "/plugin/" + wrapper.getShortName() + "/images/" + MagicNames.ICON;
   }
 
