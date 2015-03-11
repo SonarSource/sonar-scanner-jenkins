@@ -35,7 +35,6 @@ package hudson.plugins.sonar;
 
 import hudson.PluginWrapper;
 import hudson.model.BuildBadgeAction;
-import hudson.plugins.sonar.utils.MagicNames;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -70,7 +69,7 @@ public final class BuildSonarAction implements BuildBadgeAction {
   public String getIcon() {
     PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
       .getPlugin(SonarPlugin.class);
-    return "/plugin/" + wrapper.getShortName() + "/images/" + MagicNames.ICON;
+    return "/plugin/" + wrapper.getShortName() + "/images/waves_16x16.png";
   }
 
   // non use interface methods
