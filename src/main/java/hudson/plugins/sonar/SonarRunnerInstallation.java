@@ -62,15 +62,12 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
     super(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties);
   }
 
-  public File getHomeDir() {
-    return new File(getHome());
-  }
-
   /**
   * Gets the executable path of this Sonar runner on the given target system.
   */
   public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
     return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
+      @Override
       public String call() throws IOException {
         File exe = getExeFile();
         if (exe.exists()) {
@@ -90,10 +87,12 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
 
   private static final long serialVersionUID = 1L;
 
+  @Override
   public SonarRunnerInstallation forEnvironment(EnvVars environment) {
     return new SonarRunnerInstallation(getName(), environment.expand(getHome()), getProperties().toList());
   }
 
+  @Override
   public SonarRunnerInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
     return new SonarRunnerInstallation(getName(), translateFor(node, log), getProperties().toList());
   }

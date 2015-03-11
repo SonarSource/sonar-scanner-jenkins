@@ -85,6 +85,10 @@ public class SonarInstallation {
 
   private final String databaseUrl;
   private final String databaseLogin;
+
+  /**
+   * @deprecated since 2.2
+   */
   @Deprecated
   private transient String databasePassword;
   private final String additionalProperties;
@@ -95,6 +99,10 @@ public class SonarInstallation {
    * @since 2.0.1
    */
   private String sonarLogin;
+
+  /**
+   * @deprecated since 2.2
+   */
   @Deprecated
   private transient String sonarPassword;
 

@@ -51,8 +51,8 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -240,11 +240,9 @@ public class SonarRunnerBuilder extends Builder {
   private int executeSonarRunner(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
     InterruptedException {
     int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getModuleRoot()).join();
-    if (build.getAction(BuildSonarAction.class) == null) {
-      if (r == 0) {
-        String url = SonarUtils.extractSonarProjectURLFromLogs(build);
-        build.addAction(new BuildSonarAction(url));
-      }
+    if (build.getAction(BuildSonarAction.class) == null && r == 0) {
+      String url = SonarUtils.extractSonarProjectURLFromLogs(build);
+      build.addAction(new BuildSonarAction(url));
     }
     return r;
   }
@@ -339,7 +337,7 @@ public class SonarRunnerBuilder extends Builder {
 
     // Additional properties
     Properties p = new Properties();
-    p.load(new ByteArrayInputStream(env.expand(getProperties()).getBytes()));
+    p.load(new StringReader(env.expand(getProperties())));
     loadProperties(args, p);
 
     return true;

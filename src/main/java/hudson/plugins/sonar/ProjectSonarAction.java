@@ -52,16 +52,19 @@ public final class ProjectSonarAction implements ProminentProjectAction {
     this.project = project;
   }
 
+  @Override
   public String getIconFileName() {
     PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
       .getPlugin(SonarPlugin.class);
     return "/plugin/" + wrapper.getShortName() + "/images/waves_48x48.png";
   }
 
+  @Override
   public String getDisplayName() {
     return Messages.SonarAction_Sonar();
   }
 
+  @Override
   public String getUrlName() {
     return SonarUtils.getLastSonarUrl(project);
   }

@@ -105,7 +105,7 @@ public class TriggersConfig implements Serializable {
     if (result != null && result.isWorseThan(Result.UNSTABLE)) {
       // skip analysis if build failed
       // unstable means that build completed, but there were some test failures, which is not critical for analysis
-      return Messages.SonarPublisher_BadBuildStatus(build.getResult().toString());
+      return Messages.SonarPublisher_BadBuildStatus(result.toString());
     }
 
     // skip analysis by environment variable or build parameter

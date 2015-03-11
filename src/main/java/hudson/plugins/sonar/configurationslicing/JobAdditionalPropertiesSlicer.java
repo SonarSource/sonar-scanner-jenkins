@@ -36,6 +36,7 @@ package hudson.plugins.sonar.configurationslicing;
 import configurationslicing.UnorderedStringSlicer;
 import hudson.Extension;
 import hudson.maven.MavenModuleSet;
+import hudson.plugins.sonar.utils.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -77,6 +78,7 @@ public class JobAdditionalPropertiesSlicer extends UnorderedStringSlicer<MavenMo
       try {
         mavenModuleSet.save();
       } catch (IOException e) {
+        Logger.LOG.throwing(this.getClass().getName(), "setValues", e);
         return false;
       }
       return true;

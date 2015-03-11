@@ -48,7 +48,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 @ExportedBean
 public final class BuildSonarAction implements BuildBadgeAction {
 
-  public final String url;
+  private final String url;
 
   public BuildSonarAction() {
     this.url = null;
@@ -62,6 +62,7 @@ public final class BuildSonarAction implements BuildBadgeAction {
     return Messages.BuildSonarAction_Tooltip();
   }
 
+  @Override
   public String getDisplayName() {
     return Messages.SonarAction_Sonar();
   }
@@ -73,10 +74,12 @@ public final class BuildSonarAction implements BuildBadgeAction {
   }
 
   // non use interface methods
+  @Override
   public String getIconFileName() {
     return null;
   }
 
+  @Override
   public String getUrlName() {
     return url;
   }

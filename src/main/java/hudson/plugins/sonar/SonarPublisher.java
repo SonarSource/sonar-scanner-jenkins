@@ -364,9 +364,11 @@ public class SonarPublisher extends Notifier {
     } catch (IOException e) {
       Logger.printFailureMessage(listener);
       Util.displayIOException(e, listener);
+      Logger.LOG.throwing(this.getClass().getName(), "setValues", e);
       e.printStackTrace(listener.fatalError("command execution failed"));
       return false;
     } catch (InterruptedException e) {
+      Logger.LOG.throwing(this.getClass().getName(), "executeSonar", e);
       return false;
     } catch (Exception e) {
       Logger.printFailureMessage(listener);
@@ -380,6 +382,7 @@ public class SonarPublisher extends Notifier {
     return new ProjectSonarAction(project);
   }
 
+  @Override
   public BuildStepMonitor getRequiredMonitorService() {
     return BuildStepMonitor.BUILD;
   }

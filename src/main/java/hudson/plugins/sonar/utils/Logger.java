@@ -41,6 +41,8 @@ import hudson.model.BuildListener;
  */
 public final class Logger {
 
+  public static final java.util.logging.Logger LOG = java.util.logging.Logger.getLogger("hudson.plugins.sonar");
+
   private Logger() {
     // Utility class
   }
