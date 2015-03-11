@@ -271,8 +271,7 @@ public class SonarRunnerBuilder extends Builder {
     if (sonarInstallation == null) {
       if (StringUtils.isBlank(sonarInstallationName)) {
         failureMsg = Messages.SonarPublisher_NoInstallation(SonarInstallation.all().length);
-      }
-      else {
+      } else {
         failureMsg = Messages.SonarPublisher_NoMatchInstallation(sonarInstallationName, SonarInstallation.all().length);
       }
       failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();

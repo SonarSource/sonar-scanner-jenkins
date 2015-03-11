@@ -122,8 +122,7 @@ public final class SonarMaven extends Maven {
       if (localRepo != null) {
         args.add("-Dmaven.repo.local=" + localRepo.getRemote());
       }
-    }
-    else if (locaRepository instanceof PerJobLocalRepositoryLocator) {
+    } else if (locaRepository instanceof PerJobLocalRepositoryLocator) {
       FilePath workspace = build.getWorkspace();
       if (workspace != null) {
         args.add("-Dmaven.repo.local=" + workspace.child(".repository"));
