@@ -42,7 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Extension
+@Extension(optional = true)
 public class JdkSlicer extends UnorderedStringSlicer<MavenModuleSet> {
 
   public JdkSlicer() {

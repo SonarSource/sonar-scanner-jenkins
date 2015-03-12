@@ -42,7 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Extension
+@Extension(optional = true)
 public class BranchSlicer extends UnorderedStringSlicer<MavenModuleSet> {
 
   public BranchSlicer() {
