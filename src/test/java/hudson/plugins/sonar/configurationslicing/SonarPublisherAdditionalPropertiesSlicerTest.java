@@ -48,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author drautureau
  */
-public class BranchSlicerTest {
+public class SonarPublisherAdditionalPropertiesSlicerTest {
 
   @Rule
   public JenkinsRule j = new JenkinsRule();
@@ -56,24 +56,24 @@ public class BranchSlicerTest {
   @Test
   public void availableMavenProjectsWithSonarPublisher() throws IOException {
     final MavenModuleSet project = j.createMavenProject();
-    assertThat(new BranchSlicer().getWorkDomain().size()).isZero();
-    project.getPublishersList().add(new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false));
-    assertThat(new BranchSlicer().getWorkDomain().size()).isEqualTo(1);
+    assertThat(new SonarPublisherAdditionalPropertiesSlicer().getWorkDomain().size()).isZero();
+    project.getPublishersList().add(new SonarPublisher("MySonar", null, null, "-Dsonar.verbose", null, null, null, null, null, null, false));
+    assertThat(new SonarPublisherAdditionalPropertiesSlicer().getWorkDomain().size()).isEqualTo(1);
   }
 
   @Test
   public void changeJobAdditionalProperties() throws IOException {
     final MavenModuleSet project = j.createMavenProject();
-    project.getPublishersList().add(new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false));
-    final BranchSlicer.BranchSlicerSpec branchSpec = new BranchSlicer.BranchSlicerSpec();
-    final List<String> values = branchSpec.getValues(project);
-    assertThat(values.get(0)).isEqualTo("(Empty)");
+    project.getPublishersList().add(new SonarPublisher("MySonar", null, null, "-Dsonar.verbose", null, null, null, null, null, null, false));
+    final SonarPublisherAdditionalPropertiesSlicer.SonarPublisherAdditionalPropertiesSlicerSpec propertiesSpec = new SonarPublisherAdditionalPropertiesSlicer.SonarPublisherAdditionalPropertiesSlicerSpec();
+    final List<String> values = propertiesSpec.getValues(project);
+    assertThat(values.get(0)).isEqualTo("-Dsonar.verbose");
 
     final List<String> newValues = new ArrayList<String>();
-    newValues.add("branchName");
-    branchSpec.setValues(project, newValues);
+    newValues.add("-Dsonar.showSql");
+    propertiesSpec.setValues(project, newValues);
     final SonarPublisher publisher = project.getPublishersList().get(SonarPublisher.class);
-    assertThat(publisher.getBranch()).isEqualTo("branchName");
+    assertThat(publisher.getJobAdditionalProperties()).isEqualTo("-Dsonar.showSql");
   }
 
 }

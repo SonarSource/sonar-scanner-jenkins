@@ -33,8 +33,8 @@
  */
 package hudson.plugins.sonar.configurationslicing;
 
-import hudson.maven.MavenModuleSet;
-import hudson.plugins.sonar.SonarPublisher;
+import hudson.model.FreeStyleProject;
+import hudson.plugins.sonar.SonarRunnerBuilder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -45,36 +45,33 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author drautureau
- */
-public class JdkSlicerTest {
+public class SonarRunnerBuilderSQServerSlicerTest {
 
   @Rule
   public JenkinsRule j = new JenkinsRule();
 
   @Test
-  public void availableMavenProjectsWithSonarPublisher() throws IOException {
-    final MavenModuleSet project = j.createMavenProject();
-    assertThat(new JdkSlicer().getWorkDomain().size()).isZero();
-    project.getPublishersList().add(new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false));
-    assertThat(new JdkSlicer().getWorkDomain().size()).isEqualTo(1);
+  public void availableProjectsWithSonarBuildStep() throws IOException {
+    final FreeStyleProject project = j.createFreeStyleProject();
+    assertThat(new SonarRunnerBuilderSQServerSlicer().getWorkDomain().size()).isZero();
+    project.getBuildersList().add(new SonarRunnerBuilder(null, null, null, null, null, null, null));
+    assertThat(new SonarRunnerBuilderSQServerSlicer().getWorkDomain().size()).isEqualTo(1);
   }
 
   @Test
   public void changeJobAdditionalProperties() throws Exception {
-    final MavenModuleSet project = j.createMavenProject();
-    final SonarPublisher mySonar = new SonarPublisher("MySonar", null, null, null, null, null, null, "1.7", null, null, false);
-    project.getPublishersList().add(mySonar);
+    final FreeStyleProject project = j.createFreeStyleProject();
+    final SonarRunnerBuilder mySonar = new SonarRunnerBuilder("MySonar", null, null, null, null, null, null);
+    project.getBuildersList().add(mySonar);
 
-    final JdkSlicer.JdkSlicerSpec spec = new JdkSlicer.JdkSlicerSpec();
+    final SonarRunnerBuilderSQServerSlicer.SonarRunnerBuilderSQServerSlicerSpec spec = new SonarRunnerBuilderSQServerSlicer.SonarRunnerBuilderSQServerSlicerSpec();
     final List<String> values = spec.getValues(project);
-    assertThat(values.get(0)).isEqualTo("1.7");
+    assertThat(values.get(0)).isEqualTo("MySonar");
     final List<String> newValues = new ArrayList<String>();
-    newValues.add("1.7");
+    newValues.add("MySonar 2");
     spec.setValues(project, newValues);
 
-    assertThat(mySonar.getJdk()).isEqualTo("1.7");
+    assertThat(mySonar.getInstallationName()).isEqualTo("MySonar 2");
   }
 
 }

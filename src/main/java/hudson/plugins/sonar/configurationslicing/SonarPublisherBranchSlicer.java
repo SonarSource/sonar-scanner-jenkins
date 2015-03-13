@@ -35,58 +35,42 @@ package hudson.plugins.sonar.configurationslicing;
 
 import configurationslicing.UnorderedStringSlicer;
 import hudson.Extension;
-import hudson.maven.MavenModuleSet;
-import hudson.plugins.sonar.utils.Logger;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import hudson.model.AbstractProject;
+import hudson.plugins.sonar.SonarPublisher;
 
 @Extension(optional = true)
-public class JdkSlicer extends UnorderedStringSlicer<MavenModuleSet> {
+public class SonarPublisherBranchSlicer extends UnorderedStringSlicer<AbstractProject<?, ?>> {
 
-  public JdkSlicer() {
-    super(new JdkSlicerSpec());
+  public SonarPublisherBranchSlicer() {
+    super(new SonarPublisherBranchSlicerSpec());
   }
 
-  protected static class JdkSlicerSpec extends SonarPublisherSlicerSpec {
+  protected static class SonarPublisherBranchSlicerSpec extends AbstractSonarPublisherSlicerSpec {
 
     @Override
     public String getName() {
-      return "SonarQube JDK";
+      return "SonarQube (Post Build) - Branch Slicer";
     }
 
     @Override
     public String getUrl() {
-      return "sonarqubejdk";
+      return "sqPublisherBranch";
     }
 
     @Override
-    public List<String> getValues(MavenModuleSet mavenModuleSet) {
-      final List<String> values = new ArrayList<String>();
-      final String jdk = getSonarPublisher(mavenModuleSet).getJdk();
-      values.add(jdk);
-      return values;
+    protected String doGetValue(SonarPublisher publisher) {
+      return defaultValueIfBlank(publisher.getBranch());
     }
 
     @Override
-    public boolean setValues(MavenModuleSet mavenModuleSet, List<String> list) {
-      if (list.isEmpty()) {
-        return false;
-      }
-      getSonarPublisher(mavenModuleSet).setJdk(list.iterator().next());
-      try {
-        mavenModuleSet.save();
-      } catch (IOException e) {
-        Logger.LOG.throwing(this.getClass().getName(), "setValues", e);
-        return false;
-      }
-      return true;
+    protected void doSetValue(SonarPublisher publisher, String value) {
+      publisher.setBranch(nullIfDefaultValue(value));
     }
 
     @Override
     protected String getDefaultValue() {
-      return "(Inherit From Job)";
+      return "(Empty)";
     }
+
   }
 }

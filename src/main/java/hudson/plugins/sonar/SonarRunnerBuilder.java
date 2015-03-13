@@ -64,7 +64,7 @@ public class SonarRunnerBuilder extends Builder {
   /**
    * Identifies {@link SonarInstallation} to be used.
    */
-  private final String installationName;
+  private String installationName;
   private final String project;
   private final String properties;
   private final String javaOpts;
@@ -85,7 +85,7 @@ public class SonarRunnerBuilder extends Builder {
    * Identifies {@link SonarRunnerInstallation} to be used.
    * @since 2.0
    */
-  private final String sonarRunnerName;
+  private String sonarRunnerName;
 
   /**
    * Optional task to run
@@ -111,6 +111,10 @@ public class SonarRunnerBuilder extends Builder {
     return Util.fixNull(installationName);
   }
 
+  public void setInstallationName(String installationName) {
+    this.installationName = installationName;
+  }
+
   /**
    * @return name of {@link hudson.plugins.sonar.SonarRunnerInstallation}
    */
@@ -118,11 +122,23 @@ public class SonarRunnerBuilder extends Builder {
     return Util.fixNull(sonarRunnerName);
   }
 
+  public void setSonarRunnerName(String sonarRunnerName) {
+    this.sonarRunnerName = sonarRunnerName;
+  }
+
   /**
    * Gets the JDK that this Sonar builder is configured with, or null.
    */
   public JDK getJDK() {
     return Jenkins.getInstance().getJDK(jdk);
+  }
+
+  public String getJdk() {
+    return jdk;
+  }
+
+  public void setJdk(String jdk) {
+    this.jdk = jdk;
   }
 
   /**

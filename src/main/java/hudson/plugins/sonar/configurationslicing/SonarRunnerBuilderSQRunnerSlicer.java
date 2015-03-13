@@ -33,46 +33,43 @@
  */
 package hudson.plugins.sonar.configurationslicing;
 
-import configurationslicing.UnorderedStringSlicer.UnorderedStringSlicerSpec;
-import hudson.maven.MavenModuleSet;
-import hudson.plugins.sonar.SonarPublisher;
-import hudson.tasks.Publisher;
-import jenkins.model.Jenkins;
+import configurationslicing.UnorderedStringSlicer;
+import hudson.Extension;
+import hudson.model.Project;
+import hudson.plugins.sonar.SonarRunnerBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
+@Extension(optional = true)
+public class SonarRunnerBuilderSQRunnerSlicer extends UnorderedStringSlicer<Project<?, ?>> {
 
-public abstract class SonarPublisherSlicerSpec extends UnorderedStringSlicerSpec<MavenModuleSet> {
+  public SonarRunnerBuilderSQRunnerSlicer() {
+    super(new SonarRunnerBuilderSQRunnerSlicerSpec());
+  }
 
-  protected abstract String getDefaultValue();
+  protected static class SonarRunnerBuilderSQRunnerSlicerSpec extends AbstractSonarRunnerBuilderSlicerSpec {
 
-  @Override
-  public List getWorkDomain() {
-    final List<MavenModuleSet> workDomain = new ArrayList<MavenModuleSet>();
-    for (final MavenModuleSet item : Jenkins.getInstance().getItems(MavenModuleSet.class)) {
-      if (getSonarPublisher(item) != null) {
-        workDomain.add(item);
-      }
+    @Override
+    public String getName() {
+      return "SonarQube (Build Step) - SonarQube Runner Slicer";
     }
-    return workDomain;
-  }
 
-  @Override
-  public String getName(MavenModuleSet mavenModuleSet) {
-    return mavenModuleSet.getFullName();
-  }
-
-  @Override
-  public String getDefaultValueString() {
-    return getDefaultValue();
-  }
-
-  protected SonarPublisher getSonarPublisher(final MavenModuleSet project) {
-    for (final Publisher publisher : project.getPublishersList()) {
-      if (publisher instanceof SonarPublisher) {
-        return (SonarPublisher) publisher;
-      }
+    @Override
+    public String getUrl() {
+      return "sqRunnerBuilderSQRunner";
     }
-    return null;
+
+    @Override
+    protected String doGetValue(SonarRunnerBuilder builder) {
+      return defaultValueIfBlank(builder.getSonarRunnerName());
+    }
+
+    @Override
+    protected void doSetValue(SonarRunnerBuilder builder, String value) {
+      builder.setSonarRunnerName(nullIfDefaultValue(value));
+    }
+
+    @Override
+    protected String getDefaultValue() {
+      return "(Default)";
+    }
   }
 }

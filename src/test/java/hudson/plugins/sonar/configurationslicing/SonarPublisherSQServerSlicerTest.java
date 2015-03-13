@@ -45,10 +45,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author drautureau
- */
-public class JobAdditionalPropertiesSlicerTest {
+public class SonarPublisherSQServerSlicerTest {
 
   @Rule
   public JenkinsRule j = new JenkinsRule();
@@ -56,24 +53,25 @@ public class JobAdditionalPropertiesSlicerTest {
   @Test
   public void availableMavenProjectsWithSonarPublisher() throws IOException {
     final MavenModuleSet project = j.createMavenProject();
-    assertThat(new JobAdditionalPropertiesSlicer().getWorkDomain().size()).isZero();
-    project.getPublishersList().add(new SonarPublisher("MySonar", null, null, "-Dsonar.verbose", null, null, null, null, null, null, false));
-    assertThat(new JobAdditionalPropertiesSlicer().getWorkDomain().size()).isEqualTo(1);
+    assertThat(new SonarPublisherSQServerSlicer().getWorkDomain().size()).isZero();
+    project.getPublishersList().add(new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false));
+    assertThat(new SonarPublisherSQServerSlicer().getWorkDomain().size()).isEqualTo(1);
   }
 
   @Test
-  public void changeJobAdditionalProperties() throws IOException {
+  public void changeJobAdditionalProperties() throws Exception {
     final MavenModuleSet project = j.createMavenProject();
-    project.getPublishersList().add(new SonarPublisher("MySonar", null, null, "-Dsonar.verbose", null, null, null, null, null, null, false));
-    final JobAdditionalPropertiesSlicer.JobAdditionalPropertiesSlicerSpec propertiesSpec = new JobAdditionalPropertiesSlicer.JobAdditionalPropertiesSlicerSpec();
-    final List<String> values = propertiesSpec.getValues(project);
-    assertThat(values.get(0)).isEqualTo("-Dsonar.verbose");
+    final SonarPublisher mySonar = new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false);
+    project.getPublishersList().add(mySonar);
 
+    final SonarPublisherSQServerSlicer.SonarPublisherSQInstallSlicerSpec spec = new SonarPublisherSQServerSlicer.SonarPublisherSQInstallSlicerSpec();
+    final List<String> values = spec.getValues(project);
+    assertThat(values.get(0)).isEqualTo("MySonar");
     final List<String> newValues = new ArrayList<String>();
-    newValues.add("-Dsonar.showSql");
-    propertiesSpec.setValues(project, newValues);
-    final SonarPublisher publisher = project.getPublishersList().get(SonarPublisher.class);
-    assertThat(publisher.getJobAdditionalProperties()).isEqualTo("-Dsonar.showSql");
+    newValues.add("MySonar 2");
+    spec.setValues(project, newValues);
+
+    assertThat(mySonar.getInstallationName()).isEqualTo("MySonar 2");
   }
 
 }

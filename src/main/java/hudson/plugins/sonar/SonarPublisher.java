@@ -89,7 +89,7 @@ public class SonarPublisher extends Notifier {
   /**
    * Sonar installation name.
    */
-  private final String installationName;
+  private String installationName;
 
   /**
    * Optional.
@@ -211,6 +211,10 @@ public class SonarPublisher extends Notifier {
    */
   public String getInstallationName() {
     return installationName;
+  }
+
+  public void setInstallationName(String installationName) {
+    this.installationName = installationName;
   }
 
   /**

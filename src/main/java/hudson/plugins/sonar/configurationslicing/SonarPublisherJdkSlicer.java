@@ -35,53 +35,41 @@ package hudson.plugins.sonar.configurationslicing;
 
 import configurationslicing.UnorderedStringSlicer;
 import hudson.Extension;
-import hudson.maven.MavenModuleSet;
-import hudson.plugins.sonar.utils.Logger;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import hudson.model.AbstractProject;
+import hudson.plugins.sonar.SonarPublisher;
 
 @Extension(optional = true)
-public class JobAdditionalPropertiesSlicer extends UnorderedStringSlicer<MavenModuleSet> {
+public class SonarPublisherJdkSlicer extends UnorderedStringSlicer<AbstractProject<?, ?>> {
 
-  public JobAdditionalPropertiesSlicer() {
-    super(new JobAdditionalPropertiesSlicerSpec());
+  public SonarPublisherJdkSlicer() {
+    super(new SonarPublisherJdkSlicerSpec());
   }
 
-  protected static class JobAdditionalPropertiesSlicerSpec extends SonarPublisherEmptyDefaultSlicerSpec {
+  protected static class SonarPublisherJdkSlicerSpec extends AbstractSonarPublisherSlicerSpec {
 
     @Override
     public String getName() {
-      return "SonarQube job additional properties";
+      return "SonarQube (Post Build) - JDK Slicer";
     }
 
     @Override
     public String getUrl() {
-      return "sonarqubejobadditionalproperties";
+      return "sqPublisherJdk";
     }
 
     @Override
-    public List<String> getValues(MavenModuleSet mavenModuleSet) {
-      final List<String> values = new ArrayList<String>();
-      final String properties = getSonarPublisher(mavenModuleSet).getJobAdditionalProperties();
-      values.add(defaultValueIfBlank(properties));
-      return values;
+    protected String doGetValue(SonarPublisher publisher) {
+      return defaultValueIfBlank(publisher.getJdk());
     }
 
     @Override
-    public boolean setValues(MavenModuleSet mavenModuleSet, List<String> list) {
-      if (list.isEmpty()) {
-        return false;
-      }
-      getSonarPublisher(mavenModuleSet).setJobAdditionalProperties(nullIfDefaultValue(list.iterator().next()));
-      try {
-        mavenModuleSet.save();
-      } catch (IOException e) {
-        Logger.LOG.throwing(this.getClass().getName(), "setValues", e);
-        return false;
-      }
-      return true;
+    protected void doSetValue(SonarPublisher publisher, String value) {
+      publisher.setJdk(nullIfDefaultValue(value));
+    }
+
+    @Override
+    protected String getDefaultValue() {
+      return "(Inherit From Job)";
     }
   }
 }

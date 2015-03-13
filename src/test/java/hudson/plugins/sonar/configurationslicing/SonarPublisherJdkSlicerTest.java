@@ -33,21 +33,48 @@
  */
 package hudson.plugins.sonar.configurationslicing;
 
-import org.apache.commons.lang.StringUtils;
+import hudson.maven.MavenModuleSet;
+import hudson.plugins.sonar.SonarPublisher;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 
-public abstract class SonarPublisherEmptyDefaultSlicerSpec extends SonarPublisherSlicerSpec {
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-  @Override
-  protected String getDefaultValue() {
-    return "(Empty)";
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * @author drautureau
+ */
+public class SonarPublisherJdkSlicerTest {
+
+  @Rule
+  public JenkinsRule j = new JenkinsRule();
+
+  @Test
+  public void availableMavenProjectsWithSonarPublisher() throws IOException {
+    final MavenModuleSet project = j.createMavenProject();
+    assertThat(new SonarPublisherJdkSlicer().getWorkDomain().size()).isZero();
+    project.getPublishersList().add(new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false));
+    assertThat(new SonarPublisherJdkSlicer().getWorkDomain().size()).isEqualTo(1);
   }
 
-  protected String defaultValueIfBlank(final String value) {
-    return StringUtils.isBlank(value) ? getDefaultValue() : value;
-  }
+  @Test
+  public void changeJobAdditionalProperties() throws Exception {
+    final MavenModuleSet project = j.createMavenProject();
+    final SonarPublisher mySonar = new SonarPublisher("MySonar", null, null, null, null, null, null, "1.7", null, null, false);
+    project.getPublishersList().add(mySonar);
 
-  protected String nullIfDefaultValue(final String value) {
-    return getDefaultValue().equals(value) ? null : value;
+    final SonarPublisherJdkSlicer.SonarPublisherJdkSlicerSpec spec = new SonarPublisherJdkSlicer.SonarPublisherJdkSlicerSpec();
+    final List<String> values = spec.getValues(project);
+    assertThat(values.get(0)).isEqualTo("1.7");
+    final List<String> newValues = new ArrayList<String>();
+    newValues.add("1.7");
+    spec.setValues(project, newValues);
+
+    assertThat(mySonar.getJdk()).isEqualTo("1.7");
   }
 
 }
