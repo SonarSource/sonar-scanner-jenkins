@@ -196,6 +196,7 @@ public class SonarRunnerBuilder extends Builder {
         return false;
       }
       args.add(exe);
+      args.add("-e");
       env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
     addTaskArgument(args);
