@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.codehaus.sonar-plugins</groupId>
+    <artifactId>parent</artifactId>
+    <version>13</version>
+    <relativePath>../parent</relativePath>
+  </parent>
+
+  <artifactId>sonar-abacus-plugin</artifactId>
+  <packaging>sonar-plugin</packaging>
+  <version>0.2-SNAPSHOT</version>
+  <name>Sonar Abacus Plugin</name>
+  <description>This plugin helps you use your abacus</description>
+  <url>http://docs.codehaus.org/display/SONAR/Abacus+plugin</url>
+
+  <inceptionYear>2012</inceptionYear>
+
+  <organization>
+    <name>Codehaus Sonar Plugins</name>
+    <url>http://sonar-plugins.codehaus.org/</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <id>racodond</id>
+      <name>David RACODON</name>
+    </developer>
+    <developer>
+      <id>francoisd</id>
+      <name>David FRANCOIS</name>
+    </developer>
+  </developers>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>http://jira.codehaus.org/browse/SONARPLUGINS/component/15481</url>
+  </issueManagement>
+  <ciManagement>
+    <system>BAMBOO</system>
+    <url>http://bamboo.ci.codehaus.org/browse/SONAR-ABACUS/</url>
+  </ciManagement>
+  <scm>
+    <connection>scm:svn:http://svn.codehaus.org/sonar-plugins/trunk/abacus</connection>
+    <developerConnection>scm:svn:https://svn.codehaus.org/sonar-plugins/trunk/abacus</developerConnection>
+    <url>http://svn.sonar-plugins.codehaus.org</url>
+  </scm>
+
+  <properties>
+    <license.owner>David FRANCOIS and David RACODON</license.owner>
+    <sonar.version>3.0</sonar.version>
+    <sonar.pluginName>Abacus</sonar.pluginName>
+    <sonar.pluginClass>org.sonar.plugins.abacus.AbacusPlugin</sonar.pluginClass>
+    <sonar.scm.disabled>true</sonar.scm.disabled>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.sonar</groupId>
+      <artifactId>sonar-plugin-api</artifactId>
+      <version>${sonar.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.sonar</groupId>
+      <artifactId>sonar-testing-harness</artifactId>
+      <version>${sonar.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>native2ascii-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>native2ascii</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

@@ -1,0 +1,155 @@
+<% abacus_complexity=measure('abacus-complexity') %>
+<% complexityDistribution = measure("abacus-complexity-distribution") %>
+
+<% if widget_properties["defaultDisplay"]!="files" and widget_properties["defaultDisplay"]!="percentage" %>
+<table class="width100">
+  <tr>
+    <td width="20px" valign="top"><%= image_tag 'exclamation.png'%></td>
+    <td><b><%= message('abacus.error.cannotDisplayWidget') -%><br><%= message('abacus.error.defaultDisplay.incorrectValue', :params => [widget_properties["defaultDisplay"]]) -%></b></td>
+  </tr>
+</table>
+
+<% else %>
+
+<%  if complexityDistribution %>
+<%      numberFile= 0;%>
+<%      label=[]        %>
+<%      the_tab_measures = complexityDistribution.text_value.split(";"); %>
+<%      i=0;    %>
+<%      for measure in the_tab_measures     %>
+<%          the_measure= measure.split("=");  %>
+<%          numberFile+= the_measure[1].to_i;  %>
+<%      end;     %>  
+<%      the_measure_pie_chart="";    %>
+<%      for measure in the_tab_measures     %>
+<%          the_measure= measure.split("=");  %>
+<%          the_tab_measures[i]=the_measure[0]+"="+the_measure[1]; %>
+<%          the_percentage=((the_measure[1].to_f/(numberFile))*100).round(1);    %>  
+<%          label << the_measure[0]+"="+the_percentage.to_s  %>
+<%          the_measure_pie_chart+=the_measure[0]+"="+the_percentage.to_s+";";      %>  
+<%          i+=1;     %>  
+<%      end;     %>    
+
+<% if the_tab_measures.count > widget_properties["defaultColors"].split(",").count %>
+<table class="width100">
+  <tr>
+    <td width="20px" valign="top"><%= image_tag 'exclamation.png'%></td>
+    <td><b><%= message('abacus.error.cannotDisplayWidget') -%><br><%= message('abacus.error.defaultColors.incorrectValue') -%></b></td>
+  </tr>
+</table>
+
+<% else %>
+
+<script language="javascript">
+    function displayDistribution(type) {
+      $$('#abacus_div_chart .abacus_chart').each(function(chart) {
+        chart.hide();
+      });
+      $$('#abacus_div_distribution .abacus_distribution').each(function(distribution) {
+        distribution.hide();
+      });
+      $('abacus_div_chart_' + type).show();
+      $('abacus_div_distribution_' + type).show();
+    }
+</script>
+
+<table class="width100">
+  <tbody>
+    <tr>
+      <td valign="top" width="40%">
+        <table border="0" width="100%">
+          <tbody>
+            <tr>
+              <td align="left">
+                <div class="dashbox" >
+                  <h3><%= message('abacus.title') -%></h3>
+                  <br>
+                  <h3><span title="abacus"><%= message('abacus.componentComplexity') -%></span></h3>
+                  <p><span class="big"><%= format_measure(abacus_complexity, :suffix => '', :url => url_for_drilldown(abacus_complexity)) %></span></p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td align="left">
+              <div class="dashbox" id="abacus_div_distribution">
+                <div class="abacus_distribution" id="abacus_div_distribution_percentage" 
+                  <% if widget_properties["defaultDisplay"]=="files" %>style="display: none;"<% end %>>
+                  <br /><br />
+                  <h3><%= message('abacus.componentComplexityDistribution.percentage') -%></h3>
+                  <table>
+            <% label.each do |the_measure|  %>
+            <% the_measure =the_measure.split("="); %>
+                    <tr>
+                      <td align="right" width="40px"><p><%= number_with_delimiter(the_measure[1].to_f);-%>%</p></td>
+                      <td style="width:10px;"></td>
+                      <td><p><%= the_measure[0];-%></p></td>
+                    </tr>
+            <% end; %>
+                  </table>
+                </div>
+                <div class="abacus_distribution" id="abacus_div_distribution_files" 
+                  <% if widget_properties["defaultDisplay"]=="percentage" %>style="display: none;"<% end %>>
+                  <br /><br />
+                  <h3><%= message('abacus.componentComplexityDistribution.numberOfFiles') -%></h3>
+                  <table>
+            <% the_tab_measures.each do |the_measure|  %>
+            <% the_measure =the_measure.split("="); %>
+                    <tr>
+                      <td align="right" width="40px"><p><%= number_with_delimiter(the_measure[1].to_i);-%></p></td>
+                      <td style="width:10px;"></td>
+                      <td><p><%= the_measure[0];-%></p></td>
+                    </tr>
+            <% end; %>
+                  </table>
+                </div>
+              </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+      <td align="center" valign="middle" width="60%" nowrap>
+        <table border="0" width="50%" height="75%">
+          <tbody>
+            <tr height="70%">
+              <td align="center" width="100%" valign="middle" nowrap>
+                <div class="dashbox" id="abacus_div_chart">
+                  <div id="abacus_div_chart_percentage" class="abacus_chart" 
+                    <% if widget_properties["defaultDisplay"]=="files" %>style="display: none;"<% end %>>
+                <% query="ck=pieChart3D&w=250&h=130&c=" + widget_properties["defaultColors"] + "&v=" + u(the_measure_pie_chart) %>
+                <%= chart(query) -%>
+                  </div>
+                  <div id="abacus_div_chart_files" class="abacus_chart" 
+                    <% if widget_properties["defaultDisplay"]=="percentage" %>style="display: none;"<% end %>>
+                <% query="ck=barChart3D&v=" + u(complexityDistribution.data) + '&w=250&h=130&fs=8&bgc=ffffff' %>
+                <%= chart(query) -%>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr height="30%">
+              <td align="center" valign="bottom">
+                <form>
+                  <input type="radio" name="abacus_input" value="files" id="abacus_input_files" onClick="displayDistribution('files');" <% if widget_properties["defaultDisplay"]=="files" %>checked<% end %>></input>
+                    <label for="abacus_input_files"><%= message('abacus.numberOfFilesDistribution') -%></label>&nbsp;&nbsp;
+                  <input type="radio" name="abacus_input" value="percentage" id="abacus_input_percentage" onClick="displayDistribution('percentage');" <% if widget_properties["defaultDisplay"]=="percentage" %>checked<% end %>></input>
+                    <label for="abacus_input_percentage"><%= message('abacus.percentageDistribution') -%></label>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<% end %>
+
+<% else %>
+  <h3><%= message('abacus.title') -%></h3>
+  <br />
+  <p><%= message('abacus.noData') -%></p>
+<% end %>
+
+<% end %>

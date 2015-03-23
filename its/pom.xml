@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.sonarsource.parent</groupId>
+    <artifactId>parent</artifactId>
+    <version>28</version>
+    <relativePath />
+  </parent>
+
+  <groupId>com.sonarsource.it</groupId>
+  <artifactId>it-jenkins</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <name>Jenkins :: IT</name>
+
+  <inceptionYear>2013</inceptionYear>
+
+  <properties>
+    <argLine>-server</argLine>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>http://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.sonarsource.orchestrator</groupId>
+      <artifactId>sonar-orchestrator</artifactId>
+      <version>3.1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-server</artifactId>
+      <version>2.45.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jenkins-ci.main</groupId>
+      <artifactId>cli</artifactId>
+      <version>1.596.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-assert</artifactId>
+      <version>1.4</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <includes>
+              <include>**/JenkinsTestSuite.java</include>
+            </includes>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  
+  <profiles>
+    <profile>
+      <id>itCoverage</id>
+      <properties>
+        <orchestrator.computeCoverage>true</orchestrator.computeCoverage>
+        <orchestrator.coverageReportPath>${project.build.directory}/jacoco-it.exec</orchestrator.coverageReportPath>
+      </properties>
+    </profile>
+  </profiles>
+
+</project>

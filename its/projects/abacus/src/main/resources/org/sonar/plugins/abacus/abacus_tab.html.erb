@@ -1,0 +1,31 @@
+<div id="source_header" class="tab_header">
+  <table width="100%">
+    <tr>
+      <td class="col">
+      <table class="metrics">
+          <tr>
+            <td class="name"><%= message('metric.abacus-complexity.name') -%>:</td>
+            <td class="value">
+            	<% if m=measure('abacus-complexity') %>
+            		<%= format_measure(m) -%>
+            	<% else %>
+            		<%= message('abacusTab.notComputed') -%>
+            	<% end %>
+            </td>
+          </tr>
+          <tr>
+            <td class="name"><%= message('metric.complexity.name') -%>:</td>
+            <td class="value">
+            	<% if m=measure('complexity') %>
+            		<%= format_measure(m) -%>
+            	<% else %>
+            		<%= message('abacusTab.notComputed') -%>
+            	<% end %>
+            </td>
+          </tr>
+      </table>
+      </td>
+    </tr>
+  </table>
+ </div>
+
