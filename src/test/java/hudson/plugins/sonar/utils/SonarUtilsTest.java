@@ -67,7 +67,7 @@ public class SonarUtilsTest {
     RunList list = mock(RunList.class);
     when(list.iterator()).thenReturn(Arrays.asList(build1, build2).iterator());
     when(project.getBuilds()).thenReturn(list);
-    assertThat(SonarUtils.getLastSonarUrl(project)).isEqualTo("http://foo");
+    assertThat(SonarUtils.getLastSonarUrl(project)).isNull();
   }
 
   private AbstractBuild<?, ?> mockedBuild(String log) throws IOException {

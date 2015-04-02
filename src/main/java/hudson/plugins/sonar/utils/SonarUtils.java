@@ -39,7 +39,6 @@ import hudson.model.Run;
 import hudson.plugins.sonar.BuildSonarAction;
 import org.apache.commons.io.IOUtils;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -98,7 +97,11 @@ public final class SonarUtils {
   }
 
   @Nullable
-  private static String getSonarUrlFromRun(@Nonnull Run run) {
+  private static String getSonarUrlFromRun(Run run) {
+    if (run == null) {
+      return null;
+    }
+
     BuildSonarAction action = run.getAction(BuildSonarAction.class);
     if (action != null) {
       return action.getUrlName();
