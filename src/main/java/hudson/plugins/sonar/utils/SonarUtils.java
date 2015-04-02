@@ -97,7 +97,7 @@ public final class SonarUtils {
   }
 
   @Nullable
-  private static String getSonarUrlFromRun(Run run) {
+  private static String getSonarUrlFromRun(Run<?, ?> run) {
     if (run == null) {
       return null;
     }
