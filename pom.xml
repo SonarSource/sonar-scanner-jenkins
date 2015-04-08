@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>sonar</artifactId>
-  <version>2.2-SNAPSHOT</version>
+  <version>2.2</version>
   <packaging>hpi</packaging>
 
   <name>Jenkins SonarQube Plugin</name>
