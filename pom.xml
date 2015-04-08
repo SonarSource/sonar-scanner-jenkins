@@ -207,7 +207,7 @@
         <artifactId>maven-release-plugin</artifactId>
         <configuration>
           <localCheckout>true</localCheckout>
-          <pushChanges>false</pushChanges>
+          <pushChanges>true</pushChanges>
           <goals>deploy</goals>
         </configuration>
       </plugin>
