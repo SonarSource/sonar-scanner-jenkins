@@ -37,12 +37,10 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.plugins.sonar.BuildSonarAction;
-import hudson.util.RunList;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -60,14 +58,76 @@ public class SonarUtilsTest {
   }
 
   @Test
-  public void shouldGetLastUrl() throws Exception {
+  public void shouldGetLastSuccessfulBuildUrl() throws Exception {
+    // Given
     AbstractProject<?, ?> project = mock(AbstractProject.class);
-    Run<?, ?> build1 = mockedRunWithSonarAction(null);
-    Run<?, ?> build2 = mockedRunWithSonarAction("http://foo");
-    RunList list = mock(RunList.class);
-    when(list.iterator()).thenReturn(Arrays.asList(build1, build2).iterator());
-    when(project.getBuilds()).thenReturn(list);
-    assertThat(SonarUtils.getLastSonarUrl(project)).isEqualTo("http://foo");
+
+    // When
+    when(project.getLastSuccessfulBuild()).thenReturn(null);
+
+    // Then
+    assertThat(SonarUtils.getLastSonarUrl(project)).isNull();
+  }
+
+  @Test
+  public void getSuccessfulBuildWithValidUrl() throws Exception {
+    // Given
+    AbstractProject<?, ?> project = mock(AbstractProject.class);
+    AbstractBuild build = mock(AbstractBuild.class);
+
+    // When
+    String expectedUrl = "http://foo";
+    when(build.getAction(BuildSonarAction.class)).thenReturn(new BuildSonarAction(expectedUrl));
+    when(project.getLastSuccessfulBuild()).thenReturn(build);
+
+    // Then
+    assertThat(SonarUtils.getLastSonarUrl(project)).isEqualTo(expectedUrl);
+  }
+
+  @Test
+  public void successfulBuildWithoutSonarAction() throws Exception {
+    // Given
+    AbstractProject project = mock(AbstractProject.class);
+    AbstractBuild build = mock(AbstractBuild.class);
+
+    // When
+    when(build.getAction(BuildSonarAction.class)).thenReturn(null);
+    when(project.getLastSuccessfulBuild()).thenReturn(build);
+
+    // Then
+    assertThat(SonarUtils.getLastSonarUrl(project)).isNull();
+  }
+
+  @Test
+  public void getUnstableBuildUrlWhenNoStableBuild() throws Exception {
+    // Given
+    AbstractProject<?, ?> project = mock(AbstractProject.class);
+    AbstractBuild build = mock(AbstractBuild.class);
+
+    // When
+    when(project.getLastSuccessfulBuild()).thenReturn(null);
+
+    String expectedUrl = "http://foo";
+    when(build.getAction(BuildSonarAction.class)).thenReturn(new BuildSonarAction(expectedUrl));
+    when(project.getLastUnstableBuild()).thenReturn(build);
+
+    // Then
+    assertThat(SonarUtils.getLastSonarUrl(project)).isEqualTo(expectedUrl);
+  }
+
+  @Test
+  public void doNotUseUrlFromFailedBuild() throws Exception {
+    // Given
+    AbstractProject<?, ?> project = mock(AbstractProject.class);
+    AbstractBuild build = mock(AbstractBuild.class);
+
+    // When
+    when(project.getLastSuccessfulBuild()).thenReturn(null);
+    when(project.getLastUnstableBuild()).thenReturn(null);
+    when(project.getLastFailedBuild()).thenReturn(build);
+
+    // Then
+    assertThat(SonarUtils.getLastSonarUrl(project)).isNull();
   }
 
   private AbstractBuild<?, ?> mockedBuild(String log) throws IOException {

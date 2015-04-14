@@ -37,9 +37,9 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.plugins.sonar.BuildSonarAction;
-import hudson.util.RunList;
 import org.apache.commons.io.IOUtils;
 
+import javax.annotation.CheckForNull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -88,13 +88,25 @@ public final class SonarUtils {
    * Iterate previous build of this project and return the last Sonar URL
    */
   public static String getLastSonarUrl(AbstractProject<?, ?> project) {
-    RunList<? extends Run<?, ?>> builds = project.getBuilds();
-    for (Run<?, ?> run : builds) {
-      BuildSonarAction action = run.getAction(BuildSonarAction.class);
-      if (action != null) {
-        return action.getUrlName();
-      }
+    String url = getSonarUrlFromRun(project.getLastSuccessfulBuild());
+    if (url != null) {
+      return url;
+    } else {
+      return getSonarUrlFromRun(project.getLastUnstableBuild());
     }
-    return null;
+  }
+
+  @CheckForNull
+  private static String getSonarUrlFromRun(Run<?, ?> run) {
+    if (run == null) {
+      return null;
+    }
+
+    BuildSonarAction action = run.getAction(BuildSonarAction.class);
+    if (action != null) {
+      return action.getUrlName();
+    }
+
+    return  null;
   }
 }
