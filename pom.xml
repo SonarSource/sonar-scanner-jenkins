@@ -190,6 +190,11 @@
           <artifactId>maven-gpg-plugin</artifactId>
           <version>1.6</version>
         </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>0.7.5.201505241946</version>
+        </plugin>
       </plugins>
     </pluginManagement>
 
