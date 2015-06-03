@@ -7,6 +7,7 @@ package com.sonar.it.jenkins;
 
 import com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
@@ -24,6 +25,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 public class JenkinsTest {
 
@@ -77,7 +80,7 @@ public class JenkinsTest {
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
     jenkins
       .newMavenJobWithSonar(jobName, new File("projects", "abacus"), null)
-      .triggerBuild(jobName);
+      .executeJob(jobName);
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
@@ -90,7 +93,7 @@ public class JenkinsTest {
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
     jenkins
       .newMavenJobWithSonar(jobName, new File("projects", "abacus"), "branch")
-      .triggerBuild(jobName);
+      .executeJob(jobName);
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
@@ -103,7 +106,7 @@ public class JenkinsTest {
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
     jenkins
       .newFreestyleJobWithSonar(jobName, new File("projects", "abacus"), null)
-      .triggerBuild(jobName);
+      .executeJob(jobName);
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
@@ -116,7 +119,7 @@ public class JenkinsTest {
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
     jenkins
       .newFreestyleJobWithSonar(jobName, new File("projects", "abacus"), "branch")
-      .triggerBuild(jobName);
+      .executeJob(jobName);
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
@@ -133,7 +136,7 @@ public class JenkinsTest {
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
         "sonar.sources", "src/main/java")
-      .triggerBuild(jobName);
+      .executeJob(jobName);
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
@@ -151,10 +154,24 @@ public class JenkinsTest {
         "sonar.projectName", "Abacus",
         "sonar.sources", "src/main/java",
         "sonar.branch", "branch")
-      .triggerBuild(jobName);
+      .executeJob(jobName);
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
+  }
+
+  // SONARJNKNS-214
+  @Test
+  public void testFreestyleJobWithTask() throws Exception {
+    // Task concept was removed in 5.2
+    assumeFalse(orchestrator.getServer().version().isGreaterThanOrEquals("5.2"));
+    assumeTrue(sonarPluginVersion.isGreaterThanOrEquals("2.2.1"));
+    String jobName = "refresh-views";
+    BuildResult result = jenkins
+      .newFreestyleJobWithSonarRunner(jobName, new File("projects", "abacus"), "sonar.task", "views")
+      .executeJobQuietly(jobName);
+    // Since views is not installed
+    assertThat(result.getLogs()).contains("Task views does not exist");
   }
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {

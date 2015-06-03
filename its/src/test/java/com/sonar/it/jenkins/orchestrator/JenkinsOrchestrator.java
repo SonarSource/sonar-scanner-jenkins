@@ -11,6 +11,7 @@ import com.sonar.it.jenkins.orchestrator.container.JenkinsServer;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsWrapper;
 import com.sonar.it.jenkins.orchestrator.container.ServerInstaller;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SonarRunnerInstaller;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
@@ -23,6 +24,7 @@ import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.version.Version;
 import hudson.cli.CLI;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -36,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -225,7 +228,11 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     for (int i = 0; i < properties.length / 2; i++) {
       String key = properties[2 * i];
       String value = properties[2 * i + 1];
-      builder.append(key).append("=").append(value).append("\n");
+      if (key.equals("sonar.task")) {
+        setTextValue(findElement(By.name("_.task")), value);
+      } else {
+        builder.append(key).append("=").append(value).append("\n");
+      }
     }
     setTextValue(findElement(By.name("_.properties")), builder.toString());
 
@@ -331,12 +338,20 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public JenkinsOrchestrator triggerBuild(String jobName) {
-    int result = cli.execute("build", jobName, "-s");
-    if (result != 0) {
-      throw new RuntimeException("Error during build of " + jobName);
+  public BuildResult executeJob(String jobName) {
+    BuildResult result = executeJobQuietly(jobName);
+    if (result.getStatus() != 0) {
+      throw new RuntimeException("Error during build of " + jobName + "\n" + result.getLogs());
     }
-    return this;
+    return result;
+  }
+
+  public BuildResult executeJobQuietly(String jobName) {
+    BuildResult result = new BuildResult();
+    result.setStatus(cli.execute("build", jobName, "-s"));
+    WriterOutputStream out = new WriterOutputStream(result.getLogsWriter());
+    cli.execute(Arrays.asList("console", jobName), System.in, out, out);
+    return result;
   }
 
   private By buttonByText(String text) {
