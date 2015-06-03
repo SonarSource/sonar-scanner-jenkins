@@ -18,15 +18,27 @@ import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.Location;
-import com.sonar.orchestrator.timings.Step;
-import com.sonar.orchestrator.timings.Timings;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.version.Version;
 import hudson.cli.CLI;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.lang.StringUtils;
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.Point;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.internal.Locatable;
@@ -35,22 +47,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.sonar.orchestrator.timings.Step.INSTALL_SONAR_SERVER;
-import static com.sonar.orchestrator.timings.Step.ORCHESTRATOR;
-import static com.sonar.orchestrator.timings.Step.START_SONAR_SERVER;
-import static com.sonar.orchestrator.timings.Step.STOP_SONAR_SERVER;
-
 public class JenkinsOrchestrator extends SingleStartExternalResource {
   private static final Logger LOG = LoggerFactory.getLogger(JenkinsOrchestrator.class);
-
-  private static final Timings TIMINGS = new Timings();
 
   private final Configuration config;
   private final JenkinsDistribution distribution;
@@ -77,13 +75,10 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public void start() {
-    begin(ORCHESTRATOR);
-
     if (started.getAndSet(true)) {
       throw new IllegalStateException("Jenkins is already started");
     }
 
-    begin(INSTALL_SONAR_SERVER);
     int port = config.getInt("jenkins.container.port", 0);
     if (port <= 0) {
       port = NetworkUtils.getNextAvailablePort();
@@ -91,14 +86,11 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     distribution.setPort(port);
     FileSystem fileSystem = config.fileSystem();
     ServerInstaller serverInstaller = new ServerInstaller(fileSystem);
-    server = serverInstaller.install(distribution, TIMINGS);
+    server = serverInstaller.install(distribution);
     server.setUrl(String.format("http://localhost:%d", port));
-    finish(INSTALL_SONAR_SERVER);
 
-    begin(START_SONAR_SERVER);
     jenkinsWrapper = new JenkinsWrapper(server, config, fileSystem.javaHome(), port);
     jenkinsWrapper.start();
-    finish(START_SONAR_SERVER);
 
     FirefoxProfile profile = new FirefoxProfile();
     // Disable native events on all OS to avoid strange characters when using sendKeys
@@ -132,13 +124,8 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     }
 
     if (jenkinsWrapper != null) {
-      begin(STOP_SONAR_SERVER);
       jenkinsWrapper.stopAndClean();
-      finish(STOP_SONAR_SERVER);
     }
-
-    finish(ORCHESTRATOR);
-    TIMINGS.debug();
   }
 
   public Configuration getConfiguration() {
@@ -403,14 +390,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
         return element.getAttribute("value").equals(text);
       }
     });
-  }
-
-  private void begin(Step step) {
-    TIMINGS.begin(step);
-  }
-
-  private void finish(Step step) {
-    TIMINGS.finish(step);
   }
 
   public JenkinsOrchestrator setSonarPluginVersion(Version sonarPluginVersion) {

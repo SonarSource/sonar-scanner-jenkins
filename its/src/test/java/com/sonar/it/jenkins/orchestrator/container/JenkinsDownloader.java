@@ -10,16 +10,13 @@ import com.google.common.io.Resources;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
-import com.sonar.orchestrator.timings.Step;
-import com.sonar.orchestrator.timings.Timings;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Random;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JenkinsDownloader {
   private static final Logger LOG = LoggerFactory.getLogger(JenkinsDownloader.class);
@@ -32,7 +29,7 @@ public class JenkinsDownloader {
     this.zips = new Zips(fileSystem);
   }
 
-  public synchronized File download(JenkinsDistribution distrib, Timings timings) {
+  public synchronized File download(JenkinsDistribution distrib) {
     LOG.info("Downloading Jenkins-" + distrib.getVersion());
 
     String key = generateKey();
@@ -47,18 +44,14 @@ public class JenkinsDownloader {
     }
 
     LOG.info("Download Jenkins-" + distrib.getVersion() + " in " + toDir.getAbsolutePath());
-    timings.begin(Step.DOWNLOAD);
     File war = downloadWar(distrib);
-    timings.finish(Step.DOWNLOAD);
 
     LOG.info("Copy " + war);
-    timings.begin(Step.UNZIP);
     try {
       FileUtils.copyFileToDirectory(war, toDir);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    timings.finish(Step.UNZIP);
 
     return toDir;
   }
@@ -102,11 +95,11 @@ public class JenkinsDownloader {
 
   private Location getMavenLocation(JenkinsDistribution distribution) {
     return MavenLocation.builder()
-        .setGroupId("org.jenkins-ci.main")
-        .setArtifactId("jenkins-war")
-        .setVersion(distribution.getVersion())
-        .withPackaging("war")
-        .build();
+      .setGroupId("org.jenkins-ci.main")
+      .setArtifactId("jenkins-war")
+      .setVersion(distribution.getVersion())
+      .withPackaging("war")
+      .build();
   }
 
   private File downloadFromJenkinsCi(JenkinsDistribution distribution, File toFile) {
