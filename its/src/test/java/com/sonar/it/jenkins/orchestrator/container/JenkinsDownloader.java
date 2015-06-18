@@ -117,7 +117,7 @@ public class JenkinsDownloader {
       URL u = new URL(url);
 
       LOG.info("Download: " + u);
-      Files.copy(Resources.newInputStreamSupplier(u), toFile);
+      Resources.asByteSource(u).copyTo(Files.asByteSink(toFile));
       LOG.info("Downloaded to: " + toFile);
 
       return toFile;
