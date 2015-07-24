@@ -7,32 +7,19 @@ function installTravisTools {
   source /tmp/travis-utils/env.sh
 }
 
-case "$JOB" in
+mvn verify -B -e -V
 
-CI)
-  mvn verify -B -e -V
-  ;;
-
-IT-SQDEV)
+if [ "${RUN_ITS}" == "true" ]
+then
   installTravisTools
 
-  mvn package -T2 -Denforcer.skip=true -Danimal.sniffer.skip=true -Dmaven.test.skip=true
+  if [ "${SQ_VERSION}" == "DEV" ]
+  then
+    travis_build_green "SonarSource/sonarqube" "master"
+  fi
 
-  travis_build_green "SonarSource/sonarqube" "master"
+  travis_start_xvfb
 
-  cd its
-  mvn -Dsonar.runtimeVersion="DEV" -Dmaven.test.redirectTestOutputToFile=false verify
-  ;;
-
-IT-SQLTS)
-  installTravisTools
-
-  mvn package -T2 -Denforcer.skip=true -Danimal.sniffer.skip=true -Dmaven.test.skip=true
-
-  travis_download_sonarqube_release "4.5.4"
-
-  cd its/plugin
-  mvn -DjavaVersion="DEV" -Dsonar.runtimeVersion="LATEST_RELEASE" -Dmaven.test.redirectTestOutputToFile=false verify
-  ;;
-
-esac
+  cd its  
+  mvn -Djenkins.runtimeVersion=$JENKINS_VERSION -Dsonar.runtimeVersion=$SQ_VERSION -Dmaven.test.redirectTestOutputToFile=false verify
+fi

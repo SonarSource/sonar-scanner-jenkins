@@ -7,10 +7,15 @@ jdk:
 
 script:
   - ./travis.sh
+
 env:
-  - JOB=CI
-  - JOB=IT-SQDEV
-  - JOB=IT-SQLTS
+  global:
+    - DISPLAY=:99.0
+    - JENKINS_VERSION=1.580.1
+  matrix:
+    - RUN_ITS=false
+    - RUN_ITS=true SQ_VERSION=DEV
+    - RUN_ITS=true SQ_VERSION=LTS
 
 matrix:
   fast_finish: true
