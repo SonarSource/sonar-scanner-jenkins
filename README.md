@@ -1,6 +1,8 @@
 Jenkins SonarQube Plugin
 ====================
 
+[![Build Status](https://travis-ci.org/SonarSource/jenkins-sonar-plugin.svg?branch=master)](https://travis-ci.org/SonarSource/jenkins-sonar-plugin)
+
 Project homepage: http://redirect.sonarsource.com/plugins/jenkins.html
 
 Continuous inspection: http://nemo.sonarsource.org/dashboard/index/org.jvnet.hudson.plugins:sonar
