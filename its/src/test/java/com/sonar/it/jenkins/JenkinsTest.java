@@ -9,10 +9,12 @@ import com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
+import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
-import com.sonar.orchestrator.locator.MavenLocation;
 import com.sonar.orchestrator.locator.URLLocation;
-import com.sonar.orchestrator.version.Version;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -20,13 +22,8 @@ import org.junit.Test;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
 import org.sonar.wsclient.services.ResourceQuery;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
 
 public class JenkinsTest {
 
@@ -36,8 +33,6 @@ public class JenkinsTest {
   @ClassRule
   public static JenkinsOrchestrator jenkins = JenkinsOrchestrator.builderEnv().build();
 
-  private static Version sonarPluginVersion;
-
   @BeforeClass
   public static void setUpSonar() throws MalformedURLException {
     // Workaround for SONAR-4257
@@ -46,23 +41,10 @@ public class JenkinsTest {
 
   @BeforeClass
   public static void setUpJenkins() throws MalformedURLException {
-    sonarPluginVersion = orchestrator.getConfiguration().getPluginVersion("sonarJenkins");
-    Location pluginLocation;
-    if (sonarPluginVersion.isSnapshot()) {
-      // For SNAPSHOT look in Nexus
-      pluginLocation = MavenLocation.builder()
-        .setKey("org.jenkins-ci.plugins", "sonar", sonarPluginVersion.toString())
-        .withPackaging("hpi")
-        .build();
-    }
-    else {
-      // For release look in Jenkins update center
-      pluginLocation = URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/sonar/" + sonarPluginVersion + "/sonar.hpi"));
-    }
+    Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
-      .setSonarPluginVersion(sonarPluginVersion)
       .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/filesystem_scm/1.20/filesystem_scm.hpi")))
-      .installPlugin(pluginLocation)
+      .installPlugin(sqJenkinsPluginLocation)
       .configureMavenInstallation()
       .configureSonarRunner2_4Installation()
       .configureSonarInstallation(orchestrator);
@@ -165,7 +147,6 @@ public class JenkinsTest {
   public void testFreestyleJobWithTask() throws Exception {
     // Task concept was removed in 5.2
     assumeFalse(orchestrator.getServer().version().isGreaterThanOrEquals("5.2"));
-    assumeTrue(sonarPluginVersion.isGreaterThanOrEquals("2.2.1"));
     String jobName = "refresh-views";
     BuildResult result = jenkins
       .newFreestyleJobWithSonarRunner(jobName, new File("projects", "abacus"), "sonar.task", "views")
@@ -176,11 +157,9 @@ public class JenkinsTest {
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
     // Computation of Sonar URL was not reliable before 2.1 & Sonar 3.6
-    if (sonarPluginVersion.isGreaterThanOrEquals("2.1")) {
-      assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
-      if (orchestrator.getServer().version().isGreaterThanOrEquals("3.6")) {
-        assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
-      }
+    assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
+    if (orchestrator.getServer().version().isGreaterThanOrEquals("3.6")) {
+      assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
     }
   }
 

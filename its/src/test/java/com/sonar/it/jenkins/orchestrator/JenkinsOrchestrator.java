@@ -57,7 +57,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   private JenkinsServer server;
   private WebDriver driver;
   private CLI cli;
-  private Version sonarPluginVersion;
 
   JenkinsOrchestrator(Configuration config, JenkinsDistribution distribution) {
     this.config = config;
@@ -210,7 +209,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
-    findElement(By.linkText("Invoke Standalone " + sonarqube() + " Analysis")).click();
+    findElement(By.linkText("Invoke Standalone SonarQube Analysis")).click();
     StringBuilder builder = new StringBuilder();
     for (int i = 0; i < properties.length / 2; i++) {
       String key = properties[2 * i];
@@ -231,7 +230,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     WebElement addPostBuildButton = findElement(buttonByText("Add post-build action"));
     scrollToElement(addPostBuildButton);
     addPostBuildButton.click();
-    findElement(By.linkText(sonarqube())).click();
+    findElement(By.linkText("SonarQube")).click();
     // Here we need to wait for the Sonar step to be really activated
     WebElement sonarPublisher = findElement(By.xpath("//div[@descriptorid='hudson.plugins.sonar.SonarPublisher']"));
     if (StringUtils.isNotBlank(branch)) {
@@ -242,7 +241,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   public String getSonarUrlOnJob(String jobName) {
     driver.get(server.getUrl() + "/job/" + jobName);
-    return findElement(By.linkText(sonarqube())).getAttribute("href");
+    return findElement(By.linkText("SonarQube")).getAttribute("href");
   }
 
   public JenkinsOrchestrator configureMavenInstallation() {
@@ -286,7 +285,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     SonarRunnerInstaller installer = new SonarRunnerInstaller(config.fileSystem());
     File runnerScript = installer.install(Version.create("2.4"), config.fileSystem().workspace());
 
-    WebElement addSonarRunnerButton = findElement(buttonByText("Add " + sonarqube() + " Runner"));
+    WebElement addSonarRunnerButton = findElement(buttonByText("Add SonarQube Runner"));
     scrollToElement(addSonarRunnerButton);
     addSonarRunnerButton.click();
     setTextValue(findElement(By.name("_.name")), "Sonar Runner");
@@ -301,8 +300,8 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   public JenkinsOrchestrator configureSonarInstallation(Orchestrator orchestrator) {
     driver.get(server.getUrl() + "/configure");
 
-    findElement(buttonByText("Add " + sonarqube())).click();
-    setTextValue(findElement(By.name("sonar.name")), sonarqube());
+    findElement(buttonByText("Add SonarQube")).click();
+    setTextValue(findElement(By.name("sonar.name")), "SonarQube");
     findElement(buttonByTextAfterElementByXpath("Advanced...", "//.[@name='sonar.name']")).click();
     setTextValue(findElement(By.name("sonar.serverUrl")), orchestrator.getServer().getUrl());
     setTextValue(findElement(By.name("sonar.sonarLogin")), Server.ADMIN_LOGIN);
@@ -390,14 +389,5 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
         return element.getAttribute("value").equals(text);
       }
     });
-  }
-
-  public JenkinsOrchestrator setSonarPluginVersion(Version sonarPluginVersion) {
-    this.sonarPluginVersion = sonarPluginVersion;
-    return this;
-  }
-
-  private String sonarqube() {
-    return sonarPluginVersion.isGreaterThanOrEquals("2.2") ? "SonarQube" : "Sonar";
   }
 }
