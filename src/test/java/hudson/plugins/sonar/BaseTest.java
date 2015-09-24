@@ -36,10 +36,12 @@ package hudson.plugins.sonar;
 import hudson.maven.MavenModuleSet;
 import hudson.maven.local_repo.PerJobLocalRepositoryLocator;
 import hudson.model.Result;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.model.Cause;
 import hudson.model.FreeStyleProject;
 import hudson.model.Project;
+import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.Test;
 import org.jvnet.hudson.test.MockBuilder;
 
@@ -56,7 +58,7 @@ public class BaseTest extends SonarTestCase {
   public void testNoSonarInstallation() throws Exception {
     FreeStyleProject project = setupFreeStyleProject();
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(ROOT_POM));
-    AbstractBuild<?, ?> build = build(project);
+    Run<?, ?> build = build(project);
 
     assertNoSonarExecution(build, Messages.SonarPublisher_NoMatchInstallation(SONAR_INSTALLATION_NAME, 0));
   }
@@ -82,7 +84,7 @@ public class BaseTest extends SonarTestCase {
     MavenModuleSet project = setupMavenProject(pomName);
     project.setAlternateSettings("/settings.xml");
     project.setLocalRepository(new PerJobLocalRepositoryLocator());
-    AbstractBuild<?, ?> build = build(project);
+    Run<?, ?> build = build(project);
   }
 
   @Test
@@ -90,8 +92,20 @@ public class BaseTest extends SonarTestCase {
     configureDefaultSonarRunner(false);
     configureDefaultSonar();
     FreeStyleProject project = setupFreeStyleProject();
-    AbstractBuild<?, ?> build = build(project);
+    Run<?, ?> build = build(project);
 
+    assertSonarExecution(build, "This is a fake Runner", true);
+  }
+
+  @Test
+  public void testWorkflowWithSonarRunnerStep() throws Exception {
+    configureDefaultSonarRunner(false);
+    configureDefaultSonar();
+
+    WorkflowJob project = j.jenkins.createProject(WorkflowJob.class, "p");
+    project.setDefinition(new CpsFlowDefinition("node { writeFile file: 'f.txt', text: 'OK'; step([$class: 'SonarRunnerBuilder']) }"));
+
+    Run<?, ?> build = build(project);
     assertSonarExecution(build, "This is a fake Runner", true);
   }
 
@@ -100,7 +114,7 @@ public class BaseTest extends SonarTestCase {
     configureDefaultSonarRunner(true);
     configureDefaultSonar();
     FreeStyleProject project = setupFreeStyleProject();
-    AbstractBuild<?, ?> build = build(project);
+    Run<?, ?> build = build(project);
 
     assertSonarExecution(build, "This is a fake Runner", false);
   }
@@ -123,7 +137,7 @@ public class BaseTest extends SonarTestCase {
     configureDefaultSonarRunner(false);
     configureSecuredSonar();
     FreeStyleProject project = setupFreeStyleProject();
-    AbstractBuild<?, ?> build = build(project);
+    Run<?, ?> build = build(project);
 
     assertLogContains("sonar-runner", build);
     assertLogDoesntContains("sonar.jdbc.username", build);

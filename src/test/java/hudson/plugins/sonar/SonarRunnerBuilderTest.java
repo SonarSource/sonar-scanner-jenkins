@@ -118,7 +118,7 @@ public class SonarRunnerBuilderTest {
     projectSettings.createNewFile();
 
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null);
-    builder.populateConfiguration(argsBuilder, build, listener, env, null);
+    builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, null);
 
     assertThat(args.toStringWithQuote())
       .contains("-Dsonar.projectBaseDir=" + moduleDir)
@@ -136,7 +136,7 @@ public class SonarRunnerBuilderTest {
     when(installation.getSonarPassword()).thenReturn("sonarpassword");
 
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null);
-    builder.populateConfiguration(argsBuilder, build, listener, env, installation);
+    builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation);
 
     assertThat(args.toStringWithQuote())
       .contains("-Dsonar.login=sonarlogin")

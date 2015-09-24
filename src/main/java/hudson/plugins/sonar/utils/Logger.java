@@ -33,7 +33,7 @@
  */
 package hudson.plugins.sonar.utils;
 
-import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 
 /**
  * @author Julien HENRY
@@ -47,7 +47,7 @@ public final class Logger {
     // Utility class
   }
 
-  public static void printFailureMessage(BuildListener listener) {
+  public static void printFailureMessage(TaskListener listener) {
     listener.getLogger().println("------------------------------------------------------------------------");
     listener.getLogger().println("SONAR ANALYSIS FAILED");
     listener.getLogger().println("------------------------------------------------------------------------");

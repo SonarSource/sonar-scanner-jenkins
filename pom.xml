@@ -150,6 +150,12 @@
       <version>1.7.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-aggregator</artifactId>
+      <version>1.4.2</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

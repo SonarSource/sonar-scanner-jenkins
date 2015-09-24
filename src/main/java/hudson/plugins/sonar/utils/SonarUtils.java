@@ -33,7 +33,6 @@
  */
 package hudson.plugins.sonar.utils;
 
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.plugins.sonar.BuildSonarAction;
@@ -65,7 +64,7 @@ public final class SonarUtils {
   /**
    * Read logs of the build to find URL of the project dashboard in Sonar
    */
-  public static String extractSonarProjectURLFromLogs(AbstractBuild<?, ?> build) throws IOException {
+  public static String extractSonarProjectURLFromLogs(Run<?, ?> build) throws IOException {
     BufferedReader br = null;
     String url = null;
     try {
