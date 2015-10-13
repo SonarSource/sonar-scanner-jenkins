@@ -21,7 +21,7 @@
   </j:if>
   <j:if test="${sonars.size() gt 1}">
     <!-- choise not necessary if there's no choice -->
-    <f:entry title="${%SonarInstallation}" help="/plugin/sonar/help-sonar-installation.html">
+    <f:entry title="${%SonarInstallation}: " help="/plugin/sonar/help-sonar-installation.html">
       <select class="setting-input" name="sonar.installationName">
         <j:forEach var="inst" items="${sonars}">
           <f:option value="${inst.name}" selected="${inst.name==instance.installation.name}">${inst.name}

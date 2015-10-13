@@ -71,7 +71,7 @@ public class SonarRunnerBuilderJdkSlicerTest {
     newValues.add("1.8");
     spec.setValues(project, newValues);
 
-    assertThat(mySonar.getJdk()).isEqualTo("1.8");
+    assertThat(mySonar.getJdkName()).isEqualTo("1.8");
   }
 
 }

@@ -58,9 +58,9 @@ public class ExtendedArgumentListBuilder {
    * @see #append(String)
    */
   public void append(String key, String value) {
-    value = StringUtils.trimToEmpty(value);
-    if (StringUtils.isNotEmpty(value)) {
-      append("-D" + key + "=" + value);
+    String v = StringUtils.trimToEmpty(value);
+    if (StringUtils.isNotEmpty(v)) {
+      append("-D" + key + "=" + v);
     }
   }
 
@@ -73,9 +73,9 @@ public class ExtendedArgumentListBuilder {
    * @see hudson.util.ArgumentListBuilder#addMasked(String)
    */
   public void appendMasked(String key, String value) {
-    value = StringUtils.trimToEmpty(value);
-    if (StringUtils.isNotEmpty(value)) {
-      builder.addMasked("-D" + key + "=" + value);
+    String v = StringUtils.trimToEmpty(value);
+    if (StringUtils.isNotEmpty(v)) {
+      builder.addMasked("-D" + key + "=" + v);
     }
   }
 

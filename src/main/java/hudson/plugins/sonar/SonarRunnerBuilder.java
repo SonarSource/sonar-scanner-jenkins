@@ -33,8 +33,13 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.Extension;
+
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.EnvVars;
+import hudson.Util;
 import com.google.common.annotations.VisibleForTesting;
-import hudson.*;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
@@ -144,11 +149,11 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Jenkins.getInstance().getJDK(jdk);
   }
 
-  public String getJdk() {
+  public String getJdkName() {
     return jdk;
   }
 
-  public void setJdk(String jdk) {
+  public void setJdkName(String jdk) {
     this.jdk = jdk;
   }
 

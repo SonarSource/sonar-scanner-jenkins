@@ -33,8 +33,13 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.CopyOnWrite;
+
+import hudson.Extension;
+import hudson.EnvVars;
+import hudson.Launcher;
 import com.google.common.annotations.VisibleForTesting;
-import hudson.*;
+import hudson.Util;
 import hudson.maven.MavenModuleSet;
 import hudson.model.Action;
 import hudson.model.BuildListener;
@@ -191,11 +196,11 @@ public class SonarPublisher extends Notifier {
     return this;
   }
 
-  public String getJdk() {
+  public String getJdkName() {
     return jdk;
   }
 
-  public void setJdk(final String jdk) {
+  public void setJdkName(final String jdk) {
     this.jdk = jdk;
   }
 
@@ -260,6 +265,10 @@ public class SonarPublisher extends Notifier {
     this.branch = branch;
   }
 
+  /**
+   * @deprecated since 2.2
+   */
+  @Deprecated
   public String getLanguage() {
     return StringUtils.trimToEmpty(language);
   }
@@ -377,6 +386,7 @@ public class SonarPublisher extends Notifier {
     } catch (Exception e) {
       Logger.printFailureMessage(listener);
       e.printStackTrace(listener.fatalError("command execution failed"));
+      Logger.LOG.throwing(this.getClass().getName(), "executeSonar", e);
       return false;
     }
   }
