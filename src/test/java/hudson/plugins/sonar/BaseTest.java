@@ -81,7 +81,7 @@ public class BaseTest extends SonarTestCase {
     configureDefaultMaven();
     configureDefaultSonar();
     String pomName = "space test/root-pom.xml";
-    MavenModuleSet project = setupMavenProject(pomName);
+    MavenModuleSet project = setupSonarMavenProject(pomName);
     project.setAlternateSettings("/settings.xml");
     project.setLocalRepository(new PerJobLocalRepositoryLocator());
     Run<?, ?> build = build(project);

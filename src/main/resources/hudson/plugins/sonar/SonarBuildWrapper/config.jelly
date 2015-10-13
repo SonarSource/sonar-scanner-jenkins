@@ -1,0 +1,22 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+  <!-- SonarQube Installation -->
+  <j:set var="sonars" value="${descriptor.getSonarInstallations()}"/>
+  <j:if test="${empty(sonars)}">
+    <!-- no SonarQube installation is configured, so warn the user now -->
+    <f:entry title="${%SonarInstallation}">
+      <div class="error">${%SonarInstallation.error(rootURL)}</div>
+    </f:entry>
+  </j:if>
+  <j:if test="${sonars.size() gt 1}">
+    <!-- choice not necessary if there's no choice -->
+    <f:entry title="${%SonarInstallation}" help="/plugin/sonar/help-sonar-installation.html">
+      <select class="setting-input" name="sonar.installationName">
+        <j:forEach var="inst" items="${sonars}">
+          <f:option value="${inst.name}" selected="${inst.name==instance.installationName}">${inst.name}</f:option>
+        </j:forEach>
+      </select>
+    </f:entry>
+  </j:if>
+  
+</j:jelly>
