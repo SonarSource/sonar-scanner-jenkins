@@ -260,6 +260,10 @@ public class SonarPublisher extends Notifier {
     this.branch = branch;
   }
 
+  /**
+   * @deprecated since 2.2
+   */
+  @Deprecated
   public String getLanguage() {
     return StringUtils.trimToEmpty(language);
   }
