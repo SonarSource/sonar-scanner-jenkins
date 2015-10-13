@@ -33,6 +33,8 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.tasks.Builder;
+
 import hudson.Functions;
 import hudson.maven.MavenModuleSet;
 import hudson.model.Result;
@@ -116,15 +118,15 @@ public abstract class SonarTestCase {
     return runnerInstallation;
   }
 
-  protected MavenModuleSet setupMavenProject() throws Exception {
-    return setupMavenProject("pom.xml");
+  protected MavenModuleSet setupSonarMavenProject() throws Exception {
+    return setupSonarMavenProject("pom.xml");
   }
 
   protected String getPom(AbstractBuild<?, ?> build, String pomName) {
     return build.getWorkspace().child(pomName).getRemote();
   }
 
-  protected MavenModuleSet setupMavenProject(String pomName) throws Exception {
+  protected MavenModuleSet setupSonarMavenProject(String pomName) throws Exception {
     MavenModuleSet project = j.createMavenProject("MavenProject");
     // Setup SCM
     project.setScm(new SingleFileSCM(pomName, getClass().getResource("/hudson/plugins/sonar/SonarTestCase/pom.xml")));
@@ -138,11 +140,15 @@ public abstract class SonarTestCase {
   }
 
   protected FreeStyleProject setupFreeStyleProject() throws Exception {
+    return setupFreeStyleProject(new SonarRunnerBuilder(null, null, null, null, null, null, null));
+  }
+  
+  protected FreeStyleProject setupFreeStyleProject(Builder b) throws Exception {
     FreeStyleProject project = j.createFreeStyleProject("FreeStyleProject");
     // Setup SCM
     project.setScm(new NullSCM());
     // Setup SonarQube step
-    project.getBuildersList().add(new SonarRunnerBuilder(null, null, null, null, null, null, null));
+    project.getBuildersList().add(b);
     return project;
   }
 

@@ -75,7 +75,7 @@ public class MailTest extends SonarTestCase {
 
   @Test
   public void testMavenProject() throws Exception {
-    MavenModuleSet project = setupMavenProject();
+    MavenModuleSet project = setupSonarMavenProject();
     project.getPublishersList().add(mailer);
     inbox.clear();
     AbstractBuild<?, ?> build = build(project, Result.FAILURE);
