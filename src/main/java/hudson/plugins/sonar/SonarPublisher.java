@@ -34,7 +34,6 @@
 package hudson.plugins.sonar;
 
 import hudson.CopyOnWrite;
-
 import hudson.Extension;
 import hudson.EnvVars;
 import hudson.Launcher;
@@ -70,6 +69,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -320,7 +320,7 @@ public class SonarPublisher extends Notifier {
 
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    if (!SonarRunnerBuilder.isSonarInstallationValid(getInstallationName(), listener)) {
+    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
       return false;
     }
     SonarInstallation sonarInstallation = getInstallation();
@@ -440,6 +440,18 @@ public class SonarPublisher extends Notifier {
      */
     public SonarInstallation[] getInstallations() {
       return installations;
+    }
+
+    public SonarInstallation[] getEnabledInstallations() {
+      List<SonarInstallation> enabledInstallations = new LinkedList<SonarInstallation>();
+
+      for (SonarInstallation inst : getInstallations()) {
+        if (!inst.isDisabled()) {
+          enabledInstallations.add(inst);
+        }
+      }
+
+      return enabledInstallations.toArray(new SonarInstallation[enabledInstallations.size()]);
     }
 
     public void setInstallations(SonarInstallation... installations) {

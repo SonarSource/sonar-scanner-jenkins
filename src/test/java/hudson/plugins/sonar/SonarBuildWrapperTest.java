@@ -33,6 +33,9 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.model.Run;
+
+import org.junit.Before;
 import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.BuildListener;
@@ -40,7 +43,6 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
-import hudson.model.Run;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.plugins.sonar.SonarBuildWrapper.DescriptorImpl;
 import hudson.plugins.sonar.SonarBuildWrapper.SonarEnvironment;
@@ -56,24 +58,32 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.contains;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class SonarBuildWrapperTest extends SonarTestCase {
+  private SonarBuildWrapper wrapper;
+  private SonarInstallation installation;
+  private PrintStream stream;
+
+  @Before
+  public void setUp() {
+    wrapper = new SonarBuildWrapper("local");
+    installation = createTestInstallation();
+    stream = mock(PrintStream.class);
+  }
 
   @Test
   public void testInstance() {
-    SonarBuildWrapper wrapper = new SonarBuildWrapper("local");
-
     assertThat(wrapper.getInstallationName()).isEqualTo("local");
     assertThat(wrapper.getInstallation()).isNull();
   }
 
   @Test
   public void testDescriptor() {
-    SonarBuildWrapper wrapper = new SonarBuildWrapper("local");
     DescriptorImpl desc = wrapper.getDescriptor();
 
     assertThat(desc.getDisplayName()).isEqualTo("Prepare SonarQube Scanner environment");
@@ -100,9 +110,6 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
   @Test
   public void testEnvironment() {
-    SonarBuildWrapper wrapper = new SonarBuildWrapper("local");
-    SonarInstallation installation = createTestInstallation();
-    PrintStream stream = mock(PrintStream.class);
     SonarEnvironment env = wrapper.new SonarEnvironment(installation, stream);
 
     Map<String, String> map = new HashMap<String, String>();
@@ -125,10 +132,30 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
+  public void dontShowDisabledInstallations() {
+    configureSonar(installation);
+    // the descriptor is used to display the configuration page
+    assertThat(wrapper.getDescriptor().getSonarInstallations()).hasSize(1);
+
+    SonarInstallation installation2 = new SonarInstallation("local2", true, "http://localhost:9001", null, null, null,
+      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password");
+    configureSonar(installation2);
+    // disabled not shown
+    assertThat(wrapper.getDescriptor().getSonarInstallations()).hasSize(0);
+  }
+
+  @Test
+  public void failOnInvalidInstallationEnvironment() throws Exception {
+    BuildListener listener = mock(BuildListener.class);
+    when(listener.getLogger()).thenReturn(stream);
+    wrapper.setUp(mock(AbstractBuild.class), mock(Launcher.class), listener);
+    verify(listener).fatalError(contains("does not match"));
+  }
+
+  @Test
   public void testBuild() throws Exception {
     // set up a free style project with our wrapper that will execute CaptureVarsBuilder
-    SonarBuildWrapper wrapper = new SonarBuildWrapper("local");
-    configureSonar(createTestInstallation());
+    configureSonar(installation);
     CaptureVarsBuilder b = new CaptureVarsBuilder();
     FreeStyleProject project = setupFreeStyleProject(b);
     project.getBuildWrappersList().add(wrapper);

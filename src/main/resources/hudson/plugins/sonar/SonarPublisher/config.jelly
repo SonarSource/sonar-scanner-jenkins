@@ -12,7 +12,7 @@
   </j:invokeStatic>
 
   <!-- SonarQube Installation -->
-  <j:set var="sonars" value="${descriptor.installations}"/>
+  <j:set var="sonars" value="${descriptor.enabledInstallations}"/>
   <j:if test="${empty(sonars)}">
     <!-- no SonarQube installation is configured, so warn the user now -->
     <f:entry title="${%SonarInstallation}">
