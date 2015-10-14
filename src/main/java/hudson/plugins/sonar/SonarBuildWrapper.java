@@ -34,7 +34,6 @@
 package hudson.plugins.sonar;
 
 import org.apache.commons.lang.StringUtils;
-
 import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.EnvVars;
@@ -111,6 +110,10 @@ public class SonarBuildWrapper extends BuildWrapper {
 
   @Override
   public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
+      return new Environment() {
+      };
+    }
     return new SonarEnvironment(getInstallation(), listener.getLogger());
   }
 
@@ -134,7 +137,7 @@ public class SonarBuildWrapper extends BuildWrapper {
      * @return all configured {@link hudson.plugins.sonar.SonarInstallation}
      */
     public SonarInstallation[] getSonarInstallations() {
-      return SonarInstallation.all();
+      return SonarInstallation.enabled();
     }
 
     @Override
@@ -154,13 +157,6 @@ public class SonarBuildWrapper extends BuildWrapper {
 
     @Override
     public void buildEnvVars(Map<String, String> env) {
-      if (installation == null) {
-        String l = "The SonarQube installation is not valid: " + getInstallationName() + " - not setting any variable";
-        Logger.LOG.warning(l);
-        buildLogger.println("[SONAR]" + l);
-        return;
-      }
-
       String l = "Injecting SonarQube environment variables using the configuration: " + installation.getName();
       Logger.LOG.info(l);
       buildLogger.println("[SONAR]" + l);

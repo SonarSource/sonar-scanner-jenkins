@@ -315,7 +315,7 @@ public class SonarPublisher extends Notifier {
 
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    if (!SonarRunnerBuilder.isSonarInstallationValid(getInstallationName(), listener)) {
+    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
       return false;
     }
     SonarInstallation sonarInstallation = getInstallation();
