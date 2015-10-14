@@ -71,7 +71,6 @@ import java.util.Properties;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-
 /**
  * @since 1.7
  */
@@ -205,12 +204,12 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   }
 
   @Override
-  public void perform(@Nonnull Run<?,?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+  public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
     performInternal(run, workspace, launcher, listener);
   }
 
-  public boolean performInternal(@Nonnull Run<?,?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws IOException, InterruptedException {
-    if (!isSonarInstallationValid(getInstallationName(), listener)) {
+  public boolean performInternal(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
       return false;
     }
 
@@ -218,7 +217,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
     EnvVars env = run.getEnvironment(listener);
     if (run instanceof AbstractBuild) {
-      env.overrideAll(((AbstractBuild<?,?>)run).getBuildVariables());
+      env.overrideAll(((AbstractBuild<?, ?>) run).getBuildVariables());
     }
 
     SonarRunnerInstallation sri = getSonarRunnerInstallation();
@@ -263,10 +262,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   private Computer getComputer(FilePath ws) {
     Computer computer = null;
     for (Computer c : Jenkins.getInstance().getComputers()) {
-        if (c.getChannel() == ws.getChannel()) {
-            computer = c;
-            break;
-        }
+      if (c.getChannel() == ws.getChannel()) {
+        computer = c;
+        break;
+      }
     }
     return computer;
   }
@@ -302,10 +301,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return r;
   }
 
-  private FilePath getModuleRoot(Run<?, ?> run, FilePath workspace) {
+  private static FilePath getModuleRoot(Run<?, ?> run, FilePath workspace) {
     FilePath moduleRoot = null;
     if (run instanceof AbstractBuild) {
-      AbstractBuild<?, ?> build = (AbstractBuild<?,?>)run;
+      AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) run;
       moduleRoot = build.getModuleRoot();
     } else {
       // otherwise get the first module of the first SCM
@@ -326,10 +325,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return moduleRoot;
   }
 
-  private AbstractProject<?, ?> getProject(Run<?, ?> run) {
+  private static AbstractProject<?, ?> getProject(Run<?, ?> run) {
     AbstractProject<?, ?> project = null;
     if (run instanceof AbstractBuild) {
-      AbstractBuild<?, ?> build = (AbstractBuild<?,?>)run;
+      AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) run;
       project = build.getProject();
     }
     return project;
@@ -351,29 +350,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     if (StringUtils.isNotBlank(getTask())) {
       args.add(task);
     }
-  }
-
-  public static boolean isSonarInstallationValid(String sonarInstallationName, TaskListener listener) {
-    String failureMsg;
-    SonarInstallation sonarInstallation = SonarInstallation.get(sonarInstallationName);
-    if (sonarInstallation == null) {
-      if (StringUtils.isBlank(sonarInstallationName)) {
-        failureMsg = Messages.SonarPublisher_NoInstallation(SonarInstallation.all().length);
-      } else {
-        failureMsg = Messages.SonarPublisher_NoMatchInstallation(sonarInstallationName, SonarInstallation.all().length);
-      }
-      failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();
-    } else if (sonarInstallation.isDisabled()) {
-      failureMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else {
-      failureMsg = null;
-    }
-    if (failureMsg != null) {
-      Logger.printFailureMessage(listener);
-      listener.fatalError(failureMsg);
-      return false;
-    }
-    return true;
   }
 
   @VisibleForTesting
@@ -460,7 +436,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
      * @return all configured {@link hudson.plugins.sonar.SonarInstallation}
      */
     public SonarInstallation[] getSonarInstallations() {
-      return SonarInstallation.all();
+      return SonarInstallation.enabled();
     }
 
     @Override
