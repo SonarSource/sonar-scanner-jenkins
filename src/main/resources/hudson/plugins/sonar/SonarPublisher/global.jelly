@@ -8,24 +8,24 @@
             <f:textbox name="sonar.name" value="${inst.getName()}"
                        checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
           </f:entry>
+          
+          <f:entry title="${%ServerUrl}" description="${%ServerUrlDescr}">
+            <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}"/>
+          </f:entry>
+
+          <f:entry title="${%ServerLogin}" description="${%ServerLoginDescr}">
+            <f:textbox name="sonar.sonarLogin" value="${inst.getSonarLogin()}"/>
+          </f:entry>
+
+          <f:entry title="${%ServerPass}" description="${%ServerPassDescr}">
+            <f:password name="sonar.sonarPassword" value="${inst.getSonarPassword()}"/>
+          </f:entry>
 
           <f:entry title="${%Disable}" description="${%DisableDescr}">
             <f:checkbox name="sonar.disabled" checked="${inst.isDisabled()}"/>
           </f:entry>
 
           <f:advanced>
-            <f:entry title="${%ServerUrl}" description="${%ServerUrlDescr}">
-              <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}"/>
-            </f:entry>
-
-            <f:entry title="${%ServerLogin}" description="${%ServerLoginDescr}">
-              <f:textbox name="sonar.sonarLogin" value="${inst.getSonarLogin()}"/>
-            </f:entry>
-
-            <f:entry title="${%ServerPass}" description="${%ServerPassDescr}">
-              <f:password name="sonar.sonarPassword" value="${inst.getSonarPassword()}"/>
-            </f:entry>
-
             <f:entry title="${%DbUrl}" description="${%DbUrlDescr}"
                      help="/plugin/sonar/help-global-dburl.html">
               <f:textbox name="sonar.databaseUrl" value="${inst.getDatabaseUrl()}"/>
