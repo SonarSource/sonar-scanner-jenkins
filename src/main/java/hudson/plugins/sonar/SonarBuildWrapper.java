@@ -75,11 +75,11 @@ public class SonarBuildWrapper extends BuildWrapper {
   @Override
   public OutputStream decorateLogger(AbstractBuild build, OutputStream outputStream) throws IOException, InterruptedException, RunnerAbortedException {
     SonarInstallation inst = getInstallation();
-    if (inst == null || (inst.getDatabasePassword() == null && inst.getSonarPassword() == null)) {
+    if (inst == null || inst.isDisabled() || (inst.getDatabasePassword() == null && inst.getSonarPassword() == null)) {
       return outputStream;
     }
 
-    Logger.LOG.info("Masking sonar passwords");
+    Logger.LOG.info(Messages.SonarBuildWrapper_MaskingPasswords());
 
     List<String> passwords = new ArrayList<String>();
 
@@ -91,6 +91,15 @@ public class SonarBuildWrapper extends BuildWrapper {
     }
 
     return new MaskPasswordsOutputStream(outputStream, passwords);
+  }
+
+  @Override
+  public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
+      return new Environment() {
+      };
+    }
+    return new SonarEnvironment(getInstallation(), listener.getLogger());
   }
 
   /**
@@ -106,15 +115,6 @@ public class SonarBuildWrapper extends BuildWrapper {
 
   public @Nullable SonarInstallation getInstallation() {
     return SonarInstallation.get(getInstallationName());
-  }
-
-  @Override
-  public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
-      return new Environment() {
-      };
-    }
-    return new SonarEnvironment(getInstallation(), listener.getLogger());
   }
 
   @Extension
@@ -157,9 +157,9 @@ public class SonarBuildWrapper extends BuildWrapper {
 
     @Override
     public void buildEnvVars(Map<String, String> env) {
-      String l = "Injecting SonarQube environment variables using the configuration: " + installation.getName();
-      Logger.LOG.info(l);
-      buildLogger.println("[SONAR]" + l);
+      String msg = Messages.SonarBuildWrapper_Injecting(installation.getName());
+      Logger.LOG.info(msg);
+      buildLogger.println(msg);
 
       Map<String, String> sonarEnv = createVars(installation);
 
@@ -169,7 +169,7 @@ public class SonarBuildWrapper extends BuildWrapper {
 
       for (String k : sonarEnv.keySet()) {
         String v = sonarEnvResolved.get(k);
-        Logger.LOG.info("  Setting '" + k + "'");
+        Logger.LOG.fine("  Setting '" + k + "'");
         env.put(k, v);
       }
     }

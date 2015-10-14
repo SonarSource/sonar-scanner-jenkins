@@ -33,6 +33,9 @@
  */
 package hudson.plugins.sonar;
 
+import org.apache.commons.io.IOUtils;
+
+import hudson.model.Run.RunnerAbortedException;
 import org.junit.Before;
 import hudson.EnvVars;
 import hudson.Launcher;
@@ -47,14 +50,14 @@ import hudson.plugins.sonar.SonarBuildWrapper.SonarEnvironment;
 import hudson.plugins.sonar.model.TriggersConfig;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.Mockito.when;
-
-import static org.mockito.Mockito.reset;
 import static org.mockito.Matchers.contains;
 import static org.mockito.Mockito.verify;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,6 +90,21 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(desc.isApplicable(mock(AbstractProject.class))).isTrue();
 
     assertThat(desc.getSonarInstallations()).isEmpty();
+  }
+
+  @Test
+  public void testLogging() throws RunnerAbortedException, IOException, InterruptedException {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
+    IOUtils.write("test password\n", os);
+    assertThat(new String(bos.toByteArray())).isEqualTo("test password\n");
+
+    // with a SQ instance configured (should mask passwords)
+    configureSonar(installation);
+    bos = new ByteArrayOutputStream();
+    os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
+    IOUtils.write("test password\n", os);
+    assertThat(new String(bos.toByteArray())).isEqualTo("test ******\n");
   }
 
   @Test
