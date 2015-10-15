@@ -31,47 +31,47 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar.configurationslicing;
+package hudson.plugins.sonar.utils;
 
-import hudson.model.FreeStyleProject;
-import hudson.plugins.sonar.SonarRunnerBuilder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
-
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
 
-public class SonarRunnerBuilderJdkSlicerTest {
-
-  @Rule
-  public JenkinsRule j = new JenkinsRule();
-
-  @Test
-  public void availableProjectsWithSonarBuildStep() throws IOException {
-    final FreeStyleProject project = j.createFreeStyleProject();
-    assertThat(new SonarRunnerBuilderJdkSlicer().getWorkDomain().size()).isZero();
-    project.getBuildersList().add(new SonarRunnerBuilder(null, null, null, null, null, null, null));
-    assertThat(new SonarRunnerBuilderJdkSlicer().getWorkDomain().size()).isEqualTo(1);
-  }
+public class MaskPasswordsOutputStreamTest {
+  private ByteArrayOutputStream os;
 
   @Test
-  public void changeJobAdditionalProperties() throws Exception {
-    final FreeStyleProject project = j.createFreeStyleProject();
-    final SonarRunnerBuilder mySonar = new SonarRunnerBuilder("MySonar", null, null, null, null, "1.7", null);
-    project.getBuildersList().add(mySonar);
+  public void test() throws IOException {
+    BufferedWriter w = getWriter("pass1", "admin");
+    w.write("password=pass1");
+    w.newLine();
+    w.write("password=pass2");
+    w.newLine();
+    w.write("our admin is");
+    w.newLine();
+    w.write("nothing to hide");
+    //flush
+    w.close();
 
-    final SonarRunnerBuilderJdkSlicer.SonarRunnerBuilderJdkSlicerSpec spec = new SonarRunnerBuilderJdkSlicer.SonarRunnerBuilderJdkSlicerSpec();
-    final List<String> values = spec.getValues(project);
-    assertThat(values.get(0)).isEqualTo("1.7");
-    final List<String> newValues = new ArrayList<String>();
-    newValues.add("1.8");
-    spec.setValues(project, newValues);
-
-    assertThat(mySonar.getJdkName()).isEqualTo("1.8");
+    assertWritten("password=******", "password=pass2", "our ****** is", "nothing to hide");
   }
 
+  private BufferedWriter getWriter(String... passwords) {
+    os = new ByteArrayOutputStream();
+    MaskPasswordsOutputStream filteredOs = new MaskPasswordsOutputStream(os, Arrays.asList(passwords));
+    return new BufferedWriter(new OutputStreamWriter(filteredOs));
+  }
+
+  private void assertWritten(String... str) {
+    String written = new String(os.toByteArray(), StandardCharsets.UTF_8);
+    String[] lines = written.split(System.lineSeparator());
+
+    assertThat(lines).containsExactly(str);
+  }
 }

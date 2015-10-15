@@ -33,8 +33,13 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.Extension;
+
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.EnvVars;
+import hudson.Util;
 import com.google.common.annotations.VisibleForTesting;
-import hudson.*;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
@@ -133,11 +138,11 @@ public class SonarRunnerBuilder extends Builder {
     return Jenkins.getInstance().getJDK(jdk);
   }
 
-  public String getJdk() {
+  public String getJdkName() {
     return jdk;
   }
 
-  public void setJdk(String jdk) {
+  public void setJdkName(String jdk) {
     this.jdk = jdk;
   }
 
@@ -190,7 +195,7 @@ public class SonarRunnerBuilder extends Builder {
 
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    if (!isSonarInstallationValid(getInstallationName(), listener)) {
+    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
       return false;
     }
 
@@ -280,29 +285,6 @@ public class SonarRunnerBuilder extends Builder {
     if (StringUtils.isNotBlank(getTask())) {
       args.add(task);
     }
-  }
-
-  public static boolean isSonarInstallationValid(String sonarInstallationName, BuildListener listener) {
-    String failureMsg;
-    SonarInstallation sonarInstallation = SonarInstallation.get(sonarInstallationName);
-    if (sonarInstallation == null) {
-      if (StringUtils.isBlank(sonarInstallationName)) {
-        failureMsg = Messages.SonarPublisher_NoInstallation(SonarInstallation.all().length);
-      } else {
-        failureMsg = Messages.SonarPublisher_NoMatchInstallation(sonarInstallationName, SonarInstallation.all().length);
-      }
-      failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();
-    } else if (sonarInstallation.isDisabled()) {
-      failureMsg = Messages.SonarPublisher_InstallDisabled(sonarInstallation.getName());
-    } else {
-      failureMsg = null;
-    }
-    if (failureMsg != null) {
-      Logger.printFailureMessage(listener);
-      listener.fatalError(failureMsg);
-      return false;
-    }
-    return true;
   }
 
   @VisibleForTesting

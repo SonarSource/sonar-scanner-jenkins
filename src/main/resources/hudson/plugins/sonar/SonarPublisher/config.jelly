@@ -1,6 +1,12 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
+  <f:block>
+    <p style="color:red">
+      ${%MavenWarning}
+    </p>
+  </f:block>
+
   <j:invokeStatic var="isMavenBuilder" className="hudson.plugins.sonar.SonarPublisher" method="isMavenBuilder">
     <j:arg value="${it}" type="hudson.model.AbstractProject"/>
   </j:invokeStatic>
@@ -15,7 +21,7 @@
   </j:if>
   <j:if test="${sonars.size() gt 1}">
     <!-- choise not necessary if there's no choice -->
-    <f:entry title="${%SonarInstallation}" help="/plugin/sonar/help-sonar-installation.html">
+    <f:entry title="${%SonarInstallation}: " help="/plugin/sonar/help-sonar-installation.html">
       <select class="setting-input" name="sonar.installationName">
         <j:forEach var="inst" items="${sonars}">
           <f:option value="${inst.name}" selected="${inst.name==instance.installation.name}">${inst.name}

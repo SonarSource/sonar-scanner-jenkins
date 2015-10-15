@@ -59,12 +59,12 @@ public class SonarPublisherJdkSlicer extends UnorderedStringSlicer<AbstractProje
 
     @Override
     protected String doGetValue(SonarPublisher publisher) {
-      return defaultValueIfBlank(publisher.getJdk());
+      return defaultValueIfBlank(publisher.getJdkName());
     }
 
     @Override
     protected void doSetValue(SonarPublisher publisher, String value) {
-      publisher.setJdk(nullIfDefaultValue(value));
+      publisher.setJdkName(nullIfDefaultValue(value));
     }
 
     @Override

@@ -58,7 +58,7 @@ public class BaseTest extends SonarTestCase {
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(ROOT_POM));
     AbstractBuild<?, ?> build = build(project);
 
-    assertNoSonarExecution(build, Messages.SonarPublisher_NoMatchInstallation(SONAR_INSTALLATION_NAME, 0));
+    assertNoSonarExecution(build, Messages.SonarInstallation_NoMatchInstallation(SONAR_INSTALLATION_NAME, 0));
   }
 
   /**
@@ -79,7 +79,7 @@ public class BaseTest extends SonarTestCase {
     configureDefaultMaven();
     configureDefaultSonar();
     String pomName = "space test/root-pom.xml";
-    MavenModuleSet project = setupMavenProject(pomName);
+    MavenModuleSet project = setupSonarMavenProject(pomName);
     project.setAlternateSettings("/settings.xml");
     project.setLocalRepository(new PerJobLocalRepositoryLocator());
     AbstractBuild<?, ?> build = build(project);

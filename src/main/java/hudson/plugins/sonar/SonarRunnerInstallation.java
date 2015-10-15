@@ -33,7 +33,13 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.*;
+import hudson.Launcher;
+
+import hudson.CopyOnWrite;
+import hudson.Extension;
+import hudson.EnvVars;
+import hudson.Util;
+import hudson.Functions;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.TaskListener;
 import hudson.model.Node;

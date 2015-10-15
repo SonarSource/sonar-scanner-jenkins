@@ -66,6 +66,9 @@ public class TriggersConfig implements Serializable {
   private String envVar;
 
   public TriggersConfig() {
+    skipScmCause = false;
+    skipUpstreamCause = false;
+    envVar = null;
   }
 
   @DataBoundConstructor
@@ -123,15 +126,18 @@ public class TriggersConfig implements Serializable {
       }
     }
 
-    // skip analysis, when all causes from blacklist
     List<Cause> causes = new ArrayList<Cause>(build.getCauses());
-    Iterator<Cause> iter = causes.iterator();
-    while (iter.hasNext()) {
-      Cause cause = iter.next();
-      if (SCMTrigger.SCMTriggerCause.class.isInstance(cause) && isSkipScmCause()) {
-        iter.remove();
-      } else if (Cause.UpstreamCause.class.isInstance(cause) && isSkipUpstreamCause()) {
-        iter.remove();
+
+    // skip analysis, when all causes from blacklist
+    if (isSkipScmCause() || isSkipUpstreamCause()) {
+      Iterator<Cause> iter = causes.iterator();
+      while (iter.hasNext()) {
+        Cause cause = iter.next();
+        if (isSkipScmCause() && SCMTrigger.SCMTriggerCause.class.isInstance(cause)) {
+          iter.remove();
+        } else if (isSkipUpstreamCause() && Cause.UpstreamCause.class.isInstance(cause)) {
+          iter.remove();
+        }
       }
     }
     return causes.isEmpty() ? Messages.Skipping_Sonar_analysis() : null;

@@ -33,6 +33,9 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.plugins.sonar.utils.Logger;
+
+import hudson.model.BuildListener;
 import hudson.Util;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Scrambler;
@@ -41,10 +44,13 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class SonarInstallation {
 
   /**
-   * @return all available installations, never <tt>null</tt>
+   * @return all available installations, never <tt>null</tt> but can be empty.
    * @since 1.7
    */
   public static final SonarInstallation[] all() {
@@ -55,6 +61,41 @@ public class SonarInstallation {
     }
     SonarPublisher.DescriptorImpl sonarDescriptor = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
     return sonarDescriptor.getInstallations();
+  }
+
+  public static final SonarInstallation[] enabled() {
+    List<SonarInstallation> enabledInstallations = new LinkedList<SonarInstallation>();
+
+    for (SonarInstallation inst : all()) {
+      if (!inst.isDisabled()) {
+        enabledInstallations.add(inst);
+      }
+    }
+
+    return enabledInstallations.toArray(new SonarInstallation[enabledInstallations.size()]);
+  }
+
+  public static boolean isValid(String sonarInstallationName, BuildListener listener) {
+    String failureMsg;
+    SonarInstallation sonarInstallation = SonarInstallation.get(sonarInstallationName);
+    if (sonarInstallation == null) {
+      if (StringUtils.isBlank(sonarInstallationName)) {
+        failureMsg = Messages.SonarInstallation_NoInstallation(SonarInstallation.all().length);
+      } else {
+        failureMsg = Messages.SonarInstallation_NoMatchInstallation(sonarInstallationName, SonarInstallation.all().length);
+      }
+      failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();
+    } else if (sonarInstallation.isDisabled()) {
+      failureMsg = Messages.SonarInstallation_InstallDisabled(sonarInstallation.getName());
+    } else {
+      failureMsg = null;
+    }
+    if (failureMsg != null) {
+      Logger.printFailureMessage(listener);
+      listener.fatalError(failureMsg);
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -166,7 +207,7 @@ public class SonarInstallation {
   /**
    * @since 1.7
    */
-  public final void setDatabasePassword(String password) {
+  private final void setDatabasePassword(String password) {
     databaseSecret = Secret.fromString(Util.fixEmptyAndTrim(password));
   }
 
@@ -204,7 +245,7 @@ public class SonarInstallation {
     return Secret.toString(sonarSecret);
   }
 
-  public final void setSonarPassword(String sonarPassword) {
+  private final void setSonarPassword(String sonarPassword) {
     sonarSecret = Secret.fromString(Util.fixEmptyAndTrim(sonarPassword));
   }
 
