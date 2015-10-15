@@ -74,7 +74,7 @@ public class SonarPublisherJdkSlicerTest {
     newValues.add("1.7");
     spec.setValues(project, newValues);
 
-    assertThat(mySonar.getJdk()).isEqualTo("1.7");
+    assertThat(mySonar.getJdkName()).isEqualTo("1.7");
   }
 
 }
