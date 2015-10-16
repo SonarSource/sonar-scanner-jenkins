@@ -41,25 +41,36 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.JDK;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarUtils;
+import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
 import jenkins.model.Jenkins;
+import jenkins.tasks.SimpleBuildStep;
+import jenkins.triggers.SCMTriggerItem;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Properties;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 
 /**
  * @since 1.7
  */
-public class SonarRunnerBuilder extends Builder {
+public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
   /**
    * Identifies {@link SonarInstallation} to be used.
@@ -189,21 +200,27 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   @Override
-  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+  public void perform(@Nonnull Run<?,?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    performInternal(run, workspace, launcher, listener);
+  }
+
+  public boolean performInternal(@Nonnull Run<?,?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws IOException, InterruptedException {
     if (!isSonarInstallationValid(getInstallationName(), listener)) {
       return false;
     }
 
     ArgumentListBuilder args = new ArgumentListBuilder();
 
-    EnvVars env = build.getEnvironment(listener);
-    env.overrideAll(build.getBuildVariables());
+    EnvVars env = run.getEnvironment(listener);
+    if (run instanceof AbstractBuild) {
+      env.overrideAll(((AbstractBuild<?,?>)run).getBuildVariables());
+    }
 
     SonarRunnerInstallation sri = getSonarRunnerInstallation();
     if (sri == null) {
       args.add(launcher.isUnix() ? "sonar-runner" : "sonar-runner.bat");
     } else {
-      sri = sri.forNode(Computer.currentComputer().getNode(), listener);
+      sri = sri.forNode(getComputer(workspace).getNode(), listener);
       sri = sri.forEnvironment(env);
       String exe = sri.getExecutable(launcher);
       if (exe == null) {
@@ -217,12 +234,12 @@ public class SonarRunnerBuilder extends Builder {
     addTaskArgument(args);
     args.add("-e");
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    if (!populateConfiguration(argsBuilder, build, listener, env, getSonarInstallation())) {
+    if (!populateConfiguration(argsBuilder, run, workspace, listener, env, getSonarInstallation())) {
       return false;
     }
 
     // Java
-    computeJdkToUse(build, listener, env);
+    computeJdkToUse(run, workspace, listener, env);
 
     // Java options
     env.put("SONAR_RUNNER_OPTS", getJavaOpts());
@@ -230,15 +247,31 @@ public class SonarRunnerBuilder extends Builder {
     long startTime = System.currentTimeMillis();
     int r;
     try {
-      r = executeSonarRunner(build, launcher, listener, args, env);
+      r = executeSonarRunner(run, workspace, launcher, listener, args, env);
     } catch (IOException e) {
-      handleErrors(build, listener, sri, startTime, e);
+      handleErrors(run, listener, sri, startTime, e);
       r = -1;
     }
     return r == 0;
   }
 
-  private void handleErrors(AbstractBuild<?, ?> build, BuildListener listener, SonarRunnerInstallation sri, long startTime, IOException e) {
+  private Computer getComputer(FilePath ws) {
+    Computer computer = null;
+    for (Computer c : Jenkins.getInstance().getComputers()) {
+        if (c.getChannel() == ws.getChannel()) {
+            computer = c;
+            break;
+        }
+    }
+    return computer;
+  }
+
+  @Override
+  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+    return performInternal(build, build.getWorkspace(), launcher, listener);
+  }
+
+  private void handleErrors(Run<?, ?> build, TaskListener listener, SonarRunnerInstallation sri, long startTime, IOException e) {
     Logger.printFailureMessage(listener);
     Util.displayIOException(e, listener);
 
@@ -254,9 +287,9 @@ public class SonarRunnerBuilder extends Builder {
     }
   }
 
-  private int executeSonarRunner(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
+  private int executeSonarRunner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
     InterruptedException {
-    int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getModuleRoot()).join();
+    int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(getModuleRoot(build, workspace)).join();
     if (build.getAction(BuildSonarAction.class) == null && r == 0) {
       String url = SonarUtils.extractSonarProjectURLFromLogs(build);
       build.addAction(new BuildSonarAction(url));
@@ -264,10 +297,43 @@ public class SonarRunnerBuilder extends Builder {
     return r;
   }
 
-  private void computeJdkToUse(AbstractBuild<?, ?> build, BuildListener listener, EnvVars env) throws IOException, InterruptedException {
-    JDK jdkToUse = getJdkToUse(build.getProject());
+  private FilePath getModuleRoot(Run<?, ?> run, FilePath workspace) {
+    FilePath moduleRoot = null;
+    if (run instanceof AbstractBuild) {
+      AbstractBuild<?, ?> build = (AbstractBuild<?,?>)run;
+      moduleRoot = build.getModuleRoot();
+    } else {
+      // otherwise get the first module of the first SCM
+      Object parent = run.getParent();
+      if (parent instanceof SCMTriggerItem) {
+        SCMTriggerItem scmTrigger = (SCMTriggerItem) parent;
+        Collection<? extends SCM> scms = scmTrigger.getSCMs();
+        if (scms != null && !scms.isEmpty()) {
+          SCM scm = scms.iterator().next();
+          FilePath[] moduleRoots = scm.getModuleRoots(workspace, null);
+          moduleRoot = moduleRoots != null && moduleRoots.length > 0 ? moduleRoots[0] : null;
+        }
+      }
+      if (moduleRoot == null) {
+        moduleRoot = workspace;
+      }
+    }
+    return moduleRoot;
+  }
+
+  private AbstractProject<?, ?> getProject(Run<?, ?> run) {
+    AbstractProject<?, ?> project = null;
+    if (run instanceof AbstractBuild) {
+      AbstractBuild<?, ?> build = (AbstractBuild<?,?>)run;
+      project = build.getProject();
+    }
+    return project;
+  }
+
+  private void computeJdkToUse(Run<?, ?> build, FilePath workspace, TaskListener listener, EnvVars env) throws IOException, InterruptedException {
+    JDK jdkToUse = getJdkToUse(getProject(build));
     if (jdkToUse != null) {
-      Computer computer = Computer.currentComputer();
+      Computer computer = getComputer(workspace);
       // just in case we are not in a build
       if (computer != null) {
         jdkToUse = jdkToUse.forNode(computer.getNode(), listener);
@@ -282,7 +348,7 @@ public class SonarRunnerBuilder extends Builder {
     }
   }
 
-  public static boolean isSonarInstallationValid(String sonarInstallationName, BuildListener listener) {
+  public static boolean isSonarInstallationValid(String sonarInstallationName, TaskListener listener) {
     String failureMsg;
     SonarInstallation sonarInstallation = SonarInstallation.get(sonarInstallationName);
     if (sonarInstallation == null) {
@@ -306,8 +372,8 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   @VisibleForTesting
-  boolean populateConfiguration(ExtendedArgumentListBuilder args, AbstractBuild<?, ?> build,
-    BuildListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
+  boolean populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
+    TaskListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.jdbc.url", si.getDatabaseUrl());
       args.appendMasked("sonar.jdbc.username", si.getDatabaseLogin());
@@ -319,13 +385,13 @@ public class SonarRunnerBuilder extends Builder {
       }
     }
 
-    FilePath moduleRoot = build.getModuleRoot();
+    FilePath moduleRoot = getModuleRoot(build, workspace);
     args.append("sonar.projectBaseDir", moduleRoot.getRemote());
 
     // Project properties
     if (StringUtils.isNotBlank(getProject())) {
       String projectSettingsFile = env.expand(getProject());
-      FilePath projectSettingsFilePath = build.getModuleRoot().child(projectSettingsFile);
+      FilePath projectSettingsFilePath = getModuleRoot(build, workspace).child(projectSettingsFile);
       if (!projectSettingsFilePath.exists()) {
         // because of the poor choice of getModuleRoot() with CVS/Subversion, people often get confused
         // with where the build file path is relative to. Now it's too late to change this behavior
@@ -333,7 +399,6 @@ public class SonarRunnerBuilder extends Builder {
         // and diagnosing it nicely. See HUDSON-1782
 
         // first check if this appears to be a valid relative path from workspace root
-        FilePath workspace = build.getWorkspace();
         if (workspace == null) {
           listener.fatalError("Project workspace is null");
           return false;
@@ -368,9 +433,9 @@ public class SonarRunnerBuilder extends Builder {
   /**
    * @return JDK to be used with this project.
    */
-  private JDK getJdkToUse(AbstractProject<?, ?> project) {
+  private JDK getJdkToUse(@Nullable AbstractProject<?, ?> project) {
     JDK jdkToUse = getJDK();
-    if (jdkToUse == null) {
+    if (jdkToUse == null && project != null) {
       jdkToUse = project.getJDK();
     }
     return jdkToUse;

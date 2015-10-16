@@ -35,7 +35,7 @@ package hudson.plugins.sonar;
 
 import hudson.maven.MavenModuleSet;
 import hudson.model.Result;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Mailer;
 import jenkins.model.JenkinsLocationConfiguration;
@@ -78,7 +78,7 @@ public class MailTest extends SonarTestCase {
     MavenModuleSet project = setupMavenProject();
     project.getPublishersList().add(mailer);
     inbox.clear();
-    AbstractBuild<?, ?> build = build(project, Result.FAILURE);
+    Run<?, ?> build = build(project, Result.FAILURE);
 
     assertSonarExecution(build, false);
     assertThat(inbox.size()).isEqualTo(1);
@@ -89,7 +89,7 @@ public class MailTest extends SonarTestCase {
     FreeStyleProject project = setupFreeStyleProject();
     project.getPublishersList().add(mailer);
     inbox.clear();
-    AbstractBuild<?, ?> build = build(project, Result.FAILURE);
+    Run<?, ?> build = build(project, Result.FAILURE);
 
     assertSonarExecution(build, "sonar-runner", false);
     assertThat(inbox.size()).isEqualTo(1);

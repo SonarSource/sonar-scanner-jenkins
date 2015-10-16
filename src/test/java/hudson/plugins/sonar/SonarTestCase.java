@@ -39,12 +39,15 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Cause;
+import hudson.model.CauseAction;
 import hudson.model.FreeStyleProject;
+import hudson.model.Job;
 import hudson.model.Run;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
 import hudson.tasks.Maven;
 import hudson.util.jna.GNUCLibrary;
+import jenkins.triggers.SCMTriggerItem;
 import org.junit.Rule;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.SingleFileSCM;
@@ -146,17 +149,22 @@ public abstract class SonarTestCase {
     return project;
   }
 
-  protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project) throws Exception {
+  protected Run<?, ?> build(Job<?, ?> project) throws Exception {
     return build(project, null);
   }
 
-  protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project, Result expectedStatus) throws Exception {
+  protected Run<?, ?> build(Job<?, ?> project, Result expectedStatus) throws Exception {
     return build(project, new TriggersConfig.SonarCause(), expectedStatus);
   }
 
-  protected AbstractBuild<?, ?> build(AbstractProject<?, ?> project, Cause cause, Result expectedStatus) throws Exception {
-    AbstractBuild<?, ?> build = project.scheduleBuild2(0, cause).get();
-    if (expectedStatus != null) {
+  protected Run<?, ?> build(Job<?, ?> project, Cause cause, Result expectedStatus) throws Exception {
+    Run<?, ?> build = null;
+    if (project instanceof AbstractProject) {
+      build = ((AbstractProject<?, ?>) project).scheduleBuild2(0, cause).get();
+    } else if (project instanceof SCMTriggerItem) {
+      build = (Run<?, ?>) ((SCMTriggerItem) project).scheduleBuild2(0, new CauseAction(cause)).get();
+    }
+    if (expectedStatus != null && build != null) {
       j.assertBuildStatus(expectedStatus, build);
     }
     return build;
@@ -188,7 +196,7 @@ public abstract class SonarTestCase {
    * @param args command line arguments
    * @throws Exception if something is wrong
    */
-  protected void assertSonarExecution(AbstractBuild<?, ?> build, String args, boolean success) throws Exception {
+  protected void assertSonarExecution(Run<?,?> build, String args, boolean success) throws Exception {
     // Check command line arguments
     assertLogContains(args, build);
 
@@ -200,15 +208,17 @@ public abstract class SonarTestCase {
       assertThat(build.getAction(BuildSonarAction.class)).as(BuildSonarAction.class.getSimpleName() + " not found").isNull();
     }
     // SONARPLUGINS-165: Check that link added to project
-    AbstractProject project = build.getProject();
-    assertThat(project.getAction(ProjectSonarAction.class)).isNotNull();
+    Job<?, ?> parent = build.getParent();
+    if (parent instanceof AbstractProject) {
+      assertThat(((AbstractProject<?, ?>) parent).getAction(ProjectSonarAction.class)).isNotNull();
+    }
   }
 
-  protected void assertSonarExecution(AbstractBuild<?, ?> build, boolean success) throws Exception {
+  protected void assertSonarExecution(Run<?, ?> build, boolean success) throws Exception {
     assertSonarExecution(build, "", success);
   }
 
-  protected void assertNoSonarExecution(AbstractBuild<?, ?> build, String cause) throws Exception {
+  protected void assertNoSonarExecution(Run<?, ?> build, String cause) throws Exception {
     assertLogContains(cause, build);
     // SONARPLUGINS-320: Check that small badge was not added to build history
     assertThat(build.getAction(BuildSonarAction.class)).as(BuildSonarAction.class.getSimpleName() + " found").isNull();

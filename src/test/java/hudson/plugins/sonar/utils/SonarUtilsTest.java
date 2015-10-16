@@ -72,7 +72,7 @@ public class SonarUtilsTest {
   @Test
   public void getSuccessfulBuildWithValidUrl() throws Exception {
     // Given
-    AbstractProject<?, ?> project = mock(AbstractProject.class);
+    AbstractProject project = mock(AbstractProject.class);
     AbstractBuild build = mock(AbstractBuild.class);
 
     // When
@@ -101,7 +101,7 @@ public class SonarUtilsTest {
   @Test
   public void getUnstableBuildUrlWhenNoStableBuild() throws Exception {
     // Given
-    AbstractProject<?, ?> project = mock(AbstractProject.class);
+    AbstractProject project = mock(AbstractProject.class);
     AbstractBuild build = mock(AbstractBuild.class);
 
     // When
@@ -118,7 +118,7 @@ public class SonarUtilsTest {
   @Test
   public void doNotUseUrlFromFailedBuild() throws Exception {
     // Given
-    AbstractProject<?, ?> project = mock(AbstractProject.class);
+    AbstractProject project = mock(AbstractProject.class);
     AbstractBuild build = mock(AbstractBuild.class);
 
     // When
