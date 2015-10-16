@@ -156,6 +156,12 @@
       <version>1.4.2</version>
       <scope>test</scope>
     </dependency>
+     <dependency>
+       <groupId>org.jenkins-ci.modules</groupId>
+       <artifactId>sshd</artifactId>
+       <version>1.6</version>
+       <scope>test</scope><!-- needed by git-server (via workflow-aggregator -> workflow-cps-global-lib) and otherwise unavailable during tests -->
+     </dependency>
   </dependencies>
 
   <build>
