@@ -42,10 +42,10 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 
 /**
- * Class taken from the mask-passwords plugin
+ * Class adapted from the mask-passwords plugin
  */
 public class MaskPasswordsOutputStream extends LineTransformationOutputStream {
-  private final static String REPLACEMENT = "******";
+  private static final String REPLACEMENT = "******";
   private final OutputStream logger;
   private final Pattern passwordsAsPattern;
 
@@ -53,27 +53,32 @@ public class MaskPasswordsOutputStream extends LineTransformationOutputStream {
 
     this.logger = logger;
 
-    if (passwords != null && passwords.size() > 0) {
+    if (passwords != null && !passwords.isEmpty()) {
       // passwords are aggregated into a regex which is compiled as a pattern
       // for efficiency
       StringBuilder regex = new StringBuilder().append('(');
 
       int nbMaskedPasswords = 0;
       for (String password : passwords) {
-        if (StringUtils.isNotEmpty(password)) { // we must not handle empty passwords
+        // we must not handle empty passwords
+        if (StringUtils.isNotEmpty(password)) {
           regex.append(Pattern.quote(password));
           regex.append('|');
           nbMaskedPasswords++;
         }
       }
-      if (nbMaskedPasswords >= 1) { // is there at least one password to mask?
-        regex.deleteCharAt(regex.length() - 1); // removes the last unuseful pipe
+      // is there at least one password to mask?
+      if (nbMaskedPasswords >= 1) {
+        // removes the last unuseful pipe
+        regex.deleteCharAt(regex.length() - 1);
         regex.append(')');
         passwordsAsPattern = Pattern.compile(regex.toString());
-      } else { // no passwords to hide
+      } else {
+        // no passwords to hide
         passwordsAsPattern = null;
       }
-    } else { // no passwords to hide
+    } else {
+      // no passwords to hide
       passwordsAsPattern = null;
     }
   }

@@ -176,8 +176,8 @@ public final class SonarMaven extends Maven {
       + (StringUtils.isNotBlank(jobProperties) ? jobProperties : "");
     // Execute Maven
     // SONARPLUGINS-487
-    pom = build.getModuleRoot().child(pom).getRemote();
-    return new SonarMaven(aditionalProperties, mavenName, pom, mvnOptions, locaRepositoryToUse, sonarPublisher, listener, jdk, settingsToUse, globalSettingsToUse)
+    String pomPath = build.getModuleRoot().child(pom).getRemote();
+    return new SonarMaven(aditionalProperties, mavenName, pomPath, mvnOptions, locaRepositoryToUse, sonarPublisher, listener, jdk, settingsToUse, globalSettingsToUse)
       .perform(build, launcher, listener);
   }
 

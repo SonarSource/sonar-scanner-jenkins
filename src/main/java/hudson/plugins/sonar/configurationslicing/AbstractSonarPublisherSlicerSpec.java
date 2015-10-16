@@ -50,7 +50,7 @@ public abstract class AbstractSonarPublisherSlicerSpec extends UnorderedStringSl
   protected abstract String getDefaultValue();
 
   @Override
-  public List getWorkDomain() {
+  public List<AbstractProject<?, ?>> getWorkDomain() {
     final List<AbstractProject<?, ?>> workDomain = new ArrayList<AbstractProject<?, ?>>();
     for (final AbstractProject item : Jenkins.getInstance().getItems(AbstractProject.class)) {
       if (getSonarPublisher(item) != null) {
@@ -70,7 +70,7 @@ public abstract class AbstractSonarPublisherSlicerSpec extends UnorderedStringSl
     return getDefaultValue();
   }
 
-  private SonarPublisher getSonarPublisher(final AbstractProject<?, ?> project) {
+  private static SonarPublisher getSonarPublisher(final AbstractProject<?, ?> project) {
     for (final Publisher publisher : project.getPublishersList()) {
       if (publisher instanceof SonarPublisher) {
         return (SonarPublisher) publisher;

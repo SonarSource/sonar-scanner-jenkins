@@ -31,33 +31,26 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.utils;
 
-import hudson.Extension;
-import hudson.tools.DownloadFromUrlInstaller;
-import hudson.tools.ToolInstallation;
-import org.kohsuke.stapler.DataBoundConstructor;
+import static org.mockito.Mockito.mock;
 
-/**
-* Automatic Sonar runner installer from repository.codehaus.org.
-*/
-public class SonarRunnerInstaller extends DownloadFromUrlInstaller {
-  @DataBoundConstructor
-  public SonarRunnerInstaller(String id) {
-    super(id);
-  }
+import java.io.PrintStream;
 
-  @Extension
-  public static final class SonarRunnerInstallerDescriptorImpl extends DownloadFromUrlInstaller.DescriptorImpl<SonarRunnerInstaller> {
-    @Override
-    public String getDisplayName() {
-      return Messages.InstallFromMavenCentral();
-    }
+import static org.mockito.Mockito.verify;
 
-    @Override
-    public boolean isApplicable(Class<? extends ToolInstallation> toolType) {
-      return toolType == SonarRunnerInstallation.class;
-    }
+import static org.mockito.Mockito.when;
+import hudson.model.TaskListener;
+import org.junit.Test;
 
+public class LoggerTest {
+  @Test
+  public void testFailureMessage() {
+    TaskListener listener = mock(TaskListener.class);
+    PrintStream stream = mock(PrintStream.class);
+    when(listener.getLogger()).thenReturn(stream);
+
+    Logger.printFailureMessage(listener);
+    verify(stream).println("SONAR ANALYSIS FAILED");
   }
 }

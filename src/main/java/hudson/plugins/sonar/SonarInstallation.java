@@ -44,10 +44,63 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class SonarInstallation {
+  private final String name;
+  private final boolean disabled;
+  private final String serverUrl;
+
+  /**
+   * @since 1.5
+   */
+  private String mojoVersion;
+
+  private final String databaseUrl;
+  private final String databaseLogin;
+
+  /**
+   * @deprecated since 2.2
+   */
+  @Deprecated
+  private transient String databasePassword;
+  private final String additionalProperties;
+
+  private TriggersConfig triggers;
+
+  /**
+   * @since 2.0.1
+   */
+  private String sonarLogin;
+
+  /**
+   * @deprecated since 2.2
+   */
+  @Deprecated
+  private transient String sonarPassword;
+
+  /**
+   * @since 2.2
+   */
+  private Secret databaseSecret;
+  private Secret sonarSecret;
+
+  @DataBoundConstructor
+  public SonarInstallation(String name, boolean disabled,
+    String serverUrl,
+    String databaseUrl, String databaseLogin, String databasePassword,
+    String mojoVersion, String additionalProperties, TriggersConfig triggers,
+    String sonarLogin, String sonarPassword) {
+    this.name = name;
+    this.disabled = disabled;
+    this.serverUrl = serverUrl;
+    this.databaseUrl = databaseUrl;
+    this.databaseLogin = databaseLogin;
+    setDatabasePassword(databasePassword);
+    this.mojoVersion = mojoVersion;
+    this.additionalProperties = additionalProperties;
+    this.triggers = triggers;
+    this.sonarLogin = sonarLogin;
+    setSonarPassword(sonarPassword);
+  }
 
   /**
    * @return all available installations, never <tt>null</tt> but can be empty.
@@ -111,63 +164,6 @@ public class SonarInstallation {
       }
     }
     return null;
-  }
-
-  private final String name;
-  private final boolean disabled;
-  private final String serverUrl;
-
-  /**
-   * @since 1.5
-   */
-  private String mojoVersion;
-
-  private final String databaseUrl;
-  private final String databaseLogin;
-
-  /**
-   * @deprecated since 2.2
-   */
-  @Deprecated
-  private transient String databasePassword;
-  private final String additionalProperties;
-
-  private TriggersConfig triggers;
-
-  /**
-   * @since 2.0.1
-   */
-  private String sonarLogin;
-
-  /**
-   * @deprecated since 2.2
-   */
-  @Deprecated
-  private transient String sonarPassword;
-
-  /**
-   * @since 2.2
-   */
-  private Secret databaseSecret;
-  private Secret sonarSecret;
-
-  @DataBoundConstructor
-  public SonarInstallation(String name, boolean disabled,
-    String serverUrl,
-    String databaseUrl, String databaseLogin, String databasePassword,
-    String mojoVersion, String additionalProperties, TriggersConfig triggers,
-    String sonarLogin, String sonarPassword) {
-    this.name = name;
-    this.disabled = disabled;
-    this.serverUrl = serverUrl;
-    this.databaseUrl = databaseUrl;
-    this.databaseLogin = databaseLogin;
-    setDatabasePassword(databasePassword);
-    this.mojoVersion = mojoVersion;
-    this.additionalProperties = additionalProperties;
-    this.triggers = triggers;
-    this.sonarLogin = sonarLogin;
-    setSonarPassword(sonarPassword);
   }
 
   public String getName() {

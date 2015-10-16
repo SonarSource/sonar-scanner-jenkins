@@ -62,6 +62,7 @@ import java.util.List;
 * Represents a Sonar runner installation in a system.
 */
 public class SonarRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<SonarRunnerInstallation>, NodeSpecific<SonarRunnerInstallation> {
+  private static final long serialVersionUID = 1L;
 
   @DataBoundConstructor
   public SonarRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
@@ -90,8 +91,6 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
 
     return new File(home, "bin/" + execName);
   }
-
-  private static final long serialVersionUID = 1L;
 
   @Override
   public SonarRunnerInstallation forEnvironment(EnvVars environment) {

@@ -70,7 +70,7 @@ public abstract class AbstractSonarRunnerBuilderSlicerSpec extends UnorderedStri
     return getDefaultValue();
   }
 
-  private List<SonarRunnerBuilder> getSonarRunnerBuilders(final Project<?, ?> project) {
+  private static List<SonarRunnerBuilder> getSonarRunnerBuilders(final Project<?, ?> project) {
     List<SonarRunnerBuilder> result = new ArrayList<SonarRunnerBuilder>();
     for (final Builder builder : project.getBuilders()) {
       if (builder instanceof SonarRunnerBuilder) {

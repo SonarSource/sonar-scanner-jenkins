@@ -68,7 +68,6 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -259,7 +258,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return r == 0;
   }
 
-  private Computer getComputer(FilePath ws) {
+  private static Computer getComputer(FilePath ws) {
     Computer computer = null;
     for (Computer c : Jenkins.getInstance().getComputers()) {
       if (c.getChannel() == ws.getChannel()) {

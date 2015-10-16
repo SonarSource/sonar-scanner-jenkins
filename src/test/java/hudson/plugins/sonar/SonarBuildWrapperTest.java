@@ -33,8 +33,9 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.model.Run;
+import org.apache.commons.io.IOUtils;
 
+import hudson.model.Run;
 import org.junit.Before;
 import hudson.EnvVars;
 import hudson.Launcher;
@@ -47,7 +48,6 @@ import hudson.model.Run.RunnerAbortedException;
 import hudson.plugins.sonar.SonarBuildWrapper.DescriptorImpl;
 import hudson.plugins.sonar.SonarBuildWrapper.SonarEnvironment;
 import hudson.plugins.sonar.model.TriggersConfig;
-import hudson.util.IOUtils;
 import org.junit.Test;
 import org.jvnet.hudson.test.TestBuilder;
 
@@ -146,10 +146,23 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
   @Test
   public void failOnInvalidInstallationEnvironment() throws Exception {
+    // non existing installation
     BuildListener listener = mock(BuildListener.class);
     when(listener.getLogger()).thenReturn(stream);
     wrapper.setUp(mock(AbstractBuild.class), mock(Launcher.class), listener);
     verify(listener).fatalError(contains("does not match"));
+  }
+  
+  @Test
+  public void failOnDisabledInstallationEnvironment() throws Exception {
+    // disabled installation
+    configureSonar(new SonarInstallation("local", true, "http://localhost:9001", null, null, null,
+      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password"));
+    
+    BuildListener listener = mock(BuildListener.class);
+    when(listener.getLogger()).thenReturn(stream);
+    wrapper.setUp(mock(AbstractBuild.class), mock(Launcher.class), listener);
+    verify(listener).fatalError(contains("installation assigned to this job is disabled"));
   }
 
   @Test
