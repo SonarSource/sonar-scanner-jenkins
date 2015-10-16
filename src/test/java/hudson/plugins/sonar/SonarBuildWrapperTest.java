@@ -124,7 +124,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("SONAR_JDBC_URL", "");
     assertThat(map).containsEntry("SONAR_JDBC_USERNAME", "");
     assertThat(map).containsEntry("SONAR_JDBC_PASSWORD", "");
-    assertThat(map).containsEntry("SONAR_ADDITIONAL", "");
+    assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "");
 
     // existing entries still there
     assertThat(map).containsEntry("key", "value");
