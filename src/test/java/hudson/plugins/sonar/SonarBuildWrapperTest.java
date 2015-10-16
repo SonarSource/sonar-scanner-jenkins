@@ -79,7 +79,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   @Test
   public void testInstance() {
     assertThat(wrapper.getInstallationName()).isEqualTo("local");
-    assertThat(wrapper.getInstallation()).isNull();
+    assertThat(wrapper.getDescriptor()).isNotNull();
   }
 
   @Test
@@ -88,13 +88,11 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
     assertThat(desc.getDisplayName()).isEqualTo("Prepare SonarQube Scanner environment");
     assertThat(desc.getHelpFile()).isEqualTo("/plugin/sonar/help-buildWrapper.html");
-    assertThat(desc.isApplicable(mock(AbstractProject.class))).isTrue();
 
     assertThat(desc.getSonarInstallations()).isEmpty();
   }
 
   public void testLogging() throws RunnerAbortedException, IOException, InterruptedException {
-    SonarBuildWrapper wrapper = new SonarBuildWrapper("local");
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
     IOUtils.write("test password\n", os);
@@ -152,17 +150,29 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     wrapper.setUp(mock(AbstractBuild.class), mock(Launcher.class), listener);
     verify(listener).fatalError(contains("does not match"));
   }
-  
+
   @Test
   public void failOnDisabledInstallationEnvironment() throws Exception {
     // disabled installation
     configureSonar(new SonarInstallation("local", true, "http://localhost:9001", null, null, null,
       null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password"));
-    
+
     BuildListener listener = mock(BuildListener.class);
     when(listener.getLogger()).thenReturn(stream);
     wrapper.setUp(mock(AbstractBuild.class), mock(Launcher.class), listener);
     verify(listener).fatalError(contains("installation assigned to this job is disabled"));
+  }
+
+  @Test
+  public void testDisableBuildWrapper() {
+    configureSonar(createTestInstallation());
+    enableBuildWrapper(false);
+
+    assertThat(wrapper.getDescriptor().isApplicable(mock(AbstractProject.class))).isFalse();
+
+    enableBuildWrapper(true);
+
+    assertThat(wrapper.getDescriptor().isApplicable(mock(AbstractProject.class))).isTrue();
   }
 
   @Test

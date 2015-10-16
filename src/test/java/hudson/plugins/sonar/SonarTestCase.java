@@ -102,6 +102,10 @@ public abstract class SonarTestCase {
     j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setInstallations(sonarInstallation);
     return sonarInstallation;
   }
+  
+  protected void enableBuildWrapper(boolean enable) {
+    j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setBuildWrapperEnabled(enable);
+  }
 
   /**
    * Returns Fake Maven Installation.

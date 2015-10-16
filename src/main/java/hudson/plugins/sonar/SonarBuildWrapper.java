@@ -33,6 +33,8 @@
  */
 package hudson.plugins.sonar;
 
+import jenkins.model.Jenkins;
+
 import org.apache.commons.lang.StringUtils;
 import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
 import hudson.EnvVars;
@@ -41,7 +43,6 @@ import hudson.plugins.sonar.utils.Logger;
 import javax.annotation.Nullable;
 
 import org.kohsuke.stapler.DataBoundConstructor;
-import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.BuildListener;
@@ -73,7 +74,7 @@ public class SonarBuildWrapper extends BuildWrapper {
 
   @Override
   public OutputStream decorateLogger(AbstractBuild build, OutputStream outputStream) throws IOException, InterruptedException {
-    SonarInstallation inst = getInstallation();
+    SonarInstallation inst = SonarInstallation.get(getInstallationName());
     if (inst == null || inst.isDisabled() || (inst.getDatabasePassword() == null && inst.getSonarPassword() == null)) {
       return outputStream;
     }
@@ -104,26 +105,19 @@ public class SonarBuildWrapper extends BuildWrapper {
     this.installationName = installationName;
   }
 
-  @Nullable
-  public SonarInstallation getInstallation() {
-    return SonarInstallation.get(getInstallationName());
-  }
-
   @Override
   public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
     if (!SonarInstallation.isValid(getInstallationName(), listener)) {
       return new Environment() {
       };
     }
-    return new SonarEnvironment(getInstallation(), listener.getLogger());
+    
+    return new SonarEnvironment(SonarInstallation.get(getInstallationName()), listener.getLogger());
   }
 
   @Extension
   public static final class DescriptorImpl extends BuildWrapperDescriptor
   {
-    @CopyOnWrite
-    private volatile SonarInstallation[] installations = new SonarInstallation[0];
-
     @Override
     public String getDisplayName() {
       return Messages.SonarBuildWrapper_DisplayName();
@@ -131,7 +125,7 @@ public class SonarBuildWrapper extends BuildWrapper {
 
     @Override
     public boolean isApplicable(AbstractProject<?, ?> item) {
-      return true;
+      return Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class).isBuildWrapperEnabled();
     }
 
     /**

@@ -207,7 +207,7 @@ public class SonarPublisher extends Notifier {
   /**
    * Gets the JDK that this Sonar publisher is configured with, or null.
    */
-  public JDK getJDK() {
+  private JDK getJDK() {
     return Jenkins.getInstance().getJDK(jdk);
   }
 
@@ -424,6 +424,7 @@ public class SonarPublisher extends Notifier {
 
     @CopyOnWrite
     private volatile SonarInstallation[] installations = new SonarInstallation[0];
+    private volatile boolean buildWrapperEnabled = false;
 
     public DescriptorImpl() {
       load();
@@ -441,6 +442,10 @@ public class SonarPublisher extends Notifier {
     public SonarInstallation[] getInstallations() {
       return installations;
     }
+    
+    public boolean isBuildWrapperEnabled() {
+      return buildWrapperEnabled;
+    }
 
     public SonarInstallation[] getEnabledInstallations() {
       List<SonarInstallation> enabledInstallations = new LinkedList<SonarInstallation>();
@@ -456,6 +461,11 @@ public class SonarPublisher extends Notifier {
 
     public void setInstallations(SonarInstallation... installations) {
       this.installations = installations;
+      save();
+    }
+    
+    public void setBuildWrapperEnabled(boolean enabled) {
+      this.buildWrapperEnabled = enabled;
       save();
     }
 
@@ -480,7 +490,10 @@ public class SonarPublisher extends Notifier {
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) {
       List<SonarInstallation> list = req.bindJSONToList(SonarInstallation.class, json.get("inst"));
+      boolean enableBuildWrapper = json.getBoolean("enableBuildWrapper");
       setInstallations(list.toArray(new SonarInstallation[list.size()]));
+      setBuildWrapperEnabled(enableBuildWrapper);
+      
       return true;
     }
 

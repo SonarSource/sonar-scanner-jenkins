@@ -1,6 +1,12 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <f:section title="SonarQube">
+  
+    
+    <f:entry title="${%InjectVarsTitle}" description="${%InjectVarsDesc}">
+      <f:checkbox name="enableBuildWrapper" checked="${descriptor.isBuildWrapperEnabled()}"/> ${%InjectVars}
+    </f:entry>
+
     <f:entry title="${%SonarInstallations}" description="${%SonarInstallationsDescr}">
       <f:repeatable var="inst" items="${descriptor.installations}" add="${%AddSonar}">
         <table width="100%">
