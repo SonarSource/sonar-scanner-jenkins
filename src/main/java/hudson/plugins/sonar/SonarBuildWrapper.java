@@ -34,7 +34,6 @@
 package hudson.plugins.sonar;
 
 import org.apache.commons.lang.StringUtils;
-
 import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
 import hudson.EnvVars;
 import hudson.plugins.sonar.utils.Logger;
@@ -112,7 +111,7 @@ public class SonarBuildWrapper extends BuildWrapper {
 
   @Override
   public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    if (!SonarRunnerBuilder.isSonarInstallationValid(getInstallationName(), listener)) {
+    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
       return new Environment() {
       };
     }
@@ -139,7 +138,7 @@ public class SonarBuildWrapper extends BuildWrapper {
      * @return all configured {@link hudson.plugins.sonar.SonarInstallation}
      */
     public SonarInstallation[] getSonarInstallations() {
-      return SonarInstallation.all();
+      return SonarInstallation.enabled();
     }
 
     @Override

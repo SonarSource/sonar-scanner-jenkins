@@ -18,11 +18,13 @@
  */
 package hudson.plugins.sonar;
 
-import org.junit.Test;
+import org.assertj.core.util.Arrays;
 
+import hudson.plugins.sonar.SonarPublisher.DescriptorImpl;
+import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SonarPublisherTest {
+public class SonarPublisherTest extends SonarTestCase {
 
   @Test
   public void shouldMigrateOldLanguageProperty() {
@@ -35,5 +37,18 @@ public class SonarPublisherTest {
     publisher.language = "js";
     publisher.readResolve();
     assertThat(publisher.getJobAdditionalProperties()).isEqualTo("-Dsonar.language=js -Dsonar.version=1.0");
+  }
+
+  @Test
+  public void enabledInstallations() {
+    SonarInstallation enabled = new SonarInstallation("name", false, null, null, null, null, null, null, null, "admin", "admin");
+    SonarInstallation disabled = new SonarInstallation("name", true, null, null, null, null, null, null, null, "admin", "admin");
+
+    DescriptorImpl desc = new SonarPublisher.DescriptorImpl();
+    desc.setInstallations(Arrays.array(enabled, disabled));
+
+    assertThat(desc.getEnabledInstallations()).containsExactly(enabled);
+    assertThat(desc.getInstallations()).containsExactly(enabled, disabled);
+
   }
 }
