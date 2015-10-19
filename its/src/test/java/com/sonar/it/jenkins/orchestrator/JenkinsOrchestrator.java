@@ -19,6 +19,8 @@
  */
 package com.sonar.it.jenkins.orchestrator;
 
+import javax.annotation.Nullable;
+
 import com.google.common.base.Function;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsDistribution;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsServer;
@@ -35,12 +37,15 @@ import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.version.Version;
 import hudson.cli.CLI;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.lang.StringUtils;
@@ -219,7 +224,24 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public JenkinsOrchestrator newFreestyleJobWithSonarRunner(String jobName, File projectPath, String... properties) {
+  public JenkinsOrchestrator newFreestyleJobWithMaven(String jobName, File projectPath, String branch) {
+    newFreestyleJobConfig(jobName, projectPath);
+
+    findElement(By.name("hudson-plugins-sonar-SonarBuildWrapper")).click();
+
+    findElement(buttonByText("Add build step")).click();
+    findElement(By.linkText("Invoke top-level Maven targets")).click();
+    setTextValue(findElement(By.name("_.targets")), "clean package");
+
+    findElement(buttonByText("Add build step")).click();
+    findElement(By.linkText("Invoke top-level Maven targets")).click();
+    setTextValue(findElement(By.name("_.targets"), 1), getMavenParams());
+
+    findElement(buttonByText("Save")).click();
+    return this;
+  }
+
+  public JenkinsOrchestrator newFreestyleJobWithSonarRunner(String jobName, @Nullable String additionalOpts, File projectPath, String... properties) {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
@@ -235,6 +257,10 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
       }
     }
     setTextValue(findElement(By.name("_.properties")), builder.toString());
+
+    if (additionalOpts != null) {
+      setTextValue(findElement(By.name("_.additionalOptions")), additionalOpts);
+    }
 
     findElement(buttonByText("Save")).click();
     return this;
@@ -311,6 +337,17 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
+  public JenkinsOrchestrator enableInjectionVars(boolean enable) {
+    driver.get(server.getUrl() + "/configure");
+
+    WebElement checkbox = findElement(By.name("enableBuildWrapper"));
+    if (checkbox.isSelected() != enable) {
+      checkbox.click();
+    }
+    findElement(buttonByText("Save")).click();
+    return this;
+  }
+
   public JenkinsOrchestrator configureSonarInstallation(Orchestrator orchestrator) {
     driver.get(server.getUrl() + "/configure");
 
@@ -354,6 +391,11 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return result;
   }
 
+  private String getMavenParams() {
+    return "$SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.password=$SONAR_PASSWORD"
+      + " -Dsonar.jdbc.url=$SONAR_JDBC_URL -Dsonar.jdbc.username=$SONAR_JDBC_USERNAME -Dsonar.jdbc.password=$SONAR_JDBC_PASSWORD";
+  }
+
   private By buttonByText(String text) {
     return By.xpath(".//button[normalize-space(.) = '" + text + "']");
   }
@@ -373,6 +415,17 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   public WebElement findElement(By by) {
     try {
       return driver.findElement(by);
+    } catch (NoSuchElementException e) {
+      System.err.println("Element not found. Save screenshot to: target/no_such_element.png");
+      takeScreenshot(new File("target/no_such_element.png"));
+      throw e;
+    }
+  }
+
+  public WebElement findElement(By by, int index) {
+    try {
+      List<WebElement> elms = driver.findElements(by);
+      return elms.get(index);
     } catch (NoSuchElementException e) {
       System.err.println("Element not found. Save screenshot to: target/no_such_element.png");
       takeScreenshot(new File("target/no_such_element.png"));
