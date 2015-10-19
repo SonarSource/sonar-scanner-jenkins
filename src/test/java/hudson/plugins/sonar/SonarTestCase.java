@@ -148,7 +148,7 @@ public abstract class SonarTestCase {
   }
 
   protected FreeStyleProject setupFreeStyleProject() throws Exception {
-    return setupFreeStyleProject(new SonarRunnerBuilder(null, null, null, null, null, null, null));
+    return setupFreeStyleProject(new SonarRunnerBuilder(null, null, null, null, null, null, null, null));
   }
 
   protected FreeStyleProject setupFreeStyleProject(Builder b) throws Exception {

@@ -54,14 +54,14 @@ public class SonarRunnerBuilderSQRunnerSlicerTest {
   public void availableProjectsWithSonarBuildStep() throws IOException {
     final FreeStyleProject project = j.createFreeStyleProject();
     assertThat(new SonarRunnerBuilderSQRunnerSlicer().getWorkDomain().size()).isZero();
-    project.getBuildersList().add(new SonarRunnerBuilder(null, null, null, null, null, null, null));
+    project.getBuildersList().add(new SonarRunnerBuilder(null, null, null, null, null, null, null, null));
     assertThat(new SonarRunnerBuilderSQRunnerSlicer().getWorkDomain().size()).isEqualTo(1);
   }
 
   @Test
   public void changeJobAdditionalProperties() throws Exception {
     final FreeStyleProject project = j.createFreeStyleProject();
-    final SonarRunnerBuilder mySonar = new SonarRunnerBuilder("MySonar", "SQ Runner 2.3", null, null, null, null, null);
+    final SonarRunnerBuilder mySonar = new SonarRunnerBuilder("MySonar", "SQ Runner 2.3", null, null, null, null, null, null);
     project.getBuildersList().add(mySonar);
 
     final SonarRunnerBuilderSQRunnerSlicer.SonarRunnerBuilderSQRunnerSlicerSpec spec = new SonarRunnerBuilderSQRunnerSlicer.SonarRunnerBuilderSQRunnerSlicerSpec();

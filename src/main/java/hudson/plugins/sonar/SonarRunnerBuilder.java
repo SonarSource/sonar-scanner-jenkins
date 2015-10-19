@@ -33,6 +33,8 @@
  */
 package hudson.plugins.sonar;
 
+import org.apache.commons.lang.ArrayUtils;
+
 import hudson.plugins.sonar.action.UrlSonarAction;
 import hudson.plugins.sonar.action.BuildSonarAction;
 import hudson.plugins.sonar.action.ProjectSonarAction;
@@ -83,6 +85,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   private final String project;
   private final String properties;
   private final String javaOpts;
+  private final String additionalOptions;
 
   /**
    * Identifies {@link JDK} to be used.
@@ -109,7 +112,8 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   private final String task;
 
   @DataBoundConstructor
-  public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk, String task) {
+  public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk, String task,
+    String additionalOptions) {
     this.installationName = installationName;
     this.sonarRunnerName = sonarRunnerName;
     this.javaOpts = javaOpts;
@@ -117,6 +121,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     this.properties = properties;
     this.jdk = jdk;
     this.task = task;
+    this.additionalOptions = additionalOptions;
   }
 
   /**
@@ -177,6 +182,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(javaOpts);
   }
 
+  public String getAdditionalOptions() {
+    return Util.fixNull(additionalOptions);
+  }
+
   public SonarInstallation getSonarInstallation() {
     return SonarInstallation.get(getInstallationName());
   }
@@ -208,7 +217,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     performInternal(run, workspace, launcher, listener);
   }
 
-  public boolean performInternal(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+  private boolean performInternal(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
     if (!SonarInstallation.isValid(getInstallationName(), listener)) {
       return false;
     }
@@ -236,7 +245,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
     addTaskArgument(args);
-    args.add("-e");
+    addAdditionalOptions(args);
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
     if (!populateConfiguration(argsBuilder, run, workspace, listener, env, getSonarInstallation())) {
       return false;
@@ -355,6 +364,19 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       }
       jdkToUse.buildEnvVars(env);
     }
+  }
+
+  private void addAdditionalOptions(ArgumentListBuilder args) {
+    if (StringUtils.isEmpty(additionalOptions)) {
+      return;
+    }
+
+    String[] split = StringUtils.split(additionalOptions);
+
+    if (!ArrayUtils.contains(split, "-e")) {
+      args.add("-e");
+    }
+    args.add(split);
   }
 
   private void addTaskArgument(ArgumentListBuilder args) {

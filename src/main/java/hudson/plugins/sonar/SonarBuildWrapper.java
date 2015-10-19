@@ -183,16 +183,16 @@ public class SonarBuildWrapper extends BuildWrapper {
         env.put(k, v);
       }
     }
-    
+
     @Override
     public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
       UrlSonarAction urlAction = SonarUtils.addUrlActionTo(build);
-      
+
       // null result means success so far
-      if (urlAction != null && urlAction.isNew() && build.getResult() == null  && build.getAction(BuildSonarAction.class) == null) {
-          build.addAction(new BuildSonarAction(urlAction.getSonarUrl()));
+      if (urlAction != null && urlAction.isNew() && build.getResult() == null && build.getAction(BuildSonarAction.class) == null) {
+        build.addAction(new BuildSonarAction(urlAction.getSonarUrl()));
       }
-      
+
       return true;
     }
 
