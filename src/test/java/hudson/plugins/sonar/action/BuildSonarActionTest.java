@@ -31,61 +31,33 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.action;
 
-import hudson.PluginWrapper;
-import hudson.model.BuildBadgeAction;
-import jenkins.model.Jenkins;
-import org.kohsuke.stapler.export.Exported;
-import org.kohsuke.stapler.export.ExportedBean;
+import hudson.plugins.sonar.SonarTestCase;
+
+import hudson.plugins.sonar.action.BuildSonarAction;
+import org.junit.Before;
+import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * {@link BuildBadgeAction} that shows the build contains Sonar analysis.
- *
  * @author Evgeny Mandrikov
- * @since 1.2
  */
-@ExportedBean
-public final class BuildSonarAction implements BuildBadgeAction {
+public class BuildSonarActionTest extends SonarTestCase {
+  private BuildSonarAction action;
 
-  private final String url;
-
-  public BuildSonarAction() {
-    this.url = null;
+  @Before
+  public void setUp() throws Exception {
+    action = new BuildSonarAction();
   }
 
-  public BuildSonarAction(String url) {
-    this.url = url;
-  }
+  @Test
+  public void test() throws Exception {
+    assertThat(action.getIconFileName()).isNull();
+    assertThat(action.getUrlName()).isNull();
 
-  public String getTooltip() {
-    return Messages.BuildSonarAction_Tooltip();
-  }
-
-  @Override
-  public String getDisplayName() {
-    return Messages.SonarAction_Sonar();
-  }
-
-  public String getIcon() {
-    PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
-      .getPlugin(SonarPlugin.class);
-    return "/plugin/" + wrapper.getShortName() + "/images/waves_16x16.png";
-  }
-
-  // non use interface methods
-  @Override
-  public String getIconFileName() {
-    return null;
-  }
-
-  @Override
-  public String getUrlName() {
-    return url;
-  }
-
-  @Exported(visibility = 2)
-  public String getUrl() {
-    return url;
+    assertThat(action.getDisplayName()).isNotNull();
+    assertThat(action.getIcon()).isNotNull();
+    assertThat(action.getTooltip()).isNotNull();
   }
 }

@@ -33,8 +33,9 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.plugins.sonar.action.BuildSonarAction;
+import hudson.plugins.sonar.action.ProjectSonarAction;
 import hudson.tasks.Builder;
-
 import hudson.Functions;
 import hudson.maven.MavenModuleSet;
 import hudson.model.Result;
@@ -102,7 +103,7 @@ public abstract class SonarTestCase {
     j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setInstallations(sonarInstallation);
     return sonarInstallation;
   }
-  
+
   protected void enableBuildWrapper(boolean enable) {
     j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setBuildWrapperEnabled(enable);
   }
@@ -149,7 +150,7 @@ public abstract class SonarTestCase {
   protected FreeStyleProject setupFreeStyleProject() throws Exception {
     return setupFreeStyleProject(new SonarRunnerBuilder(null, null, null, null, null, null, null));
   }
-  
+
   protected FreeStyleProject setupFreeStyleProject(Builder b) throws Exception {
     FreeStyleProject project = j.createFreeStyleProject("FreeStyleProject");
     // Setup SCM
@@ -206,7 +207,7 @@ public abstract class SonarTestCase {
    * @param args command line arguments
    * @throws Exception if something is wrong
    */
-  protected void assertSonarExecution(Run<?,?> build, String args, boolean success) throws Exception {
+  protected void assertSonarExecution(Run<?, ?> build, String args, boolean success) throws Exception {
     // Check command line arguments
     assertLogContains(args, build);
 

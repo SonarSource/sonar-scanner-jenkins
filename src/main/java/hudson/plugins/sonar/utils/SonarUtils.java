@@ -33,12 +33,13 @@
  */
 package hudson.plugins.sonar.utils;
 
-import hudson.model.AbstractProject;
+import hudson.model.AbstractBuild;
+import hudson.plugins.sonar.action.UrlSonarAction;
 import hudson.model.Run;
-import hudson.plugins.sonar.BuildSonarAction;
 import org.apache.commons.io.IOUtils;
 
-import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -70,8 +71,8 @@ public final class SonarUtils {
     try {
       br = new BufferedReader(build.getLogReader());
       String strLine;
+      Pattern p = Pattern.compile(URL_PATTERN_IN_LOGS);
       while ((strLine = br.readLine()) != null) {
-        Pattern p = Pattern.compile(URL_PATTERN_IN_LOGS);
         Matcher match = p.matcher(strLine);
         if (match.matches()) {
           url = match.group(1);
@@ -84,28 +85,47 @@ public final class SonarUtils {
   }
 
   /**
-   * Iterate previous build of this project and return the last Sonar URL
+   * Tries to find a URL in the build logs and appends a @{link UrlSonarAction} to the build. If no URL is found, it
+   * tries to get it from the previous build.
+   * @return the @{link UrlSonarAction} appended to the build. If no action is appended, null is returned.
    */
-  public static String getLastSonarUrl(AbstractProject<?, ?> project) {
-    String url = getSonarUrlFromRun(project.getLastSuccessfulBuild());
-    if (url != null) {
-      return url;
-    } else {
-      return getSonarUrlFromRun(project.getLastUnstableBuild());
+  @Nullable
+  public static UrlSonarAction addUrlActionTo(Run<?, ?> build) throws IOException {
+    UrlSonarAction existingAction = build.getAction(UrlSonarAction.class);
+    if (existingAction != null) {
+      return existingAction;
     }
+
+    String sonarUrl = extractSonarProjectURLFromLogs(build);
+    UrlSonarAction action = null;
+
+    if (sonarUrl == null) {
+      Run<?, ?> previousBuild = build.getPreviousBuild();
+      if (previousBuild != null) {
+        UrlSonarAction previousAction = previousBuild.getAction(UrlSonarAction.class);
+        if (previousAction != null) {
+          action = new UrlSonarAction(previousAction.getSonarUrl(), false);
+          build.addAction(action);
+        }
+      }
+    } else {
+      action = new UrlSonarAction(sonarUrl, true);
+      build.addAction(action);
+    }
+
+    return action;
   }
 
-  @CheckForNull
-  private static String getSonarUrlFromRun(Run<?, ?> run) {
-    if (run == null) {
+  public static String getSonarUrlFrom(@Nullable AbstractBuild<?, ?> build) {
+    if(build == null) {
       return null;
     }
-
-    BuildSonarAction action = run.getAction(BuildSonarAction.class);
+    
+    UrlSonarAction action = build.getAction(UrlSonarAction.class);
     if (action != null) {
-      return action.getUrlName();
+      return action.getSonarUrl();
     }
 
-    return  null;
+    return null;
   }
 }
