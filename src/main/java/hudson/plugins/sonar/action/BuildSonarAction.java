@@ -31,32 +31,38 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.action;
+
+import hudson.plugins.sonar.Messages;
+import hudson.plugins.sonar.SonarPlugin;
 
 import hudson.PluginWrapper;
-import hudson.model.ProminentProjectAction;
-import hudson.model.AbstractProject;
-import hudson.plugins.sonar.utils.SonarUtils;
+import hudson.model.BuildBadgeAction;
 import jenkins.model.Jenkins;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 /**
- * {@link ProminentProjectAction} that allows user to go to the Sonar Dashboard.
+ * {@link BuildBadgeAction} that shows the build contains Sonar analysis.
  *
  * @author Evgeny Mandrikov
  * @since 1.2
  */
-public final class ProjectSonarAction implements ProminentProjectAction {
-  private final AbstractProject<?, ?> project;
+@ExportedBean
+public final class BuildSonarAction implements BuildBadgeAction {
 
-  public ProjectSonarAction(AbstractProject<?, ?> project) {
-    this.project = project;
+  private final String url;
+
+  public BuildSonarAction() {
+    this.url = null;
   }
 
-  @Override
-  public String getIconFileName() {
-    PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
-      .getPlugin(SonarPlugin.class);
-    return "/plugin/" + wrapper.getShortName() + "/images/waves_48x48.png";
+  public BuildSonarAction(String url) {
+    this.url = url;
+  }
+
+  public String getTooltip() {
+    return Messages.BuildSonarAction_Tooltip();
   }
 
   @Override
@@ -64,8 +70,25 @@ public final class ProjectSonarAction implements ProminentProjectAction {
     return Messages.SonarAction_Sonar();
   }
 
+  public String getIcon() {
+    PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
+      .getPlugin(SonarPlugin.class);
+    return "/plugin/" + wrapper.getShortName() + "/images/waves_16x16.png";
+  }
+
+  // non use interface methods
+  @Override
+  public String getIconFileName() {
+    return null;
+  }
+
   @Override
   public String getUrlName() {
-    return SonarUtils.getLastSonarUrl(project);
+    return url;
+  }
+
+  @Exported(visibility = 2)
+  public String getUrl() {
+    return url;
   }
 }

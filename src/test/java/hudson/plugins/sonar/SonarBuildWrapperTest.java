@@ -34,7 +34,6 @@
 package hudson.plugins.sonar;
 
 import org.apache.commons.io.IOUtils;
-
 import hudson.model.Run;
 import org.junit.Before;
 import hudson.EnvVars;
@@ -93,10 +92,11 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   public void testLogging() throws RunnerAbortedException, IOException, InterruptedException {
+    // no instance activated -> don't activate masking
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
-    IOUtils.write("test password\n", os);
-    assertThat(new String(bos.toByteArray())).isEqualTo("test password\n");
+    IOUtils.write("test password\ntest sonar\n", os);
+    assertThat(new String(bos.toByteArray())).isEqualTo("test password\ntest sonar\n");
 
     // with a SQ instance configured (should mask passwords)
     configureSonar(createTestInstallation());
@@ -104,6 +104,17 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
     IOUtils.write("test password\n", os);
     assertThat(new String(bos.toByteArray())).isEqualTo("test ******\n");
+  }
+  
+  @Test
+  public void maskDefaultPassword() throws IOException, InterruptedException {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    configureSonar(new SonarInstallation("local", false, "http://localhost:9001", null, null, null,
+      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", null));
+    
+    OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
+    IOUtils.write("test sonar\ntest something\n", os);
+    assertThat(new String(bos.toByteArray())).isEqualTo("test ******\ntest something\n");
   }
 
   @Test

@@ -33,8 +33,13 @@
  */
 package hudson.plugins.sonar;
 
-import jenkins.model.Jenkins;
+import hudson.plugins.sonar.action.UrlSonarAction;
 
+import hudson.plugins.sonar.action.BuildSonarAction;
+import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.plugins.sonar.utils.SonarUtils;
+import hudson.model.Action;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
 import hudson.EnvVars;
@@ -55,11 +60,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class SonarBuildWrapper extends BuildWrapper {
+  private static final String DEFAULT_SONAR = "sonar";
   private String installationName = null;
 
   @DataBoundConstructor
@@ -75,7 +83,7 @@ public class SonarBuildWrapper extends BuildWrapper {
   @Override
   public OutputStream decorateLogger(AbstractBuild build, OutputStream outputStream) throws IOException, InterruptedException {
     SonarInstallation inst = SonarInstallation.get(getInstallationName());
-    if (inst == null || inst.isDisabled() || (inst.getDatabasePassword() == null && inst.getSonarPassword() == null)) {
+    if (inst == null || inst.isDisabled()) {
       return outputStream;
     }
 
@@ -86,11 +94,18 @@ public class SonarBuildWrapper extends BuildWrapper {
     if (inst.getDatabasePassword() != null) {
       passwords.add(inst.getDatabasePassword());
     }
-    if (inst.getSonarPassword() != null) {
+    if (!StringUtils.isEmpty(inst.getSonarPassword())) {
       passwords.add(inst.getSonarPassword());
+    } else {
+      passwords.add(DEFAULT_SONAR);
     }
 
     return new MaskPasswordsOutputStream(outputStream, passwords);
+  }
+
+  @Override
+  public Collection<? extends Action> getProjectActions(AbstractProject job) {
+    return Collections.singletonList(new ProjectSonarAction(job));
   }
 
   /**
@@ -111,7 +126,7 @@ public class SonarBuildWrapper extends BuildWrapper {
       return new Environment() {
       };
     }
-    
+
     return new SonarEnvironment(SonarInstallation.get(getInstallationName()), listener.getLogger());
   }
 
@@ -168,6 +183,18 @@ public class SonarBuildWrapper extends BuildWrapper {
         env.put(k, v);
       }
     }
+    
+    @Override
+    public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
+      UrlSonarAction urlAction = SonarUtils.addUrlActionTo(build);
+      
+      // null result means success so far
+      if (urlAction != null && urlAction.isNew() && build.getResult() == null  && build.getAction(BuildSonarAction.class) == null) {
+          build.addAction(new BuildSonarAction(urlAction.getSonarUrl()));
+      }
+      
+      return true;
+    }
 
     private Map<String, String> createVars(SonarInstallation inst) {
       Map<String, String> map = new HashMap<String, String>();
@@ -175,8 +202,8 @@ public class SonarBuildWrapper extends BuildWrapper {
       map.put("SONAR_CONFIG_NAME", inst.getName());
       map.put("SONAR_HOST_URL", getOrDefault(inst.getServerUrl(), "http://localhost:9000"));
 
-      map.put("SONAR_LOGIN", getOrDefault(inst.getSonarLogin(), "sonar"));
-      map.put("SONAR_PASSWORD", getOrDefault(inst.getSonarPassword(), "sonar"));
+      map.put("SONAR_LOGIN", getOrDefault(inst.getSonarLogin(), DEFAULT_SONAR));
+      map.put("SONAR_PASSWORD", getOrDefault(inst.getSonarPassword(), DEFAULT_SONAR));
 
       map.put("SONAR_JDBC_URL", getOrDefault(inst.getDatabaseUrl(), ""));
       map.put("SONAR_JDBC_USERNAME", getOrDefault(inst.getDatabaseLogin(), ""));
