@@ -31,35 +31,21 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.action;
 
-import hudson.plugins.sonar.action.ProjectSonarAction;
-
-import hudson.model.AbstractProject;
-import hudson.util.RunList;
-import org.junit.Before;
-import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-/**
- * @author Evgeny Mandrikov
- */
-public class ProjectSonarActionTest extends SonarTestCase {
-  private ProjectSonarAction action;
+import org.junit.Test;
 
-  @Before
-  public void setUp() throws Exception {
-    AbstractProject project = mock(AbstractProject.class);
-    action = new ProjectSonarAction(project);
-    when(project.getBuilds()).thenReturn(new RunList());
-  }
-
+public class UrlSonarActionTest {
   @Test
-  public void test() throws Exception {
-    assertThat(action.getDisplayName()).isNotNull();
-    assertThat(action.getIconFileName()).isNotNull();
+  public void test() {
+    UrlSonarAction action = new UrlSonarAction("url", false);
+
+    assertThat(action.getSonarUrl()).isEqualTo("url");
+    assertThat(action.isNew()).isFalse();
     assertThat(action.getUrlName()).isNull();
+    assertThat(action.getIconFileName()).isNull();
+    assertThat(action.getDisplayName()).isNull();
   }
 }

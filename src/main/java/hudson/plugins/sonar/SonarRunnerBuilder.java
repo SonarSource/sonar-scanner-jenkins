@@ -33,8 +33,11 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.Extension;
+import hudson.plugins.sonar.action.UrlSonarAction;
 
+import hudson.plugins.sonar.action.BuildSonarAction;
+import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.EnvVars;
@@ -58,7 +61,6 @@ import hudson.util.ArgumentListBuilder;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import jenkins.triggers.SCMTriggerItem;
-
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -284,6 +286,13 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
     }
     e.printStackTrace(listener.fatalError(errorMessage));
+
+    try {
+      SonarUtils.addUrlActionTo(build);
+    } catch (IOException e1) {
+      e1.printStackTrace(listener.fatalError(errorMessage));
+    }
+
     // Badge should be added only once - SONARPLUGINS-1521
     if (build.getAction(BuildSonarAction.class) == null) {
       build.addAction(new BuildSonarAction());
@@ -293,9 +302,16 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   private int executeSonarRunner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
     InterruptedException {
     int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(getModuleRoot(build, workspace)).join();
-    if (build.getAction(BuildSonarAction.class) == null && r == 0) {
-      String url = SonarUtils.extractSonarProjectURLFromLogs(build);
-      build.addAction(new BuildSonarAction(url));
+    UrlSonarAction urlAction = SonarUtils.addUrlActionTo(build);
+
+    /*
+     * only create build badge if:
+     * - build was successful
+     * - badge wasn't created yet
+     * - we successfully got a URL from this build
+     */
+    if (urlAction != null && urlAction.isNew() && build.getAction(BuildSonarAction.class) == null && r == 0) {
+      build.addAction(new BuildSonarAction(urlAction.getSonarUrl()));
     }
     return r;
   }

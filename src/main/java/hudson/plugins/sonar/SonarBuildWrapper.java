@@ -33,6 +33,10 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.plugins.sonar.action.UrlSonarAction;
+
+import hudson.plugins.sonar.action.BuildSonarAction;
+import hudson.plugins.sonar.action.ProjectSonarAction;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.model.Action;
 import jenkins.model.Jenkins;
@@ -182,12 +186,11 @@ public class SonarBuildWrapper extends BuildWrapper {
     
     @Override
     public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
-      // null means success so far
-      if (build.getResult() == null  && build.getAction(BuildSonarAction.class) == null) {
-        String url = SonarUtils.extractSonarProjectURLFromLogs(build);
-        if (url != null) {
-          build.addAction(new BuildSonarAction(url));
-        }
+      UrlSonarAction urlAction = SonarUtils.addUrlActionTo(build);
+      
+      // null result means success so far
+      if (urlAction != null && urlAction.isNew() && build.getResult() == null  && build.getAction(BuildSonarAction.class) == null) {
+          build.addAction(new BuildSonarAction(urlAction.getSonarUrl()));
       }
       
       return true;

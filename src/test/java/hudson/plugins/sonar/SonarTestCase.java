@@ -33,8 +33,10 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.tasks.Builder;
+import hudson.plugins.sonar.action.BuildSonarAction;
+import hudson.plugins.sonar.action.ProjectSonarAction;
 
+import hudson.tasks.Builder;
 import hudson.Functions;
 import hudson.maven.MavenModuleSet;
 import hudson.model.Result;

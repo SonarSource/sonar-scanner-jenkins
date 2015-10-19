@@ -31,35 +31,43 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.action;
 
-import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.model.Action;
 
-import hudson.model.AbstractProject;
-import hudson.util.RunList;
-import org.junit.Before;
-import org.junit.Test;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+public class UrlSonarAction implements Action {
+  private final boolean isNew;
+  private final String sonarUrl;
 
-/**
- * @author Evgeny Mandrikov
- */
-public class ProjectSonarActionTest extends SonarTestCase {
-  private ProjectSonarAction action;
-
-  @Before
-  public void setUp() throws Exception {
-    AbstractProject project = mock(AbstractProject.class);
-    action = new ProjectSonarAction(project);
-    when(project.getBuilds()).thenReturn(new RunList());
+  public UrlSonarAction(String sonarUrl, boolean isNew) {
+    this.sonarUrl = sonarUrl;
+    this.isNew = isNew;
   }
 
-  @Test
-  public void test() throws Exception {
-    assertThat(action.getDisplayName()).isNotNull();
-    assertThat(action.getIconFileName()).isNotNull();
-    assertThat(action.getUrlName()).isNull();
+  /**
+   * Whether the URL was generated in the build to which this action is associated or it was inherited from a previous build.
+   */
+  public boolean isNew() {
+    return isNew;
   }
+
+  public String getSonarUrl() {
+    return sonarUrl;
+  }
+
+  @Override
+  public String getIconFileName() {
+    return null;
+  }
+
+  @Override
+  public String getDisplayName() {
+    return null;
+  }
+
+  @Override
+  public String getUrlName() {
+    return null;
+  }
+
 }

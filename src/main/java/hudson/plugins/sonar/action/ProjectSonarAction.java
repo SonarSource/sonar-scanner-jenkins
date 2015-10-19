@@ -31,31 +31,44 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.action;
 
-import org.junit.Before;
-import org.junit.Test;
+import hudson.plugins.sonar.utils.SonarUtils;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import hudson.plugins.sonar.Messages;
+import hudson.plugins.sonar.SonarPlugin;
+import hudson.PluginWrapper;
+import hudson.model.ProminentProjectAction;
+import hudson.model.AbstractProject;
+import jenkins.model.Jenkins;
 
 /**
+ * {@link ProminentProjectAction} that allows user to go to the Sonar Dashboard.
+ *
  * @author Evgeny Mandrikov
+ * @since 1.2
  */
-public class BuildSonarActionTest extends SonarTestCase {
-  private BuildSonarAction action;
+public final class ProjectSonarAction implements ProminentProjectAction {
+  private final AbstractProject<?, ?> project;
 
-  @Before
-  public void setUp() throws Exception {
-    action = new BuildSonarAction();
+  public ProjectSonarAction(AbstractProject<?, ?> project) {
+    this.project = project;
   }
 
-  @Test
-  public void test() throws Exception {
-    assertThat(action.getIconFileName()).isNull();
-    assertThat(action.getUrlName()).isNull();
+  @Override
+  public String getIconFileName() {
+    PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
+      .getPlugin(SonarPlugin.class);
+    return "/plugin/" + wrapper.getShortName() + "/images/waves_48x48.png";
+  }
 
-    assertThat(action.getDisplayName()).isNotNull();
-    assertThat(action.getIcon()).isNotNull();
-    assertThat(action.getTooltip()).isNotNull();
+  @Override
+  public String getDisplayName() {
+    return Messages.SonarAction_Sonar();
+  }
+
+  @Override
+  public String getUrlName() {
+    return SonarUtils.getSonarUrlFrom(project.getLastBuild());
   }
 }

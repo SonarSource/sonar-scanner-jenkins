@@ -33,6 +33,10 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.plugins.sonar.action.UrlSonarAction;
+
+import hudson.plugins.sonar.action.BuildSonarAction;
+import hudson.plugins.sonar.action.ProjectSonarAction;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.EnvVars;
@@ -326,16 +330,18 @@ public class SonarPublisher extends Notifier {
     SonarInstallation sonarInstallation = getInstallation();
 
     if (isSkip(build, listener, sonarInstallation)) {
+      SonarUtils.addUrlActionTo(build);
       return true;
     }
 
     boolean sonarSuccess = executeSonar(build, launcher, listener, sonarInstallation);
+    UrlSonarAction urlAction = SonarUtils.addUrlActionTo(build);
+
     if (!sonarSuccess) {
       // returning false has no effect on the global build status so need to do it manually
       build.setResult(Result.FAILURE);
-    } else {
-      String url = SonarUtils.extractSonarProjectURLFromLogs(build);
-      build.addAction(new BuildSonarAction(url));
+    } else if (urlAction != null && urlAction.isNew()) {
+      build.addAction(new BuildSonarAction(urlAction.getSonarUrl()));
     }
     listener.getLogger().println("SonarQube analysis completed: " + build.getResult());
     return sonarSuccess;
@@ -442,7 +448,7 @@ public class SonarPublisher extends Notifier {
     public SonarInstallation[] getInstallations() {
       return installations;
     }
-    
+
     public boolean isBuildWrapperEnabled() {
       return buildWrapperEnabled;
     }
@@ -463,7 +469,7 @@ public class SonarPublisher extends Notifier {
       this.installations = installations;
       save();
     }
-    
+
     public void setBuildWrapperEnabled(boolean enabled) {
       this.buildWrapperEnabled = enabled;
       save();
@@ -493,7 +499,7 @@ public class SonarPublisher extends Notifier {
       boolean enableBuildWrapper = json.getBoolean("enableBuildWrapper");
       setInstallations(list.toArray(new SonarInstallation[list.size()]));
       setBuildWrapperEnabled(enableBuildWrapper);
-      
+
       return true;
     }
 
