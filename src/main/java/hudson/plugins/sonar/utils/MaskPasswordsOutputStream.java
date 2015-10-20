@@ -46,6 +46,7 @@ import java.util.regex.Pattern;
  */
 public class MaskPasswordsOutputStream extends LineTransformationOutputStream {
   private static final String REPLACEMENT = "******";
+  private static final String URL_IN_LOGS = "ANALYSIS SUCCESSFUL, you can browse ";
   private final OutputStream logger;
   private final Pattern passwordsAsPattern;
 
@@ -54,6 +55,7 @@ public class MaskPasswordsOutputStream extends LineTransformationOutputStream {
     this.logger = logger;
 
     if (passwords != null && !passwords.isEmpty()) {
+
       // passwords are aggregated into a regex which is compiled as a pattern
       // for efficiency
       StringBuilder regex = new StringBuilder().append('(');
@@ -86,7 +88,7 @@ public class MaskPasswordsOutputStream extends LineTransformationOutputStream {
   @Override
   protected void eol(byte[] bytes, int len) throws IOException {
     String line = new String(bytes, 0, len);
-    if (passwordsAsPattern != null) {
+    if (passwordsAsPattern != null && !line.contains(URL_IN_LOGS)) {
       line = passwordsAsPattern.matcher(line).replaceAll(REPLACEMENT);
     }
     logger.write(line.getBytes());
