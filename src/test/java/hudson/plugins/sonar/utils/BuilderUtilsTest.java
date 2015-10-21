@@ -31,29 +31,34 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar.action;
+package hudson.plugins.sonar.utils;
 
-import hudson.model.InvisibleAction;
+import com.google.common.collect.ImmutableMap;
+import hudson.EnvVars;
+import hudson.model.TaskListener;
+import hudson.model.AbstractBuild;
+import org.junit.Test;
 
-import hudson.model.Action;
+import java.io.IOException;
 
-public class UrlSonarAction extends InvisibleAction implements Action {
-  private final boolean isNew;
-  private final String sonarUrl;
+import static org.assertj.core.api.Assertions.entry;
 
-  public UrlSonarAction(String sonarUrl, boolean isNew) {
-    this.sonarUrl = sonarUrl;
-    this.isNew = isNew;
-  }
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
-  /**
-   * Whether the URL was generated in the build to which this action is associated or it was inherited from a previous build.
-   */
-  public boolean isNew() {
-    return isNew;
-  }
+public class BuilderUtilsTest {
+  @Test
+  public void buildEnv() throws IOException, InterruptedException {
+    TaskListener l = mock(TaskListener.class);
+    AbstractBuild<?, ?> r = mock(AbstractBuild.class);
+    EnvVars env = new EnvVars("key", "value", "key2", "value2");
 
-  public String getSonarUrl() {
-    return sonarUrl;
+    when(r.getEnvironment(l)).thenReturn(env);
+    when(r.getBuildVariables()).thenReturn(ImmutableMap.of("key", "newValue"));
+
+    env = BuilderUtils.getEnvAndBuildVars(r, l);
+
+    assertThat(env.descendingMap()).contains(entry("key", "newValue"), entry("key2", "value2"));
   }
 }

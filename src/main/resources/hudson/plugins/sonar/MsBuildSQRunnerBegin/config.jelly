@@ -1,0 +1,62 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+  <!-- ############ SonarQube Installation ############ -->
+  <j:set var="sonars" value="${descriptor.getSonarInstallations()}"/>
+  <j:if test="${empty(sonars)}">
+    <!-- no SonarQube installation is configured, so warn the user now -->
+    <f:entry title="${%SonarInstallation}">
+      <div class="error">${%SonarInstallation.error(rootURL)}</div>
+    </f:entry>
+  </j:if>
+  <j:if test="${sonars.size() gt 1}">
+    <!-- choice not necessary if there's no choice -->
+    <f:entry title="${%SonarInstallation}: " help="/plugin/sonar/help-sonar-installation.html">
+      <select class="setting-input" name="sonarInstallationName">
+        <j:forEach var="inst" items="${sonars}">
+          <f:option value="${inst.name}" selected="${inst.name==instance.sonarInstallationName}">${inst.name}</f:option>
+        </j:forEach>
+      </select>
+    </f:entry>
+  </j:if>
+
+  <!-- ############ MS Build Runner Installation ############ -->
+  <j:set var="runners" value="${descriptor.getMsBuildRunnerInstallations()}" />
+  <j:if test="${empty(runners)}">
+    <!-- no MS Build Runner is configured. this will be an error, so warn the user now -->
+    <f:entry title="${%MsBuildRunnerTitle}">
+      <div class="error">
+        ${%MsBuildRunner.error.1}&lt;br>
+        ${%MsBuildRunner.error.2(rootURL)}
+      </div>
+    </f:entry>
+  </j:if>
+  <j:if test="${runners.size() gt 1}">
+    <!-- choice not necessary if there's no choice -->
+    <f:entry title="${%MsBuildRunnerTitle}">
+      <select class="setting-input" name="msBuildRunnerInstallationName">
+        <j:forEach var="inst" items="${descriptor.getMsBuildRunnerInstallations()}">
+          <f:option selected="${inst.name==instance.msBuildRunnerInstallationName}" value="${inst.name}">${inst.name}</f:option>
+        </j:forEach>
+      </select>
+    </f:entry>
+  </j:if>
+  
+  <!-- ############ Project properties ############-->
+  <f:entry title="${%ProjectKeyTitle}" field="projectKey">
+    <f:textbox />
+  </f:entry>
+
+  <f:entry title="${%ProjectNameTitle}" field="projectName">
+    <f:textbox />
+  </f:entry>
+  
+  <f:entry title="${%ProjectVersionTitle}" field="projectVersion" >
+    <f:textbox />
+  </f:entry>
+  
+  <f:entry title="${%AdditionalArguments}" field="additionalArguments" description="${%AdditionalArgumentsDesc}">
+    <f:expandableTextbox />
+  </f:entry>
+
+
+</j:jelly>
