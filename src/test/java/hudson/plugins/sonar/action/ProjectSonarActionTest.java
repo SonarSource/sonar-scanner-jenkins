@@ -31,67 +31,36 @@
  * License along with Sonar; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.action;
 
-import hudson.maven.MavenModuleSet;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.FreeStyleProject;
-import hudson.tasks.Mailer;
-import jenkins.model.JenkinsLocationConfiguration;
+import hudson.plugins.sonar.SonarTestCase;
+
+import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.model.AbstractProject;
+import hudson.util.RunList;
 import org.junit.Before;
 import org.junit.Test;
-import org.jvnet.hudson.test.Issue;
-import org.jvnet.mock_javamail.Mailbox;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
- * SONARPLUGINS-286:
- * If your build is successful and the post-build fails,
- * then the job will show as fail but you will not get an email.
- * <p>
- * TODO check that internal build was succesfull
- * </p>
- *
  * @author Evgeny Mandrikov
  */
-@Issue("SONARJNKNS-149")
-public class MailTest extends SonarTestCase {
-  private Mailbox inbox;
-  private Mailer mailer;
+public class ProjectSonarActionTest extends SonarTestCase {
+  private ProjectSonarAction action;
 
   @Before
   public void setUp() throws Exception {
-    configureDefaultMaven();
-    configureDefaultSonarRunner(true);
-    configureDefaultSonar();
-    // Configure Mailer and Mailbox
-    JenkinsLocationConfiguration.get().setAdminAddress("admin@example.org");
-    String recipient = "me@example.org";
-    inbox = Mailbox.get(recipient);
-    mailer = new Mailer("me@example.org", true, false);
+    AbstractProject project = mock(AbstractProject.class);
+    action = new ProjectSonarAction(project);
+    when(project.getBuilds()).thenReturn(new RunList());
   }
 
   @Test
-  public void testMavenProject() throws Exception {
-    MavenModuleSet project = setupSonarMavenProject();
-    project.getPublishersList().add(mailer);
-    inbox.clear();
-    Run<?, ?> build = build(project, Result.FAILURE);
-
-    assertSonarExecution(build, false);
-    assertThat(inbox.size()).isEqualTo(1);
-  }
-
-  @Test
-  public void testFreeStyleProject() throws Exception {
-    FreeStyleProject project = setupFreeStyleProjectWithSonarRunner();
-    project.getPublishersList().add(mailer);
-    inbox.clear();
-    Run<?, ?> build = build(project, Result.FAILURE);
-
-    assertSonarExecution(build, "sonar-runner", false);
-    assertThat(inbox.size()).isEqualTo(1);
+  public void test() throws Exception {
+    assertThat(action.getDisplayName()).isNotNull();
+    assertThat(action.getIconFileName()).isNotNull();
+    assertThat(action.getUrlName()).isNull();
   }
 }

@@ -33,10 +33,12 @@
  */
 package hudson.plugins.sonar;
 
+import com.google.common.annotations.VisibleForTesting;
+import net.sf.json.JSONObject;
+import org.kohsuke.stapler.StaplerRequest;
 import hudson.model.EnvironmentSpecific;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolInstallation;
-
 import jenkins.security.MasterToSlaveCallable;
 import hudson.Launcher;
 import hudson.Extension;
@@ -54,31 +56,49 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-public class MsBuildRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<MsBuildRunnerInstallation>, NodeSpecific<MsBuildRunnerInstallation> {
-  private static final String EXE_NAME = "MSBuild.SonarQube.Runner";
+public class MsBuildSQRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<MsBuildSQRunnerInstallation>, NodeSpecific<MsBuildSQRunnerInstallation> {
+  private static final String EXE_NAME = "MSBuild.SonarQube.Runner.exe";
   private static final long serialVersionUID = 1L;
+  private final String exeName;
 
   @DataBoundConstructor
-  public MsBuildRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
+  public MsBuildSQRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
+    this(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties, EXE_NAME);
+  }
+
+  @VisibleForTesting
+  public MsBuildSQRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties, String exeName) {
     super(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties);
+    this.exeName = exeName;
   }
 
   @Override
-  public MsBuildRunnerInstallation forEnvironment(EnvVars environment) {
-    return new MsBuildRunnerInstallation(getName(), environment.expand(getHome()), getProperties().toList());
+  public MsBuildSQRunnerInstallation forEnvironment(EnvVars environment) {
+    return new MsBuildSQRunnerInstallation(getName(), environment.expand(getHome()), getProperties().toList());
   }
 
   @Override
-  public MsBuildRunnerInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
-    return new MsBuildRunnerInstallation(getName(), translateFor(node, log), getProperties().toList());
+  public MsBuildSQRunnerInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
+    return new MsBuildSQRunnerInstallation(getName(), translateFor(node, log), getProperties().toList());
   }
 
   @Extension
-  public static class DescriptorImpl extends ToolDescriptor<MsBuildRunnerInstallation> {
+  public static class DescriptorImpl extends ToolDescriptor<MsBuildSQRunnerInstallation> {
     // super already manages: persistence of installations and form json deserialization
     public DescriptorImpl() {
       super();
       load();
+    }
+
+    @Override
+    public void setInstallations(MsBuildSQRunnerInstallation... installations) {
+      super.setInstallations(installations);
+      save();
+    }
+
+    @Override
+    public MsBuildSQRunnerInstallation newInstance(StaplerRequest req, JSONObject formData) {
+      return (MsBuildSQRunnerInstallation) req.bindJSON(clazz, formData);
     }
 
     @Override
@@ -88,7 +108,7 @@ public class MsBuildRunnerInstallation extends ToolInstallation implements Envir
 
     @Override
     public List<? extends ToolInstaller> getDefaultInstallers() {
-      return Collections.singletonList(new MsBuildRunnerInstaller(null));
+      return Collections.singletonList(new MsBuildSonarQubeRunnerInstaller(null));
     }
   }
 
@@ -99,7 +119,7 @@ public class MsBuildRunnerInstallation extends ToolInstallation implements Envir
       @Override
       public String call() throws IOException {
         String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars);
-        File exe = new File(home, EXE_NAME);
+        File exe = new File(home, exeName);
         if (exe.exists()) {
           return exe.getPath();
         }

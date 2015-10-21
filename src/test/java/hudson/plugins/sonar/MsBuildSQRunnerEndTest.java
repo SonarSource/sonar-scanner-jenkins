@@ -33,65 +33,56 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.maven.MavenModuleSet;
 import hudson.model.Result;
 import hudson.model.Run;
-import hudson.model.FreeStyleProject;
-import hudson.tasks.Mailer;
-import jenkins.model.JenkinsLocationConfiguration;
-import org.junit.Before;
 import org.junit.Test;
-import org.jvnet.hudson.test.Issue;
-import org.jvnet.mock_javamail.Mailbox;
+import hudson.Functions;
+import hudson.model.FreeStyleProject;
+import hudson.util.jna.GNUCLibrary;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.io.File;
+import java.net.URISyntaxException;
 
-/**
- * SONARPLUGINS-286:
- * If your build is successful and the post-build fails,
- * then the job will show as fail but you will not get an email.
- * <p>
- * TODO check that internal build was succesfull
- * </p>
- *
- * @author Evgeny Mandrikov
- */
-@Issue("SONARJNKNS-149")
-public class MailTest extends SonarTestCase {
-  private Mailbox inbox;
-  private Mailer mailer;
-
-  @Before
-  public void setUp() throws Exception {
-    configureDefaultMaven();
-    configureDefaultSonarRunner(true);
+public class MsBuildSQRunnerEndTest extends SonarTestCase {
+  @Test
+  public void testNormalExec() throws Exception {
     configureDefaultSonar();
-    // Configure Mailer and Mailbox
-    JenkinsLocationConfiguration.get().setAdminAddress("admin@example.org");
-    String recipient = "me@example.org";
-    inbox = Mailbox.get(recipient);
-    mailer = new Mailer("me@example.org", true, false);
+    configureMsBuildRunner(false);
+
+    FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));
+    proj.getBuildersList().add(new MsBuildSQRunnerEnd());
+    Run<?, ?> r = build(proj, Result.SUCCESS);
+    assertLogContains("MSBuild.SonarQube.Runner.exe end", r);
+    assertLogContains("This is a fake MS Build Runner", r);
+  }
+  
+  @Test
+  public void NoBegin() throws Exception {
+    configureDefaultSonar();
+    configureMsBuildRunner(false);
+
+    FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerEnd());
+    Run<?, ?> r = build(proj, Result.FAILURE);
+    assertLogContains("No MSBuild SonarQube Runner installation found in the build environment", r);
   }
 
-  @Test
-  public void testMavenProject() throws Exception {
-    MavenModuleSet project = setupSonarMavenProject();
-    project.getPublishersList().add(mailer);
-    inbox.clear();
-    Run<?, ?> build = build(project, Result.FAILURE);
+  private MsBuildSQRunnerInstallation configureMsBuildRunner(boolean fail) throws URISyntaxException {
+    String res = "SonarTestCase/ms-build-runner";
+    if(fail) {
+      res += "-broken";
+    }
+    File home = new File(getClass().getResource(res).toURI().getPath());
+    String exeName = null;
 
-    assertSonarExecution(build, false);
-    assertThat(inbox.size()).isEqualTo(1);
-  }
+    if (Functions.isWindows()) {
+      exeName = "MSBuild.SonarQube.Runner.bat";
+    } else {
+      exeName = "MSBuild.SonarQube.Runner.exe";
+      GNUCLibrary.LIBC.chmod(new File(home, exeName).getAbsolutePath(), 0755);
+    }
+    MsBuildSQRunnerInstallation inst = new MsBuildSQRunnerInstallation("default", home.getAbsolutePath(), null, exeName);
+    j.jenkins.getDescriptorByType(MsBuildSQRunnerInstallation.DescriptorImpl.class).setInstallations(inst);
 
-  @Test
-  public void testFreeStyleProject() throws Exception {
-    FreeStyleProject project = setupFreeStyleProjectWithSonarRunner();
-    project.getPublishersList().add(mailer);
-    inbox.clear();
-    Run<?, ?> build = build(project, Result.FAILURE);
-
-    assertSonarExecution(build, "sonar-runner", false);
-    assertThat(inbox.size()).isEqualTo(1);
+    return inst;
   }
 }

@@ -35,7 +35,6 @@ package hudson.plugins.sonar;
 
 import hudson.model.TaskListener;
 
-import hudson.plugins.sonar.utils.Logger;
 import hudson.Util;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Scrambler;

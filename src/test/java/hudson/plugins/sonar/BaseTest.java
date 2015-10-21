@@ -56,7 +56,7 @@ public class BaseTest extends SonarTestCase {
    */
   @Test
   public void testNoSonarInstallation() throws Exception {
-    FreeStyleProject project = setupFreeStyleProject();
+    FreeStyleProject project = setupFreeStyleProjectWithSonarRunner();
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(ROOT_POM));
     Run<?, ?> build = build(project);
 
@@ -91,7 +91,7 @@ public class BaseTest extends SonarTestCase {
   public void testFreeStyleProjectWithSonarRunnerStep() throws Exception {
     configureDefaultSonarRunner(false);
     configureDefaultSonar();
-    FreeStyleProject project = setupFreeStyleProject();
+    FreeStyleProject project = setupFreeStyleProjectWithSonarRunner();
     Run<?, ?> build = build(project);
 
     assertSonarExecution(build, "This is a fake Runner", true);
@@ -113,7 +113,7 @@ public class BaseTest extends SonarTestCase {
   public void testFreeStyleProjectWithBrokenSonarRunnerStep() throws Exception {
     configureDefaultSonarRunner(true);
     configureDefaultSonar();
-    FreeStyleProject project = setupFreeStyleProject();
+    FreeStyleProject project = setupFreeStyleProjectWithSonarRunner();
     Run<?, ?> build = build(project);
 
     assertSonarExecution(build, "This is a fake Runner", false);
@@ -136,7 +136,7 @@ public class BaseTest extends SonarTestCase {
   public void testPassword() throws Exception {
     configureDefaultSonarRunner(false);
     configureSecuredSonar();
-    FreeStyleProject project = setupFreeStyleProject();
+    FreeStyleProject project = setupFreeStyleProjectWithSonarRunner();
     Run<?, ?> build = build(project);
 
     assertLogContains("sonar-runner", build);

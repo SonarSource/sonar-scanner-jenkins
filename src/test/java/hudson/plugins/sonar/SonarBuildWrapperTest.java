@@ -217,6 +217,10 @@ public class SonarBuildWrapperTest extends SonarTestCase {
       return true;
     }
   }
+  
+  private void enableBuildWrapper(boolean enable) {
+    j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setBuildWrapperEnabled(enable);
+  }
 
   private static SonarInstallation createTestInstallation() {
     return new SonarInstallation("local", false, "http://localhost:9001", null, null, null,
