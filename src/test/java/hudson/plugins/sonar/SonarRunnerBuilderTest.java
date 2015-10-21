@@ -33,9 +33,13 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.model.TaskListener;
+
+import hudson.plugins.sonar.model.TriggersConfig;
 import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -62,7 +66,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SonarRunnerBuilderTest {
+public class SonarRunnerBuilderTest extends SonarTestCase {
 
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
@@ -100,7 +104,7 @@ public class SonarRunnerBuilderTest {
 
   @Test
   public void shouldBeEmptyInsteadOfNull() {
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
     assertEmptyInsteadOfNull(builder);
   }
 
@@ -110,6 +114,7 @@ public class SonarRunnerBuilderTest {
     assertThat(builder.getProject()).isEmpty();
     assertThat(builder.getProperties()).isEmpty();
     assertThat(builder.getSonarRunnerName()).isEmpty();
+    assertThat(builder.getAdditionalOptions()).isEmpty();
   }
 
   @Test
@@ -117,7 +122,7 @@ public class SonarRunnerBuilderTest {
     File projectSettings = new File(moduleDir, "myCustomProjectSettings.properties");
     projectSettings.createNewFile();
 
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, null);
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, null);
 
     assertThat(args.toStringWithQuote())
@@ -135,7 +140,7 @@ public class SonarRunnerBuilderTest {
     when(installation.getSonarLogin()).thenReturn("sonarlogin");
     when(installation.getSonarPassword()).thenReturn("sonarpassword");
 
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation);
 
     assertThat(args.toStringWithQuote())

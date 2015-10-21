@@ -96,6 +96,20 @@ public class JenkinsTest {
   }
 
   @Test
+  public void testVariableInjection() {
+    String jobName = "abacus-freestyle-vars";
+    String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
+    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+
+    jenkins.enableInjectionVars(true)
+      .newFreestyleJobWithMaven(jobName, new File("projects", "abacus"), null)
+      .executeJob(jobName);
+    waitForComputationOnSQServer();
+    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
+    assertSonarUrlOnJob(jobName, projectKey);
+  }
+
+  @Test
   public void testFreestyleJobWithSonarMaven() throws Exception {
     String jobName = "abacus-freestyle";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
@@ -127,7 +141,7 @@ public class JenkinsTest {
     String projectKey = "abacus-runner";
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
     jenkins
-      .newFreestyleJobWithSonarRunner(jobName, new File("projects", "abacus"),
+      .newFreestyleJobWithSonarRunner(jobName, "-X", new File("projects", "abacus"),
         "sonar.projectKey", projectKey,
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
@@ -143,8 +157,8 @@ public class JenkinsTest {
     String jobName = "abacus-runner-branch";
     String projectKey = "abacus-runner:branch";
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
-    jenkins
-      .newFreestyleJobWithSonarRunner(jobName, new File("projects", "abacus"),
+    BuildResult result = jenkins
+      .newFreestyleJobWithSonarRunner(jobName, "-X -Duseless=Y -e", new File("projects", "abacus"),
         "sonar.projectKey", "abacus-runner",
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
@@ -154,8 +168,9 @@ public class JenkinsTest {
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
+    assertThat(result.getLogs()).contains("sonar-runner -X -Duseless=Y -e");
   }
-
+  
   // SONARJNKNS-214
   @Test
   public void testFreestyleJobWithTask() throws Exception {
@@ -163,7 +178,7 @@ public class JenkinsTest {
     assumeFalse(orchestrator.getServer().version().isGreaterThanOrEquals("5.2"));
     String jobName = "refresh-views";
     BuildResult result = jenkins
-      .newFreestyleJobWithSonarRunner(jobName, new File("projects", "abacus"), "sonar.task", "views")
+      .newFreestyleJobWithSonarRunner(jobName, null, new File("projects", "abacus"), "sonar.task", "views")
       .executeJobQuietly(jobName);
     // Since views is not installed
     assertThat(result.getLogs()).contains("Task views does not exist");

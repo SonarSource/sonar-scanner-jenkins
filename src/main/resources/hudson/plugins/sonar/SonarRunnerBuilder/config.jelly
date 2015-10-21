@@ -64,6 +64,11 @@
   <f:entry title="${%AnalysisProperties}" field="properties" help="/plugin/sonar/help-runner-properties.html">
     <f:textarea />
   </f:entry>
+  
+  <f:entry title="${%AdditionalOptions}" field="additionalOptions" help="/plugin/sonar/help-runner-additional-opts.html">
+    <f:expandableTextbox />
+  </f:entry>
+  
 
   <!-- The Java options to be used -->
   <f:entry title="${%JVMOptions}" field="javaOpts" help="/plugin/sonar/help-runner-jvm-opts.html">

@@ -56,10 +56,23 @@ public class MaskPasswordsOutputStreamTest {
     w.write("our admin is");
     w.newLine();
     w.write("nothing to hide");
-    //flush
+    // flush
     w.close();
 
     assertWritten("password=******", "password=pass2", "our ****** is", "nothing to hide");
+  }
+
+  @Test
+  public void dontMaskUrl() throws IOException {
+    String t = "ANALYSIS SUCCESSFUL, you can browse http://localhost:9000/sonar";
+    BufferedWriter w = getWriter("sonar");
+    w.write(t);
+    w.newLine();
+    w.write("password=sonar");
+    w.newLine();
+    w.close();
+
+    assertWritten(t, "password=******");
   }
 
   private BufferedWriter getWriter(String... passwords) {
