@@ -8,7 +8,25 @@ function installTravisTools {
   source ~/.local/bin/install
 }
 
-mvn verify -B -e -V
+if [ -n "${PR_ANALYSIS:-}" ] && [ "${PR_ANALYSIS}" == true ]
+then
+  if [ "$TRAVIS_PULL_REQUEST" != "false" ]
+  then
+    # PR analysis
+    mvn verify sonar:sonar -B -e -V
+      -Dsonar.analysis.mode=issues \
+      -Dsonar.github.pullRequest=$TRAVIS_PULL_REQUEST \
+      -Dsonar.github.repository=$TRAVIS_REPO_SLUG \
+      -Dsonar.github.login=$SONAR_GITHUB_LOGIN \
+      -Dsonar.github.oauth=$SONAR_GITHUB_OAUTH \
+      -Dsonar.host.url=$SONAR_HOST_URL \
+      -Dsonar.login=$SONAR_LOGIN \
+      -Dsonar.password=$SONAR_PASSWD
+  fi
+else
+  # Regular CI
+  mvn verify -B -e -V
+fi
 
 if [ "${RUN_ITS}" == "true" ]; then
   installTravisTools

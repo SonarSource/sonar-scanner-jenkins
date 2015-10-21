@@ -16,9 +16,7 @@ env:
     - RUN_ITS=false
     - RUN_ITS=true SQ_VERSION=DEV
     - RUN_ITS=true SQ_VERSION=LTS
-
-matrix:
-  fast_finish: true
+    - RUN_ITS=false PR_ANALYSIS=true
 
 cache:
   directories:
