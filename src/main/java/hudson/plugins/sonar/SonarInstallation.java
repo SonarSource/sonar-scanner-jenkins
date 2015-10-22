@@ -142,7 +142,6 @@ public class SonarInstallation {
       failureMsg = null;
     }
     if (failureMsg != null) {
-      Logger.printFailureMessage(listener);
       listener.fatalError(failureMsg);
       return false;
     }

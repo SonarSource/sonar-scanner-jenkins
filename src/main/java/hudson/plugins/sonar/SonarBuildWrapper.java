@@ -179,7 +179,6 @@ public class SonarBuildWrapper extends BuildWrapper {
 
       for (String k : sonarEnv.keySet()) {
         String v = sonarEnvResolved.get(k);
-        Logger.LOG.fine("  Setting '" + k + "'");
         env.put(k, v);
       }
     }
