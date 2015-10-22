@@ -114,7 +114,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     assertThat(builder.getProject()).isEmpty();
     assertThat(builder.getProperties()).isEmpty();
     assertThat(builder.getSonarRunnerName()).isEmpty();
-    assertThat(builder.getAdditionalOptions()).isEmpty();
+    assertThat(builder.getAdditionalArguments()).isEmpty();
   }
 
   @Test

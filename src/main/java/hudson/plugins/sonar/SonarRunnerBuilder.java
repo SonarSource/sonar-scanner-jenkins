@@ -85,7 +85,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   private final String project;
   private final String properties;
   private final String javaOpts;
-  private final String additionalOptions;
+  private final String additionalArguments;
 
   /**
    * Identifies {@link JDK} to be used.
@@ -113,7 +113,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
   @DataBoundConstructor
   public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk, String task,
-    String additionalOptions) {
+    String additionalArguments) {
     this.installationName = installationName;
     this.sonarRunnerName = sonarRunnerName;
     this.javaOpts = javaOpts;
@@ -121,7 +121,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     this.properties = properties;
     this.jdk = jdk;
     this.task = task;
-    this.additionalOptions = additionalOptions;
+    this.additionalArguments = additionalArguments;
   }
 
   /**
@@ -182,8 +182,8 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(javaOpts);
   }
 
-  public String getAdditionalOptions() {
-    return Util.fixNull(additionalOptions);
+  public String getAdditionalArguments() {
+    return Util.fixNull(additionalArguments);
   }
 
   public SonarInstallation getSonarInstallation() {
@@ -245,7 +245,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
     addTaskArgument(args);
-    addAdditionalOptions(args);
+    addAdditionalArguments(args);
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
     if (!populateConfiguration(argsBuilder, run, workspace, listener, env, getSonarInstallation())) {
       return false;
@@ -366,12 +366,12 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     }
   }
 
-  private void addAdditionalOptions(ArgumentListBuilder args) {
-    if (StringUtils.isEmpty(additionalOptions)) {
+  private void addAdditionalArguments(ArgumentListBuilder args) {
+    if (StringUtils.isEmpty(additionalArguments)) {
       return;
     }
 
-    String[] split = StringUtils.split(additionalOptions);
+    String[] split = StringUtils.split(additionalArguments);
 
     if (!ArrayUtils.contains(split, "-e")) {
       args.add("-e");

@@ -241,7 +241,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public JenkinsOrchestrator newFreestyleJobWithSonarRunner(String jobName, @Nullable String additionalOpts, File projectPath, String... properties) {
+  public JenkinsOrchestrator newFreestyleJobWithSonarRunner(String jobName, @Nullable String additionalArgs, File projectPath, String... properties) {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
@@ -258,8 +258,8 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     }
     setTextValue(findElement(By.name("_.properties")), builder.toString());
 
-    if (additionalOpts != null) {
-      setTextValue(findElement(By.name("_.additionalOptions")), additionalOpts);
+    if (additionalArgs != null) {
+      setTextValue(findElement(By.name("_.additionalArguments")), additionalArgs);
     }
 
     findElement(buttonByText("Save")).click();

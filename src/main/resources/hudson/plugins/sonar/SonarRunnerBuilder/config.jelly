@@ -65,7 +65,7 @@
     <f:textarea />
   </f:entry>
   
-  <f:entry title="${%AdditionalOptions}" field="additionalOptions" help="/plugin/sonar/help-runner-additional-opts.html">
+  <f:entry title="${%AdditionalArguments}" field="additionalArguments" help="/plugin/sonar/help-runner-additional-args.html">
     <f:expandableTextbox />
   </f:entry>
   
