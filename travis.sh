@@ -13,6 +13,9 @@ then
   if [ "$TRAVIS_PULL_REQUEST" != "false" ]
   then
     # PR analysis
+    # Accessing Dory with SSL requires Java 8
+    source $HOME/.jdk_switcher_rc
+    jdk_switcher use oraclejdk8    
     mvn verify sonar:sonar -B -e -V \
       -Dsonar.analysis.mode=issues \
       -Dsonar.github.pullRequest=$TRAVIS_PULL_REQUEST \
