@@ -103,17 +103,7 @@ public abstract class SonarTestCase {
     j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setInstallations(sonarInstallation);
     return sonarInstallation;
   }
-
-  protected void enableBuildWrapper(boolean enable) {
-    j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setBuildWrapperEnabled(enable);
-  }
-
-  /**
-   * Returns Fake Maven Installation.
-   *
-   * @return Fake Maven Installation
-   * @throws Exception if something is wrong
-   */
+  
   protected SonarRunnerInstallation configureDefaultSonarRunner(boolean broken) throws Exception {
     File exe = new File(getClass().getResource("SonarTestCase/sonar-runner" + (broken ? "-broken" : "") + "/bin/sonar-runner").toURI().getPath());
     if (!Functions.isWindows()) {
@@ -147,7 +137,7 @@ public abstract class SonarTestCase {
     return project;
   }
 
-  protected FreeStyleProject setupFreeStyleProject() throws Exception {
+  protected FreeStyleProject setupFreeStyleProjectWithSonarRunner() throws Exception {
     return setupFreeStyleProject(new SonarRunnerBuilder(null, null, null, null, null, null, null, null));
   }
 

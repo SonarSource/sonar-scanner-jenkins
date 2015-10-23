@@ -33,33 +33,27 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.Extension;
+import hudson.tools.ToolInstallation;
+import org.kohsuke.stapler.DataBoundConstructor;
+import hudson.tools.DownloadFromUrlInstaller;
 
-import hudson.model.AbstractProject;
-import hudson.util.RunList;
-import org.junit.Before;
-import org.junit.Test;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-/**
- * @author Evgeny Mandrikov
- */
-public class ProjectSonarActionTest extends SonarTestCase {
-  private ProjectSonarAction action;
-
-  @Before
-  public void setUp() throws Exception {
-    AbstractProject project = mock(AbstractProject.class);
-    action = new ProjectSonarAction(project);
-    when(project.getBuilds()).thenReturn(new RunList());
+public class MsBuildSonarQubeRunnerInstaller extends DownloadFromUrlInstaller {
+  @DataBoundConstructor
+  public MsBuildSonarQubeRunnerInstaller(String id) {
+    super(id);
   }
 
-  @Test
-  public void test() throws Exception {
-    assertThat(action.getDisplayName()).isNotNull();
-    assertThat(action.getIconFileName()).isNotNull();
-    assertThat(action.getUrlName()).isNull();
+  @Extension
+  public static final class MsBuildRunnerInstallerDescriptorImpl extends DownloadFromUrlInstaller.DescriptorImpl<MsBuildSonarQubeRunnerInstaller> {
+    @Override
+    public String getDisplayName() {
+      return Messages.InstallFromGitHub();
+    }
+
+    @Override
+    public boolean isApplicable(Class<? extends ToolInstallation> toolType) {
+      return toolType == MsBuildSQRunnerInstallation.class;
+    }
   }
 }
