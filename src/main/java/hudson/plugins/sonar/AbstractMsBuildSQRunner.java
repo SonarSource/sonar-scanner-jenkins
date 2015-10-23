@@ -33,6 +33,8 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.model.TaskListener;
+
 import org.codehaus.plexus.util.StringUtils;
 import hudson.Util;
 import hudson.model.Run;
@@ -54,6 +56,7 @@ import java.util.Map;
 public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleBuildStep {
   protected static final String EXE = "MSBuild.SonarQube.Runner.exe";
   static final String INST_NAME_KEY = "msBuildRunnerInstallationName";
+  static final String SONAR_INST_NAME_KEY = "sonarInstanceName";
 
   @Nullable
   protected static String loadRunnerName(EnvVars env) throws IOException, InterruptedException {
@@ -68,6 +71,26 @@ public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleB
     return name;
   }
   
+  protected static SonarInstallation getSonarInstallation(String instName, TaskListener listener) throws AbortException {
+    if (!SonarInstallation.isValid(instName, listener)) {
+      throw new AbortException();
+    }
+    return SonarInstallation.get(instName);
+  }
+
+  @Nullable
+  protected static String loadSonarInstanceName(EnvVars env) throws IOException, InterruptedException {
+    if (!env.containsKey(SONAR_INST_NAME_KEY)) {
+      throw new AbortException(Messages.MsBuildRunnerEnd_NoSonarInstanceName());
+    }
+
+    String name = env.get(SONAR_INST_NAME_KEY);
+    if (StringUtils.isEmpty(name)) {
+      return null;
+    }
+    return name;
+  }
+
   protected static Map<String, String> getSonarProps(SonarInstallation inst) {
     Map<String, String> map = new LinkedHashMap<String, String>();
 
@@ -84,6 +107,10 @@ public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleB
 
   protected static void saveRunnerName(Run<?, ?> r, @Nullable String name) throws IOException, InterruptedException {
     r.addAction(new InjectEnvVarAction(Collections.singletonMap(INST_NAME_KEY, Util.fixNull(name))));
+  }
+
+  protected static void saveSonarInstanceName(Run<?, ?> r, @Nullable String name) throws IOException, InterruptedException {
+    r.addAction(new InjectEnvVarAction(Collections.singletonMap(SONAR_INST_NAME_KEY, Util.fixNull(name))));
   }
 
   protected static class InjectEnvVarAction extends InvisibleAction implements EnvironmentContributingAction {

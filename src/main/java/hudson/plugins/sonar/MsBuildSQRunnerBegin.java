@@ -81,8 +81,9 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     ArgumentListBuilder args = new ArgumentListBuilder();
 
     EnvVars env = BuilderUtils.getEnvAndBuildVars(run, listener);
+    SonarInstallation sonarInstallation = getSonarInstallation(getSonarInstallationName(), listener);
     saveRunnerName(run, msBuildRunnerInstallationName);
-    SonarInstallation sonarInstallation = getSonarInstallation(listener);
+    saveSonarInstanceName(run, getSonarInstallationName());
 
     MsBuildSQRunnerInstallation msBuildRunner = getDescriptor().getMsBuildRunnerInstallation(msBuildRunnerInstallationName);
     msBuildRunner = BuilderUtils.getBuildTool(msBuildRunner, env, listener);
@@ -133,13 +134,6 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
   @Override
   public DescriptorImpl getDescriptor() {
     return (DescriptorImpl) super.getDescriptor();
-  }
-
-  private SonarInstallation getSonarInstallation(TaskListener listener) throws AbortException {
-    if (!SonarInstallation.isValid(getSonarInstallationName(), listener)) {
-      throw new AbortException();
-    }
-    return SonarInstallation.get(getSonarInstallationName());
   }
 
   /*

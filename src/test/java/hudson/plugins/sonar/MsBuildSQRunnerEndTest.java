@@ -46,16 +46,17 @@ import java.net.URISyntaxException;
 public class MsBuildSQRunnerEndTest extends SonarTestCase {
   @Test
   public void testNormalExec() throws Exception {
-    configureDefaultSonar();
+    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, false, "localhost", null, null, null, null, null, null, "login", "mypass"));
     configureMsBuildRunner(false);
 
     FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));
     proj.getBuildersList().add(new MsBuildSQRunnerEnd());
     Run<?, ?> r = build(proj, Result.SUCCESS);
-    assertLogContains("MSBuild.SonarQube.Runner.exe end", r);
+    assertLogContains("MSBuild.SonarQube.Runner.exe end /d:sonar.host.url=localhost", r);
     assertLogContains("This is a fake MS Build Runner", r);
+    assertLogDoesntContains("mypass", r);
   }
-  
+
   @Test
   public void NoBegin() throws Exception {
     configureDefaultSonar();
@@ -68,7 +69,7 @@ public class MsBuildSQRunnerEndTest extends SonarTestCase {
 
   private MsBuildSQRunnerInstallation configureMsBuildRunner(boolean fail) throws URISyntaxException {
     String res = "SonarTestCase/ms-build-runner";
-    if(fail) {
+    if (fail) {
       res += "-broken";
     }
     File home = new File(getClass().getResource(res).toURI().getPath());

@@ -33,9 +33,10 @@
  */
 package hudson.plugins.sonar;
 
+import org.codehaus.plexus.util.StringUtils;
+
 import hudson.plugins.sonar.action.UrlSonarAction;
 import hudson.plugins.sonar.utils.SonarUtils;
-
 import hudson.plugins.sonar.action.BuildSonarAction;
 import hudson.model.Action;
 import hudson.plugins.sonar.action.ProjectSonarAction;
@@ -54,6 +55,7 @@ import hudson.model.TaskListener;
 import hudson.model.Run;
 
 import java.io.IOException;
+import java.util.Map;
 
 import hudson.tasks.Builder;
 
@@ -69,6 +71,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
 
     EnvVars env = BuilderUtils.getEnvAndBuildVars(run, listener);
     String runnerName = loadRunnerName(env);
+
     MsBuildSQRunnerInstallation msBuildRunner = Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerBegin.DescriptorImpl.class)
       .getMsBuildRunnerInstallation(runnerName);
     msBuildRunner = BuilderUtils.getBuildTool(msBuildRunner, env, listener);
@@ -85,7 +88,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     }
 
     args.add(exe);
-    args.add("end");
+    addArgs(args, env, listener);
 
     int result = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(run, workspace)).join();
 
@@ -94,6 +97,26 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     }
 
     addBadge(run);
+  }
+
+  private static void addArgs(ArgumentListBuilder args, EnvVars env, TaskListener listener) throws IOException, InterruptedException {
+    String sonarInstName = loadSonarInstanceName(env);
+    SonarInstallation sonarInstallation = getSonarInstallation(sonarInstName, listener);
+    Map<String, String> props = getSonarProps(sonarInstallation);
+
+    args.add("end");
+
+    // expand macros using itself
+    EnvVars.resolve(props);
+
+    for (Map.Entry<String, String> e : props.entrySet()) {
+      if (!StringUtils.isEmpty(e.getValue())) {
+        // expand macros using environment variables and hide passwords
+        args.addKeyValuePair("/d:", e.getKey(), env.expand(e.getValue()), e.getKey().contains("password"));
+      }
+    }
+
+    args.addTokenized(sonarInstallation.getAdditionalProperties());
   }
 
   private static void addBadge(Run<?, ?> run) throws IOException {
