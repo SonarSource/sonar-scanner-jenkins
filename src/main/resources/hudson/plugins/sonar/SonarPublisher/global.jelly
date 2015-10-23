@@ -52,6 +52,10 @@
             <f:entry title="${%AddProps}" description="${%AddPropsDescr}">
               <f:textbox name="sonar.additionalProperties" value="${inst.getAdditionalProperties()}"/>
             </f:entry>
+            
+            <f:entry title="${%AddAnalysisProps}" description="${%AddAnalysisPropsDescr}">
+              <f:textbox name="sonar.additionalAnalysisProperties" value="${inst.getAdditionalAnalysisProperties()}"/>
+            </f:entry>
 
             <f:section title="${%TriggerExclusions}" name="triggers">
               <st:include class="${descriptor.clazz}" page="triggers.jelly" it="${inst.getTriggers()}"/>

@@ -33,25 +33,23 @@
  */
 package hudson.plugins.sonar;
 
-import org.apache.commons.lang.ArrayUtils;
-
-import hudson.plugins.sonar.action.UrlSonarAction;
-import hudson.plugins.sonar.action.BuildSonarAction;
-import hudson.plugins.sonar.action.ProjectSonarAction;
+import com.google.common.annotations.VisibleForTesting;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.EnvVars;
 import hudson.Util;
-import com.google.common.annotations.VisibleForTesting;
 import hudson.model.Action;
 import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.JDK;
 import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.plugins.sonar.action.BuildSonarAction;
+import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.plugins.sonar.action.UrlSonarAction;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarUtils;
@@ -65,13 +63,13 @@ import jenkins.triggers.SCMTriggerItem;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import javax.annotation.Nullable;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Properties;
-
-import javax.annotation.Nullable;
 
 /**
  * @since 1.7
@@ -244,10 +242,12 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       args.add(exe);
       env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
+
+    SonarInstallation sonarInst = getSonarInstallation();
     addTaskArgument(args);
-    addAdditionalArguments(args);
+    addAdditionalArguments(args, sonarInst);
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    if (!populateConfiguration(argsBuilder, run, workspace, listener, env, getSonarInstallation())) {
+    if (!populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst)) {
       return false;
     }
 
@@ -366,17 +366,15 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     }
   }
 
-  private void addAdditionalArguments(ArgumentListBuilder args) {
-    if (StringUtils.isEmpty(additionalArguments)) {
-      return;
-    }
+  @VisibleForTesting
+  void addAdditionalArguments(ArgumentListBuilder args, SonarInstallation inst) {
+    args.addTokenized(inst.getAdditionalProperties());
+    args.add(inst.getAdditionalAnalysisPropertiesUnix());
+    args.addTokenized(additionalArguments);
 
-    String[] split = StringUtils.split(additionalArguments);
-
-    if (!ArrayUtils.contains(split, "-e")) {
+    if (!args.toList().contains("-e")) {
       args.add("-e");
     }
-    args.add(split);
   }
 
   private void addTaskArgument(ArgumentListBuilder args) {

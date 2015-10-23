@@ -46,7 +46,7 @@ import java.net.URISyntaxException;
 public class MsBuildSQRunnerEndTest extends SonarTestCase {
   @Test
   public void testNormalExec() throws Exception {
-    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, false, "localhost", null, null, null, null, null, null, "login", "mypass"));
+    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, false, "localhost", null, null, null, null, null, null, "login", "mypass", null));
     configureMsBuildRunner(false);
 
     FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));

@@ -33,13 +33,9 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.model.TaskListener;
-
-import hudson.plugins.sonar.model.TriggersConfig;
 import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.FilePath;
-import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -106,6 +102,21 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   public void shouldBeEmptyInsteadOfNull() {
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
     assertEmptyInsteadOfNull(builder);
+  }
+
+  @Test
+  public void additionalArgs() {
+    ArgumentListBuilder args = new ArgumentListBuilder();
+    SonarInstallation inst = new SonarInstallation(null, false, null, null, null, null, null, "-Y", null, null, null, "key=value");
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X -e");
+    builder.addAdditionalArguments(args, inst);
+    assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X -e");
+    
+    builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X");
+    args.clear();
+    builder.addAdditionalArguments(args, inst);
+    assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X -e");
+
   }
 
   private void assertEmptyInsteadOfNull(SonarRunnerBuilder builder) {

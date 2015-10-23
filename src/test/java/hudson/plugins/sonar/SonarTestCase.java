@@ -96,14 +96,14 @@ public abstract class SonarTestCase {
   }
 
   protected SonarInstallation configureDefaultSonar() {
-    return configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, false, null, null, null, null, null, null, null, null, null));
+    return configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, false, null, null, null, null, null, null, null, null, null, null));
   }
 
   protected SonarInstallation configureSonar(SonarInstallation sonarInstallation) {
     j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setInstallations(sonarInstallation);
     return sonarInstallation;
   }
-  
+
   protected SonarRunnerInstallation configureDefaultSonarRunner(boolean broken) throws Exception {
     File exe = new File(getClass().getResource("SonarTestCase/sonar-runner" + (broken ? "-broken" : "") + "/bin/sonar-runner").toURI().getPath());
     if (!Functions.isWindows()) {

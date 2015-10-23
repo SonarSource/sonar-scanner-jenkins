@@ -151,6 +151,6 @@ public class BaseTest extends SonarTestCase {
       SONAR_HOST,
       "jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8",
       "dbuser", "dbpassword",
-      null, null, null, null, null));
+      null, null, null, null, null, null));
   }
 }

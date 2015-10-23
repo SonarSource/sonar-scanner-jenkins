@@ -105,13 +105,13 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     IOUtils.write("test password\n", os);
     assertThat(new String(bos.toByteArray())).isEqualTo("test ******\n");
   }
-  
+
   @Test
   public void maskDefaultPassword() throws IOException, InterruptedException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     configureSonar(new SonarInstallation("local", false, "http://localhost:9001", null, null, null,
-      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", null));
-    
+      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", null, null));
+
     OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
     IOUtils.write("test sonar\ntest something\n", os);
     assertThat(new String(bos.toByteArray())).isEqualTo("test ******\ntest something\n");
@@ -133,7 +133,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("SONAR_JDBC_URL", "");
     assertThat(map).containsEntry("SONAR_JDBC_USERNAME", "");
     assertThat(map).containsEntry("SONAR_JDBC_PASSWORD", "");
-    assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "");
+    assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
 
     // existing entries still there
     assertThat(map).containsEntry("key", "value");
@@ -147,7 +147,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(wrapper.getDescriptor().getSonarInstallations()).hasSize(1);
 
     SonarInstallation installation2 = new SonarInstallation("local2", true, "http://localhost:9001", null, null, null,
-      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password");
+      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", null);
     configureSonar(installation2);
     // disabled not shown
     assertThat(wrapper.getDescriptor().getSonarInstallations()).hasSize(0);
@@ -166,7 +166,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   public void failOnDisabledInstallationEnvironment() throws Exception {
     // disabled installation
     configureSonar(new SonarInstallation("local", true, "http://localhost:9001", null, null, null,
-      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password"));
+      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", null));
 
     BuildListener listener = mock(BuildListener.class);
     when(listener.getLogger()).thenReturn(stream);
@@ -201,6 +201,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(b.vars).containsEntry("SONAR_HOST_URL", "http://localhost:9001");
     assertThat(b.vars).containsEntry("SONAR_LOGIN", "local");
     assertThat(b.vars).containsEntry("SONAR_PASSWORD", "password");
+    assertThat(b.vars).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
 
     // job's log should have passwords masked
     assertThat(build.getLog(1000)).contains("the pass is: ******");
@@ -217,13 +218,13 @@ public class SonarBuildWrapperTest extends SonarTestCase {
       return true;
     }
   }
-  
+
   private void enableBuildWrapper(boolean enable) {
     j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setBuildWrapperEnabled(enable);
   }
 
   private static SonarInstallation createTestInstallation() {
     return new SonarInstallation("local", false, "http://localhost:9001", null, null, null,
-      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password");
+      null, "-X", new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", "key=value");
   }
 }

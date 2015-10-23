@@ -64,7 +64,8 @@ public class SonarInstallationTest extends SonarTestCase {
       "props",
       triggers,
       "sonarLogin",
-      "sonarPasswd"
+      "sonarPasswd",
+      "key=value"
       ));
     d.save();
 
@@ -81,9 +82,38 @@ public class SonarInstallationTest extends SonarTestCase {
     assertThat(i.getAdditionalProperties()).isEqualTo("props");
     assertThat(i.getSonarLogin()).isEqualTo("sonarLogin");
     assertThat(i.getSonarPassword()).isEqualTo("sonarPasswd");
+    assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");
 
     assertThat(storedConfig).doesNotContain("dbPasswd");
     assertThat(storedConfig).doesNotContain("sonarPasswd");
+  }
+
+  @Test
+  public void testAnalysisPropertiesWindows() {
+    assertAnalysisPropsWindows("key=value", "/d:key=value");
+    assertAnalysisPropsWindows("key=value key2=value2", "/d:key=value", "/d:key2=value2");
+    assertAnalysisPropsWindows("-Dkey=value", "/d:-Dkey=value");
+    assertAnalysisPropsWindows("");
+    assertAnalysisPropsWindows(null);
+  }
+
+  @Test
+  public void testAnalysisPropertiesUnix() {
+    assertAnalysisPropsUnix("key=value", "-Dkey=value");
+    assertAnalysisPropsUnix("key=value key2=value2", "-Dkey=value", "-Dkey2=value2");
+    assertAnalysisPropsUnix("-Dkey=value", "-D-Dkey=value");
+    assertAnalysisPropsUnix("");
+    assertAnalysisPropsUnix(null);
+  }
+
+  private void assertAnalysisPropsWindows(String input, String... expectedEntries) {
+    SonarInstallation inst = new SonarInstallation(null, false, null, null, null, null, null, null, null, null, null, input);
+    assertThat(inst.getAdditionalAnalysisPropertiesWindows()).isEqualTo(expectedEntries);
+  }
+  
+  private void assertAnalysisPropsUnix(String input, String... expectedEntries) {
+    SonarInstallation inst = new SonarInstallation(null, false, null, null, null, null, null, null, null, null, null, input);
+    assertThat(inst.getAdditionalAnalysisPropertiesUnix()).isEqualTo(expectedEntries);
   }
 
   private SonarPublisher.DescriptorImpl descriptor() {

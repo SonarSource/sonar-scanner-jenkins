@@ -34,7 +34,6 @@
 package hudson.plugins.sonar;
 
 import hudson.model.TaskListener;
-
 import hudson.Util;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Scrambler;
@@ -61,7 +60,10 @@ public class SonarInstallation {
    */
   @Deprecated
   private transient String databasePassword;
+  // command line arguments
   private final String additionalProperties;
+  // key/value pairs
+  private final String additionalAnalysisProperties;
 
   private TriggersConfig triggers;
 
@@ -81,18 +83,20 @@ public class SonarInstallation {
    */
   private Secret databaseSecret;
   private Secret sonarSecret;
+  private String[] split;
 
   @DataBoundConstructor
   public SonarInstallation(String name, boolean disabled,
     String serverUrl,
     String databaseUrl, String databaseLogin, String databasePassword,
     String mojoVersion, String additionalProperties, TriggersConfig triggers,
-    String sonarLogin, String sonarPassword) {
+    String sonarLogin, String sonarPassword, String additionalAnalysisProperties) {
     this.name = name;
     this.disabled = disabled;
     this.serverUrl = serverUrl;
     this.databaseUrl = databaseUrl;
     this.databaseLogin = databaseLogin;
+    this.additionalAnalysisProperties = additionalAnalysisProperties;
     setDatabasePassword(databasePassword);
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
@@ -214,6 +218,34 @@ public class SonarInstallation {
 
   public String getAdditionalProperties() {
     return additionalProperties;
+  }
+
+  public String getAdditionalAnalysisProperties() {
+    return additionalAnalysisProperties;
+  }
+
+  public String[] getAdditionalAnalysisPropertiesWindows() {
+    if (additionalAnalysisProperties == null) {
+      return new String[0];
+    }
+
+    split = StringUtils.split(additionalAnalysisProperties);
+    for (int i = 0; i < split.length; i++) {
+      split[i] = "/d:" + split[i];
+    }
+    return split;
+  }
+
+  public String[] getAdditionalAnalysisPropertiesUnix() {
+    if (additionalAnalysisProperties == null) {
+      return new String[0];
+    }
+
+    split = StringUtils.split(additionalAnalysisProperties);
+    for (int i = 0; i < split.length; i++) {
+      split[i] = "-D" + split[i];
+    }
+    return split;
   }
 
   public TriggersConfig getTriggers() {

@@ -78,21 +78,21 @@ public class MsBuildSQRunnerBeginTest extends SonarTestCase {
   @Test
   public void additionalArgs() throws Exception {
     SonarInstallation inst = new SonarInstallation("default", false, null, null, null, null,
-      null, "-X", null, null, null);
+      null, "/x:a=b", null, null, null, "key=value");
     configureSonar(inst);
     configureMsBuildRunner(true);
 
-    FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default", "-Y");
+    FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default", "/y");
     Run<?, ?> r = build(proj, Result.FAILURE);
 
-    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:key /n:name /v:1.0 -X -Y", r);
+    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:key /n:name /v:1.0 /d:key=value /x:a=b /y", r);
     assertLogContains("This is a fake MS Build Runner", r);
   }
 
   @Test
   public void testSonarProps() throws Exception {
     SonarInstallation inst = new SonarInstallation("default", false, "http://dummy-server:9090", null, null, null,
-      null, null, null, "login", "mypass");
+      null, null, null, "login", "mypass", null);
     configureSonar(inst);
     configureMsBuildRunner(false);
 

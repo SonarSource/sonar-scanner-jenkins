@@ -33,8 +33,9 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.action.UrlSonarAction;
+import hudson.util.ArgumentListBuilder;
 
+import hudson.plugins.sonar.action.UrlSonarAction;
 import hudson.plugins.sonar.action.BuildSonarAction;
 import hudson.plugins.sonar.action.ProjectSonarAction;
 import hudson.plugins.sonar.utils.SonarUtils;
@@ -214,9 +215,18 @@ public class SonarBuildWrapper extends BuildWrapper {
         map.put("SONAR_MAVEN_GOAL", "org.codehaus.mojo:sonar-maven-plugin:" + installation.getMojoVersion() + ":sonar");
       }
 
-      map.put("SONAR_EXTRA_PROPS", getOrDefault(inst.getAdditionalProperties(), ""));
+      map.put("SONAR_EXTRA_PROPS", getOrDefault(getAdditionalProps(inst), ""));
 
       return map;
+    }
+
+    private String getAdditionalProps(SonarInstallation inst) {
+      ArgumentListBuilder builder = new ArgumentListBuilder();
+      // no need to tokenize since we need a String anyway
+      builder.add(inst.getAdditionalAnalysisPropertiesUnix());
+      builder.add(inst.getAdditionalProperties());
+
+      return StringUtils.join(builder.toList(), ' ');
     }
 
     private String getOrDefault(String value, String defaultValue) {

@@ -169,15 +169,17 @@ public final class SonarMaven extends Maven {
       globalSettingsToUse = mavenModuleProject.getGlobalSettings();
     }
     // Other properties
-    String installationProperties = sonarInstallation.getAdditionalProperties();
+    String additionalArguments = sonarInstallation.getAdditionalProperties();
+    String analysisProperties = StringUtils.join(sonarInstallation.getAdditionalAnalysisPropertiesUnix(), ' ');
     String jobProperties = envVars.expand(sonarPublisher.getJobAdditionalProperties());
-    String aditionalProperties = ""
-      + (StringUtils.isNotBlank(installationProperties) ? installationProperties : "") + " "
+    String additionalProperties = ""
+      + (StringUtils.isNotBlank(additionalArguments) ? additionalArguments : "") + " "
+      + (StringUtils.isNotBlank(analysisProperties) ? analysisProperties : "") + " "
       + (StringUtils.isNotBlank(jobProperties) ? jobProperties : "");
     // Execute Maven
     // SONARPLUGINS-487
     String pomPath = build.getModuleRoot().child(pom).getRemote();
-    return new SonarMaven(aditionalProperties, mavenName, pomPath, mvnOptions, locaRepositoryToUse, sonarPublisher, listener, jdk, settingsToUse, globalSettingsToUse)
+    return new SonarMaven(additionalProperties, mavenName, pomPath, mvnOptions, locaRepositoryToUse, sonarPublisher, listener, jdk, settingsToUse, globalSettingsToUse)
       .perform(build, launcher, listener);
   }
 
