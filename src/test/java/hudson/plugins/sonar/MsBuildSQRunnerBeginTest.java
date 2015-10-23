@@ -58,7 +58,7 @@ public class MsBuildSQRunnerBeginTest extends SonarTestCase {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
 
-    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:\"key\" /n:\"name\" /v:\"1.0\"", r);
+    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:key /n:name /v:1.0", r);
     assertLogContains("This is a fake MS Build Runner", r);
     assertThat(r.getAction(EnvironmentContributingAction.class)).isNotNull();
   }
@@ -71,7 +71,7 @@ public class MsBuildSQRunnerBeginTest extends SonarTestCase {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.FAILURE);
 
-    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:\"key\" /n:\"name\" /v:\"1.0\"", r);
+    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:key /n:name /v:1.0", r);
     assertLogContains("This is a fake MS Build Runner", r);
   }
 
@@ -85,7 +85,7 @@ public class MsBuildSQRunnerBeginTest extends SonarTestCase {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default", "-Y");
     Run<?, ?> r = build(proj, Result.FAILURE);
 
-    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:\"key\" /n:\"name\" /v:\"1.0\" -X -Y", r);
+    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:key /n:name /v:1.0 -X -Y", r);
     assertLogContains("This is a fake MS Build Runner", r);
   }
 
@@ -98,7 +98,7 @@ public class MsBuildSQRunnerBeginTest extends SonarTestCase {
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
-    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:\"key\" /n:\"name\" /v:\"1.0\""
+    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:key /n:name /v:1.0"
       + " /d:sonar.host.url=http://dummy-server:9090 /d:sonar.login=login ********", r);
     assertLogContains("This is a fake MS Build Runner", r);
     assertLogDoesntContains("mypass", r);
