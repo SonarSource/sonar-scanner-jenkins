@@ -33,6 +33,8 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.plugins.sonar.utils.BuilderUtils;
+
 import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -222,17 +224,13 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
     ArgumentListBuilder args = new ArgumentListBuilder();
 
-    EnvVars env = run.getEnvironment(listener);
-    if (run instanceof AbstractBuild) {
-      env.overrideAll(((AbstractBuild<?, ?>) run).getBuildVariables());
-    }
+    EnvVars env = BuilderUtils.getEnvAndBuildVars(run, listener);
 
     SonarRunnerInstallation sri = getSonarRunnerInstallation();
     if (sri == null) {
       args.add(launcher.isUnix() ? "sonar-runner" : "sonar-runner.bat");
     } else {
-      sri = sri.forNode(getComputer(workspace).getNode(), listener);
-      sri = sri.forEnvironment(env);
+      sri = BuilderUtils.getBuildTool(sri, env, listener);
       String exe = sri.getExecutable(launcher);
       if (exe == null) {
         Logger.printFailureMessage(listener);
@@ -268,17 +266,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return r == 0;
   }
 
-  private static Computer getComputer(FilePath ws) {
-    Computer computer = null;
-    for (Computer c : Jenkins.getInstance().getComputers()) {
-      if (c.getChannel() == ws.getChannel()) {
-        computer = c;
-        break;
-      }
-    }
-    return computer;
-  }
-
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
     return performInternal(build, build.getWorkspace(), launcher, listener);
@@ -309,7 +296,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
   private int executeSonarRunner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
     InterruptedException {
-    int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(getModuleRoot(build, workspace)).join();
+    int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(build, workspace)).join();
     UrlSonarAction urlAction = SonarUtils.addUrlActionTo(build);
 
     // with workflows, we don't have realtime access to build logs, so url might be null
@@ -319,30 +306,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       build.addAction(new BuildSonarAction(url));
     }
     return r;
-  }
-
-  private static FilePath getModuleRoot(Run<?, ?> run, FilePath workspace) {
-    FilePath moduleRoot = null;
-    if (run instanceof AbstractBuild) {
-      AbstractBuild<?, ?> build = (AbstractBuild<?, ?>) run;
-      moduleRoot = build.getModuleRoot();
-    } else {
-      // otherwise get the first module of the first SCM
-      Object parent = run.getParent();
-      if (parent instanceof SCMTriggerItem) {
-        SCMTriggerItem scmTrigger = (SCMTriggerItem) parent;
-        Collection<? extends SCM> scms = scmTrigger.getSCMs();
-        if (scms != null && !scms.isEmpty()) {
-          SCM scm = scms.iterator().next();
-          FilePath[] moduleRoots = scm.getModuleRoots(workspace, null);
-          moduleRoot = moduleRoots != null && moduleRoots.length > 0 ? moduleRoots[0] : null;
-        }
-      }
-      if (moduleRoot == null) {
-        moduleRoot = workspace;
-      }
-    }
-    return moduleRoot;
   }
 
   private static AbstractProject<?, ?> getProject(Run<?, ?> run) {
@@ -357,7 +320,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   private void computeJdkToUse(Run<?, ?> build, FilePath workspace, TaskListener listener, EnvVars env) throws IOException, InterruptedException {
     JDK jdkToUse = getJdkToUse(getProject(build));
     if (jdkToUse != null) {
-      Computer computer = getComputer(workspace);
+      Computer computer = Computer.currentComputer();
       // just in case we are not in a build
       if (computer != null) {
         jdkToUse = jdkToUse.forNode(computer.getNode(), listener);
@@ -397,13 +360,13 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       }
     }
 
-    FilePath moduleRoot = getModuleRoot(build, workspace);
+    FilePath moduleRoot = BuilderUtils.getModuleRoot(build, workspace);
     args.append("sonar.projectBaseDir", moduleRoot.getRemote());
 
     // Project properties
     if (StringUtils.isNotBlank(getProject())) {
       String projectSettingsFile = env.expand(getProject());
-      FilePath projectSettingsFilePath = getModuleRoot(build, workspace).child(projectSettingsFile);
+      FilePath projectSettingsFilePath = BuilderUtils.getModuleRoot(build, workspace).child(projectSettingsFile);
       if (!projectSettingsFilePath.exists()) {
         // because of the poor choice of getModuleRoot() with CVS/Subversion, people often get confused
         // with where the build file path is relative to. Now it's too late to change this behavior

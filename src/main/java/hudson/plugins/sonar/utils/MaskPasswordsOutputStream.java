@@ -38,6 +38,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
@@ -87,11 +88,11 @@ public class MaskPasswordsOutputStream extends LineTransformationOutputStream {
 
   @Override
   protected void eol(byte[] bytes, int len) throws IOException {
-    String line = new String(bytes, 0, len);
+    String line = new String(bytes, 0, len, StandardCharsets.UTF_8);
     if (passwordsAsPattern != null && !line.contains(URL_IN_LOGS)) {
       line = passwordsAsPattern.matcher(line).replaceAll(REPLACEMENT);
     }
-    logger.write(line.getBytes());
+    logger.write(line.getBytes(StandardCharsets.UTF_8));
   }
 
   @Override

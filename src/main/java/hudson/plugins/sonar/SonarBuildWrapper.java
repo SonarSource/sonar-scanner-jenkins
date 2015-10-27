@@ -132,8 +132,7 @@ public class SonarBuildWrapper extends BuildWrapper {
   }
 
   @Extension
-  public static final class DescriptorImpl extends BuildWrapperDescriptor
-  {
+  public static final class DescriptorImpl extends BuildWrapperDescriptor {
     @Override
     public String getDisplayName() {
       return Messages.SonarBuildWrapper_DisplayName();

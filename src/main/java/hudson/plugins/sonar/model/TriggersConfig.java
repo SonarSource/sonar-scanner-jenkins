@@ -133,9 +133,7 @@ public class TriggersConfig implements Serializable {
       Iterator<Cause> iter = causes.iterator();
       while (iter.hasNext()) {
         Cause cause = iter.next();
-        if (isSkipScmCause() && SCMTrigger.SCMTriggerCause.class.isInstance(cause)) {
-          iter.remove();
-        } else if (isSkipUpstreamCause() && Cause.UpstreamCause.class.isInstance(cause)) {
+        if ((isSkipScmCause() && SCMTrigger.SCMTriggerCause.class.isInstance(cause)) || (isSkipUpstreamCause() && Cause.UpstreamCause.class.isInstance(cause))) {
           iter.remove();
         }
       }

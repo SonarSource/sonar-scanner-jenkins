@@ -266,6 +266,28 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
+  public JenkinsOrchestrator newFreestyleJobWithMsBuildSQRunner(String jobName, @Nullable String additionalArgs, File projectPath, String projectKey, String projectName,
+    String projectVersion) {
+    newFreestyleJobConfig(jobName, projectPath);
+
+    findElement(buttonByText("Add build step")).click();
+    findElement(By.linkText("SonarQube Scanner for MSBuild - Begin Analysis")).click();
+
+    setTextValue(findElement(By.name("_.projectKey")), projectKey);
+    setTextValue(findElement(By.name("_.projectName")), projectName);
+    setTextValue(findElement(By.name("_.projectVersion")), projectVersion);
+
+    if (additionalArgs != null) {
+      setTextValue(findElement(By.name("_.additionalArguments")), additionalArgs);
+    }
+
+    findElement(buttonByText("Add build step")).click();
+    findElement(By.linkText("SonarQube Scanner for MSBuild - End Analysis")).click();
+
+    findElement(buttonByText("Save")).click();
+    return this;
+  }
+
   private void activateSonarPostBuildMaven(String branch) {
     WebElement addPostBuildButton = findElement(buttonByText("Add post-build action"));
     scrollToElement(addPostBuildButton);
@@ -332,6 +354,20 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     findElement(By.name("hudson-tools-InstallSourceProperty")).click();
     WebElement homeDir = findElement(By.name("_.home"));
     setTextValue(homeDir, runnerScript.getParentFile().getParentFile().getAbsolutePath());
+    findElement(buttonByText("Save")).click();
+
+    return this;
+  }
+
+  public JenkinsOrchestrator configureMsBuildSQRunner_installation() {
+    driver.get(server.getUrl() + "/configure");
+    WebDriverWait wait = new WebDriverWait(driver, 5);
+    wait.until(ExpectedConditions.textToBePresentInElement(By.id("footer"), "Page generated"));
+
+    WebElement addMSBuildSQRunnerButton = findElement(buttonByText("Add MSBuild SonarQube Runner"));
+    scrollToElement(addMSBuildSQRunnerButton);
+    addMSBuildSQRunnerButton.click();
+    setTextValue(findElement(By.name("_.name")), "SQ runner");
     findElement(buttonByText("Save")).click();
 
     return this;
@@ -457,4 +493,5 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
       }
     });
   }
+
 }

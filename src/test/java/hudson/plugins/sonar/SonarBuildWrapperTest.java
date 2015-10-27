@@ -57,6 +57,8 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.verifyZeroInteractions;
+
 import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.contains;
 import static org.mockito.Mockito.verify;
@@ -133,11 +135,22 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("SONAR_JDBC_URL", "");
     assertThat(map).containsEntry("SONAR_JDBC_USERNAME", "");
     assertThat(map).containsEntry("SONAR_JDBC_PASSWORD", "");
+    assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "sonar:sonar");
     assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
 
     // existing entries still there
     assertThat(map).containsEntry("key", "value");
     verify(stream).println(contains("Injecting SonarQube environment variables"));
+  }
+
+  @Test
+  public void testEnvironmentMojoVersion() {
+    installation = new SonarInstallation(null, false, null, null, null, null, "2.0", null, null, null, null, null);
+    SonarEnvironment env = wrapper.new SonarEnvironment(installation, stream);
+
+    Map<String, String> map = new HashMap<String, String>();
+    env.buildEnvVars(map);
+    assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "org.codehaus.mojo:sonar-maven-plugin:2.0:sonar");
   }
 
   @Test
@@ -160,6 +173,16 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     when(listener.getLogger()).thenReturn(stream);
     wrapper.setUp(mock(AbstractBuild.class), mock(Launcher.class), listener);
     verify(listener).fatalError(contains("does not match"));
+  }
+
+  @Test
+  public void decorateWithoutInstallation() throws IOException, InterruptedException {
+    // no installation
+    AbstractBuild build = mock(AbstractBuild.class);
+    OutputStream out = wrapper.decorateLogger(build, null);
+    assertThat(out).isNull();
+
+    verifyZeroInteractions(build);
   }
 
   @Test
