@@ -57,19 +57,17 @@ import java.util.Collections;
 import java.util.List;
 
 public class MsBuildSQRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<MsBuildSQRunnerInstallation>, NodeSpecific<MsBuildSQRunnerInstallation> {
-  private static final String EXE_NAME = "MSBuild.SonarQube.Runner.exe";
   private static final long serialVersionUID = 1L;
-  private final String exeName;
+  private static String exeName = "MSBuild.SonarQube.Runner.exe";
 
   @DataBoundConstructor
   public MsBuildSQRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
-    this(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties, EXE_NAME);
+    super(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties);
   }
 
   @VisibleForTesting
-  public MsBuildSQRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties, String exeName) {
-    super(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties);
-    this.exeName = exeName;
+  static void setExeName(String exe) {
+    MsBuildSQRunnerInstallation.exeName = exe;
   }
 
   @Override

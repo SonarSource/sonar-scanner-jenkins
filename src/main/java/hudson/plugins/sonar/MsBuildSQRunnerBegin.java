@@ -55,6 +55,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import javax.annotation.Nullable;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
@@ -108,6 +109,20 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     if (result != 0) {
       throw new AbortException(Messages.MSBuildRunner_ExecFailed(result));
     }
+  }
+
+  private static Map<String, String> getSonarProps(SonarInstallation inst) {
+    Map<String, String> map = new LinkedHashMap<String, String>();
+
+    map.put("sonar.host.url", inst.getServerUrl());
+    map.put("sonar.login", inst.getSonarLogin());
+    map.put("sonar.password", inst.getSonarPassword());
+
+    map.put("sonar.jdbc.url", inst.getDatabaseUrl());
+    map.put("sonar.jdbc.username", inst.getDatabaseLogin());
+    map.put("sonar.jdbc.password", inst.getDatabasePassword());
+
+    return map;
   }
 
   private void addArgsTo(ArgumentListBuilder args, SonarInstallation sonarInst, EnvVars env, Map<String, String> props) {

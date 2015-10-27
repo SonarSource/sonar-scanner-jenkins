@@ -34,7 +34,6 @@
 package hudson.plugins.sonar;
 
 import org.codehaus.plexus.util.StringUtils;
-
 import hudson.plugins.sonar.action.UrlSonarAction;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.plugins.sonar.action.BuildSonarAction;
@@ -55,6 +54,7 @@ import hudson.model.TaskListener;
 import hudson.model.Run;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import hudson.tasks.Builder;
@@ -117,6 +117,18 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     }
 
     args.addTokenized(sonarInstallation.getAdditionalProperties());
+  }
+
+  private static Map<String, String> getSonarProps(SonarInstallation inst) {
+    Map<String, String> map = new LinkedHashMap<String, String>();
+
+    map.put("sonar.login", inst.getSonarLogin());
+    map.put("sonar.password", inst.getSonarPassword());
+
+    map.put("sonar.jdbc.username", inst.getDatabaseLogin());
+    map.put("sonar.jdbc.password", inst.getDatabasePassword());
+
+    return map;
   }
 
   private static void addBadge(Run<?, ?> run) throws IOException {

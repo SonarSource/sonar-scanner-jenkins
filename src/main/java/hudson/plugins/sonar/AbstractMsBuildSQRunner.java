@@ -50,7 +50,6 @@ import javax.annotation.Nullable;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleBuildStep {
@@ -70,7 +69,7 @@ public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleB
     }
     return name;
   }
-  
+
   protected static SonarInstallation getSonarInstallation(String instName, TaskListener listener) throws AbortException {
     if (!SonarInstallation.isValid(instName, listener)) {
       throw new AbortException();
@@ -89,20 +88,6 @@ public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleB
       return null;
     }
     return name;
-  }
-
-  protected static Map<String, String> getSonarProps(SonarInstallation inst) {
-    Map<String, String> map = new LinkedHashMap<String, String>();
-
-    map.put("sonar.host.url", inst.getServerUrl());
-    map.put("sonar.login", inst.getSonarLogin());
-    map.put("sonar.password", inst.getSonarPassword());
-
-    map.put("sonar.jdbc.url", inst.getDatabaseUrl());
-    map.put("sonar.jdbc.username", inst.getDatabaseLogin());
-    map.put("sonar.jdbc.password", inst.getDatabasePassword());
-
-    return map;
   }
 
   protected static void saveRunnerName(Run<?, ?> r, @Nullable String name) throws IOException, InterruptedException {
