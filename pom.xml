@@ -90,11 +90,11 @@
   </scm>
   <issueManagement>
     <system>JIRA</system>
-    <url>http://jira.codehaus.org/browse/SONARJNKNS</url>
+    <url>http://jira.sonarsource.com/browse/SONARJNKNS</url>
   </issueManagement>
   <ciManagement>
-    <system>Jenkins</system>
-    <url>http://sonarplugins.ci.cloudbees.com/job/jenkins</url>
+    <system>Travis</system>
+    <url>https://travis-ci.org/SonarSource/jenkins-sonar-plugin</url>
   </ciManagement>
 
   <properties>
