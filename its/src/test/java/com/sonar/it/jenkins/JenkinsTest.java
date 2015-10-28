@@ -26,16 +26,17 @@ import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.URLLocation;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
 import org.sonar.wsclient.services.ResourceQuery;
-
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assume.assumeFalse;
 
@@ -165,7 +166,8 @@ public class JenkinsTest {
 
     assertThat(result.getLogs())
       .contains(
-        "tools/hudson.plugins.sonar.MsBuildSQRunnerInstallation/SQ_runner/MSBuild.SonarQube.Runner.exe begin /k:abacus-msbuild-sq-runner \"/n:Abacus with space\" /v:1.0 /d:sonar.host.url="
+        "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation" + File.separator + "SQ_runner" + File.separator
+          + "MSBuild.SonarQube.Runner.exe begin /k:abacus-msbuild-sq-runner \"/n:Abacus with space\" /v:1.0 /d:sonar.host.url="
           + orchestrator.getServer().getUrl());
 
     assertThat(toolPath).isDirectory();
@@ -187,7 +189,11 @@ public class JenkinsTest {
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
-    assertThat(result.getLogs()).contains("sonar-runner -X -Duseless=Y -e");
+    if (isWindows()) {
+      assertThat(result.getLogs()).contains("sonar-runner.bat -X -Duseless=Y -e");
+    } else {
+      assertThat(result.getLogs()).contains("sonar-runner -X -Duseless=Y -e");
+    }
   }
 
   // SONARJNKNS-214
@@ -203,10 +209,6 @@ public class JenkinsTest {
     assertThat(result.getLogs()).contains("Task views does not exist");
   }
 
-  private void assertSonarUrlOnJob(String jobName, String projectKey, String expectedUrl) {
-    assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(expectedUrl);
-  }
-
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
     // Computation of Sonar URL was not reliable before 2.1 & Sonar 3.6
     assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
@@ -217,6 +219,10 @@ public class JenkinsTest {
 
   private void waitForComputationOnSQServer() {
     new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();
+  }
+
+  protected boolean isWindows() {
+    return File.pathSeparatorChar == ';' || System.getProperty("os.name").startsWith("Windows");
   }
 
 }
