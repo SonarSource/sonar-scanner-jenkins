@@ -36,19 +36,14 @@ package hudson.plugins.sonar;
 import javax.annotation.Nullable;
 
 import hudson.model.EnvironmentContributingAction;
-import hudson.Functions;
-import hudson.util.jna.GNUCLibrary;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.FreeStyleProject;
 import org.junit.Test;
 
-import java.io.File;
-import java.net.URISyntaxException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MsBuildSQRunnerBeginTest extends SonarTestCase {
+public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testNormalExec() throws Exception {
@@ -58,7 +53,7 @@ public class MsBuildSQRunnerBeginTest extends SonarTestCase {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
 
-    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:key /n:name /v:1.0", r);
+    assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0", r);
     assertLogContains("This is a fake MS Build Runner", r);
     assertThat(r.getAction(EnvironmentContributingAction.class)).isNotNull();
   }
@@ -71,7 +66,7 @@ public class MsBuildSQRunnerBeginTest extends SonarTestCase {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.FAILURE);
 
-    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:key /n:name /v:1.0", r);
+    assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0", r);
     assertLogContains("This is a fake MS Build Runner", r);
   }
 
@@ -85,7 +80,7 @@ public class MsBuildSQRunnerBeginTest extends SonarTestCase {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default", "/y");
     Run<?, ?> r = build(proj, Result.FAILURE);
 
-    assertLogContains("MSBuild.SonarQube.Runner.exe begin /k:key /n:name /v:1.0 /d:key=value /x:a=b /y", r);
+    assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0 /d:key=value /x:a=b /y", r);
     assertLogContains("This is a fake MS Build Runner", r);
   }
 
@@ -98,7 +93,7 @@ public class MsBuildSQRunnerBeginTest extends SonarTestCase {
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
-    assertLogContains("begin /k:key /n:name /v:1.0"
+    assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0"
       + " /d:sonar.host.url=http://dummy-server:9090 /d:sonar.login=login ********", r);
     assertLogContains("This is a fake MS Build Runner", r);
     assertLogDoesntContains("mypass", r);
@@ -120,26 +115,5 @@ public class MsBuildSQRunnerBeginTest extends SonarTestCase {
 
   private FreeStyleProject createFreeStyleProjectWithMSBuild(String sonarInst, String msBuildInst, @Nullable String additionalArgs) throws Exception {
     return setupFreeStyleProject(new MsBuildSQRunnerBegin(msBuildInst, sonarInst, "key", "name", "1.0", additionalArgs));
-  }
-
-  private MsBuildSQRunnerInstallation configureMsBuildRunner(boolean fail) throws URISyntaxException {
-    String res = "SonarTestCase/ms-build-runner";
-    if (fail) {
-      res += "-broken";
-    }
-    File home = new File(getClass().getResource(res).toURI().getPath());
-    String exeName = null;
-
-    if (Functions.isWindows() || System.getProperty("os.name").startsWith("Windows")) {
-      exeName = "MSBuild.SonarQube.Runner.bat";
-    } else {
-      exeName = "MSBuild.SonarQube.Runner.exe";
-      GNUCLibrary.LIBC.chmod(new File(home, exeName).getAbsolutePath(), 0755);
-    }
-    MsBuildSQRunnerInstallation inst = new MsBuildSQRunnerInstallation("default", home.getAbsolutePath(), null);
-    MsBuildSQRunnerInstallation.setExeName(exeName);
-    j.jenkins.getDescriptorByType(MsBuildSQRunnerInstallation.DescriptorImpl.class).setInstallations(inst);
-
-    return inst;
   }
 }

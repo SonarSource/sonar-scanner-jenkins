@@ -33,34 +33,40 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.model.Result;
-import hudson.model.Run;
-import org.junit.Test;
-import hudson.model.FreeStyleProject;
+import hudson.Functions;
+import hudson.util.jna.GNUCLibrary;
 
-public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
-  @Test
-  public void testNormalExec() throws Exception {
-    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, false, "localhost", "http://dbhost.org", "dbLogin", "dbPass", null, null, null, "login", "mypass", null));
-    configureMsBuildRunner(false);
+import java.io.File;
+import java.net.URISyntaxException;
 
-    FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));
-    proj.getBuildersList().add(new MsBuildSQRunnerEnd());
-    Run<?, ?> r = build(proj, Result.SUCCESS);
-    assertLogContains("end /d:sonar.login=login ******** /d:sonar.jdbc.username=dbLogin ********", r);
-    assertLogContains("This is a fake MS Build Runner", r);
-
-    assertLogDoesntContains("dbPass", r);
-    assertLogDoesntContains("mypass", r);
+public abstract class MsBuildSQRunnerTest extends SonarTestCase {
+  protected String getExeName() {
+    if (isWindows()) {
+      return "MSBuild.SonarQube.Runner.bat";
+    } else {
+      return "MSBuild.SonarQube.Runner.exe";
+    }
   }
 
-  @Test
-  public void NoBegin() throws Exception {
-    configureDefaultSonar();
-    configureMsBuildRunner(false);
+  protected boolean isWindows() {
+    return Functions.isWindows() || System.getProperty("os.name").startsWith("Windows");
+  }
 
-    FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerEnd());
-    Run<?, ?> r = build(proj, Result.FAILURE);
-    assertLogContains("No MSBuild SonarQube Runner installation found in the build environment", r);
+  protected MsBuildSQRunnerInstallation configureMsBuildRunner(boolean fail) throws URISyntaxException {
+    String res = "SonarTestCase/ms-build-runner";
+    if (fail) {
+      res += "-broken";
+    }
+    File home = new File(getClass().getResource(res).toURI().getPath());
+    String exeName = getExeName();
+
+    if (!isWindows()) {
+      GNUCLibrary.LIBC.chmod(new File(home, exeName).getAbsolutePath(), 0755);
+    }
+    MsBuildSQRunnerInstallation inst = new MsBuildSQRunnerInstallation("default", home.getAbsolutePath(), null);
+    MsBuildSQRunnerInstallation.setExeName(exeName);
+    j.jenkins.getDescriptorByType(MsBuildSQRunnerInstallation.DescriptorImpl.class).setInstallations(inst);
+
+    return inst;
   }
 }
