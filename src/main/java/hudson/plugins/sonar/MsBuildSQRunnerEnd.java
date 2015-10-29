@@ -74,20 +74,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
 
     MsBuildSQRunnerInstallation msBuildRunner = Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerBegin.DescriptorImpl.class)
       .getMsBuildRunnerInstallation(runnerName);
-    msBuildRunner = BuilderUtils.getBuildTool(msBuildRunner, env, listener);
-
-    String exe;
-    if (msBuildRunner != null) {
-      exe = msBuildRunner.getExecutable(launcher);
-      if (exe == null) {
-        throw new AbortException(Messages.MsBuildRunner_ExecutableNotFound(msBuildRunner.getName()));
-      }
-    } else {
-      listener.getLogger().println(Messages.MsBuildRunner_NoInstallation());
-      exe = EXE;
-    }
-
-    args.add(exe);
+    args.add(getExeName(msBuildRunner, env, launcher, listener));
     addArgs(args, env, listener);
 
     int result = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(run, workspace)).join();

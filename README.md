@@ -26,10 +26,10 @@ automatically by Jenkins/Hudson from a json file hosted on their respective upda
 * http://mirrors.jenkins-ci.org/updates/updates/hudson.plugins.sonar.SonarRunnerInstaller.json
 * http://mirrors.jenkins-ci.org/updates/updates/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller.json
 
-For Jenkins the files are automatically updated when a new version of Sonar Runner or MSBuild SonarQube Runner are published,
+For Jenkins, the files are automatically updated when a new version of Sonar Runner or MSBuild SonarQube Runner is published,
 thanks to crawlers written in groovy:
 * https://github.com/jenkinsci/backend-crawler/blob/master/sonarrunner.groovy
 * https://github.com/jenkinsci/backend-crawler/blob/master/msbuildsonarquberunner.groovy
 
-For Hudson it seems it is a manual process and we should ask on the hudson dev mailing list
+For Hudson, it seems it is a manual process and we should ask on the hudson dev mailing list
 for someone to update the json file.

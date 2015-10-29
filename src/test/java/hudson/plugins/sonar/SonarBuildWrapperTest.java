@@ -33,9 +33,7 @@
  */
 package hudson.plugins.sonar;
 
-import org.apache.commons.io.IOUtils;
-import hudson.model.Run;
-import org.junit.Before;
+import hudson.model.Action;
 import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.BuildListener;
@@ -43,10 +41,14 @@ import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.FreeStyleProject;
+import hudson.model.Run;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.plugins.sonar.SonarBuildWrapper.DescriptorImpl;
 import hudson.plugins.sonar.SonarBuildWrapper.SonarEnvironment;
+import hudson.plugins.sonar.action.UrlSonarAction;
 import hudson.plugins.sonar.model.TriggersConfig;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.hudson.test.TestBuilder;
 
@@ -57,13 +59,14 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Matchers.any;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.contains;
-import static org.mockito.Mockito.verify;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.contains;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 public class SonarBuildWrapperTest extends SonarTestCase {
   private SonarBuildWrapper wrapper;
@@ -81,6 +84,27 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   public void testInstance() {
     assertThat(wrapper.getInstallationName()).isEqualTo("local");
     assertThat(wrapper.getDescriptor()).isNotNull();
+  }
+
+  @Test
+  public void testInstallationNameRoundTrip() {
+    wrapper.setInstallationName("name");
+    assertThat(wrapper.getInstallationName()).isEqualTo("name");
+  }
+
+  @Test
+  public void testAddBuildAction() throws IOException, InterruptedException {
+    UrlSonarAction action = mock(UrlSonarAction.class);
+    AbstractBuild<?, ?> build = mock(AbstractBuild.class);
+    BuildListener listener = mock(BuildListener.class);
+
+    when(build.getAction(UrlSonarAction.class)).thenReturn(action);
+    when(action.isNew()).thenReturn(true);
+
+    SonarEnvironment env = wrapper.new SonarEnvironment(installation, stream);
+    env.tearDown(build, listener);
+
+    verify(build).addAction(any(Action.class));
   }
 
   @Test
@@ -178,7 +202,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   @Test
   public void decorateWithoutInstallation() throws IOException, InterruptedException {
     // no installation
-    AbstractBuild build = mock(AbstractBuild.class);
+    AbstractBuild<?, ?> build = mock(AbstractBuild.class);
     OutputStream out = wrapper.decorateLogger(build, null);
     assertThat(out).isNull();
 

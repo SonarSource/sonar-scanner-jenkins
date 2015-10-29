@@ -55,13 +55,11 @@ import hudson.plugins.sonar.action.UrlSonarAction;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarUtils;
-import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
-import jenkins.triggers.SCMTriggerItem;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -69,7 +67,6 @@ import javax.annotation.Nullable;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Properties;
 

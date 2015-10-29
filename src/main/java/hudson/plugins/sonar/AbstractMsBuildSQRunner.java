@@ -33,8 +33,10 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.model.TaskListener;
+import hudson.plugins.sonar.utils.BuilderUtils;
 
+import hudson.Launcher;
+import hudson.model.TaskListener;
 import org.codehaus.plexus.util.StringUtils;
 import hudson.Util;
 import hudson.model.Run;
@@ -88,6 +90,23 @@ public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleB
       return null;
     }
     return name;
+  }
+
+  protected String getExeName(MsBuildSQRunnerInstallation msBuildRunner, EnvVars env, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+    MsBuildSQRunnerInstallation inst = BuilderUtils.getBuildTool(msBuildRunner, env, listener);
+
+    String exe;
+    if (inst != null) {
+      exe = inst.getExecutable(launcher);
+      if (exe == null) {
+        throw new AbortException(Messages.MsBuildRunner_ExecutableNotFound(inst.getName()));
+      }
+    } else {
+      listener.getLogger().println(Messages.MsBuildRunner_NoInstallation());
+      exe = EXE;
+    }
+
+    return exe;
   }
 
   protected static void saveRunnerName(Run<?, ?> r, @Nullable String name) throws IOException, InterruptedException {

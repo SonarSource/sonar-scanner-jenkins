@@ -34,44 +34,14 @@
 package hudson.plugins.sonar;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-import hudson.model.AbstractProject;
-import hudson.plugins.sonar.MsBuildSQRunnerEnd.DescriptorImpl;
-import hudson.model.Result;
-import hudson.model.Run;
 import org.junit.Test;
-import hudson.model.FreeStyleProject;
 
-public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
+public class MsBuildSonarQubeRunnerInstallerTest extends SonarTestCase {
+  private MsBuildSonarQubeRunnerInstaller installer;
+  
   @Test
-  public void testNormalExec() throws Exception {
-    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, false, "localhost", "http://dbhost.org", "dbLogin", "dbPass", null, null, null, "login", "mypass", null));
-    configureMsBuildRunner(false);
-
-    FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));
-    proj.getBuildersList().add(new MsBuildSQRunnerEnd());
-    Run<?, ?> r = build(proj, Result.SUCCESS);
-    assertLogContains("end /d:sonar.login=login ******** /d:sonar.jdbc.username=dbLogin ********", r);
-    assertLogContains("This is a fake MS Build Runner", r);
-
-    assertLogDoesntContains("dbPass", r);
-    assertLogDoesntContains("mypass", r);
-  }
-
-  @Test
-  public void testDesc() {
-    DescriptorImpl desc = new MsBuildSQRunnerEnd.DescriptorImpl();
-    assertThat(desc.getHelpFile()).isNotNull();
-    assertThat(desc.isApplicable(AbstractProject.class)).isTrue();
-  }
-
-  @Test
-  public void NoBegin() throws Exception {
-    configureDefaultSonar();
-    configureMsBuildRunner(false);
-
-    FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerEnd());
-    Run<?, ?> r = build(proj, Result.FAILURE);
-    assertLogContains("No MSBuild SonarQube Runner installation found in the build environment", r);
+  public void test() {
+    installer = new MsBuildSonarQubeRunnerInstaller("2.0");
+    assertThat(installer.getDescriptor().isApplicable(MsBuildSQRunnerInstallation.class)).isTrue();
   }
 }
