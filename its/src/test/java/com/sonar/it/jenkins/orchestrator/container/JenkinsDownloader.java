@@ -118,7 +118,7 @@ public class JenkinsDownloader {
 
   private File downloadFromJenkinsCi(JenkinsDistribution distribution, File toFile) {
     if (distribution.isRelease()) {
-      String url = "http://mirrors.jenkins-ci.org/war/" + distribution.getVersion() + "/jenkins.war";
+      String url = "https://updates.jenkins-ci.org/download/war/" + distribution.getVersion() + "/jenkins.war";
       return downloadUrl(url, toFile);
     }
     return null;

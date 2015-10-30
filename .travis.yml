@@ -11,7 +11,7 @@ script:
 env:
   global:
     - DISPLAY=:99.0
-    - JENKINS_VERSION=1.580.1
+    - JENKINS_VERSION=1.580.3
   matrix:
     - RUN_ITS=false
     - RUN_ITS=true SQ_VERSION=DEV
