@@ -109,6 +109,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
   private static Map<String, String> getSonarProps(SonarInstallation inst) {
     Map<String, String> map = new LinkedHashMap<String, String>();
 
+    map.put("sonar.host.url", inst.getServerUrl());
     map.put("sonar.login", inst.getSonarLogin());
     map.put("sonar.password", inst.getSonarPassword());
 
