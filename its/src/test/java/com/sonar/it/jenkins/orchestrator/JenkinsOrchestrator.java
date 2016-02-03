@@ -28,7 +28,7 @@ import com.sonar.it.jenkins.orchestrator.container.JenkinsWrapper;
 import com.sonar.it.jenkins.orchestrator.container.ServerInstaller;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.build.SonarRunnerInstaller;
+import com.sonar.orchestrator.build.SonarScannerInstaller;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.container.Server;
@@ -344,7 +344,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     WebDriverWait wait = new WebDriverWait(driver, 5);
     wait.until(ExpectedConditions.textToBePresentInElement(By.id("footer"), "Page generated"));
 
-    SonarRunnerInstaller installer = new SonarRunnerInstaller(config.fileSystem());
+    SonarScannerInstaller installer = new SonarScannerInstaller(config.fileSystem());
     File runnerScript = installer.install(Version.create("2.4"), config.fileSystem().workspace());
 
     WebElement addSonarRunnerButton = findElement(buttonByText("Add SonarQube Runner"));
