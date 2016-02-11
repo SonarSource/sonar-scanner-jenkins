@@ -59,6 +59,15 @@ public class SonarUtilsTest {
       + "bar";
     assertThat(SonarUtils.extractSonarProjectURLFromLogs(mockedBuild(log))).isEqualTo("http://sonar:9000/dashboard/index/myproject:onbranch");
   }
+  
+  @Test
+  public void testMajorMinor() {
+    assertThat(SonarUtils.extractMajorMinor("3.0")).isEqualTo(3.0f);
+    assertThat(SonarUtils.extractMajorMinor("3.0.3")).isEqualTo(3.0f);
+    assertThat(SonarUtils.extractMajorMinor("3.0-SNAPSHOT")).isEqualTo(3.0f);
+    assertThat(SonarUtils.extractMajorMinor("30")).isEqualTo(null);
+    assertThat(SonarUtils.extractMajorMinor("sdf")).isEqualTo(null);
+  }
 
   @Test
   public void addUrlActionWhenNoLogAndNoLastUrl() throws IOException {
