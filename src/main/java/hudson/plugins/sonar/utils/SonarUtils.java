@@ -115,6 +115,17 @@ public final class SonarUtils {
 
     return action;
   }
+  
+  public static Float extractMajorMinor(String version) {
+    Pattern p = Pattern.compile("\\d+\\.\\d+");
+    Matcher m = p.matcher(version);
+    
+    if(m.find()) {
+      return Float.parseFloat(m.group());
+    }
+    
+    return null;
+  }
 
   public static String getSonarUrlFrom(@Nullable AbstractBuild<?, ?> build) {
     if(build == null) {

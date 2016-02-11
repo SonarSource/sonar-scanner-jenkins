@@ -211,12 +211,22 @@ public class SonarBuildWrapper extends BuildWrapper {
       if (StringUtils.isEmpty(inst.getMojoVersion())) {
         map.put("SONAR_MAVEN_GOAL", "sonar:sonar");
       } else {
-        map.put("SONAR_MAVEN_GOAL", "org.codehaus.mojo:sonar-maven-plugin:" + installation.getMojoVersion() + ":sonar");
+        map.put("SONAR_MAVEN_GOAL", getMavenGoal(inst.getMojoVersion()));
       }
 
       map.put("SONAR_EXTRA_PROPS", getOrDefault(getAdditionalProps(inst), ""));
 
       return map;
+    }
+
+    private String getMavenGoal(String version) {
+      Float majorMinor = SonarUtils.extractMajorMinor(version);
+
+      if (majorMinor == null || majorMinor >= 3.0) {
+        return "org.sonarsource.scanner.maven:sonar-maven-plugin:" + version + ":sonar";
+      } else {
+        return "org.codehaus.mojo:sonar-maven-plugin:" + version + ":sonar";
+      }
     }
 
     private String getAdditionalProps(SonarInstallation inst) {
