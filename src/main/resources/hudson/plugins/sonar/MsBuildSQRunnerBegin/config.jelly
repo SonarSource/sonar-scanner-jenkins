@@ -19,23 +19,23 @@
     </f:entry>
   </j:if>
 
-  <!-- ############ MS Build Runner Installation ############ -->
-  <j:set var="runners" value="${descriptor.getMsBuildRunnerInstallations()}" />
-  <j:if test="${empty(runners)}">
-    <!-- no MS Build Runner is configured. this will be an error, so warn the user now -->
-    <f:entry title="${%MsBuildRunnerTitle}">
+  <!-- ############ MS Build Scanner Installation ############ -->
+  <j:set var="scanners" value="${descriptor.getMsBuildScannerInstallations()}" />
+  <j:if test="${empty(scanners)}">
+    <!-- no MS Build Scanner is configured. this will be an error, so warn the user now -->
+    <f:entry title="${%MsBuildScannerTitle}">
       <div class="error">
-        ${%MsBuildRunner.error.1}&lt;br>
-        ${%MsBuildRunner.error.2(rootURL)}
+        ${%MsBuildScanner.error.1}&lt;br>
+        ${%MsBuildScanner.error.2(rootURL)}
       </div>
     </f:entry>
   </j:if>
-  <j:if test="${runners.size() gt 1}">
+  <j:if test="${scanners.size() gt 1}">
     <!-- choice not necessary if there's no choice -->
-    <f:entry title="${%MsBuildRunnerTitle}">
-      <select class="setting-input" name="msBuildRunnerInstallationName">
-        <j:forEach var="inst" items="${descriptor.getMsBuildRunnerInstallations()}">
-          <f:option selected="${inst.name==instance.msBuildRunnerInstallationName}" value="${inst.name}">${inst.name}</f:option>
+    <f:entry title="${%MsBuildScannerTitle}">
+      <select class="setting-input" name="msBuildScannerInstallationName">
+        <j:forEach var="inst" items="${descriptor.getMsBuildScannerInstallations()}">
+          <f:option selected="${inst.name==instance.msBuildScannerInstallationName}" value="${inst.name}">${inst.name}</f:option>
         </j:forEach>
       </select>
     </f:entry>

@@ -231,7 +231,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       String exe = sri.getExecutable(launcher);
       if (exe == null) {
         Logger.printFailureMessage(listener);
-        listener.fatalError(Messages.SonarRunner_ExecutableNotFound(sri.getName()));
+        listener.fatalError(Messages.SonarScanner_ExecutableNotFound(sri.getName()));
         return false;
       }
       args.add(exe);
@@ -272,10 +272,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     Logger.printFailureMessage(listener);
     Util.displayIOException(e, listener);
 
-    String errorMessage = Messages.SonarRunner_ExecFailed();
+    String errorMessage = Messages.SonarScanner_ExecFailed();
     if (sri == null && (System.currentTimeMillis() - startTime) < 1000 && getDescriptor().getSonarRunnerInstallations() == null) {
-      // looks like the user didn't configure any SonarQube Runner installation
-      errorMessage += Messages.SonarRunner_GlobalConfigNeeded();
+      // looks like the user didn't configure any SonarQube Scanner installation
+      errorMessage += Messages.SonarScanner_GlobalConfigNeeded();
     }
     e.printStackTrace(listener.fatalError(errorMessage));
 
@@ -437,7 +437,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
     @Override
     public String getDisplayName() {
-      return Messages.SonarRunnerBuilder_DisplayName();
+      return Messages.SonarScannerBuilder_DisplayName();
     }
 
     public SonarRunnerInstallation[] getSonarRunnerInstallations() {

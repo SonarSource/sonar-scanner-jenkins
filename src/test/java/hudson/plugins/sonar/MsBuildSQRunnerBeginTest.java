@@ -48,26 +48,26 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
   @Test
   public void testNormalExec() throws Exception {
     configureDefaultSonar();
-    configureMsBuildRunner(false);
+    configureMsBuildScanner(false);
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
 
     assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0", r);
-    assertLogContains("This is a fake MS Build Runner", r);
+    assertLogContains("This is a fake MS Build Scanner", r);
     assertThat(r.getAction(EnvironmentContributingAction.class)).isNotNull();
   }
 
   @Test
   public void failExe() throws Exception {
     configureDefaultSonar();
-    configureMsBuildRunner(true);
+    configureMsBuildScanner(true);
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.FAILURE);
 
     assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0", r);
-    assertLogContains("This is a fake MS Build Runner", r);
+    assertLogContains("This is a fake MS Build Scanner", r);
   }
 
   @Test
@@ -75,13 +75,13 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     SonarInstallation inst = new SonarInstallation("default", false, null, null, null, null,
       null, "/x:a=b", null, null, null, "key=value");
     configureSonar(inst);
-    configureMsBuildRunner(true);
+    configureMsBuildScanner(true);
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default", "/y");
     Run<?, ?> r = build(proj, Result.FAILURE);
 
     assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0 /d:key=value /x:a=b /y", r);
-    assertLogContains("This is a fake MS Build Runner", r);
+    assertLogContains("This is a fake MS Build Scanner", r);
   }
 
   @Test
@@ -89,24 +89,24 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     SonarInstallation inst = new SonarInstallation("default", false, "http://dummy-server:9090", null, null, null,
       null, null, null, "login", "mypass", null);
     configureSonar(inst);
-    configureMsBuildRunner(false);
+    configureMsBuildScanner(false);
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
     assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0"
       + " /d:sonar.host.url=http://dummy-server:9090 /d:sonar.login=login ********", r);
-    assertLogContains("This is a fake MS Build Runner", r);
+    assertLogContains("This is a fake MS Build Scanner", r);
     assertLogDoesntContains("mypass", r);
   }
 
   @Test
   public void testNoMsBuildInst() throws Exception {
     configureDefaultSonar();
-    configureMsBuildRunner(false);
+    configureMsBuildScanner(false);
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "non-existing");
     Run<?, ?> r = build(proj, Result.FAILURE);
-    assertLogContains("No MSBuild SonarQube Runner installation found", r);
+    assertLogContains("No SonarQube Scanner for MSBuild installation found", r);
   }
 
   private FreeStyleProject createFreeStyleProjectWithMSBuild(String sonarInst, String msBuildInst) throws Exception {

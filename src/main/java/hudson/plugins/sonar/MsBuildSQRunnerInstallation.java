@@ -101,7 +101,7 @@ public class MsBuildSQRunnerInstallation extends ToolInstallation implements Env
 
     @Override
     public String getDisplayName() {
-      return "MSBuild SonarQube Runner";
+      return "SonarQube Scanner for MSBuild";
     }
 
     @Override

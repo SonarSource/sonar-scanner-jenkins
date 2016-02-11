@@ -59,7 +59,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
-* Represents a Sonar runner installation in a system.
+* Represents a Sonar scanner installation in a system.
 */
 public class SonarRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<SonarRunnerInstallation>, NodeSpecific<SonarRunnerInstallation> {
   private static final long serialVersionUID = 1L;
@@ -113,7 +113,7 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
 
     @Override
     public String getDisplayName() {
-      return "SonarQube Runner";
+      return "SonarQube Scanner";
     }
 
     @Override

@@ -83,18 +83,18 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
 
     EnvVars env = BuilderUtils.getEnvAndBuildVars(run, listener);
     SonarInstallation sonarInstallation = getSonarInstallation(getSonarInstallationName(), listener);
-    saveRunnerName(run, msBuildRunnerInstallationName);
+    saveScannerName(run, msBuildRunnerInstallationName);
     saveSonarInstanceName(run, getSonarInstallationName());
 
-    MsBuildSQRunnerInstallation msBuildRunner = getDescriptor().getMsBuildRunnerInstallation(msBuildRunnerInstallationName);
-    args.add(getExeName(msBuildRunner, env, launcher, listener));
+    MsBuildSQRunnerInstallation msBuildScanner = getDescriptor().getMsBuildScannerInstallation(msBuildRunnerInstallationName);
+    args.add(getExeName(msBuildScanner, env, launcher, listener));
     Map<String, String> props = getSonarProps(sonarInstallation);
     addArgsTo(args, sonarInstallation, env, props);
 
     int result = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(run, workspace)).join();
 
     if (result != 0) {
-      throw new AbortException(Messages.MSBuildRunner_ExecFailed(result));
+      throw new AbortException(Messages.MSBuildScanner_ExecFailed(result));
     }
   }
 
@@ -158,7 +158,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     return Util.fixEmptyAndTrim(sonarInstallationName);
   }
 
-  public String getMsBuildRunnerInstallationName() {
+  public String getMsBuildScannerInstallationName() {
     return Util.fixEmptyAndTrim(msBuildRunnerInstallationName);
   }
 
@@ -178,12 +178,12 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
 
     @Override
     public String getHelpFile() {
-      return "/plugin/sonar/help-ms-build-sq-runner-begin.html";
+      return "/plugin/sonar/help-ms-build-sq-scanner-begin.html";
     }
 
     @Override
     public String getDisplayName() {
-      return Messages.MsBuildRunnerBegin_DisplayName();
+      return Messages.MsBuildScannerBegin_DisplayName();
     }
 
     public FormValidation doCheckProjectKey(@QueryParameter String value) {
@@ -206,8 +206,8 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     }
 
     @Nullable
-    public MsBuildSQRunnerInstallation getMsBuildRunnerInstallation(String name) {
-      MsBuildSQRunnerInstallation[] msInst = getMsBuildRunnerInstallations();
+    public MsBuildSQRunnerInstallation getMsBuildScannerInstallation(String name) {
+      MsBuildSQRunnerInstallation[] msInst = getMsBuildScannerInstallations();
 
       if (name == null && msInst.length > 0) {
         return msInst[0];
@@ -222,7 +222,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
       return null;
     }
 
-    public MsBuildSQRunnerInstallation[] getMsBuildRunnerInstallations() {
+    public MsBuildSQRunnerInstallation[] getMsBuildScannerInstallations() {
       return Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerInstallation.DescriptorImpl.class).getInstallations();
     }
 

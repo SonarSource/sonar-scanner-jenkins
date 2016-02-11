@@ -359,12 +359,12 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public JenkinsOrchestrator configureMsBuildSQRunner_installation() {
+  public JenkinsOrchestrator configureMsBuildSQScanner_installation() {
     driver.get(server.getUrl() + "/configure");
     WebDriverWait wait = new WebDriverWait(driver, 5);
     wait.until(ExpectedConditions.textToBePresentInElement(By.id("footer"), "Page generated"));
 
-    WebElement addMSBuildSQRunnerButton = findElement(buttonByText("Add MSBuild SonarQube Runner"));
+    WebElement addMSBuildSQRunnerButton = findElement(buttonByText("Add MSBuild SonarQube Scanner"));
     scrollToElement(addMSBuildSQRunnerButton);
     addMSBuildSQRunnerButton.click();
     setTextValue(findElement(By.name("_.name")), "SQ runner");

@@ -35,23 +35,23 @@
     </select>
   </f:entry>
 
-  <!-- SonarQube Runner -->
-  <j:set var="runners" value="${descriptor.getSonarRunnerInstallations()}" />
-  <j:if test="${empty(runners)}">
-    <!-- no runner installation is configured. this will be an error, so warn the user now -->
-    <f:entry title="${%SonarRunner}">
+  <!-- SonarQube Scanner -->
+  <j:set var="scanners" value="${descriptor.getSonarRunnerInstallations()}" />
+  <j:if test="${empty(scanners)}">
+    <!-- no scanner installation is configured. this will be an error, so warn the user now -->
+    <f:entry title="${%SonarScanner}">
       <div class="error">
-        ${%Sonar Runner Version.error.1}&lt;br>
-        ${%Sonar Runner Version.error.2(rootURL)}
+        ${%Sonar Scanner Version.error.1}&lt;br>
+        ${%Sonar Scanner Version.error.2(rootURL)}
       </div>
     </f:entry>
   </j:if>
-  <j:if test="${runners.size() gt 1}">
+  <j:if test="${scanners.size() gt 1}">
     <!-- choice not necessary if there's no choice -->
-    <f:entry title="${%SonarRunner}" help="/plugin/sonar/help-runner-installation.html">
-      <select class="setting-input" name="sonar.sonarRunnerName">
+    <f:entry title="${%SonarScanner}" help="/plugin/sonar/help-runner-installation.html">
+      <select class="setting-input" name="sonar.sonarScannerName">
         <j:forEach var="inst" items="${descriptor.getSonarRunnerInstallations()}">
-          <f:option selected="${inst.name==instance.sonarRunnerName}" value="${inst.name}">${inst.name}</f:option>
+          <f:option selected="${inst.name==instance.sonarScannerName}" value="${inst.name}">${inst.name}</f:option>
         </j:forEach>
       </select>
     </f:entry>
