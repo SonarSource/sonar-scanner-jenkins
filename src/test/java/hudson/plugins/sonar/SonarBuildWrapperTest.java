@@ -135,7 +135,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   @Test
   public void maskDefaultPassword() throws IOException, InterruptedException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    configureSonar(new SonarInstallation("local", false, "http://localhost:9001", null, null, null,
+    configureSonar(new SonarInstallation("local", "http://localhost:9001", null, null, null,
       null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", null, null));
 
     OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
@@ -169,7 +169,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
   @Test
   public void testEnvironmentMojoVersion() {
-    installation = new SonarInstallation(null, false, null, null, null, null, "2.0", null, null, null, null, null);
+    installation = new SonarInstallation(null, null, null, null, null, "2.0", null, null, null, null, null);
     SonarEnvironment env = wrapper.new SonarEnvironment(installation, stream);
 
     Map<String, String> map = new HashMap<String, String>();
@@ -183,7 +183,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     // the descriptor is used to display the configuration page
     assertThat(wrapper.getDescriptor().getSonarInstallations()).hasSize(1);
 
-    SonarInstallation installation2 = new SonarInstallation("local2", true, "http://localhost:9001", null, null, null,
+    SonarInstallation installation2 = new SonarInstallation("local2", "http://localhost:9001", null, null, null,
       null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", null);
     configureSonar(installation2);
     // disabled not shown
@@ -207,18 +207,6 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(out).isNull();
 
     verifyZeroInteractions(build);
-  }
-
-  @Test
-  public void failOnDisabledInstallationEnvironment() throws Exception {
-    // disabled installation
-    configureSonar(new SonarInstallation("local", true, "http://localhost:9001", null, null, null,
-      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", null));
-
-    BuildListener listener = mock(BuildListener.class);
-    when(listener.getLogger()).thenReturn(stream);
-    wrapper.setUp(mock(AbstractBuild.class), mock(Launcher.class), listener);
-    verify(listener).fatalError(contains("installation assigned to this job is disabled"));
   }
 
   @Test
@@ -271,7 +259,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   private static SonarInstallation createTestInstallation() {
-    return new SonarInstallation("local", false, "http://localhost:9001", null, null, null,
+    return new SonarInstallation("local", "http://localhost:9001", null, null, null,
       null, "-X", new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", "key=value");
   }
 }

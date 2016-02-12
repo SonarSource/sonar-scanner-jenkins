@@ -55,7 +55,6 @@ public class SonarInstallationTest extends SonarTestCase {
     DescriptorImpl d = descriptor();
     d.setInstallations(new SonarInstallation(
       "Name",
-      false,
       "server.url",
       "db:url",
       "dbLogin",
@@ -73,7 +72,6 @@ public class SonarInstallationTest extends SonarTestCase {
     String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), d.getId() + ".xml"));
 
     assertThat(i.getName()).isEqualTo("Name");
-    assertThat(i.isDisabled()).isFalse();
     assertThat(i.getServerUrl()).isEqualTo("server.url");
     assertThat(i.getDatabaseUrl()).isEqualTo("db:url");
     assertThat(i.getDatabaseLogin()).isEqualTo("dbLogin");
@@ -107,12 +105,12 @@ public class SonarInstallationTest extends SonarTestCase {
   }
 
   private void assertAnalysisPropsWindows(String input, String... expectedEntries) {
-    SonarInstallation inst = new SonarInstallation(null, false, null, null, null, null, null, null, null, null, null, input);
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, null, null, null, input);
     assertThat(inst.getAdditionalAnalysisPropertiesWindows()).isEqualTo(expectedEntries);
   }
   
   private void assertAnalysisPropsUnix(String input, String... expectedEntries) {
-    SonarInstallation inst = new SonarInstallation(null, false, null, null, null, null, null, null, null, null, null, input);
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, null, null, null, input);
     assertThat(inst.getAdditionalAnalysisPropertiesUnix()).isEqualTo(expectedEntries);
   }
 

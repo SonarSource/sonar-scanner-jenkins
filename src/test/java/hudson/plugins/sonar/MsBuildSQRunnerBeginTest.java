@@ -72,7 +72,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
   @Test
   public void additionalArgs() throws Exception {
-    SonarInstallation inst = new SonarInstallation("default", false, null, null, null, null,
+    SonarInstallation inst = new SonarInstallation("default", null, null, null, null,
       null, "/x:a=b", null, null, null, "key=value");
     configureSonar(inst);
     configureMsBuildScanner(true);
@@ -86,7 +86,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testSonarProps() throws Exception {
-    SonarInstallation inst = new SonarInstallation("default", false, "http://dummy-server:9090", null, null, null,
+    SonarInstallation inst = new SonarInstallation("default", "http://dummy-server:9090", null, null, null,
       null, null, null, "login", "mypass", null);
     configureSonar(inst);
     configureMsBuildScanner(false);

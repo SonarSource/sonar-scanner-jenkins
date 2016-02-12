@@ -147,7 +147,6 @@ public class BaseTest extends SonarTestCase {
   private void configureSecuredSonar() {
     configureSonar(new SonarInstallation(
       SONAR_INSTALLATION_NAME,
-      false,
       SONAR_HOST,
       "jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8",
       "dbuser", "dbpassword",

@@ -458,9 +458,7 @@ public class SonarPublisher extends Notifier {
       List<SonarInstallation> enabledInstallations = new LinkedList<SonarInstallation>();
 
       for (SonarInstallation inst : getInstallations()) {
-        if (!inst.isDisabled()) {
-          enabledInstallations.add(inst);
-        }
+        enabledInstallations.add(inst);
       }
 
       return enabledInstallations.toArray(new SonarInstallation[enabledInstallations.size()]);
@@ -505,13 +503,11 @@ public class SonarPublisher extends Notifier {
     }
 
     public FormValidation doCheckMandatory(@QueryParameter String value) {
-      return StringUtils.isBlank(value) ?
-        FormValidation.error(Messages.SonarPublisher_MandatoryProperty()) : FormValidation.ok();
+      return StringUtils.isBlank(value) ? FormValidation.error(Messages.SonarPublisher_MandatoryProperty()) : FormValidation.ok();
     }
 
     public FormValidation doCheckMandatoryAndNoSpaces(@QueryParameter String value) {
-      return (StringUtils.isBlank(value) || value.contains(" ")) ?
-        FormValidation.error(Messages.SonarPublisher_MandatoryPropertySpaces()) : FormValidation.ok();
+      return (StringUtils.isBlank(value) || value.contains(" ")) ? FormValidation.error(Messages.SonarPublisher_MandatoryPropertySpaces()) : FormValidation.ok();
     }
 
     @Override

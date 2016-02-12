@@ -44,7 +44,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SonarInstallation {
   private final String name;
-  private final boolean disabled;
   private final String serverUrl;
 
   /**
@@ -86,13 +85,12 @@ public class SonarInstallation {
   private String[] split;
 
   @DataBoundConstructor
-  public SonarInstallation(String name, boolean disabled,
+  public SonarInstallation(String name, 
     String serverUrl,
     String databaseUrl, String databaseLogin, String databasePassword,
     String mojoVersion, String additionalProperties, TriggersConfig triggers,
     String sonarLogin, String sonarPassword, String additionalAnalysisProperties) {
     this.name = name;
-    this.disabled = disabled;
     this.serverUrl = serverUrl;
     this.databaseUrl = databaseUrl;
     this.databaseLogin = databaseLogin;
@@ -139,8 +137,6 @@ public class SonarInstallation {
         failureMsg = Messages.SonarInstallation_NoMatchInstallation(sonarInstallationName, SonarInstallation.all().length);
       }
       failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();
-    } else if (sonarInstallation.isDisabled()) {
-      failureMsg = Messages.SonarInstallation_InstallDisabled(sonarInstallation.getName());
     } else {
       failureMsg = null;
     }
@@ -170,10 +166,6 @@ public class SonarInstallation {
 
   public String getName() {
     return name;
-  }
-
-  public boolean isDisabled() {
-    return disabled;
   }
 
   public String getServerUrl() {

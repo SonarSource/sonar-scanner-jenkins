@@ -45,7 +45,7 @@ import hudson.model.FreeStyleProject;
 public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
   @Test
   public void testNormalExec() throws Exception {
-    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, false, "localhost", "http://dbhost.org", "dbLogin", "dbPass", null, null, null, "login", "mypass", null));
+    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "http://dbhost.org", "dbLogin", "dbPass", null, null, null, "login", "mypass", null));
     configureMsBuildScanner(false);
 
     FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));

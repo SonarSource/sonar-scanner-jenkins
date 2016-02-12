@@ -84,7 +84,7 @@ public class SonarBuildWrapper extends BuildWrapper {
   @Override
   public OutputStream decorateLogger(AbstractBuild build, OutputStream outputStream) throws IOException, InterruptedException {
     SonarInstallation inst = SonarInstallation.get(getInstallationName());
-    if (inst == null || inst.isDisabled()) {
+    if (inst == null) {
       return outputStream;
     }
 

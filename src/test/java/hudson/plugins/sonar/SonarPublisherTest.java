@@ -41,8 +41,8 @@ public class SonarPublisherTest extends SonarTestCase {
 
   @Test
   public void enabledInstallations() {
-    SonarInstallation enabled = new SonarInstallation("name", false, null, null, null, null, null, null, null, "admin", "admin", null);
-    SonarInstallation disabled = new SonarInstallation("name", true, null, null, null, null, null, null, null, "admin", "admin", null);
+    SonarInstallation enabled = new SonarInstallation("name", null, null, null, null, null, null, null, "admin", "admin", null);
+    SonarInstallation disabled = new SonarInstallation("name", null, null, null, null, null, null, null, "admin", "admin", null);
 
     DescriptorImpl desc = new SonarPublisher.DescriptorImpl();
     desc.setInstallations(Arrays.array(enabled, disabled));
