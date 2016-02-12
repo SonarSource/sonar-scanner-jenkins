@@ -357,9 +357,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       }
     }
 
-    FilePath moduleRoot = BuilderUtils.getModuleRoot(build, workspace);
-    args.append("sonar.projectBaseDir", moduleRoot.getRemote());
-
     // Project properties
     if (StringUtils.isNotBlank(getProject())) {
       String projectSettingsFile = env.expand(getProject());
@@ -392,6 +389,11 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     Properties p = new Properties();
     p.load(new StringReader(env.expand(getProperties())));
     loadProperties(args, p);
+
+    if (!p.containsKey("sonar.projectBaseDir")) {
+      FilePath moduleRoot = BuilderUtils.getModuleRoot(build, workspace);
+      args.append("sonar.projectBaseDir", moduleRoot.getRemote());
+    }
 
     return true;
   }
