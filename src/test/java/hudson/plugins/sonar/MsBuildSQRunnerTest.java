@@ -52,8 +52,8 @@ public abstract class MsBuildSQRunnerTest extends SonarTestCase {
     return Functions.isWindows() || System.getProperty("os.name").startsWith("Windows");
   }
 
-  protected MsBuildSQRunnerInstallation configureMsBuildRunner(boolean fail) throws URISyntaxException {
-    String res = "SonarTestCase/ms-build-runner";
+  protected MsBuildSQRunnerInstallation configureMsBuildScanner(boolean fail) throws URISyntaxException {
+    String res = "SonarTestCase/ms-build-scanner";
     if (fail) {
       res += "-broken";
     }

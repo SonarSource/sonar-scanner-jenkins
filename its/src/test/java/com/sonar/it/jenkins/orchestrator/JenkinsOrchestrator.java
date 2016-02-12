@@ -347,10 +347,10 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     SonarScannerInstaller installer = new SonarScannerInstaller(config.fileSystem());
     File runnerScript = installer.install(Version.create("2.4"), config.fileSystem().workspace());
 
-    WebElement addSonarRunnerButton = findElement(buttonByText("Add SonarQube Runner"));
+    WebElement addSonarRunnerButton = findElement(buttonByText("Add SonarQube Scanner"));
     scrollToElement(addSonarRunnerButton);
     addSonarRunnerButton.click();
-    setTextValue(findElement(By.name("_.name")), "Sonar Runner");
+    setTextValue(findElement(By.name("_.name")), "Sonar Scanner");
     findElement(By.name("hudson-tools-InstallSourceProperty")).click();
     WebElement homeDir = findElement(By.name("_.home"));
     setTextValue(homeDir, runnerScript.getParentFile().getParentFile().getAbsolutePath());
@@ -359,12 +359,12 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public JenkinsOrchestrator configureMsBuildSQRunner_installation() {
+  public JenkinsOrchestrator configureMsBuildSQScanner_installation() {
     driver.get(server.getUrl() + "/configure");
     WebDriverWait wait = new WebDriverWait(driver, 5);
     wait.until(ExpectedConditions.textToBePresentInElement(By.id("footer"), "Page generated"));
 
-    WebElement addMSBuildSQRunnerButton = findElement(buttonByText("Add MSBuild SonarQube Runner"));
+    WebElement addMSBuildSQRunnerButton = findElement(buttonByText("Add SonarQube Scanner for MSBuild"));
     scrollToElement(addMSBuildSQRunnerButton);
     addMSBuildSQRunnerButton.click();
     setTextValue(findElement(By.name("_.name")), "SQ runner");

@@ -56,13 +56,13 @@ import java.util.Map;
 
 public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleBuildStep {
   protected static final String EXE = "MSBuild.SonarQube.Runner.exe";
-  static final String INST_NAME_KEY = "msBuildRunnerInstallationName";
+  static final String INST_NAME_KEY = "msBuildScannerInstallationName";
   static final String SONAR_INST_NAME_KEY = "sonarInstanceName";
 
   @Nullable
-  protected static String loadRunnerName(EnvVars env) throws IOException, InterruptedException {
+  protected static String loadScannerName(EnvVars env) throws IOException, InterruptedException {
     if (!env.containsKey(INST_NAME_KEY)) {
-      throw new AbortException(Messages.MsBuildRunnerEnd_NoInstallationName());
+      throw new AbortException(Messages.MsBuildScannerEnd_NoInstallationName());
     }
 
     String name = env.get(INST_NAME_KEY);
@@ -82,7 +82,7 @@ public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleB
   @Nullable
   protected static String loadSonarInstanceName(EnvVars env) throws IOException, InterruptedException {
     if (!env.containsKey(SONAR_INST_NAME_KEY)) {
-      throw new AbortException(Messages.MsBuildRunnerEnd_NoSonarInstanceName());
+      throw new AbortException(Messages.MsBuildScannerEnd_NoSonarInstanceName());
     }
 
     String name = env.get(SONAR_INST_NAME_KEY);
@@ -92,24 +92,24 @@ public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleB
     return name;
   }
 
-  protected String getExeName(MsBuildSQRunnerInstallation msBuildRunner, EnvVars env, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
-    MsBuildSQRunnerInstallation inst = BuilderUtils.getBuildTool(msBuildRunner, env, listener);
+  protected String getExeName(MsBuildSQRunnerInstallation msBuildScanner, EnvVars env, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+    MsBuildSQRunnerInstallation inst = BuilderUtils.getBuildTool(msBuildScanner, env, listener);
 
     String exe;
     if (inst != null) {
       exe = inst.getExecutable(launcher);
       if (exe == null) {
-        throw new AbortException(Messages.MsBuildRunner_ExecutableNotFound(inst.getName()));
+        throw new AbortException(Messages.MsBuildScanner_ExecutableNotFound(inst.getName()));
       }
     } else {
-      listener.getLogger().println(Messages.MsBuildRunner_NoInstallation());
+      listener.getLogger().println(Messages.MsBuildScanner_NoInstallation());
       exe = EXE;
     }
 
     return exe;
   }
 
-  protected static void saveRunnerName(Run<?, ?> r, @Nullable String name) throws IOException, InterruptedException {
+  protected static void saveScannerName(Run<?, ?> r, @Nullable String name) throws IOException, InterruptedException {
     r.addAction(new InjectEnvVarAction(Collections.singletonMap(INST_NAME_KEY, Util.fixNull(name))));
   }
 

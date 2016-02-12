@@ -46,13 +46,13 @@ public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
   @Test
   public void testNormalExec() throws Exception {
     configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, false, "localhost", "http://dbhost.org", "dbLogin", "dbPass", null, null, null, "login", "mypass", null));
-    configureMsBuildRunner(false);
+    configureMsBuildScanner(false);
 
     FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));
     proj.getBuildersList().add(new MsBuildSQRunnerEnd());
     Run<?, ?> r = build(proj, Result.SUCCESS);
     assertLogContains("end /d:sonar.login=login ******** /d:sonar.jdbc.username=dbLogin ********", r);
-    assertLogContains("This is a fake MS Build Runner", r);
+    assertLogContains("This is a fake MS Build Scanner", r);
 
     assertLogDoesntContains("dbPass", r);
     assertLogDoesntContains("mypass", r);
@@ -68,10 +68,10 @@ public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
   @Test
   public void NoBegin() throws Exception {
     configureDefaultSonar();
-    configureMsBuildRunner(false);
+    configureMsBuildScanner(false);
 
     FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerEnd());
     Run<?, ?> r = build(proj, Result.FAILURE);
-    assertLogContains("No MSBuild SonarQube Runner installation found in the build environment", r);
+    assertLogContains("No SonarQube Scanner for MSBuild installation found in the build environment", r);
   }
 }

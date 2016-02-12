@@ -39,7 +39,7 @@ import hudson.tools.ToolInstallation;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
-* Automatic Sonar runner installer from repository.codehaus.org.
+* Automatic Sonar scanner installer from repository.codehaus.org.
 */
 public class SonarRunnerInstaller extends DownloadFromUrlInstaller {
   @DataBoundConstructor

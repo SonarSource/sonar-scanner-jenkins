@@ -62,7 +62,7 @@ public class JenkinsTest {
       .installPlugin(sqJenkinsPluginLocation)
       .configureMavenInstallation()
       .configureSonarRunner2_4Installation()
-      .configureMsBuildSQRunner_installation()
+      .configureMsBuildSQScanner_installation()
       .configureSonarInstallation(orchestrator);
   }
 

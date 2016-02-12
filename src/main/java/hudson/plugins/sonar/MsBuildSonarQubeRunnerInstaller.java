@@ -45,7 +45,7 @@ public class MsBuildSonarQubeRunnerInstaller extends DownloadFromUrlInstaller {
   }
 
   @Extension
-  public static final class MsBuildRunnerInstallerDescriptorImpl extends DownloadFromUrlInstaller.DescriptorImpl<MsBuildSonarQubeRunnerInstaller> {
+  public static final class MsBuildScannerInstallerDescriptorImpl extends DownloadFromUrlInstaller.DescriptorImpl<MsBuildSonarQubeRunnerInstaller> {
     @Override
     public String getDisplayName() {
       return Messages.InstallFromGitHub();

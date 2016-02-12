@@ -62,7 +62,7 @@ import hudson.tasks.Builder;
 public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
   @DataBoundConstructor
   public MsBuildSQRunnerEnd() {
-    // will use MSBuild SQ Runner installation defined in Begin
+    // will use MSBuild SQ Scanner installation defined in Begin
   }
 
   @Override
@@ -70,17 +70,17 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     ArgumentListBuilder args = new ArgumentListBuilder();
 
     EnvVars env = BuilderUtils.getEnvAndBuildVars(run, listener);
-    String runnerName = loadRunnerName(env);
+    String scannerName = loadScannerName(env);
 
-    MsBuildSQRunnerInstallation msBuildRunner = Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerBegin.DescriptorImpl.class)
-      .getMsBuildRunnerInstallation(runnerName);
-    args.add(getExeName(msBuildRunner, env, launcher, listener));
+    MsBuildSQRunnerInstallation msBuildScanner = Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerBegin.DescriptorImpl.class)
+      .getMsBuildScannerInstallation(scannerName);
+    args.add(getExeName(msBuildScanner, env, launcher, listener));
     addArgs(args, env, listener);
 
     int result = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(run, workspace)).join();
 
     if (result != 0) {
-      throw new AbortException(Messages.MSBuildRunner_ExecFailed(result));
+      throw new AbortException(Messages.MSBuildScanner_ExecFailed(result));
     }
 
     addBadge(run);
@@ -141,12 +141,12 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
 
     @Override
     public String getHelpFile() {
-      return "/plugin/sonar/help-ms-build-sq-runner-end.html";
+      return "/plugin/sonar/help-ms-build-sq-scanner-end.html";
     }
 
     @Override
     public String getDisplayName() {
-      return Messages.MsBuildRunnerEnd_DisplayName();
+      return Messages.MsBuildScannerEnd_DisplayName();
     }
   }
 }

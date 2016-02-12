@@ -13,14 +13,14 @@ env:
     - DISPLAY=:99.0
     - JENKINS_VERSION=1.580.3
   matrix:
-    - RUN_ITS=false
-    - RUN_ITS=true SQ_VERSION=DEV
-    - RUN_ITS=true SQ_VERSION=LTS
-    - RUN_ITS=false PR_ANALYSIS=true
+    - TARGET=CI
+    - TARGET=IT SQ_VERSION=DEV
+    - TARGET=IT SQ_VERSION=LTS
 
 cache:
   directories:
-    - '$HOME/.m2/repository'
+    - $HOME/.m2/repository
+    - $HOME/.sonar
 
 notifications:
   email: false
