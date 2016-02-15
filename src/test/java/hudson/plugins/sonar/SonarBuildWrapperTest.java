@@ -178,19 +178,6 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void dontShowDisabledInstallations() {
-    configureSonar(installation);
-    // the descriptor is used to display the configuration page
-    assertThat(wrapper.getDescriptor().getSonarInstallations()).hasSize(1);
-
-    SonarInstallation installation2 = new SonarInstallation("local2", "http://localhost:9001", null, null, null,
-      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", null);
-    configureSonar(installation2);
-    // disabled not shown
-    assertThat(wrapper.getDescriptor().getSonarInstallations()).hasSize(0);
-  }
-
-  @Test
   public void failOnInvalidInstallationEnvironment() throws Exception {
     // non existing installation
     BuildListener listener = mock(BuildListener.class);
