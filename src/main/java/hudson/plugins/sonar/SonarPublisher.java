@@ -73,7 +73,6 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -452,16 +451,6 @@ public class SonarPublisher extends Notifier {
 
     public boolean isBuildWrapperEnabled() {
       return buildWrapperEnabled;
-    }
-
-    public SonarInstallation[] getEnabledInstallations() {
-      List<SonarInstallation> enabledInstallations = new LinkedList<SonarInstallation>();
-
-      for (SonarInstallation inst : getInstallations()) {
-        enabledInstallations.add(inst);
-      }
-
-      return enabledInstallations.toArray(new SonarInstallation[enabledInstallations.size()]);
     }
 
     public void setInstallations(SonarInstallation... installations) {

@@ -124,7 +124,7 @@ public class SonarInstallation {
       return new SonarInstallation[0];
     }
     SonarPublisher.DescriptorImpl sonarDescriptor = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
-    return sonarDescriptor.getEnabledInstallations();
+    return sonarDescriptor.getInstallations();
   }
 
   public static boolean isValid(String sonarInstallationName, TaskListener listener) {

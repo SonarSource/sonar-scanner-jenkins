@@ -18,9 +18,6 @@
  */
 package hudson.plugins.sonar;
 
-import org.assertj.core.util.Arrays;
-
-import hudson.plugins.sonar.SonarPublisher.DescriptorImpl;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,18 +34,5 @@ public class SonarPublisherTest extends SonarTestCase {
     publisher.language = "js";
     publisher.readResolve();
     assertThat(publisher.getJobAdditionalProperties()).isEqualTo("-Dsonar.language=js -Dsonar.version=1.0");
-  }
-
-  @Test
-  public void enabledInstallations() {
-    SonarInstallation enabled = new SonarInstallation("name", null, null, null, null, null, null, null, "admin", "admin", null);
-    SonarInstallation disabled = new SonarInstallation("name", null, null, null, null, null, null, null, "admin", "admin", null);
-
-    DescriptorImpl desc = new SonarPublisher.DescriptorImpl();
-    desc.setInstallations(Arrays.array(enabled, disabled));
-
-    assertThat(desc.getEnabledInstallations()).containsExactly(enabled);
-    assertThat(desc.getInstallations()).containsExactly(enabled, disabled);
-
   }
 }
