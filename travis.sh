@@ -4,7 +4,7 @@ set -euo pipefail
 
 function installTravisTools {
   mkdir ~/.local
-  curl -sSL https://github.com/SonarSource/travis-utils/tarball/v21 | tar zx --strip-components 1 -C ~/.local
+  curl -sSL https://github.com/SonarSource/travis-utils/tarball/v27 | tar zx --strip-components 1 -C ~/.local
   source ~/.local/bin/install
 }
 
@@ -23,7 +23,7 @@ CI)
 
     # integration of jacoco report is quite memory-consuming
     export MAVEN_OPTS="-Xmx1536m -Xms128m"
-    git fetch --unshallow
+    git fetch --unshallow 
     mvn org.jacoco:jacoco-maven-plugin:prepare-agent verify -Pcoverage-per-test sonar:sonar -B -e -V \
        -Dsonar.host.url=$SONAR_HOST_URL \
        -Dsonar.login=$SONAR_TOKEN
@@ -58,11 +58,6 @@ CI)
 IT)
   mvn package -B -e -V -DskipTests
   installTravisTools
-
-  if [ "${SQ_VERSION}" == "DEV" ]
-  then
-    build_snapshot "SonarSource/sonarqube"
-  fi
 
   start_xvfb
 
