@@ -90,7 +90,7 @@ public final class SonarMaven extends Maven {
     if (StringUtils.isBlank(installation.getMojoVersion())) {
       return TARGET + " sonar:sonar";
     } else {
-      return TARGET + " org.codehaus.mojo:sonar-maven-plugin:" + installation.getMojoVersion() + ":sonar";
+      return TARGET + " " + SonarUtils.getMavenGoal(installation.getMojoVersion());
     }
   }
 

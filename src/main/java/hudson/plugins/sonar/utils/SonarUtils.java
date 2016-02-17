@@ -116,6 +116,16 @@ public final class SonarUtils {
     return action;
   }
   
+  public static String getMavenGoal(String version) {
+    Float majorMinor = extractMajorMinor(version);
+
+    if (majorMinor == null || majorMinor >= 3.0) {
+      return "org.sonarsource.scanner.maven:sonar-maven-plugin:" + version + ":sonar";
+    } else {
+      return "org.codehaus.mojo:sonar-maven-plugin:" + version + ":sonar";
+    }
+  }
+  
   public static Float extractMajorMinor(String version) {
     Pattern p = Pattern.compile("\\d+\\.\\d+");
     Matcher m = p.matcher(version);

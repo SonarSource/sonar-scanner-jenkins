@@ -39,7 +39,9 @@ import hudson.plugins.sonar.action.UrlSonarAction;
 import hudson.plugins.sonar.action.BuildSonarAction;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -50,6 +52,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SonarUtilsTest {
+  @Rule
+  public ExpectedException exception = ExpectedException.none();
 
   @Test
   public void shouldParseUrlInLogs() throws Exception {
@@ -67,6 +71,15 @@ public class SonarUtilsTest {
     assertThat(SonarUtils.extractMajorMinor("3.0-SNAPSHOT")).isEqualTo(3.0f);
     assertThat(SonarUtils.extractMajorMinor("30")).isEqualTo(null);
     assertThat(SonarUtils.extractMajorMinor("sdf")).isEqualTo(null);
+  }
+  
+  @Test
+  public void testMavenGoal() {
+    assertThat(SonarUtils.getMavenGoal("3.0")).isEqualTo("org.sonarsource.scanner.maven:sonar-maven-plugin:3.0:sonar");
+    assertThat(SonarUtils.getMavenGoal("2.5")).isEqualTo("org.codehaus.mojo:sonar-maven-plugin:2.5:sonar");
+    
+    exception.expect(NullPointerException.class);
+    SonarUtils.getMavenGoal(null);
   }
 
   @Test
