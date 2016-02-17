@@ -117,16 +117,6 @@ public class SonarInstallation {
     return sonarDescriptor.getInstallations();
   }
 
-  public static final SonarInstallation[] enabled() {
-    Jenkins jenkins = Jenkins.getInstance();
-    if (jenkins == null) {
-      // for unit test
-      return new SonarInstallation[0];
-    }
-    SonarPublisher.DescriptorImpl sonarDescriptor = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
-    return sonarDescriptor.getInstallations();
-  }
-
   public static boolean isValid(String sonarInstallationName, TaskListener listener) {
     String failureMsg;
     SonarInstallation sonarInstallation = SonarInstallation.get(sonarInstallationName);

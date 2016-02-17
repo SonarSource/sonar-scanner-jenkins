@@ -227,7 +227,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     }
 
     public SonarInstallation[] getSonarInstallations() {
-      return SonarInstallation.enabled();
+      return SonarInstallation.all();
     }
   }
 

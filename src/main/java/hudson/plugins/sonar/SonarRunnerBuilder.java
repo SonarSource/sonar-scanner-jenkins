@@ -429,7 +429,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
      * @return all configured {@link hudson.plugins.sonar.SonarInstallation}
      */
     public SonarInstallation[] getSonarInstallations() {
-      return SonarInstallation.enabled();
+      return SonarInstallation.all();
     }
 
     @Override
