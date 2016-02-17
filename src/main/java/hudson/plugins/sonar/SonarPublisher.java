@@ -464,6 +464,11 @@ public class SonarPublisher extends Notifier {
     }
 
     @Override
+    public String getHelpFile() {
+      return "/plugin/sonar/help-sonar-publisher.html";
+    }
+    
+    @Override
     public String getHelpFile(String fieldName) {
       if ("globalSettings".equals(fieldName) || "settings".equals(fieldName)) {
         // Reuse help from Maven plugin
