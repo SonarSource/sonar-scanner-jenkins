@@ -245,7 +245,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
-    findElement(By.linkText("Invoke Standalone SonarQube Analysis")).click();
+    findElement(By.linkText("Execute SonarQube Scanner")).click();
     StringBuilder builder = new StringBuilder();
     for (int i = 0; i < properties.length / 2; i++) {
       String key = properties[2 * i];
