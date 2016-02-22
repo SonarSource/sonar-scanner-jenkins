@@ -49,9 +49,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.JDK;
 import hudson.model.Run;
-import hudson.plugins.sonar.action.BuildSonarAction;
-import hudson.plugins.sonar.action.ProjectSonarAction;
-import hudson.plugins.sonar.action.UrlSonarAction;
+import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarUtils;
@@ -260,6 +258,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       handleErrors(run, listener, sri, startTime, e);
       r = -1;
     }
+    
+    // with workflows, we don't have realtime access to build logs, so url might be null
+    // if the analyis doesn't succeed, it will also be null
+    SonarUtils.addBuildInfoTo(run, getSonarInstallation().getName());
     return r == 0;
   }
 
@@ -278,31 +280,11 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       errorMessage += Messages.SonarScanner_GlobalConfigNeeded();
     }
     e.printStackTrace(listener.fatalError(errorMessage));
-
-    try {
-      SonarUtils.addUrlActionTo(build);
-    } catch (IOException e1) {
-      e1.printStackTrace(listener.fatalError(errorMessage));
-    }
-
-    // Badge should be added only once - SONARPLUGINS-1521
-    if (build.getAction(BuildSonarAction.class) == null) {
-      build.addAction(new BuildSonarAction());
-    }
   }
 
   private int executeSonarRunner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
     InterruptedException {
-    int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(build, workspace)).join();
-    UrlSonarAction urlAction = SonarUtils.addUrlActionTo(build);
-
-    // with workflows, we don't have realtime access to build logs, so url might be null
-    String url = urlAction != null ? urlAction.getSonarUrl() : null;
-
-    if (build.getAction(BuildSonarAction.class) == null && r == 0) {
-      build.addAction(new BuildSonarAction(url));
-    }
-    return r;
+    return launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(build, workspace)).join();
   }
 
   private static AbstractProject<?, ?> getProject(Run<?, ?> run) {
@@ -417,7 +399,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
   @Override
   public Action getProjectAction(AbstractProject<?, ?> project) {
-    return new ProjectSonarAction(project);
+    return new SonarMarkerAction();
   }
 
   @Extension

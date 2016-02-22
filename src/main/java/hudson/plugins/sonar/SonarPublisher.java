@@ -33,10 +33,7 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.action.UrlSonarAction;
-
-import hudson.plugins.sonar.action.BuildSonarAction;
-import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.EnvVars;
@@ -329,20 +326,17 @@ public class SonarPublisher extends Notifier {
     SonarInstallation sonarInstallation = getInstallation();
 
     if (isSkip(build, listener, sonarInstallation)) {
-      SonarUtils.addUrlActionTo(build);
+      SonarUtils.addBuildInfoFromLastBuildTo(build, sonarInstallation.getName(), true);
       return true;
     }
 
     boolean sonarSuccess = executeSonar(build, launcher, listener, sonarInstallation);
-    UrlSonarAction urlAction = SonarUtils.addUrlActionTo(build);
 
     if (!sonarSuccess) {
       // returning false has no effect on the global build status so need to do it manually
       build.setResult(Result.FAILURE);
-    } else {
-      String url = urlAction != null ? urlAction.getSonarUrl() : null;
-      build.addAction(new BuildSonarAction(url));
-    }
+    } 
+    SonarUtils.addBuildInfoTo(build, sonarInstallation.getName());
     listener.getLogger().println("SonarQube analysis completed: " + build.getResult());
     return sonarSuccess;
   }
@@ -399,7 +393,7 @@ public class SonarPublisher extends Notifier {
 
   @Override
   public Action getProjectAction(AbstractProject<?, ?> project) {
-    return new ProjectSonarAction(project);
+    return new SonarMarkerAction();
   }
 
   @Override

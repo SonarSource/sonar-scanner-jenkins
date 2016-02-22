@@ -113,7 +113,7 @@ public class SonarInstallation {
       // for unit test
       return new SonarInstallation[0];
     }
-    SonarPublisher.DescriptorImpl sonarDescriptor = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
+    SonarPublisher.DescriptorImpl sonarDescriptor = jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class);
     return sonarDescriptor.getInstallations();
   }
 

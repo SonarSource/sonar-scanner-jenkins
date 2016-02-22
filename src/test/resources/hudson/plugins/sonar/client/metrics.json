@@ -1,0 +1,13 @@
+{
+  "component":
+  {
+    "id":"AVKDJ-b_prNVR5Ye2JvZ",
+    "key":"org.sonarsource.sonarlint:sonarlint-cli",
+    "name":"SonarLint CLI","description":"Parent pom of SonarSource public projects",
+    "qualifier":"TRK",
+    "measures":
+    [
+      {"metric":"alert_status","value":"OK"}
+    ]
+  }
+}

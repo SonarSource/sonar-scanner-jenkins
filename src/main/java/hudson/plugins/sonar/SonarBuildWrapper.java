@@ -35,9 +35,7 @@ package hudson.plugins.sonar;
 
 import hudson.util.ArgumentListBuilder;
 
-import hudson.plugins.sonar.action.UrlSonarAction;
-import hudson.plugins.sonar.action.BuildSonarAction;
-import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.model.Action;
 import jenkins.model.Jenkins;
@@ -106,7 +104,7 @@ public class SonarBuildWrapper extends BuildWrapper {
 
   @Override
   public Collection<? extends Action> getProjectActions(AbstractProject job) {
-    return Collections.singletonList(new ProjectSonarAction(job));
+    return Collections.singletonList(new SonarMarkerAction());
   }
 
   /**
@@ -185,11 +183,11 @@ public class SonarBuildWrapper extends BuildWrapper {
 
     @Override
     public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
-      UrlSonarAction urlAction = SonarUtils.addUrlActionTo(build);
-
-      // null result means success so far
-      if (urlAction != null && urlAction.isNew() && build.getResult() == null && build.getAction(BuildSonarAction.class) == null) {
-        build.addAction(new BuildSonarAction(urlAction.getSonarUrl()));
+      // null result means success so far. If no logs are found, it's probably because it was simply skipped
+      if (build.getResult() == null) {
+        SonarUtils.addBuildInfoTo(build, installation.getName(), true);
+      } else {
+        SonarUtils.addBuildInfoTo(build, installation.getName(), false);
       }
 
       return true;

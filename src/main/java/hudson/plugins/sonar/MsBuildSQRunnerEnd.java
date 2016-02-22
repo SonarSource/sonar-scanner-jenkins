@@ -34,11 +34,9 @@
 package hudson.plugins.sonar;
 
 import org.codehaus.plexus.util.StringUtils;
-import hudson.plugins.sonar.action.UrlSonarAction;
 import hudson.plugins.sonar.utils.SonarUtils;
-import hudson.plugins.sonar.action.BuildSonarAction;
 import hudson.model.Action;
-import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.plugins.sonar.action.SonarMarkerAction;
 import org.kohsuke.stapler.DataBoundConstructor;
 import jenkins.model.Jenkins;
 import hudson.AbortException;
@@ -71,24 +69,25 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
 
     EnvVars env = BuilderUtils.getEnvAndBuildVars(run, listener);
     String scannerName = loadScannerName(env);
+    String sonarInstName = loadSonarInstanceName(env);
+    SonarInstallation sonarInstallation = getSonarInstallation(sonarInstName, listener);
 
     MsBuildSQRunnerInstallation msBuildScanner = Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerBegin.DescriptorImpl.class)
       .getMsBuildScannerInstallation(scannerName);
     args.add(getExeName(msBuildScanner, env, launcher, listener));
-    addArgs(args, env, listener);
+    addArgs(args, env, sonarInstallation);
 
     int result = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(run, workspace)).join();
 
     if (result != 0) {
+      addBadge(run, sonarInstallation);
       throw new AbortException(Messages.MSBuildScanner_ExecFailed(result));
     }
 
-    addBadge(run);
+    addBadge(run, sonarInstallation);
   }
 
-  private static void addArgs(ArgumentListBuilder args, EnvVars env, TaskListener listener) throws IOException, InterruptedException {
-    String sonarInstName = loadSonarInstanceName(env);
-    SonarInstallation sonarInstallation = getSonarInstallation(sonarInstName, listener);
+  private static void addArgs(ArgumentListBuilder args, EnvVars env, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
     Map<String, String> props = getSonarProps(sonarInstallation);
 
     args.add("end");
@@ -118,18 +117,13 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     return map;
   }
 
-  private static void addBadge(Run<?, ?> run) throws IOException {
-    UrlSonarAction urlAction = SonarUtils.addUrlActionTo(run);
-    String url = urlAction != null ? urlAction.getSonarUrl() : null;
-
-    if (run.getAction(BuildSonarAction.class) == null) {
-      run.addAction(new BuildSonarAction(url));
-    }
+  private static void addBadge(Run<?, ?> run, SonarInstallation sonarInstallation) throws IOException {
+    SonarUtils.addBuildInfoTo(run, sonarInstallation.getName());
   }
 
   @Override
   public Action getProjectAction(AbstractProject<?, ?> project) {
-    return new ProjectSonarAction(project);
+    return new SonarMarkerAction();
   }
 
   @Extension

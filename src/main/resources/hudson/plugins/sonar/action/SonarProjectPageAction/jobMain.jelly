@@ -1,0 +1,39 @@
+<j:jelly xmlns:j="jelly:core" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+	<j:set var="projects" value="${it.getProjects()}" />
+	
+	<j:if test="${projects != null}">
+	  
+	  <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/sonar/css/project_info.css" />
+	  <h2>SonarQube Quality Gate</h2>
+		  
+	  <div style="margin-left: 20px">
+	    <j:forEach var="project" items="${projects}">
+		  <j:if test="${project.getStatus() != null}">
+		  <j:set var="status" value="${project.getStatus()}" />  
+		    <h3>${project.getProjectName()}  <a href="${project.getUrl()}"> 
+		      <j:choose>
+		        <j:when test="${project.getStatus()=='OK'}">
+		          <div class="sonar-passing sonar-status"> ${status}</div>
+		        </j:when>
+		        <j:when test="${project.getStatus()=='WARN'}">
+		          <div class="sonar-warn sonar-status"> ${status}</div>
+		        </j:when>
+		        <j:otherwise>
+		          <div class="sonar-failing sonar-status"> ${status}</div>
+		        </j:otherwise>
+		      </j:choose>
+		      </a>
+		    </h3>
+		  </j:if>
+	      <j:if test="${project.getErrors() != null}">
+		    <div class="error">
+		      <j:forEach var="error" items="${project.getErrors()}">
+		      	${%QualityGate.error} : ${error}
+		      </j:forEach>
+		    </div>
+		  </j:if>
+        </j:forEach>  
+	  </div>
+	</j:if>
+	
+</j:jelly>

@@ -16,26 +16,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-/*
- * Sonar is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * Sonar is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with Sonar; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
- */
 package hudson.plugins.sonar.action;
 
 import hudson.plugins.sonar.SonarTestCase;
 
-import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.plugins.sonar.action.SonarProjectIconAction;
 import hudson.model.AbstractProject;
 import hudson.util.RunList;
 import org.junit.Before;
@@ -47,13 +32,13 @@ import static org.mockito.Mockito.when;
 /**
  * @author Evgeny Mandrikov
  */
-public class ProjectSonarActionTest extends SonarTestCase {
-  private ProjectSonarAction action;
+public class SonarProjectIconActionTest extends SonarTestCase {
+  private SonarProjectIconAction action;
 
   @Before
   public void setUp() throws Exception {
     AbstractProject project = mock(AbstractProject.class);
-    action = new ProjectSonarAction(project);
+    action = new SonarProjectIconAction(new SonarAnalysisAction("inst"));
     when(project.getBuilds()).thenReturn(new RunList());
   }
 

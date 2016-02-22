@@ -33,10 +33,7 @@
  */
 package hudson.plugins.sonar.utils;
 
-import org.mockito.ArgumentCaptor;
-
-import hudson.plugins.sonar.action.UrlSonarAction;
-import hudson.plugins.sonar.action.BuildSonarAction;
+import hudson.plugins.sonar.action.SonarBuildBadgeAction;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import org.junit.Rule;
@@ -46,7 +43,6 @@ import org.junit.rules.ExpectedException;
 import java.io.IOException;
 import java.io.StringReader;
 
-import static org.mockito.Mockito.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -82,70 +78,6 @@ public class SonarUtilsTest {
     SonarUtils.getMavenGoal(null);
   }
 
-  @Test
-  public void addUrlActionWhenNoLogAndNoLastUrl() throws IOException {
-    AbstractBuild build = mockedBuild("");
-
-    UrlSonarAction action = SonarUtils.addUrlActionTo(build);
-    assertThat(action).isNull();
-  }
-
-  @Test
-  public void addUrlActionWhenNoLog() throws IOException {
-    UrlSonarAction previousAction = new UrlSonarAction("url", true);
-    AbstractBuild previousBuild = mock(AbstractBuild.class);
-    when(previousBuild.getAction(UrlSonarAction.class)).thenReturn(previousAction);
-
-    AbstractBuild build = mockedBuild("");
-    when(build.getPreviousBuild()).thenReturn(previousBuild);
-
-    UrlSonarAction action = SonarUtils.addUrlActionTo(build);
-
-    ArgumentCaptor<UrlSonarAction> arg = ArgumentCaptor.forClass(UrlSonarAction.class);
-    verify(build).addAction(arg.capture());
-
-    assertThat(action.isNew()).isFalse();
-    assertThat(action.getSonarUrl()).isEqualTo("url");
-
-    assertThat(arg.getValue().getSonarUrl()).isEqualTo("url");
-  }
-
-  @Test
-  public void addUrlActionWhenLog() throws IOException {
-    String log = "foo\n" +
-      "[INFO] [16:36:31.386] ANALYSIS SUCCESSFUL, you can browse http://sonar:9000/dashboard/index/myproject:onbranch\n"
-      + "bar";
-    AbstractBuild build = mockedBuild(log);
-    UrlSonarAction action = SonarUtils.addUrlActionTo(build);
-
-    ArgumentCaptor<UrlSonarAction> arg = ArgumentCaptor.forClass(UrlSonarAction.class);
-    verify(build).addAction(arg.capture());
-
-    assertThat(action.isNew()).isTrue();
-    assertThat(action.getSonarUrl()).isEqualTo("http://sonar:9000/dashboard/index/myproject:onbranch");
-
-    assertThat(arg.getValue().getSonarUrl()).isEqualTo("http://sonar:9000/dashboard/index/myproject:onbranch");
-  }
-
-  @Test
-  public void getUrlFromNullBuild() {
-    assertThat(SonarUtils.getSonarUrlFrom(null)).isNull();
-  }
-
-  @Test
-  public void getUrlFromBuild() {
-    AbstractBuild build = mock(AbstractBuild.class);
-    UrlSonarAction action = new UrlSonarAction("url", true);
-    when(build.getAction(UrlSonarAction.class)).thenReturn(action);
-    assertThat(SonarUtils.getSonarUrlFrom(build)).isEqualTo("url");
-  }
-
-  @Test
-  public void getUrlFromBuildWithoutAction() {
-    AbstractBuild build = mock(AbstractBuild.class);
-    assertThat(SonarUtils.getSonarUrlFrom(build)).isNull();
-  }
-
   private AbstractBuild<?, ?> mockedBuild(String log) throws IOException {
     AbstractBuild<?, ?> build = mock(AbstractBuild.class);
     when(build.getLogReader()).thenReturn(new StringReader(log));
@@ -154,7 +86,7 @@ public class SonarUtilsTest {
 
   private Run<?, ?> mockedRunWithSonarAction(String url) throws IOException {
     Run<?, ?> build = mock(Run.class);
-    when(build.getAction(BuildSonarAction.class)).thenReturn(url != null ? new BuildSonarAction(url) : null);
+    when(build.getAction(SonarBuildBadgeAction.class)).thenReturn(url != null ? new SonarBuildBadgeAction(url) : null);
     return build;
   }
 

@@ -35,7 +35,7 @@ package hudson.plugins.sonar.action;
 
 import hudson.plugins.sonar.SonarTestCase;
 
-import hudson.plugins.sonar.action.BuildSonarAction;
+import hudson.plugins.sonar.action.SonarBuildBadgeAction;
 import org.junit.Before;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,12 +43,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Evgeny Mandrikov
  */
-public class BuildSonarActionTest extends SonarTestCase {
-  private BuildSonarAction action;
+public class SonarBuildBadgeActionTest extends SonarTestCase {
+  private SonarBuildBadgeAction action;
 
   @Before
   public void setUp() throws Exception {
-    action = new BuildSonarAction();
+    action = new SonarBuildBadgeAction();
   }
 
   @Test

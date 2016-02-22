@@ -33,8 +33,8 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.action.BuildSonarAction;
-import hudson.plugins.sonar.action.ProjectSonarAction;
+import hudson.plugins.sonar.action.SonarBuildBadgeAction;
+import hudson.plugins.sonar.action.SonarProjectIconAction;
 import hudson.tasks.Builder;
 import hudson.Functions;
 import hudson.maven.MavenModuleSet;
@@ -203,15 +203,16 @@ public abstract class SonarTestCase {
 
     if (success) {
       // SONARPLUGINS-320: Check that small badge was added to build history
-      assertThat(build.getAction(BuildSonarAction.class)).as(BuildSonarAction.class.getSimpleName() + " not found").isNotNull();
+      assertThat(build.getAction(SonarBuildBadgeAction.class)).as(SonarBuildBadgeAction.class.getSimpleName() + " not found").isNotNull();
     } else {
       // SONARJNKNS-203 Do not add link if build has failed
-      assertThat(build.getAction(BuildSonarAction.class)).as(BuildSonarAction.class.getSimpleName() + " not found").isNull();
+      assertThat(build.getAction(SonarBuildBadgeAction.class)).as(SonarBuildBadgeAction.class.getSimpleName() + " not found").isNotNull();
+      assertThat(build.getAction(SonarBuildBadgeAction.class).getUrl()).isNull();
     }
     // SONARPLUGINS-165: Check that link added to project
     Job<?, ?> parent = build.getParent();
     if (parent instanceof AbstractProject) {
-      assertThat(((AbstractProject<?, ?>) parent).getAction(ProjectSonarAction.class)).isNotNull();
+      assertThat(((AbstractProject<?, ?>) parent).getAction(SonarProjectIconAction.class)).isNotNull();
     }
   }
 
@@ -222,7 +223,7 @@ public abstract class SonarTestCase {
   protected void assertNoSonarExecution(Run<?, ?> build, String cause) throws Exception {
     assertLogContains(cause, build);
     // SONARPLUGINS-320: Check that small badge was not added to build history
-    assertThat(build.getAction(BuildSonarAction.class)).as(BuildSonarAction.class.getSimpleName() + " found").isNull();
+    assertThat(build.getAction(SonarBuildBadgeAction.class)).as(SonarBuildBadgeAction.class.getSimpleName() + " found").isNull();
   }
 
   protected void assertLogContains(String substring, Run<?, ?> run) throws IOException {

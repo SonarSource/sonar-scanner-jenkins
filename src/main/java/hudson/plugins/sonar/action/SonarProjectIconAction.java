@@ -16,30 +16,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-/*
- * Sonar is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * Sonar is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with Sonar; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
- */
 package hudson.plugins.sonar.action;
-
-import hudson.plugins.sonar.utils.SonarUtils;
 
 import hudson.plugins.sonar.Messages;
 import hudson.plugins.sonar.SonarPlugin;
 import hudson.PluginWrapper;
 import hudson.model.ProminentProjectAction;
-import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
 
 /**
@@ -48,11 +30,15 @@ import jenkins.model.Jenkins;
  * @author Evgeny Mandrikov
  * @since 1.2
  */
-public final class ProjectSonarAction implements ProminentProjectAction {
-  private final AbstractProject<?, ?> project;
+public final class SonarProjectIconAction implements ProminentProjectAction {
+  private final SonarAnalysisAction buildInfo;
 
-  public ProjectSonarAction(AbstractProject<?, ?> project) {
-    this.project = project;
+  public SonarProjectIconAction() {
+    this.buildInfo = null;
+  }
+
+  public SonarProjectIconAction(SonarAnalysisAction buildInfo) {
+    this.buildInfo = buildInfo;
   }
 
   @Override
@@ -69,6 +55,10 @@ public final class ProjectSonarAction implements ProminentProjectAction {
 
   @Override
   public String getUrlName() {
-    return SonarUtils.getSonarUrlFrom(project.getLastBuild());
+    return buildInfo != null ? buildInfo.getUrl() : null;
+  }
+
+  public SonarAnalysisAction getBuildInfo() {
+    return buildInfo;
   }
 }

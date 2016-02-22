@@ -33,15 +33,22 @@
  */
 package hudson.plugins.sonar.utils;
 
-import hudson.model.AbstractBuild;
-import hudson.plugins.sonar.action.UrlSonarAction;
+import hudson.plugins.sonar.action.SonarAnalysisAction;
+import hudson.model.Action;
+import hudson.model.Actionable;
 import hudson.model.Run;
 import org.apache.commons.io.IOUtils;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,6 +62,9 @@ public final class SonarUtils {
    * Pattern for Sonar project URL in logs
    */
   public static final String URL_PATTERN_IN_LOGS = ".*" + Pattern.quote("ANALYSIS SUCCESSFUL, you can browse ") + "(.*)";
+  public static final String WORKING_DIR_PATTERN_IN_LOGS = ".*" + Pattern.quote("Working dir: ") + "(.*)";
+  public static final String DASHBOARD_URL_KEY = "dashboardUrl";
+  public static final String REPORT_TASK_NAME = "report-task.txt";
 
   /**
    * Hide utility-class constructor.
@@ -66,12 +76,47 @@ public final class SonarUtils {
    * Read logs of the build to find URL of the project dashboard in Sonar
    */
   public static String extractSonarProjectURLFromLogs(Run<?, ?> build) throws IOException {
+    return extractPatternFromLogs(URL_PATTERN_IN_LOGS, build);
+  }
+
+  public static <T extends Action> List<T> getPersistentActions(Actionable actionable, Class<T> type) {
+    List<T> filtered = new LinkedList<T>();
+
+    // we use this method to avoid recursively calling transitive action factories
+    for (Action a : actionable.getActions()) {
+      if (type.isAssignableFrom(a.getClass())) {
+        filtered.add((T) a);
+      }
+    }
+    return filtered;
+  }
+
+  public static Properties extractReportTask(Run<?, ?> build) throws IOException {
+    String path = extractPatternFromLogs(WORKING_DIR_PATTERN_IN_LOGS, build);
+    if (path == null) {
+      return null;
+    }
+
+    File reportTask = new File(path, REPORT_TASK_NAME);
+    if (!reportTask.isFile()) {
+      return null;
+    }
+
+    FileInputStream input = new FileInputStream(reportTask);
+    Properties p = new Properties();
+    p.load(input);
+    input.close();
+    return p;
+
+  }
+
+  private static String extractPatternFromLogs(String pattern, Run<?, ?> build) throws IOException {
     BufferedReader br = null;
     String url = null;
     try {
       br = new BufferedReader(build.getLogReader());
       String strLine;
-      Pattern p = Pattern.compile(URL_PATTERN_IN_LOGS);
+      Pattern p = Pattern.compile(pattern);
       while ((strLine = br.readLine()) != null) {
         Matcher match = p.matcher(strLine);
         if (match.matches()) {
@@ -84,38 +129,57 @@ public final class SonarUtils {
     return url;
   }
 
-  /**
-   * Tries to find a URL in the build logs and appends a @{link UrlSonarAction} to the build. If no URL is found, it
-   * tries to get it from the previous build.
-   * @return the @{link UrlSonarAction} appended to the build. If no action is appended, null is returned.
-   */
   @Nullable
-  public static UrlSonarAction addUrlActionTo(Run<?, ?> build) throws IOException {
-    UrlSonarAction existingAction = build.getAction(UrlSonarAction.class);
-    if (existingAction != null) {
-      return existingAction;
-    }
+  /** 
+   * Collects as much information as it finds from the sonar analysis in the build and adds it as an action to the build.
+   * Even if no information is found, the action is added, marking in the build that a sonar analysis ran. 
+   */
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, String installationName, boolean skippedIfNoBuild) throws IOException {
+    SonarAnalysisAction buildInfo = new SonarAnalysisAction(installationName);
+    Properties reportTask = extractReportTask(build);
 
-    String sonarUrl = extractSonarProjectURLFromLogs(build);
-    UrlSonarAction action = null;
-
-    if (sonarUrl == null) {
-      Run<?, ?> previousBuild = build.getPreviousBuild();
-      if (previousBuild != null) {
-        UrlSonarAction previousAction = previousBuild.getAction(UrlSonarAction.class);
-        if (previousAction != null) {
-          action = new UrlSonarAction(previousAction.getSonarUrl(), false);
-          build.addAction(action);
-        }
-      }
+    if (reportTask != null) {
+      buildInfo.setUrl(reportTask.getProperty(DASHBOARD_URL_KEY));
     } else {
-      action = new UrlSonarAction(sonarUrl, true);
-      build.addAction(action);
+      String sonarUrl = extractSonarProjectURLFromLogs(build);
+      if (sonarUrl == null) {
+        return addBuildInfoFromLastBuildTo(build, installationName, skippedIfNoBuild);
+      }
+      buildInfo.setUrl(sonarUrl);
     }
 
-    return action;
+    build.addAction(buildInfo);
+    return buildInfo;
   }
-  
+
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, String installationName) throws IOException {
+    return addBuildInfoTo(build, installationName, false);
+  }
+
+  public static SonarAnalysisAction addBuildInfoFromLastBuildTo(Run<?, ?> build, String installationName, boolean isSkipped) {
+    Run<?, ?> previousBuild = build.getPreviousBuild();
+    if (previousBuild == null) {
+      return addEmptyBuildInfo(build, installationName, isSkipped);
+    }
+
+    for (SonarAnalysisAction analysis : previousBuild.getActions(SonarAnalysisAction.class)) {
+      if (analysis.getUrl() != null && analysis.getInstallationName().equals(installationName)) {
+        SonarAnalysisAction copy = new SonarAnalysisAction(analysis);
+        copy.setSkipped(isSkipped);
+        build.addAction(copy);
+        return copy;
+      }
+    }
+    return addEmptyBuildInfo(build, installationName, isSkipped);
+  }
+
+  public static SonarAnalysisAction addEmptyBuildInfo(Run<?, ?> build, String installationName, boolean isSkipped) {
+    SonarAnalysisAction analysis = new SonarAnalysisAction(installationName);
+    analysis.setSkipped(isSkipped);
+    build.addAction(analysis);
+    return analysis;
+  }
+
   public static String getMavenGoal(String version) {
     Float majorMinor = extractMajorMinor(version);
 
@@ -125,26 +189,14 @@ public final class SonarUtils {
       return "org.codehaus.mojo:sonar-maven-plugin:" + version + ":sonar";
     }
   }
-  
+
+  @CheckForNull
   public static Float extractMajorMinor(String version) {
     Pattern p = Pattern.compile("\\d+\\.\\d+");
     Matcher m = p.matcher(version);
-    
-    if(m.find()) {
-      return Float.parseFloat(m.group());
-    }
-    
-    return null;
-  }
 
-  public static String getSonarUrlFrom(@Nullable AbstractBuild<?, ?> build) {
-    if(build == null) {
-      return null;
-    }
-    
-    UrlSonarAction action = build.getAction(UrlSonarAction.class);
-    if (action != null) {
-      return action.getSonarUrl();
+    if (m.find()) {
+      return Float.parseFloat(m.group());
     }
 
     return null;
