@@ -1,9 +1,8 @@
 <div>
 	<p>
-		This will inject in your build several variables related to the chosen
-		SonarQube installation defined in the system configuration. <br />
-		The following variables might be set, depending on the configuration:
+		Inject environment variables related to the chosen SonarQube installation. 
 		<br />
+		The following variables may be set depending on the configuration: 
 	<ul>
 		<li>SONAR_HOST_URL</li>
 		<li>SONAR_LOGIN</li>
@@ -12,12 +11,10 @@
 		<li>SONAR_JDBC_USERNAME</li>
 		<li>SONAR_JDBC_PASSWORD</li>
 		<li>SONAR_EXTRA_PROPS</li>
-		<li>SONAR_MAVEN_GOAL</li>
+		<li>SONAR_MAVEN_GOAL - supplies the correct Maven goal based on the "Version of sonar-maven-plugin" specified for the SonarQube instance.</li>
 	</ul>
-	<br /> You can use these variables when configuring the build to
-	launch a SonarQube analysis using standard Jenkins build steps such as
-	Maven, Gradle, Ant or command line scripts. If you plan to use
-	'SonarQube Scanner' or 'SonarQube Scanner for MSBuild' build steps then you don't
-	need to enable this feature.
+	<br /> 
+	These variables are useful when configuring a SonarQube analysis using standard build steps such as Maven, Gradle, Ant, and command line scripts. 
+	<b>This feature is not needed if you're using "SonarQube Scanner" or "SonarQube Scanner for MSBuild" build steps.</b>
 	</p>
 </div>
