@@ -19,7 +19,7 @@
 package hudson.plugins.sonar.action;
 
 import hudson.plugins.sonar.client.ProjectInformation;
-import hudson.plugins.sonar.client.QualityGateResolver;
+import hudson.plugins.sonar.client.SQProjectResolver;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,33 +33,34 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class SonarProjectPageActionTest {
-  private QualityGateResolver qgResolver;
-  
+  private SQProjectResolver projResolver;
+
   @Before
   public void setUp() {
-    qgResolver = mock(QualityGateResolver.class);
+    projResolver = mock(SQProjectResolver.class);
     ProjectInformation proj = mock(ProjectInformation.class);
-    when(qgResolver.get(anyString(), anyString())).thenReturn(proj);
+    when(projResolver.get(anyString(), anyString(), anyString())).thenReturn(proj);
   }
-  
+
   @Test
   public void test() {
     SonarAnalysisAction[] analyses = {
-      createAnalysis("inst1", "url1"),
-      createAnalysis("inst2", "url2")
+      createAnalysis("inst1", "url1", "task1"),
+      createAnalysis("inst2", "url2", "task1")
     };
-    
-    SonarProjectPageAction projectPage = new SonarProjectPageAction(Arrays.asList(analyses), qgResolver);
+
+    SonarProjectPageAction projectPage = new SonarProjectPageAction(Arrays.asList(analyses), projResolver);
     assertThat(projectPage.getProjects()).hasSize(2);
-    
-    verify(qgResolver).get("url1", "inst1");
-    verify(qgResolver).get("url2", "inst2");
-    verifyNoMoreInteractions(qgResolver);
+
+    verify(projResolver).get("url1", "task1", "inst1");
+    verify(projResolver).get("url2", "task1", "inst2");
+    verifyNoMoreInteractions(projResolver);
   }
-  
-  private static SonarAnalysisAction createAnalysis(String instName, String url) {
+
+  private static SonarAnalysisAction createAnalysis(String instName, String url, String ceTaskId) {
     SonarAnalysisAction analysis = new SonarAnalysisAction(instName);
     analysis.setUrl(url);
+    analysis.setCeTaskId(ceTaskId);
     return analysis;
   }
 }

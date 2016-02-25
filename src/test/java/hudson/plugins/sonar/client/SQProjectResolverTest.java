@@ -20,7 +20,7 @@ package hudson.plugins.sonar.client;
 
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarTestCase;
-import hudson.plugins.sonar.client.QualityGateResolver;
+import hudson.plugins.sonar.client.SQProjectResolver;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -35,58 +35,87 @@ import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Matchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-public class QualityGateResolverTest extends SonarTestCase {
-  private final static String SERVER_URL = "http://myserver.org";
+public class SQProjectResolverTest extends SonarTestCase {
+  private final static String SERVER_URL = "http://localhost:9000";
   private final static String PROJECT_KEY = "org.sonarsource.sonarlint:sonarlint-cli";
   private final static String PROJECT_URL = SERVER_URL + "/dashboard/index/" + PROJECT_KEY;
+  private final static String CE_TASK_ID = "task1";
   private final static String INST_NAME = "my sonarqube";
   private final static String PASS = "mypass";
   private final static String USER = "user";
 
-  private QualityGateResolver resolver;
+  private SQProjectResolver resolver;
   private HttpClient client;
 
   @Before
   public void setUp() {
     super.configureSonar(new SonarInstallation(INST_NAME, SERVER_URL, null, null, null, null, null, null, USER, PASS, null));
     client = mock(HttpClient.class);
-    resolver = new QualityGateResolver(client);
+    resolver = new SQProjectResolver(client);
   }
 
   @Test
-  public void testQG55() throws Exception {
+  public void testSQ55() throws Exception {
     mockSQServer(5.5f);
-    ProjectInformation proj = resolver.get(PROJECT_URL, INST_NAME);
+    ProjectInformation proj = resolver.get(PROJECT_URL, CE_TASK_ID, INST_NAME);
     assertThat(proj).isNotNull();
+    assertThat(proj.getCeStatus()).isEqualTo("success");
     assertThat(proj.getStatus()).isEqualTo("OK");
     assertThat(proj.getProjectName()).isEqualTo("SonarLint CLI");
     assertThat(proj.getProjectKey()).isEqualTo("org.sonarsource.sonarlint:sonarlint-cli");
     assertThat(proj.getErrors()).isNullOrEmpty();
 
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_NAME), eq(USER), eq(PASS));
+    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS), eq(USER), eq(PASS));
+    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(USER), eq(PASS));
+    verifyNoMoreInteractions(client);
   }
 
   @Test
-  public void testQG51() throws Exception {
-    mockSQServer(5.1f);
-    ProjectInformation proj = resolver.get(PROJECT_URL, INST_NAME);
+  public void testSQ55NoCETask() throws Exception {
+    mockSQServer(5.5f);
+    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_NAME), eq(USER), eq(PASS))).thenReturn(getFile("projectIndex.json"));
+
+    ProjectInformation proj = resolver.get(PROJECT_URL, null, INST_NAME);
     assertThat(proj).isNotNull();
+    assertThat(proj.getCeStatus()).isNull();
+    assertThat(proj.getStatus()).isEqualTo("OK");
+    assertThat(proj.getProjectName()).isEqualTo("SonarLint CLI");
+    assertThat(proj.getProjectKey()).isEqualTo("org.sonarsource.sonarlint:sonarlint-cli");
+    assertThat(proj.getErrors()).isNullOrEmpty();
+
+    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS), eq(USER), eq(PASS));
+    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_NAME), eq(USER), eq(PASS));
+    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_VERSION), isNull(String.class), isNull(String.class));
+    verifyNoMoreInteractions(client);
+  }
+
+  @Test
+  public void testSQ51() throws Exception {
+    mockSQServer(5.1f);
+    ProjectInformation proj = resolver.get(PROJECT_URL, null, INST_NAME);
+    assertThat(proj).isNotNull();
+    assertThat(proj.getCeStatus()).isNull();
     assertThat(proj.getStatus()).isEqualTo("WARN");
     assertThat(proj.getProjectName()).isEqualTo("SonarLint CLI");
     assertThat(proj.getProjectKey()).isEqualTo("org.sonarsource.sonarlint:sonarlint-cli");
     assertThat(proj.getErrors()).isNullOrEmpty();
 
     verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_RESOURCES), eq(USER), eq(PASS));
+    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_VERSION), isNull(String.class), isNull(String.class));
+    verifyNoMoreInteractions(client);
   }
 
   @Test
   public void testWsError() throws Exception {
     mockSQServer(new NullPointerException());
-    ProjectInformation proj = resolver.get(PROJECT_URL, INST_NAME);
+    ProjectInformation proj = resolver.get(PROJECT_URL, null, INST_NAME);
     assertThat(proj).isNull();
   }
 
@@ -94,7 +123,7 @@ public class QualityGateResolverTest extends SonarTestCase {
   public void testInvalidInstallation() {
     // this will erase previously configured installation INST_NAME
     super.configureDefaultSonar();
-    ProjectInformation proj = resolver.get(PROJECT_URL, INST_NAME);
+    ProjectInformation proj = resolver.get(PROJECT_URL, null, INST_NAME);
     assertThat(proj).isNull();
   }
 
@@ -105,10 +134,10 @@ public class QualityGateResolverTest extends SonarTestCase {
   private void mockSQServer(float version) throws Exception {
     when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null, null)).thenReturn(Float.toString(version));
     if (version >= 5.2) {
-      when(client.getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS), eq(USER), eq(PASS))).thenReturn(getFile("projectStatus.json"));
-      when(client.getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_NAME), eq(USER), eq(PASS))).thenReturn(getFile("projectIndex.json"));
+      when(client.getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS), eq(USER), eq(PASS))).thenReturn(getFile("projectStatus.json"));
+      when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(USER), eq(PASS))).thenReturn(getFile("ce_task.json"));
     } else {
-      when(client.getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_RESOURCES), eq(USER), eq(PASS))).thenReturn(getFile("resources.json"));
+      when(client.getHttp(startsWith(SERVER_URL + WsClient.API_RESOURCES), eq(USER), eq(PASS))).thenReturn(getFile("resources.json"));
     }
   }
 

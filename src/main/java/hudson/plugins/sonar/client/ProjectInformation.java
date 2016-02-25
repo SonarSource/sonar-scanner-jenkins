@@ -20,69 +20,75 @@ package hudson.plugins.sonar.client;
 
 import hudson.model.InvisibleAction;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 public class ProjectInformation extends InvisibleAction {
   private String[] errors;
   private String key;
   private String name;
   private String url;
   private String status;
-  
+  private String ceStatus;
+  private String ceUrl;
+
   public ProjectInformation(String projectKey) {
     this.key = projectKey;
   }
-  
-  public boolean isPassing() {
-    return "OK".equals(status);
+
+  public String getCeUrl() {
+    return ceUrl;
   }
-  
+
+  public void setCeUrl(String ceUrl) {
+    this.ceUrl = ceUrl;
+  }
+
+  public String getCeStatus() {
+    return ceStatus;
+  }
+
+  public void setCeStatus(String ceStatus) {
+    this.ceStatus = (ceStatus != null) ? ceStatus.toLowerCase() : null;
+  }
+
   public String getStatus() {
     return status;
   }
-  
+
   public void setName(String name) {
     this.name = name;
   }
-  
+
   public String getUrl() {
     return url;
   }
-  
+
   public void setUrl(String url) {
     this.url = url;
   }
-  
+
   public boolean isValid() {
     return status != null;
   }
-  
+
   public String getProjectKey() {
     return key;
   }
-  
-  public String getUpdateDate() {
-    SimpleDateFormat dt = new SimpleDateFormat("yyyyy-mm-dd hh:mm"); 
-    return dt.format(new Date());
-  }
-  
+
   public String getProjectName() {
     return name;
   }
-  
+
   public boolean hasErrors() {
     return errors != null && errors.length > 0;
   }
-  
+
   public String[] getErrors() {
     return errors;
-  }  
-  
+  }
+
   public void setErrors(String[] errors) {
     this.errors = errors;
   }
-  
+
   public void setStatus(String status) {
     this.status = status;
   }

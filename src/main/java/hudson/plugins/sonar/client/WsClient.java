@@ -27,7 +27,6 @@ import javax.annotation.CheckForNull;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Date;
 
 public class WsClient {
   public static final String API_RESOURCES = "/api/resources?format=json&depth=0&metrics=alert_status&resource=";
@@ -35,34 +34,45 @@ public class WsClient {
   public static final String API_PROJECT_STATUS = "/api/qualitygates/project_status?projectKey=";
   public static final String API_VERSION = "/api/server/version";
   public static final String API_PROJECT_NAME = "/api/projects/index?format=json&key=";
+  public static final String API_CE_TASK = "/api/ce/task?id=";
 
   private final HttpClient client;
   private final String serverUrl;
   private final String username;
   private final String password;
-  private final String projectKey;
 
-  public WsClient(HttpClient client, String serverUrl, String projectKey, String username, String password) {
+  public WsClient(HttpClient client, String serverUrl, String username, String password) {
     this.client = client;
     this.serverUrl = serverUrl;
-    this.projectKey = projectKey;
     this.username = username;
     this.password = password;
   }
 
-  public ProjectQualityGate getQualityGate52() throws Exception {
+  public CETask getCETask(String taskId) throws Exception {
+    String url = serverUrl + API_CE_TASK + taskId;
+    String text = client.getHttp(url, username, password);
+    JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
+    JSONObject task = json.getJSONObject("task");
+
+    String status = task.getString("status");
+    String componentName = task.getString("componentName");
+    String componentKey = task.getString("componentKey");
+
+    return new CETask(status, componentName, componentKey, url);
+  }
+
+  public ProjectQualityGate getQualityGate52(String projectKey) throws Exception {
     String url = serverUrl + API_PROJECT_STATUS + encode(projectKey);
     String text = client.getHttp(url, username, password);
     JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
     JSONObject projectStatus = json.getJSONObject("projectStatus");
 
     String status = projectStatus.getString("status");
-    String projectName = getProjectName();
 
-    return new ProjectQualityGate(projectName, status);
+    return new ProjectQualityGate(null, status);
   }
 
-  public ProjectQualityGate getQualityGateBefore52() throws Exception {
+  public ProjectQualityGate getQualityGateBefore52(String projectKey) throws Exception {
     String url = serverUrl + API_RESOURCES + encode(projectKey);
 
     String text = client.getHttp(url, username, password);
@@ -90,7 +100,7 @@ public class WsClient {
     return null;
   }
 
-  public ProjectQualityGate getQualityGateMeasures() throws Exception {
+  public ProjectQualityGate getQualityGateMeasures(String projectKey) throws Exception {
     String url = serverUrl + API_MEASURES + encode(projectKey);
 
     String text = client.getHttp(url, username, password);
@@ -100,7 +110,6 @@ public class WsClient {
     }
 
     JSONObject component = json.getJSONObject("component");
-
     String projectName = component.getString("name");
 
     JSONArray measuresArray = component.getJSONArray("measures");
@@ -116,13 +125,12 @@ public class WsClient {
     return null;
   }
 
-  public String getServerVersion(String serverUrl) throws Exception {
+  public String getServerVersion() throws Exception {
     return client.getHttp(serverUrl + API_VERSION, null, null);
   }
 
-  private String getProjectName() throws Exception {
+  public String getProjectName(String projectKey) throws Exception {
     String url = serverUrl + API_PROJECT_NAME + encode(projectKey);
-
     String http = client.getHttp(url, username, password);
     JSONArray jsonArray = (JSONArray) JSONSerializer.toJSON(http);
     if (jsonArray.size() != 1) {
@@ -149,26 +157,51 @@ public class WsClient {
     return errorMsg.toString();
   }
 
+  static class CETask {
+    private final String status;
+    private final String componentName;
+    private final String componentKey;
+    private final String url;
+
+    public CETask(String status, String componentName, String componentKey, String ceUrl) {
+      super();
+      this.status = status;
+      this.componentName = componentName;
+      this.componentKey = componentKey;
+      this.url = ceUrl;
+    }
+    
+    public String getUrl() {
+      return url;
+    }
+
+    public String getStatus() {
+      return status;
+    }
+
+    public String getComponentName() {
+      return componentName;
+    }
+
+    public String getComponentKey() {
+      return componentKey;
+    }
+  }
+
   static class ProjectQualityGate {
     private final String status;
     private final String projectName;
-    private final Date date;
 
     ProjectQualityGate(String projectName, String status) {
       this.projectName = projectName;
       this.status = status;
-      this.date = null;
-    }
-
-    @CheckForNull
-    Date getDate() {
-      return date;
     }
 
     String getStatus() {
       return status;
     }
 
+    @CheckForNull
     String getProjectName() {
       return projectName;
     }

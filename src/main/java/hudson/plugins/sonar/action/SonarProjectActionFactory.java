@@ -24,7 +24,7 @@ import hudson.model.Action;
 import hudson.model.ProminentProjectAction;
 import hudson.model.Run;
 import hudson.plugins.sonar.client.HttpClient;
-import hudson.plugins.sonar.client.QualityGateResolver;
+import hudson.plugins.sonar.client.SQProjectResolver;
 import hudson.plugins.sonar.utils.SonarUtils;
 import jenkins.model.TransientActionFactory;
 
@@ -88,7 +88,7 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
    * Action that will create the jelly section in the Project page
    */
   private static SonarProjectPageAction createProjectPage(List<SonarAnalysisAction> actions) {
-    return new SonarProjectPageAction(actions, new QualityGateResolver(new HttpClient()));
+    return new SonarProjectPageAction(actions, new SQProjectResolver(new HttpClient()));
   }
 
 }

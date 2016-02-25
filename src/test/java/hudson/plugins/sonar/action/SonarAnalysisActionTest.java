@@ -20,8 +20,6 @@ package hudson.plugins.sonar.action;
 
 import org.junit.Test;
 
-import java.util.Properties;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SonarAnalysisActionTest {
@@ -29,12 +27,11 @@ public class SonarAnalysisActionTest {
   @Test
   public void testRoundTrips() {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst");
-    Properties props = new Properties();
     analysis.setUrl("url1");
     analysis.setNew(false);
-    analysis.setReportTask(props);
+    analysis.setCeTaskId("task1");
 
-    assertThat(analysis.getReportTask()).isEqualTo(props);
+    assertThat(analysis.getCeTaskId()).isEqualTo("task1");
     assertThat(analysis.getUrl()).isEqualTo("url1");
     assertThat(analysis.getInstallationName()).isEqualTo("inst");
     assertThat(analysis.isNew()).isFalse();
@@ -43,13 +40,12 @@ public class SonarAnalysisActionTest {
   @Test
   public void testCopyConstructor() {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst");
-    Properties props = new Properties();
     analysis.setUrl("url1");
     analysis.setNew(true);
-    analysis.setReportTask(props);
+    analysis.setCeTaskId("task1");
 
     SonarAnalysisAction analysis2 = new SonarAnalysisAction(analysis);
-    assertThat(analysis2.getReportTask()).isEqualTo(props);
+    assertThat(analysis2.getCeTaskId()).isNull();
     assertThat(analysis2.getUrl()).isEqualTo("url1");
     assertThat(analysis2.getInstallationName()).isEqualTo("inst");
     assertThat(analysis2.isNew()).isFalse();

@@ -1,0 +1,17 @@
+{"task":
+  {
+    "id":"AVL5i1TZIrFAZSZNbMcg",
+     "type":"REPORT",
+     "componentId":"AVLuxjNAlPSiTePYdXlf",
+     "componentKey":"org.sonarsource.sonarlint:sonarlint-cli",
+     "componentName":"SonarLint CLI",
+     "componentQualifier":"TRK",
+     "analysisId":"337",
+     "status":"SUCCESS",
+     "submittedAt":"2016-02-19T13:40:04+0100",
+     "startedAt":"2016-02-19T13:40:05+0100",
+     "executedAt":"2016-02-19T13:40:06+0100",
+     "executionTimeMs":1306,
+     "logs":false
+  }
+}

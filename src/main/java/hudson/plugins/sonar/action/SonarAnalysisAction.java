@@ -21,40 +21,45 @@ package hudson.plugins.sonar.action;
 import hudson.model.Action;
 import hudson.model.InvisibleAction;
 
-import java.util.Properties;
+import javax.annotation.CheckForNull;
 
 /**
  * Persists in a build SonarQube related information.
  */
 public class SonarAnalysisAction extends InvisibleAction implements Action {
   private String installationName;
-  private Properties reportTask;
+  private String ceTaskId;
   private String url;
   private boolean isNew;
   private boolean isSkipped;
 
-  public SonarAnalysisAction(String installationName, Properties reportTask) {
+  public SonarAnalysisAction(String installationName) {
     this.installationName = installationName;
-    this.reportTask = reportTask;
+    this.url = null;
+    this.ceTaskId = null;
     this.isNew = true;
     this.isSkipped = false;
   }
 
   public SonarAnalysisAction(SonarAnalysisAction copy) {
     this.installationName = copy.installationName;
-    this.reportTask = copy.reportTask;
     this.url = copy.url;
+    this.ceTaskId = null;
     this.isNew = false;
     this.isSkipped = false;
   }
 
-  public SonarAnalysisAction(String installationName) {
-    this.installationName = installationName;
-    this.isNew = true;
-  }
-
   public void setNew(boolean isNew) {
     this.isNew = isNew;
+  }
+
+  @CheckForNull
+  public String getCeTaskId() {
+    return ceTaskId;
+  }
+
+  public void setCeTaskId(String ceTaskId) {
+    this.ceTaskId = ceTaskId;
   }
 
   public boolean isNew() {
@@ -73,10 +78,7 @@ public class SonarAnalysisAction extends InvisibleAction implements Action {
     this.url = url;
   }
 
-  public void setReportTask(Properties reportTask) {
-    this.reportTask = reportTask;
-  }
-
+  @CheckForNull
   public String getUrl() {
     return url;
   }

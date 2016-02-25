@@ -117,7 +117,7 @@ public class SonarProjectActionFactoryTest {
 
   private void mockProject(boolean markProject, SonarAnalysisAction... buildInfos) {
     AbstractBuild build = mock(AbstractBuild.class);
-    when(project.getLastBuild()).thenReturn(build);
+    when(project.getLastCompletedBuild()).thenReturn(build);
     when(build.getActions(SonarAnalysisAction.class)).thenReturn(Arrays.asList(buildInfos));
 
     if (markProject) {

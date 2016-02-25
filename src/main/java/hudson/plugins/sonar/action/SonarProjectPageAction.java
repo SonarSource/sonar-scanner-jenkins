@@ -21,7 +21,7 @@ package hudson.plugins.sonar.action;
 import hudson.model.InvisibleAction;
 import hudson.model.ProminentProjectAction;
 import hudson.plugins.sonar.client.ProjectInformation;
-import hudson.plugins.sonar.client.QualityGateResolver;
+import hudson.plugins.sonar.client.SQProjectResolver;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,10 +32,10 @@ import java.util.List;
  */
 public class SonarProjectPageAction extends InvisibleAction implements ProminentProjectAction {
   private final List<SonarAnalysisAction> analyses;
-  private final QualityGateResolver qgResolver;
+  private final SQProjectResolver projResolver;
 
-  public SonarProjectPageAction(List<SonarAnalysisAction> analyses, QualityGateResolver qgResolver) {
-    this.qgResolver = qgResolver;
+  public SonarProjectPageAction(List<SonarAnalysisAction> analyses, SQProjectResolver qgResolver) {
+    this.projResolver = qgResolver;
     this.analyses = analyses;
   }
 
@@ -46,7 +46,7 @@ public class SonarProjectPageAction extends InvisibleAction implements Prominent
     List<ProjectInformation> infos = new LinkedList<ProjectInformation>();
 
     for (SonarAnalysisAction i : analyses) {
-      infos.add(qgResolver.get(i.getUrl(), i.getInstallationName()));
+      infos.add(projResolver.get(i.getUrl(), i.getCeTaskId(), i.getInstallationName()));
     }
     return infos;
   }

@@ -64,7 +64,8 @@ public final class SonarUtils {
   public static final String URL_PATTERN_IN_LOGS = ".*" + Pattern.quote("ANALYSIS SUCCESSFUL, you can browse ") + "(.*)";
   public static final String WORKING_DIR_PATTERN_IN_LOGS = ".*" + Pattern.quote("Working dir: ") + "(.*)";
   public static final String DASHBOARD_URL_KEY = "dashboardUrl";
-  public static final String REPORT_TASK_NAME = "report-task.txt";
+  public static final String CE_TASK_ID_KEY = "ceTaskId";
+  public static final String REPORT_TASK_FILE_NAME = "report-task.txt";
 
   /**
    * Hide utility-class constructor.
@@ -97,7 +98,7 @@ public final class SonarUtils {
       return null;
     }
 
-    File reportTask = new File(path, REPORT_TASK_NAME);
+    File reportTask = new File(path, REPORT_TASK_FILE_NAME);
     if (!reportTask.isFile()) {
       return null;
     }
@@ -140,6 +141,7 @@ public final class SonarUtils {
 
     if (reportTask != null) {
       buildInfo.setUrl(reportTask.getProperty(DASHBOARD_URL_KEY));
+      buildInfo.setCeTaskId(reportTask.getProperty(CE_TASK_ID_KEY));
     } else {
       String sonarUrl = extractSonarProjectURLFromLogs(build);
       if (sonarUrl == null) {

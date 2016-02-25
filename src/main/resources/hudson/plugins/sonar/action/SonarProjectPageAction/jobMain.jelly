@@ -1,39 +1,62 @@
 <j:jelly xmlns:j="jelly:core" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 	<j:set var="projects" value="${it.getProjects()}" />
 	
-	<j:if test="${projects != null}">
+	<j:if test="${!empty(projects)}">
 	  
 	  <link rel="stylesheet" type="text/css" href="${rootURL}/plugin/sonar/css/project_info.css" />
 	  <h2>SonarQube Quality Gate</h2>
 		  
-	  <div style="margin-left: 20px">
+	    <table class="sonar-projects">
+	    
 	    <j:forEach var="project" items="${projects}">
-		  <j:if test="${project.getStatus() != null}">
 		  <j:set var="status" value="${project.getStatus()}" />  
-		    <h3>${project.getProjectName()}  <a href="${project.getUrl()}"> 
-		      <j:choose>
-		        <j:when test="${project.getStatus()=='OK'}">
-		          <div class="sonar-passing sonar-status"> ${status}</div>
-		        </j:when>
-		        <j:when test="${project.getStatus()=='WARN'}">
-		          <div class="sonar-warn sonar-status"> ${status}</div>
-		        </j:when>
-		        <j:otherwise>
-		          <div class="sonar-failing sonar-status"> ${status}</div>
-		        </j:otherwise>
-		      </j:choose>
-		      </a>
-		    </h3>
-		  </j:if>
-	      <j:if test="${project.getErrors() != null}">
-		    <div class="error">
-		      <j:forEach var="error" items="${project.getErrors()}">
-		      	${%QualityGate.error} : ${error}
-		      </j:forEach>
+		  <j:set var="ceStatus" value="${project.getCeStatus()}" />
+		  <tr><td>
+		  
+		    <div class="sonar-qg">
+		      <div class="sonar-qg-label">${project.getProjectName()}</div>
+		  
+		      <div class="sonar-qg-status">
+		        <a href="${project.getUrl()}"> 
+		          <j:choose>
+		            <j:when test="${status=='OK'}">
+		              <div class="badge badge-success"> ${status}</div>
+		            </j:when>
+		            <j:when test="${status=='WARN'}">
+		              <div class="badge badge-warning"> ${status}</div>
+		            </j:when>
+		            <j:otherwise>
+		              <div class="badge badge-failing"> ${status}</div>
+		            </j:otherwise>
+		          </j:choose>
+		        </a>
+		      </div>
 		    </div>
-		  </j:if>
+		    
+		    <j:if test="${ceStatus != null}"><!-- possible values: SUCCESS, FAILED, CANCELED, PENDING, IN_PROGRESS -->
+		    
+		      <div class="sonar-ce">
+		        <div class="sonar-ce-label">${%CEProcessing}: </div>
+		        <j:choose>
+		            <j:when test="${ceStatus=='success'}">
+		              <div class="sonar-ce-status badge badge-success">${ceStatus}</div>
+		            </j:when>
+		            <j:when test="${ceStatus=='canceled'}">
+		              <div class="sonar-ce-status badge badge-warning">${ceStatus}</div>
+		            </j:when>
+		            <j:when test="${ceStatus=='failed'}">
+		              <div class="sonar-ce-status badge badge-failing">${ceStatus}</div>
+		            </j:when>
+		            <j:otherwise>
+                      <div class="sonar-ce-status badge">${ceStatus}</div>
+		            </j:otherwise>
+		        </j:choose>
+		      </div>
+		    </j:if>
+		  </td></tr>
+		  
         </j:forEach>  
-	  </div>
+        </table>
 	</j:if>
 	
 </j:jelly>

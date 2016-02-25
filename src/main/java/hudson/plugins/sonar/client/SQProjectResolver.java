@@ -19,6 +19,7 @@
 package hudson.plugins.sonar.client;
 
 import hudson.plugins.sonar.SonarInstallation;
+import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.client.WsClient.ProjectQualityGate;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarUtils;
@@ -28,20 +29,20 @@ import javax.annotation.CheckForNull;
 
 import java.util.logging.Level;
 
-public class QualityGateResolver {
+public class SQProjectResolver {
   private final HttpClient client;
 
-  public QualityGateResolver(HttpClient client) {
+  public SQProjectResolver(HttpClient client) {
     this.client = client;
   }
-  
+
   /**
    * Resolve information concerning the quality gate.
    * Might return null if it's not possible to fetch it, which should be interpreted as 'nothing to display'.
    * Errors that should be displayed are included in {@link ProjectInformation#getErrors()}.
    */
   @CheckForNull
-  public ProjectInformation get(String projectUrl, String installationName) {
+  public ProjectInformation get(String projectUrl, String ceTaskId, String installationName) {
     SonarInstallation inst = SonarInstallation.get(installationName);
     if (inst == null) {
       Logger.LOG.info("Invalid installation name: " + installationName);
@@ -51,29 +52,66 @@ public class QualityGateResolver {
     try {
       String projectKey = extractProjectKey(projectUrl);
       String serverUrl = extractServerUrl(projectUrl);
-      WsClient wsClient = new WsClient(client, serverUrl, projectKey, inst.getSonarLogin(), inst.getSonarPassword());
-      
-      Float version = SonarUtils.extractMajorMinor(wsClient.getServerVersion(serverUrl));
-      if (version == null || !checkServerUrl(serverUrl, inst)) {
+      WsClient wsClient = new WsClient(client, serverUrl, inst.getSonarLogin(), inst.getSonarPassword());
+
+      if (!checkServerUrl(serverUrl, inst)) {
         return null;
       }
 
-      ProjectQualityGate qg;
-      if (version < 5.2f) {
-        qg = wsClient.getQualityGateBefore52();
+      Float version;
+      if (ceTaskId != null) {
+        // CE was introduced in 5.2
+        version = 5.2f;
       } else {
-        qg = wsClient.getQualityGate52();
+        version = SonarUtils.extractMajorMinor(wsClient.getServerVersion());
+        if (version == null) {
+          return null;
+        }
       }
 
       ProjectInformation projectInfo = new ProjectInformation(projectKey);
-      projectInfo.setName(qg.getProjectName());
-      projectInfo.setStatus(qg.getStatus());
       projectInfo.setUrl(projectUrl);
+
+      getQualityGate(wsClient, projectInfo, projectKey, version);
+      getCETask(wsClient, projectInfo, ceTaskId, version);
+
+      if (projectInfo.getProjectName() == null) {
+        projectInfo.setName(wsClient.getProjectName(projectKey));
+      }
+
       return projectInfo;
 
     } catch (Exception e) {
       Logger.LOG.log(Level.WARNING, "Error fetching project information", e);
       return null;
+    }
+  }
+
+  private void getCETask(WsClient wsClient, ProjectInformation projectInfo, String ceTaskId, Float version) throws Exception {
+    if (version < 5.2f || ceTaskId == null) {
+      return;
+    }
+
+    CETask ceTask = wsClient.getCETask(ceTaskId);
+    projectInfo.setCeStatus(ceTask.getStatus());
+    projectInfo.setCeUrl(ceTask.getUrl());
+
+    if (ceTask.getComponentName() != null) {
+      projectInfo.setName(ceTask.getComponentName());
+    }
+  }
+
+  private static void getQualityGate(WsClient client, ProjectInformation proj, String projectKey, float version) throws Exception {
+    ProjectQualityGate qg;
+    if (version < 5.2f) {
+      qg = client.getQualityGateBefore52(projectKey);
+    } else {
+      qg = client.getQualityGate52(projectKey);
+    }
+    proj.setStatus(qg.getStatus());
+
+    if (qg.getProjectName() != null) {
+      proj.setName(qg.getProjectName());
     }
   }
 
