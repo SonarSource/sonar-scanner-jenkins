@@ -21,12 +21,16 @@ package hudson.plugins.sonar.action;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.Actionable;
 import hudson.model.ProminentProjectAction;
 import hudson.model.Run;
 import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
 import hudson.plugins.sonar.utils.SonarUtils;
 import jenkins.model.TransientActionFactory;
+
+import javax.annotation.CheckForNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -65,12 +69,13 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
     }
 
     if (sonarProjectActions.isEmpty()) {
-      // display at least 1 wave without any url on the project page
+      // display at least 1 wave without any URL in the project page
       sonarProjectActions.add(new SonarProjectIconAction());
-    }
-
-    if (!filteredActions.isEmpty()) {
-      sonarProjectActions.add(createProjectPage(filteredActions));
+    } else {
+      SonarProjectPageAction projectPage = createProjectPage(lastBuild, filteredActions);
+      if (projectPage != null) {
+        sonarProjectActions.add(projectPage);
+      }
     }
 
     return sonarProjectActions;
@@ -80,15 +85,35 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
    * Returns whether the project has any Sonar analysis currently configured.
    * The goal is to not display anything if no analysis is currently configured, even if the latest build did perform an analysis
    */
-  private static boolean projectHasSonarAnalysis(AbstractProject project) {
-    return !SonarUtils.getPersistentActions(project, SonarMarkerAction.class).isEmpty();
+  private static boolean projectHasSonarAnalysis(Actionable actionable) {
+    return !SonarUtils.getPersistentActions(actionable, SonarMarkerAction.class).isEmpty();
   }
 
   /**
    * Action that will create the jelly section in the Project page
    */
-  private static SonarProjectPageAction createProjectPage(List<SonarAnalysisAction> actions) {
-    return new SonarProjectPageAction(actions, new SQProjectResolver(new HttpClient()));
+  @CheckForNull
+  private static SonarProjectPageAction createProjectPage(Run<?, ?> run, List<SonarAnalysisAction> actions) {
+    long endTime = run.getStartTimeInMillis() + run.getDuration();
+    List<ProjectInformation> projects;
+
+    synchronized (run) {
+      SonarCacheAction cache = getOrCreateCache(run);
+      projects = cache.get(new SQProjectResolver(new HttpClient()), endTime, actions);
+    }
+
+    if (projects == null || projects.isEmpty()) {
+      return null;
+    }
+    return new SonarProjectPageAction(projects);
   }
 
+  private static SonarCacheAction getOrCreateCache(Actionable actionable) {
+    SonarCacheAction cache = SonarUtils.getPersistentAction(actionable, SonarCacheAction.class);
+    if (cache == null) {
+      cache = new SonarCacheAction();
+      actionable.addAction(cache);
+    }
+    return cache;
+  }
 }

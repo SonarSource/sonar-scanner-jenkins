@@ -21,6 +21,7 @@ package hudson.plugins.sonar.client;
 import hudson.model.InvisibleAction;
 
 public class ProjectInformation extends InvisibleAction {
+  private long created;
   private String[] errors;
   private String key;
   private String name;
@@ -31,8 +32,13 @@ public class ProjectInformation extends InvisibleAction {
 
   public ProjectInformation(String projectKey) {
     this.key = projectKey;
+    this.created = System.currentTimeMillis();
   }
 
+  public long created() {
+    return created;
+  }
+  
   public String getCeUrl() {
     return ceUrl;
   }

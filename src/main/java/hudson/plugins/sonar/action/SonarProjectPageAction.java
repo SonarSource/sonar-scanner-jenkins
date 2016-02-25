@@ -21,9 +21,7 @@ package hudson.plugins.sonar.action;
 import hudson.model.InvisibleAction;
 import hudson.model.ProminentProjectAction;
 import hudson.plugins.sonar.client.ProjectInformation;
-import hudson.plugins.sonar.client.SQProjectResolver;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -31,23 +29,16 @@ import java.util.List;
  * This is recreated every time something is loaded, so should be lightweight
  */
 public class SonarProjectPageAction extends InvisibleAction implements ProminentProjectAction {
-  private final List<SonarAnalysisAction> analyses;
-  private final SQProjectResolver projResolver;
+  private final List<ProjectInformation> projects;
 
-  public SonarProjectPageAction(List<SonarAnalysisAction> analyses, SQProjectResolver qgResolver) {
-    this.projResolver = qgResolver;
-    this.analyses = analyses;
+  public SonarProjectPageAction(List<ProjectInformation> projects) {
+    this.projects = projects;
   }
 
   /**
    * Called while building the jelly section 
    */
   public List<ProjectInformation> getProjects() {
-    List<ProjectInformation> infos = new LinkedList<ProjectInformation>();
-
-    for (SonarAnalysisAction i : analyses) {
-      infos.add(projResolver.get(i.getUrl(), i.getCeTaskId(), i.getInstallationName()));
-    }
-    return infos;
+    return projects;
   }
 }

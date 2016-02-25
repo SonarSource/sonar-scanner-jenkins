@@ -37,20 +37,22 @@
 		    
 		      <div class="sonar-ce">
 		        <div class="sonar-ce-label">${%CEProcessing}: </div>
+		        <div class="sonar-ce-status">
 		        <j:choose>
 		            <j:when test="${ceStatus=='success'}">
-		              <div class="sonar-ce-status badge badge-success">${ceStatus}</div>
+		              <div class="badge badge-success">${ceStatus}</div>
 		            </j:when>
 		            <j:when test="${ceStatus=='canceled'}">
-		              <div class="sonar-ce-status badge badge-warning">${ceStatus}</div>
+		              <div class="badge badge-warning">${ceStatus}</div>
 		            </j:when>
 		            <j:when test="${ceStatus=='failed'}">
-		              <div class="sonar-ce-status badge badge-failing">${ceStatus}</div>
+		              <div class="badge badge-failing">${ceStatus}</div>
 		            </j:when>
 		            <j:otherwise>
-                      <div class="sonar-ce-status badge">${ceStatus}</div>
+                      <div class="badge">${ceStatus}</div>
 		            </j:otherwise>
 		        </j:choose>
+		        </div>
 		      </div>
 		    </j:if>
 		  </td></tr>

@@ -85,7 +85,7 @@ public final class SonarUtils {
 
     // we use this method to avoid recursively calling transitive action factories
     for (Action a : actionable.getActions()) {
-      if(a == null) {
+      if (a == null) {
         continue;
       }
       if (type.isAssignableFrom(a.getClass())) {
@@ -93,6 +93,20 @@ public final class SonarUtils {
       }
     }
     return filtered;
+  }
+  
+  @CheckForNull
+  public static <T extends Action> T getPersistentAction(Actionable actionable, Class<T> type) {
+ // we use this method to avoid recursively calling transitive action factories
+    for (Action a : actionable.getActions()) {
+      if (a == null) {
+        continue;
+      }
+      if (type.isAssignableFrom(a.getClass())) {
+        return (T) a;
+      }
+    }
+    return null;
   }
 
   public static Properties extractReportTask(Run<?, ?> build) throws IOException {

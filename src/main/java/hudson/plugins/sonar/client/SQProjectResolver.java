@@ -42,7 +42,7 @@ public class SQProjectResolver {
    * Errors that should be displayed are included in {@link ProjectInformation#getErrors()}.
    */
   @CheckForNull
-  public ProjectInformation get(String projectUrl, String ceTaskId, String installationName) {
+  public ProjectInformation resolve(String projectUrl, String ceTaskId, String installationName) {
     SonarInstallation inst = SonarInstallation.get(installationName);
     if (inst == null) {
       Logger.LOG.info("Invalid installation name: " + installationName);
@@ -54,7 +54,7 @@ public class SQProjectResolver {
       String serverUrl = extractServerUrl(projectUrl);
       WsClient wsClient = new WsClient(client, serverUrl, inst.getSonarLogin(), inst.getSonarPassword());
 
-      if (!checkServerUrl(serverUrl, inst)) {
+      if (!checkServerUrl(serverUrl, projectKey, inst)) {
         return null;
       }
 
@@ -87,7 +87,7 @@ public class SQProjectResolver {
     }
   }
 
-  private void getCETask(WsClient wsClient, ProjectInformation projectInfo, String ceTaskId, Float version) throws Exception {
+  private static void getCETask(WsClient wsClient, ProjectInformation projectInfo, String ceTaskId, Float version) throws Exception {
     if (version < 5.2f || ceTaskId == null) {
       return;
     }
@@ -115,7 +115,10 @@ public class SQProjectResolver {
     }
   }
 
-  private static boolean checkServerUrl(String serverUrl, SonarInstallation inst) {
+  private static boolean checkServerUrl(String serverUrl, String projectKey, SonarInstallation inst) {
+    if (serverUrl == null || projectKey == null) {
+      return false;
+    }
     String configUrl = StringUtils.isEmpty(inst.getServerUrl()) ? "http://localhost:9000" : inst.getServerUrl();
 
     if (!configUrl.equals(serverUrl)) {

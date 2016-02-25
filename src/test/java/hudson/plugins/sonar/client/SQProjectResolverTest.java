@@ -64,7 +64,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   @Test
   public void testSQ55() throws Exception {
     mockSQServer(5.5f);
-    ProjectInformation proj = resolver.get(PROJECT_URL, CE_TASK_ID, INST_NAME);
+    ProjectInformation proj = resolver.resolve(PROJECT_URL, CE_TASK_ID, INST_NAME);
     assertThat(proj).isNotNull();
     assertThat(proj.getCeStatus()).isEqualTo("success");
     assertThat(proj.getStatus()).isEqualTo("OK");
@@ -82,7 +82,7 @@ public class SQProjectResolverTest extends SonarTestCase {
     mockSQServer(5.5f);
     when(client.getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_NAME), eq(USER), eq(PASS))).thenReturn(getFile("projectIndex.json"));
 
-    ProjectInformation proj = resolver.get(PROJECT_URL, null, INST_NAME);
+    ProjectInformation proj = resolver.resolve(PROJECT_URL, null, INST_NAME);
     assertThat(proj).isNotNull();
     assertThat(proj.getCeStatus()).isNull();
     assertThat(proj.getStatus()).isEqualTo("OK");
@@ -99,7 +99,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   @Test
   public void testSQ51() throws Exception {
     mockSQServer(5.1f);
-    ProjectInformation proj = resolver.get(PROJECT_URL, null, INST_NAME);
+    ProjectInformation proj = resolver.resolve(PROJECT_URL, null, INST_NAME);
     assertThat(proj).isNotNull();
     assertThat(proj.getCeStatus()).isNull();
     assertThat(proj.getStatus()).isEqualTo("WARN");
@@ -115,7 +115,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   @Test
   public void testWsError() throws Exception {
     mockSQServer(new NullPointerException());
-    ProjectInformation proj = resolver.get(PROJECT_URL, null, INST_NAME);
+    ProjectInformation proj = resolver.resolve(PROJECT_URL, null, INST_NAME);
     assertThat(proj).isNull();
   }
 
@@ -123,7 +123,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   public void testInvalidInstallation() {
     // this will erase previously configured installation INST_NAME
     super.configureDefaultSonar();
-    ProjectInformation proj = resolver.get(PROJECT_URL, null, INST_NAME);
+    ProjectInformation proj = resolver.resolve(PROJECT_URL, null, INST_NAME);
     assertThat(proj).isNull();
   }
 
