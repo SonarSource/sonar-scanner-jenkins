@@ -292,7 +292,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     WebElement addPostBuildButton = findElement(buttonByText("Add post-build action"));
     scrollToElement(addPostBuildButton);
     addPostBuildButton.click();
-    findElement(By.linkText("SonarQube")).click();
+    findElement(By.linkText("SonarQube analysis with Maven")).click();
     // Here we need to wait for the Sonar step to be really activated
     WebElement sonarPublisher = findElement(By.xpath("//div[@descriptorid='hudson.plugins.sonar.SonarPublisher']"));
     if (StringUtils.isNotBlank(branch)) {
