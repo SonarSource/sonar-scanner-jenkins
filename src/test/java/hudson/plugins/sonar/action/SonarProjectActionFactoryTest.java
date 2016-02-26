@@ -48,7 +48,7 @@ public class SonarProjectActionFactoryTest {
   public void testNoBuildInfo() {
     mockProject(true);
     Collection<? extends Action> actions = factory.createFor(project);
-    List<SonarProjectIconAction> projectActions = getSonarProjectIconAction(actions, 1);
+    List<SonarProjectIconAction> projectActions = getSonarProjectIconAction(actions);
     assertThat(projectActions).hasSize(1);
     assertThat(projectActions.get(0).getUrlName()).isNull();
     assertThat(projectActions.get(0).getDisplayName()).isNotNull();
@@ -60,8 +60,8 @@ public class SonarProjectActionFactoryTest {
     mockProject(true);
     when(project.getLastBuild()).thenReturn(null);
     Collection<? extends Action> actions = factory.createFor(project);
-    List<SonarProjectIconAction> projectActions = getSonarProjectIconAction(actions, 1);
-
+    List<SonarProjectIconAction> projectActions = getSonarProjectIconAction(actions);
+    assertThat(projectActions).hasSize(1);
     assertThat(projectActions.get(0).getUrlName()).isNull();
     assertThat(projectActions.get(0).getDisplayName()).isNotNull();
     assertThat(projectActions.get(0).getBuildInfo()).isNull();
@@ -75,9 +75,9 @@ public class SonarProjectActionFactoryTest {
 
     mockProject(true, info1, info2, info3);
     Collection<? extends Action> actions = factory.createFor(project);
-
-    // should have these 3 plus project page
-    List<SonarProjectIconAction> projectActions = getSonarProjectIconAction(actions, 4);
+    assertThat(actions).hasSize(3);
+    // should have no project page because resolver returns nothing
+    List<SonarProjectIconAction> projectActions = getSonarProjectIconAction(actions);
     assertThat(projectActions).hasSize(3);
 
     assertThat(projectActions.get(0).getBuildInfo()).isEqualTo(info1);
@@ -92,7 +92,7 @@ public class SonarProjectActionFactoryTest {
   public void testNoMarker() {
     mockProject(false, createBuildInfo("url"));
     Collection<? extends Action> actions = factory.createFor(project);
-    getSonarProjectIconAction(actions, 0);
+    assertThat(actions).isEmpty();
   }
 
   private static SonarAnalysisAction createBuildInfo(String url) {
@@ -101,8 +101,7 @@ public class SonarProjectActionFactoryTest {
     return buildInfo;
   }
 
-  private static List<SonarProjectIconAction> getSonarProjectIconAction(Collection<? extends Action> actions, int number) {
-    assertThat(actions).hasSize(number);
+  private static List<SonarProjectIconAction> getSonarProjectIconAction(Collection<? extends Action> actions) {
     List<SonarProjectIconAction> list = new LinkedList<SonarProjectIconAction>();
 
     for (Action a : actions) {

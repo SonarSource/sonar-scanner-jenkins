@@ -42,6 +42,12 @@ import java.util.List;
  * We don't use {@link TransientProjectActionFactory} because it appears to be cached and requires Jenkins to restart.
  */
 public class SonarProjectActionFactory extends TransientActionFactory<AbstractProject> {
+  private SQProjectResolver resolver;
+
+  public SonarProjectActionFactory() {
+    resolver = new SQProjectResolver(new HttpClient());
+  }
+
   @Override
   public Class<AbstractProject> type() {
     return AbstractProject.class;
@@ -93,13 +99,13 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
    * Action that will create the jelly section in the Project page
    */
   @CheckForNull
-  private static SonarProjectPageAction createProjectPage(Run<?, ?> run, List<SonarAnalysisAction> actions) {
+  private SonarProjectPageAction createProjectPage(Run<?, ?> run, List<SonarAnalysisAction> actions) {
     long endTime = run.getStartTimeInMillis() + run.getDuration();
     List<ProjectInformation> projects;
 
     synchronized (run) {
       SonarCacheAction cache = getOrCreateCache(run);
-      projects = cache.get(new SQProjectResolver(new HttpClient()), endTime, actions);
+      projects = cache.get(resolver, endTime, actions);
     }
 
     if (projects == null || projects.isEmpty()) {
