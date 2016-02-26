@@ -95,8 +95,6 @@ public class SonarBuildWrapper extends BuildWrapper {
     }
     if (!StringUtils.isEmpty(inst.getSonarPassword())) {
       passwords.add(inst.getSonarPassword());
-    } else {
-      passwords.add(DEFAULT_SONAR);
     }
 
     return new MaskPasswordsOutputStream(outputStream, passwords);

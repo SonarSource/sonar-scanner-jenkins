@@ -114,14 +114,14 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void maskDefaultPassword() throws IOException, InterruptedException {
+  public void dontMaskDefaultPassword() throws IOException, InterruptedException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     configureSonar(new SonarInstallation("local", "http://localhost:9001", null, null, null,
       null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", null, null));
 
     OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
     IOUtils.write("test sonar\ntest something\n", os);
-    assertThat(new String(bos.toByteArray())).isEqualTo("test ******\ntest something\n");
+    assertThat(new String(bos.toByteArray())).isEqualTo("test sonar\ntest something\n");
   }
 
   @Test
