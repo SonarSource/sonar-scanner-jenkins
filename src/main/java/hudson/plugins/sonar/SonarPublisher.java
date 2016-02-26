@@ -433,7 +433,7 @@ public class SonarPublisher extends Notifier {
 
     @Override
     public String getDisplayName() {
-      return "SonarQube";
+      return Messages.SonarPublisher_DisplayName();
     }
 
     /**
