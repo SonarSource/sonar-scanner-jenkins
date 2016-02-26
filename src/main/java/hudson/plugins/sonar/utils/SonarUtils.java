@@ -85,6 +85,9 @@ public final class SonarUtils {
 
     // we use this method to avoid recursively calling transitive action factories
     for (Action a : actionable.getActions()) {
+      if(a == null) {
+        continue;
+      }
       if (type.isAssignableFrom(a.getClass())) {
         filtered.add((T) a);
       }
