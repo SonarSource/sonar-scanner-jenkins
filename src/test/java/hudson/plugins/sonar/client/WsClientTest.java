@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -87,6 +88,19 @@ public class WsClientTest {
   }
 
   @Test
+  public void testMetrics() throws Exception {
+    String ws = WsClient.API_MEASURES + URLEncoder.encode(PROJECT_KEY, "UTF-8");
+    String json = getFile("metrics.json");
+    mockWs(ws, json);
+
+    ProjectQualityGate qg = wsClient.getQualityGateMeasures(PROJECT_KEY);
+
+    assertThat(qg.getProjectName()).isEqualTo("SonarLint CLI");
+    assertThat(qg.getStatus()).isEqualTo("OK");
+    verifyWs(ws);
+  }
+
+  @Test
   public void testProjectName() throws Exception {
     String ws = WsClient.API_PROJECT_NAME + URLEncoder.encode(PROJECT_KEY, "UTF-8");
     String json = getFile("projectIndex.json");
@@ -96,6 +110,16 @@ public class WsClientTest {
 
     assertThat(name).isEqualTo("SonarLint CLI");
     verifyWs(ws);
+  }
+
+  @Test
+  public void testMeasuresError() throws Exception {
+    String ws = WsClient.API_MEASURES + URLEncoder.encode(PROJECT_KEY, "UTF-8");
+    String json = getFile("error.json");
+    mockWs(ws, json);
+
+    exception.expect(MessageException.class);
+    wsClient.getQualityGateMeasures(PROJECT_KEY);
   }
 
   @Test

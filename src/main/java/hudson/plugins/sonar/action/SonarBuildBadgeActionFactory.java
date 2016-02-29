@@ -43,7 +43,7 @@ public class SonarBuildBadgeActionFactory extends TransientActionFactory<Run> {
    */
   public Collection<? extends Action> createFor(Run run) {
     if (run == null) {
-      return Collections.singletonList(new SonarBuildBadgeAction(null));
+      return Collections.emptyList();
     }
     List<SonarAnalysisAction> actions = SonarUtils.getPersistentActions(run, SonarAnalysisAction.class);
 

@@ -63,8 +63,10 @@ public class SQProjectResolver {
         // CE was introduced in 5.2
         version = 5.2f;
       } else {
-        version = SonarUtils.extractMajorMinor(wsClient.getServerVersion());
+        String strVersion = wsClient.getServerVersion();
+        version = SonarUtils.extractMajorMinor(strVersion);
         if (version == null) {
+          Logger.LOG.info("Failed to parse server version: " + strVersion);
           return null;
         }
       }
@@ -117,6 +119,7 @@ public class SQProjectResolver {
 
   private static boolean checkServerUrl(String serverUrl, String projectKey, SonarInstallation inst) {
     if (serverUrl == null || projectKey == null) {
+      Logger.LOG.fine(String.format("Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
       return false;
     }
     String configUrl = StringUtils.isEmpty(inst.getServerUrl()) ? "http://localhost:9000" : inst.getServerUrl();

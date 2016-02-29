@@ -30,11 +30,13 @@ public class SonarAnalysisActionTest {
     analysis.setUrl("url1");
     analysis.setNew(false);
     analysis.setCeTaskId("task1");
+    analysis.setSkipped(false);
 
     assertThat(analysis.getCeTaskId()).isEqualTo("task1");
     assertThat(analysis.getUrl()).isEqualTo("url1");
     assertThat(analysis.getInstallationName()).isEqualTo("inst");
     assertThat(analysis.isNew()).isFalse();
+    assertThat(analysis.isSkipped()).isFalse();
   }
 
   @Test
@@ -42,12 +44,16 @@ public class SonarAnalysisActionTest {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst");
     analysis.setUrl("url1");
     analysis.setNew(true);
+    analysis.setSkipped(true);
     analysis.setCeTaskId("task1");
 
     SonarAnalysisAction analysis2 = new SonarAnalysisAction(analysis);
-    assertThat(analysis2.getCeTaskId()).isNull();
     assertThat(analysis2.getUrl()).isEqualTo("url1");
     assertThat(analysis2.getInstallationName()).isEqualTo("inst");
+    
+    //don't copy these
+    assertThat(analysis2.getCeTaskId()).isNull();
     assertThat(analysis2.isNew()).isFalse();
+    assertThat(analysis2.isSkipped()).isFalse();
   }
 }

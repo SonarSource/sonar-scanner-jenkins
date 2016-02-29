@@ -33,6 +33,7 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.model.BuildListener;
@@ -44,6 +45,7 @@ import hudson.model.Run;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.plugins.sonar.SonarBuildWrapper.DescriptorImpl;
 import hudson.plugins.sonar.SonarBuildWrapper.SonarEnvironment;
+import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.model.TriggersConfig;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -208,16 +210,44 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
     // job's log should have passwords masked
     assertThat(build.getLog(1000)).contains("the pass is: ******");
+    assertThat(build.getActions(SonarAnalysisAction.class)).hasSize(1);
+  }
+  
+  @Test
+  public void testFailedBuild() throws Exception {
+    // set up a free style project with our wrapper that will execute CaptureVarsBuilder
+    configureSonar(installation);
+    CaptureVarsBuilder b = new CaptureVarsBuilder(true);
+    FreeStyleProject project = setupFreeStyleProject(b);
+    project.getBuildWrappersList().add(wrapper);
+    Run<?, ?> build = build(project);
+
+    assertThat(build.getResult()).isEqualTo(Result.FAILURE);
+
+    assertThat(build.getLog(1000)).contains("the pass is: ******");
+    assertThat(build.getActions(SonarAnalysisAction.class)).hasSize(1);
   }
 
   private static class CaptureVarsBuilder extends TestBuilder {
-    Map<String, String> vars;
+    private boolean fail;
+    private Map<String, String> vars;
+
+    CaptureVarsBuilder() {
+      this.fail = false;
+    }
+
+    CaptureVarsBuilder(boolean fail) {
+      this.fail = fail;
+    }
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
       EnvVars env = build.getEnvironment(listener);
       vars = new HashMap<String, String>(env);
       listener.getLogger().println("the pass is: password");
+      if (fail) {
+        throw new AbortException("asd");
+      }
       return true;
     }
   }

@@ -29,12 +29,17 @@ public class ProjectInformationTest {
     proj.setName("name");
     proj.setStatus("status");
     proj.setUrl("url");
-    String[] errors = {"error1", "error2", "error3" };
+    String[] errors = {"error1", "error2", "error3"};
     proj.setErrors(errors);
-    
+    proj.setCeUrl("ceUrl");
+    proj.setCeStatus("ceStatus");
+
+    assertThat(proj.getCeStatus()).isEqualTo("cestatus");
+    assertThat(proj.getCeUrl()).isEqualTo("ceUrl");
     assertThat(proj.getErrors()).contains(errors);
     assertThat(proj.getUrl()).isEqualTo("url");
     assertThat(proj.getProjectKey()).isEqualTo("key");
     assertThat(proj.getProjectName()).isEqualTo("name");
+    assertThat(proj.hasErrors()).isTrue();
   }
 }

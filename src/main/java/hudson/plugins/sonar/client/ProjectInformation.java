@@ -71,10 +71,6 @@ public class ProjectInformation extends InvisibleAction {
     this.url = url;
   }
 
-  public boolean isValid() {
-    return status != null;
-  }
-
   public String getProjectKey() {
     return key;
   }

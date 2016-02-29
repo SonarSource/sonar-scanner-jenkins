@@ -40,6 +40,12 @@ public class SonarBuildBadgeActionFactoryTest {
   }
   
   @Test
+  public void testNoBadgeIfInvalidRun() {
+    Collection<? extends Action> badges = factory.createFor(null);
+    assertThat(badges).isEmpty();
+  }
+  
+  @Test
   public void testNoBadgeIfNoSonar() {
     Run r = mock(Run.class);
     when(r.getActions()).thenReturn(Collections.<Action>emptyList());

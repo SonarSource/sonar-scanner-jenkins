@@ -76,6 +76,19 @@ public class SQProjectResolverTest extends SonarTestCase {
     verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(USER), eq(PASS));
     verifyNoMoreInteractions(client);
   }
+  
+  @Test
+  public void testInvalidServerVersion() throws Exception {
+    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null, null)).thenReturn("55");
+    ProjectInformation proj = resolver.resolve(PROJECT_URL, CE_TASK_ID, INST_NAME);
+    assertThat(proj).isNull();
+  }
+  
+  @Test
+  public void testInvalidProjectUrl() {
+    ProjectInformation proj = resolver.resolve("invalid", CE_TASK_ID, INST_NAME);
+    assertThat(proj).isNull();
+  }
 
   @Test
   public void testSQ55NoCETask() throws Exception {
