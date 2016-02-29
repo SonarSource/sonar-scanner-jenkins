@@ -282,7 +282,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     e.printStackTrace(listener.fatalError(errorMessage));
   }
 
-  private int executeSonarRunner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
+  private static int executeSonarRunner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
     InterruptedException {
     return launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(build, workspace)).join();
   }

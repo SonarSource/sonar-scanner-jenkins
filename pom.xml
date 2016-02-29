@@ -100,6 +100,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <hudson.version>${project.parent.version}</hudson.version>
+    <sonar.exclusions>target/generated-sources/**/*<sonar.exclusions>
   </properties>
 
   <repositories>

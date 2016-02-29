@@ -38,7 +38,7 @@ public class HttpClient {
       } else {
         userpass = username + ":" + password;
       }
-      String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary(userpass.getBytes());
+      String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary(userpass.getBytes(StandardCharsets.UTF_8));
       conn.setRequestProperty("Authorization", basicAuth);
     }
 
