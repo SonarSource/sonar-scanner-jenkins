@@ -20,12 +20,15 @@ package hudson.plugins.sonar.action;
 
 import hudson.model.Action;
 import hudson.model.InvisibleAction;
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 import javax.annotation.CheckForNull;
 
 /**
  * Persists in a build SonarQube related information.
  */
+@ExportedBean(defaultVisibility = 2)
 public class SonarAnalysisAction extends InvisibleAction implements Action {
   private String installationName;
   private String ceTaskId;
@@ -54,6 +57,7 @@ public class SonarAnalysisAction extends InvisibleAction implements Action {
   }
 
   @CheckForNull
+  @Exported
   public String getCeTaskId() {
     return ceTaskId;
   }
@@ -62,6 +66,7 @@ public class SonarAnalysisAction extends InvisibleAction implements Action {
     this.ceTaskId = ceTaskId;
   }
 
+  @Exported
   public boolean isNew() {
     return isNew;
   }
@@ -70,6 +75,7 @@ public class SonarAnalysisAction extends InvisibleAction implements Action {
     this.isSkipped = isSkipped;
   }
 
+  @Exported
   public boolean isSkipped() {
     return isSkipped;
   }
@@ -79,10 +85,12 @@ public class SonarAnalysisAction extends InvisibleAction implements Action {
   }
 
   @CheckForNull
+  @Exported
   public String getUrl() {
     return url;
   }
 
+  @Exported
   public String getInstallationName() {
     return installationName;
   }
