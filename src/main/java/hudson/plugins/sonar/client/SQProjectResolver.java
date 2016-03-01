@@ -52,7 +52,13 @@ public class SQProjectResolver {
     try {
       String projectKey = extractProjectKey(projectUrl);
       String serverUrl = extractServerUrl(projectUrl);
-      WsClient wsClient = new WsClient(client, serverUrl, inst.getSonarLogin(), inst.getSonarPassword());
+
+      WsClient wsClient;
+      if (StringUtils.isNotEmpty(inst.getServerAuthenticationToken())) {
+        wsClient = new WsClient(client, serverUrl, inst.getServerAuthenticationToken(), null);
+      } else {
+        wsClient = new WsClient(client, serverUrl, inst.getSonarLogin(), inst.getSonarPassword());
+      }
 
       if (!checkServerUrl(serverUrl, projectKey, inst)) {
         return null;

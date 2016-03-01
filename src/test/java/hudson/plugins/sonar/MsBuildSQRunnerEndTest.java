@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import hudson.model.AbstractProject;
 import hudson.plugins.sonar.MsBuildSQRunnerEnd.DescriptorImpl;
+import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.model.Result;
 import hudson.model.Run;
 import org.junit.Test;
@@ -45,7 +46,7 @@ import hudson.model.FreeStyleProject;
 public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
   @Test
   public void testNormalExec() throws Exception {
-    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "http://dbhost.org", "dbLogin", "dbPass", null, null, null, "login", "mypass", null));
+    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", SQServerVersions.SQ_5_1_OR_LOWER, null, "http://dbhost.org", "dbLogin", "dbPass", null, null, null, "login", "mypass", null));
     configureMsBuildScanner(false);
 
     FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));

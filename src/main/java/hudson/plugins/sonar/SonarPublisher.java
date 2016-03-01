@@ -49,6 +49,7 @@ import hudson.model.AbstractProject;
 import hudson.model.JDK;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.Logger;
+import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.plugins.sonar.utils.SonarMaven;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
@@ -58,6 +59,8 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import hudson.util.ListBoxModel.Option;
 import jenkins.model.Jenkins;
 import jenkins.mvn.GlobalSettingsProvider;
 import jenkins.mvn.SettingsProvider;
@@ -335,7 +338,7 @@ public class SonarPublisher extends Notifier {
     if (!sonarSuccess) {
       // returning false has no effect on the global build status so need to do it manually
       build.setResult(Result.FAILURE);
-    } 
+    }
     SonarUtils.addBuildInfoTo(build, sonarInstallation.getName());
     listener.getLogger().println("SonarQube analysis completed: " + build.getResult());
     return sonarSuccess;
@@ -461,7 +464,7 @@ public class SonarPublisher extends Notifier {
     public String getHelpFile() {
       return "/plugin/sonar/help-sonar-publisher.html";
     }
-    
+
     @Override
     public String getHelpFile(String fieldName) {
       if ("globalSettings".equals(fieldName) || "settings".equals(fieldName)) {
@@ -496,6 +499,15 @@ public class SonarPublisher extends Notifier {
 
     public FormValidation doCheckMandatoryAndNoSpaces(@QueryParameter String value) {
       return (StringUtils.isBlank(value) || value.contains(" ")) ? FormValidation.error(Messages.SonarPublisher_MandatoryPropertySpaces()) : FormValidation.ok();
+    }
+
+    public ListBoxModel doFillServerVersionItems() {
+      ListBoxModel items = new ListBoxModel();
+
+      items.add(new Option("5.1 or lower", SQServerVersions.SQ_5_1_OR_LOWER));
+      items.add(new Option("5.2", SQServerVersions.SQ_5_2));
+      items.add(new Option("5.3 or higher", SQServerVersions.SQ_5_3_OR_HIGHER));
+      return items;
     }
 
     @Override

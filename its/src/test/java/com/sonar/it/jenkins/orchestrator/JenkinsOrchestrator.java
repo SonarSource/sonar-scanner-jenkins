@@ -37,12 +37,14 @@ import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.version.Version;
 import hudson.cli.CLI;
+import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -62,9 +64,11 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.internal.Locatable;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.wsclient.jsonsimple.JSONValue;
 
 public class JenkinsOrchestrator extends SingleStartExternalResource {
   private static final Logger LOG = LoggerFactory.getLogger(JenkinsOrchestrator.class);
@@ -385,21 +389,55 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public JenkinsOrchestrator configureSonarInstallation(Orchestrator orchestrator) {
-    driver.get(server.getUrl() + "/configure");
+    Version serverVersion = orchestrator.getServer().version();
 
+    driver.get(server.getUrl() + "/configure");
     findElement(buttonByText("Add SonarQube")).click();
+
     setTextValue(findElement(By.name("sonar.name")), "SonarQube");
-    findElement(buttonByTextAfterElementByXpath("Advanced...", "//.[@name='sonar.name']")).click();
     setTextValue(findElement(By.name("sonar.serverUrl")), orchestrator.getServer().getUrl());
-    setTextValue(findElement(By.name("sonar.sonarLogin")), Server.ADMIN_LOGIN);
-    setTextValue(findElement(By.name("sonar.sonarPassword")), Server.ADMIN_PASSWORD);
-    setTextValue(findElement(By.name("sonar.databaseUrl")), orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.url"));
-    setTextValue(findElement(By.name("sonar.databaseLogin")), orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.username"));
-    setTextValue(findElement(By.name("sonar.databasePassword")), orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.password"));
+    findElement(buttonByTextAfterElementByXpath("Advanced...", "//.[@name='sonar.name']")).click();
+
+    if (serverVersion.isGreaterThanOrEquals("5.3")) {
+      String token = generateToken(orchestrator);
+      select(findElement(By.className("sonar-server-version")), "5.3");
+      setTextValue(findElement(By.name("sonar.serverAuthenticationToken")), token);
+
+      assertThat(findElement(By.name("sonar.sonarLogin")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.sonarPassword")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databaseUrl")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databaseLogin")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databasePassword")).isEnabled()).isFalse();
+
+    } else if (serverVersion.isGreaterThan("5.2")) {
+      select(findElement(By.className("sonar-server-version")), "5.2");
+      setTextValue(findElement(By.name("sonar.sonarLogin")), Server.ADMIN_LOGIN);
+      setTextValue(findElement(By.name("sonar.sonarPassword")), Server.ADMIN_PASSWORD);
+
+      assertThat(findElement(By.name("sonar.serverAuthenticationToken")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databaseUrl")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databaseLogin")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databasePassword")).isEnabled()).isFalse();
+    } else {
+      select(findElement(By.className("sonar-server-version")), "5.1");
+      setTextValue(findElement(By.name("sonar.sonarLogin")), Server.ADMIN_LOGIN);
+      setTextValue(findElement(By.name("sonar.sonarPassword")), Server.ADMIN_PASSWORD);
+      setTextValue(findElement(By.name("sonar.databaseUrl")), orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.url"));
+      setTextValue(findElement(By.name("sonar.databaseLogin")), orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.username"));
+      setTextValue(findElement(By.name("sonar.databasePassword")), orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.password"));
+
+      assertThat(findElement(By.name("sonar.serverAuthenticationToken")).isEnabled()).isFalse();
+    }
 
     findElement(buttonByText("Save")).click();
 
     return this;
+  }
+
+  public String generateToken(Orchestrator orchestrator) {
+    String json = orchestrator.getServer().adminWsClient().post("api/user_tokens/generate", "name", "token");
+    Map response = (Map) JSONValue.parse(json);
+    return (String) response.get("token");
   }
 
   public JenkinsOrchestrator installPlugin(Location hpi) {
@@ -494,4 +532,8 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     });
   }
 
+  public void select(WebElement element, String optionValue) {
+    Select select = new Select(element);
+    select.selectByValue(optionValue);
+  }
 }

@@ -58,6 +58,7 @@ public class JenkinsTest {
   public static void setUpJenkins() throws MalformedURLException {
     Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
+      .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/jquery/1.11.2-0/jquery.hpi")))
       .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/filesystem_scm/1.20/filesystem_scm.hpi")))
       .installPlugin(sqJenkinsPluginLocation)
       .configureMavenInstallation()

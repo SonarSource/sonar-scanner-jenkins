@@ -41,10 +41,21 @@ import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import static hudson.plugins.sonar.utils.SQServerVersions.*;
 
 public class SonarInstallation {
   private final String name;
   private final String serverUrl;
+
+  /**
+   * @since 2.5
+   */
+  private final String serverVersion;
+
+  /**
+   * @since 2.5
+   */
+  private final String serverAuthenticationToken;
 
   /**
    * @since 1.5
@@ -85,22 +96,39 @@ public class SonarInstallation {
   private String[] split;
 
   @DataBoundConstructor
-  public SonarInstallation(String name, 
-    String serverUrl,
+  public SonarInstallation(String name,
+    String serverUrl, String serverVersion, String serverAuthenticationToken,
     String databaseUrl, String databaseLogin, String databasePassword,
     String mojoVersion, String additionalProperties, TriggersConfig triggers,
     String sonarLogin, String sonarPassword, String additionalAnalysisProperties) {
     this.name = name;
     this.serverUrl = serverUrl;
-    this.databaseUrl = databaseUrl;
-    this.databaseLogin = databaseLogin;
+    this.serverVersion = serverVersion;
+
+    if (SQ_5_3_OR_HIGHER.equals(serverVersion)) {
+      this.serverAuthenticationToken = serverAuthenticationToken;
+      this.sonarLogin = null;
+      setSonarPassword(null);
+    } else {
+      this.serverAuthenticationToken = null;
+      this.sonarLogin = sonarLogin;
+      setSonarPassword(sonarPassword);
+    }
+
+    if (SQ_5_1_OR_LOWER.equals(serverVersion)) {
+      this.databaseUrl = databaseUrl;
+      this.databaseLogin = databaseLogin;
+      setDatabasePassword(databasePassword);
+    } else {
+      this.databaseUrl = null;
+      this.databaseLogin = null;
+      setDatabasePassword(null);
+    }
+
     this.additionalAnalysisProperties = additionalAnalysisProperties;
-    setDatabasePassword(databasePassword);
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
     this.triggers = triggers;
-    this.sonarLogin = sonarLogin;
-    setSonarPassword(sonarPassword);
   }
 
   /**
@@ -160,6 +188,29 @@ public class SonarInstallation {
 
   public String getServerUrl() {
     return serverUrl;
+  }
+
+  public String getServerAuthenticationToken() {
+    return serverAuthenticationToken;
+  }
+
+  /**
+   * serverVersion might be null when upgrading to 2.5.
+   * Automatically figures out a value in that case.
+   */
+  public String getServerVersion() {
+    if (serverVersion != null) {
+      return serverVersion;
+    }
+
+    if (!StringUtils.isEmpty(databaseUrl) || !StringUtils.isEmpty(databaseLogin)) {
+      return SQ_5_1_OR_LOWER;
+    }
+    if (!StringUtils.isEmpty(getSonarPassword())) {
+      return SQ_5_2;
+    }
+
+    return SQ_5_3_OR_HIGHER;
   }
 
   /**

@@ -112,7 +112,9 @@ public final class SonarMaven extends Maven {
 
     argsBuilder.append("sonar.branch", publisher.getBranch());
 
-    if (StringUtils.isNotBlank(getInstallation().getSonarLogin())) {
+    if (StringUtils.isNotBlank(getInstallation().getServerAuthenticationToken())) {
+      argsBuilder.appendMasked("sonar.login", getInstallation().getServerAuthenticationToken());
+    } else if (StringUtils.isNotBlank(getInstallation().getSonarLogin())) {
       argsBuilder.appendMasked("sonar.login", getInstallation().getSonarLogin());
       argsBuilder.appendMasked("sonar.password", getInstallation().getSonarPassword());
     }

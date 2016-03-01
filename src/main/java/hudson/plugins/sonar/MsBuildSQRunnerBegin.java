@@ -102,8 +102,13 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     Map<String, String> map = new LinkedHashMap<String, String>();
 
     map.put("sonar.host.url", inst.getServerUrl());
-    map.put("sonar.login", inst.getSonarLogin());
-    map.put("sonar.password", inst.getSonarPassword());
+
+    if (!StringUtils.isBlank(inst.getServerAuthenticationToken())) {
+      map.put("sonar.login", inst.getServerAuthenticationToken());
+    } else {
+      map.put("sonar.login", inst.getSonarLogin());
+      map.put("sonar.password", inst.getSonarPassword());
+    }
 
     map.put("sonar.jdbc.url", inst.getDatabaseUrl());
     map.put("sonar.jdbc.username", inst.getDatabaseLogin());

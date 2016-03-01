@@ -41,6 +41,7 @@ import hudson.model.Action;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
+import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.EnvVars;
 import hudson.plugins.sonar.utils.Logger;
 
@@ -196,13 +197,14 @@ public class SonarBuildWrapper extends BuildWrapper {
 
       map.put("SONAR_CONFIG_NAME", inst.getName());
       map.put("SONAR_HOST_URL", getOrDefault(inst.getServerUrl(), "http://localhost:9000"));
-
-      map.put("SONAR_LOGIN", getOrDefault(inst.getSonarLogin(), DEFAULT_SONAR));
-      map.put("SONAR_PASSWORD", getOrDefault(inst.getSonarPassword(), DEFAULT_SONAR));
-
+      map.put("SONAR_LOGIN", getOrDefault(inst.getSonarLogin(), ""));
+      map.put("SONAR_PASSWORD", getOrDefault(inst.getSonarPassword(), ""));
+      map.put("SONAR_AUTH_TOKEN", getOrDefault(inst.getServerAuthenticationToken(), ""));
       map.put("SONAR_JDBC_URL", getOrDefault(inst.getDatabaseUrl(), ""));
-      map.put("SONAR_JDBC_USERNAME", getOrDefault(inst.getDatabaseLogin(), ""));
-      map.put("SONAR_JDBC_PASSWORD", getOrDefault(inst.getDatabasePassword(), ""));
+      
+      String jdbcDefault = SQServerVersions.SQ_5_1_OR_LOWER.equals(inst.getServerVersion()) ? DEFAULT_SONAR : "";
+      map.put("SONAR_JDBC_USERNAME", getOrDefault(inst.getDatabaseLogin(), jdbcDefault));
+      map.put("SONAR_JDBC_PASSWORD", getOrDefault(inst.getDatabasePassword(), jdbcDefault));
 
       if (StringUtils.isEmpty(inst.getMojoVersion())) {
         map.put("SONAR_MAVEN_GOAL", "sonar:sonar");

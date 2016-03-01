@@ -107,7 +107,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   @Test
   public void additionalArgs() {
     ArgumentListBuilder args = new ArgumentListBuilder();
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, "-Y", null, null, null, "key=value");
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, null, "-Y", null, null, null, "key=value");
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X -e");
     builder.addAdditionalArguments(args, inst);
     assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X -e");
@@ -142,7 +142,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   }
 
   @Test
-  public void shouldPopulateSonarLoginPasswordParameters() throws IOException, InterruptedException {
+  public void shouldPopulateSonarLoginPasswordParameters51() throws IOException, InterruptedException {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
     when(installation.getDatabaseUrl()).thenReturn("databaseUrl");
@@ -156,7 +156,24 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
 
     assertThat(args.toStringWithQuote())
       .contains("-Dsonar.login=sonarlogin")
-      .contains("-Dsonar.password=sonarpassword");
+      .contains("-Dsonar.password=sonarpassword")
+      .doesNotContain("-Dsonar.login=token");
+  }
+  
+  @Test
+  public void shouldPopulateSonarLoginPasswordParameters53() throws IOException, InterruptedException {
+    SonarInstallation installation = mock(SonarInstallation.class);
+    when(installation.getServerUrl()).thenReturn("hostUrl");
+    when(installation.getServerAuthenticationToken()).thenReturn("token");
+    when(installation.getSonarLogin()).thenReturn("sonarlogin");
+    when(installation.getSonarPassword()).thenReturn("sonarpassword");
+
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
+    builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation);
+
+    assertThat(args.toStringWithQuote())
+      .contains("-Dsonar.login=token")
+      .doesNotContain("-Dsonar.password=sonarpassword");
   }
 
   /**

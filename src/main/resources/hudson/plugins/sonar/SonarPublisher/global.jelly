@@ -1,45 +1,42 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <f:section title="${%Title}">
+         
+  <script type="text/javascript" src="${rootURL}/plugin/sonar/js/global_config.js" />
   
+  <f:section title="${%Title}">
     <f:entry title="${%InjectVarsTitle}" description="${%InjectVarsDesc}">
       <f:checkbox name="enableBuildWrapper" checked="${descriptor.isBuildWrapperEnabled()}"/> ${%InjectVars}
     </f:entry>
 
     <f:entry title="${%SonarInstallations}" description="${%SonarInstallationsDescr}">
+      <div class="sonar-section">
       <f:repeatable var="inst" items="${descriptor.installations}" add="${%AddSonar}">
-        <table width="100%">
+        <table width="100%" class="sonar-installation">
           <f:entry title="${%Name}">
-            <f:textbox name="sonar.name" value="${inst.getName()}"
-                       checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
+            <f:textbox name="sonar.name" value="${inst.getName()}" checkUrl="'${rootURL}/publisher/SonarPublisher/checkMandatory?value='+escape(this.value)"/>
           </f:entry>
           
           <f:entry title="${%ServerUrl}" description="${%ServerUrlDescr}">
             <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}"/>
           </f:entry>
+          
+          <f:entry field="serverVersion" name="sonar.serverVersion" title="${%ServerVersion}" description="${%ServerVersionDescr}">
+			<f:select clazz="sonar-server-version" default="5.3" value="${inst.getServerVersion()}" />
+          </f:entry>
+          
+          <f:entry title="${%ServerToken}" description="${%ServerTokenDescr}">
+            <f:textbox clazz="sonar-53" name="sonar.serverAuthenticationToken" value="${inst.getSonarLogin()}"/>
+          </f:entry>
 
           <f:entry title="${%ServerLogin}" description="${%ServerLoginDescr}">
-            <f:textbox name="sonar.sonarLogin" value="${inst.getSonarLogin()}"/>
+            <f:textbox clazz="sonar-51 sonar-52" name="sonar.sonarLogin" value="${inst.getSonarLogin()}"/>
           </f:entry>
 
           <f:entry title="${%ServerPass}" description="${%ServerPassDescr}">
-            <f:password name="sonar.sonarPassword" value="${inst.getSonarPassword()}"/>
+            <f:password clazz="sonar-51 sonar-52" name="sonar.sonarPassword" value="${inst.getSonarPassword()}"/>
           </f:entry>
 
           <f:advanced>
-            <f:entry title="${%DbUrl}" description="${%DbUrlDescr}"
-                     help="/plugin/sonar/help-global-dburl.html">
-              <f:textbox name="sonar.databaseUrl" value="${inst.getDatabaseUrl()}"/>
-            </f:entry>
-
-            <f:entry title="${%DbLogin}" description="${%DbLoginDescr}">
-              <f:textbox name="sonar.databaseLogin" value="${inst.getDatabaseLogin()}"/>
-            </f:entry>
-
-            <f:entry title="${%DbPass}" description="${%DbPassDescr}">
-              <f:password name="sonar.databasePassword" value="${inst.getDatabasePassword()}"/>
-            </f:entry>
-
             <f:entry title="${%MojoVersion}" description="${%MojoVersionDescr}">
               <f:textbox name="sonar.mojoVersion" value="${inst.getMojoVersion()}"/>
             </f:entry>
@@ -50,6 +47,18 @@
             
             <f:entry title="${%AddAnalysisProps}" description="${%AddAnalysisPropsDescr}">
               <f:textbox name="sonar.additionalAnalysisProperties" value="${inst.getAdditionalAnalysisProperties()}"/>
+            </f:entry>
+            
+            <f:entry title="${%DbUrl}" description="${%DbUrlDescr}" help="/plugin/sonar/help-global-dburl.html">
+              <f:textbox clazz="sonar-51" name="sonar.databaseUrl" value="${inst.getDatabaseUrl()}"/>
+            </f:entry>
+
+            <f:entry title="${%DbLogin}" description="${%DbLoginDescr}">
+              <f:textbox clazz="sonar-51" name="sonar.databaseLogin" value="${inst.getDatabaseLogin()}"/>
+            </f:entry>
+
+            <f:entry title="${%DbPass}" description="${%DbPassDescr}">
+              <f:password clazz="sonar-51" name="sonar.databasePassword" value="${inst.getDatabasePassword()}"/>
             </f:entry>
 
             <f:section title="${%TriggerExclusions}" name="triggers">
@@ -64,6 +73,8 @@
           </f:entry>
         </table>
       </f:repeatable>
+            </div>
     </f:entry>
+
   </f:section>
 </j:jelly>
