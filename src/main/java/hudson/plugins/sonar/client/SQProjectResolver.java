@@ -77,7 +77,7 @@ public class SQProjectResolver {
       getQualityGate(wsClient, projectInfo, projectKey, version);
       getCETask(wsClient, projectInfo, ceTaskId, version);
 
-      if (projectInfo.getProjectName() == null) {
+      if (projectInfo.getStatus() != null && projectInfo.getProjectName() == null) {
         projectInfo.setName(wsClient.getProjectName(projectKey));
       }
 
@@ -110,6 +110,12 @@ public class SQProjectResolver {
     } else {
       qg = client.getQualityGate52(projectKey);
     }
+
+    // happens in LTS if project is not assigned to a QG and there is no default QG
+    if (qg == null) {
+      return;
+    }
+    
     proj.setStatus(qg.getStatus());
 
     if (qg.getProjectName() != null) {

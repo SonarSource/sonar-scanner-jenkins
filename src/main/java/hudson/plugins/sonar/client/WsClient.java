@@ -72,10 +72,11 @@ public class WsClient {
     return new ProjectQualityGate(null, status);
   }
 
+  @CheckForNull
   public ProjectQualityGate getQualityGateBefore52(String projectKey) throws Exception {
     String url = serverUrl + API_RESOURCES + encode(projectKey);
-
     String text = client.getHttp(url, username, password);
+    
     JSONArray resourceArray = (JSONArray) JSONSerializer.toJSON(text);
 
     if (resourceArray.size() != 1) {
@@ -97,7 +98,7 @@ public class WsClient {
       }
     }
 
-    return null;
+    throw new IllegalStateException("Failed to parse response from resources API: " + url);
   }
 
   public ProjectQualityGate getQualityGateMeasures(String projectKey) throws Exception {
