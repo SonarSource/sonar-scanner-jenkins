@@ -30,7 +30,7 @@ public class HttpClient {
     URL url = new URL(urlToRead);
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-    if (username != null) {
+    if (!StringUtils.isEmpty(username)) {
       String userpass;
       if (StringUtils.isEmpty(password)) {
         // to support authentication tokens
