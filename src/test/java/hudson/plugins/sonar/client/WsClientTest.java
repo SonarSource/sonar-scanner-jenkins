@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -75,12 +74,12 @@ public class WsClientTest {
   }
 
   @Test
-  public void testQG52() throws Exception {
+  public void testQG54() throws Exception {
     String ws = WsClient.API_PROJECT_STATUS + URLEncoder.encode(PROJECT_KEY, "UTF-8");
     String json = getFile("projectStatus.json");
     mockWs(ws, json);
 
-    ProjectQualityGate qg = wsClient.getQualityGate52(PROJECT_KEY);
+    ProjectQualityGate qg = wsClient.getQualityGate54(PROJECT_KEY);
 
     assertThat(qg.getProjectName()).isNull();
     assertThat(qg.getStatus()).isEqualTo("OK");
@@ -123,12 +122,12 @@ public class WsClientTest {
   }
 
   @Test
-  public void testQGBefore52() throws Exception {
+  public void testQGBefore54() throws Exception {
     String ws = WsClient.API_RESOURCES + URLEncoder.encode(PROJECT_KEY, "UTF-8");
     String json = getFile("resources.json");
     mockWs(ws, json);
 
-    ProjectQualityGate qg = wsClient.getQualityGateBefore52(PROJECT_KEY);
+    ProjectQualityGate qg = wsClient.getQualityGateBefore54(PROJECT_KEY);
 
     assertThat(qg.getProjectName()).isEqualTo("SonarLint CLI");
     assertThat(qg.getStatus()).isEqualTo("WARN");
@@ -149,7 +148,7 @@ public class WsClientTest {
     when(client.getHttp(anyString(), anyString(), anyString())).thenThrow(Exception.class);
 
     exception.expect(Exception.class);
-    wsClient.getQualityGate52(PROJECT_KEY);
+    wsClient.getQualityGate54(PROJECT_KEY);
   }
 
   private void setSQVersion(float version) throws Exception {

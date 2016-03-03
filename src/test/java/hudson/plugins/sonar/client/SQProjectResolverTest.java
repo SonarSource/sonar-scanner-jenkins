@@ -74,6 +74,7 @@ public class SQProjectResolverTest extends SonarTestCase {
 
     verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS), eq(USER), eq(PASS));
     verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(USER), eq(PASS));
+    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_VERSION), isNull(String.class), isNull(String.class));
     verifyNoMoreInteractions(client);
   }
 

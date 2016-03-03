@@ -61,7 +61,7 @@ public class WsClient {
     return new CETask(status, componentName, componentKey, url);
   }
 
-  public ProjectQualityGate getQualityGate52(String projectKey) throws Exception {
+  public ProjectQualityGate getQualityGate54(String projectKey) throws Exception {
     String url = serverUrl + API_PROJECT_STATUS + encode(projectKey);
     String text = client.getHttp(url, username, password);
     JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
@@ -73,10 +73,10 @@ public class WsClient {
   }
 
   @CheckForNull
-  public ProjectQualityGate getQualityGateBefore52(String projectKey) throws Exception {
+  public ProjectQualityGate getQualityGateBefore54(String projectKey) throws Exception {
     String url = serverUrl + API_RESOURCES + encode(projectKey);
     String text = client.getHttp(url, username, password);
-    
+
     JSONArray resourceArray = (JSONArray) JSONSerializer.toJSON(text);
 
     if (resourceArray.size() != 1) {
@@ -171,7 +171,7 @@ public class WsClient {
       this.componentKey = componentKey;
       this.url = ceUrl;
     }
-    
+
     public String getUrl() {
       return url;
     }

@@ -22,7 +22,7 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.client.WsClient.ProjectQualityGate;
 import hudson.plugins.sonar.utils.Logger;
-import hudson.plugins.sonar.utils.SonarUtils;
+import hudson.plugins.sonar.utils.Version;
 import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.CheckForNull;
@@ -58,24 +58,13 @@ public class SQProjectResolver {
         return null;
       }
 
-      Float version;
-      if (ceTaskId != null) {
-        // CE was introduced in 5.2
-        version = 5.2f;
-      } else {
-        String strVersion = wsClient.getServerVersion();
-        version = SonarUtils.extractMajorMinor(strVersion);
-        if (version == null) {
-          Logger.LOG.info("Failed to parse server version: " + strVersion);
-          return null;
-        }
-      }
+      Version version = new Version(wsClient.getServerVersion());
 
       ProjectInformation projectInfo = new ProjectInformation(projectKey);
       projectInfo.setUrl(projectUrl);
 
       getQualityGate(wsClient, projectInfo, projectKey, version);
-      getCETask(wsClient, projectInfo, ceTaskId, version);
+      getCETask(wsClient, projectInfo, ceTaskId);
 
       if (projectInfo.getStatus() != null && projectInfo.getProjectName() == null) {
         projectInfo.setName(wsClient.getProjectName(projectKey));
@@ -89,8 +78,8 @@ public class SQProjectResolver {
     }
   }
 
-  private static void getCETask(WsClient wsClient, ProjectInformation projectInfo, String ceTaskId, Float version) throws Exception {
-    if (version < 5.2f || ceTaskId == null) {
+  private static void getCETask(WsClient wsClient, ProjectInformation projectInfo, String ceTaskId) throws Exception {
+    if (ceTaskId == null) {
       return;
     }
 
@@ -103,19 +92,19 @@ public class SQProjectResolver {
     }
   }
 
-  private static void getQualityGate(WsClient client, ProjectInformation proj, String projectKey, float version) throws Exception {
+  private static void getQualityGate(WsClient client, ProjectInformation proj, String projectKey, Version version) throws Exception {
     ProjectQualityGate qg;
-    if (version < 5.2f) {
-      qg = client.getQualityGateBefore52(projectKey);
+    if (version.compareTo(new Version("5.4")) < 0) {
+      qg = client.getQualityGateBefore54(projectKey);
     } else {
-      qg = client.getQualityGate52(projectKey);
+      qg = client.getQualityGate54(projectKey);
     }
 
     // happens in LTS if project is not assigned to a QG and there is no default QG
     if (qg == null) {
       return;
     }
-    
+
     proj.setStatus(qg.getStatus());
 
     if (qg.getProjectName() != null) {
