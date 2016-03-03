@@ -85,7 +85,7 @@ public class SonarAnalysisAction extends InvisibleAction implements Action {
   }
 
   @CheckForNull
-  @Exported
+  @Exported(name="sonarqubeDashboardUrl")
   public String getUrl() {
     return url;
   }
