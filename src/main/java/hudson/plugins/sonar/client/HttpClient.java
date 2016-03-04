@@ -27,17 +27,14 @@ import java.nio.charset.StandardCharsets;
 
 public class HttpClient {
   public String getHttp(String urlToRead, String username, String password) throws Exception {
-    System.out.println(String.format("%s %s %s", urlToRead, username, password));
     URL url = new URL(urlToRead);
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
     if (!StringUtils.isEmpty(username)) {
-      String userpass;
-      if (StringUtils.isEmpty(password)) {
-        // to support authentication tokens
-        userpass = username;
-      } else {
-        userpass = username + ":" + password;
+      // to support authentication tokens
+      String userpass = username + ":";
+      if (!StringUtils.isEmpty(password)) {
+        userpass = userpass + password;
       }
       String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary(userpass.getBytes(StandardCharsets.UTF_8));
       conn.setRequestProperty("Authorization", basicAuth);
