@@ -11,6 +11,8 @@
 	    <j:forEach var="project" items="${projects}">
 		  <j:set var="status" value="${project.getStatus()}" />  
 		  <j:set var="ceStatus" value="${project.getCeStatus()}" />
+		  
+		  <j:if test="${status != null}">
 		  <tr><td>
 		  
 		    <div class="sonar-qg">
@@ -57,6 +59,7 @@
 		    </j:if>
 		  </td></tr>
 		  
+		</j:if>
         </j:forEach>  
         </table>
 	</j:if>
