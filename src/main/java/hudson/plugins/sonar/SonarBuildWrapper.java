@@ -140,7 +140,7 @@ public class SonarBuildWrapper extends BuildWrapper {
 
     @Override
     public boolean isApplicable(AbstractProject<?, ?> item) {
-      return Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class).isBuildWrapperEnabled();
+      return Jenkins.getInstance().getDescriptorByType(SonarGlobalConfiguration.class).isBuildWrapperEnabled();
     }
 
     /**

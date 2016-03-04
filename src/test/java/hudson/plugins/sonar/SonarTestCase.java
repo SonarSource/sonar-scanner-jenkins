@@ -104,7 +104,7 @@ public abstract class SonarTestCase {
   }
 
   protected SonarInstallation configureSonar(SonarInstallation sonarInstallation) {
-    j.jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class).setInstallations(sonarInstallation);
+    j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class).setInstallations(sonarInstallation);
     return sonarInstallation;
   }
 
