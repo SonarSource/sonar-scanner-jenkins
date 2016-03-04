@@ -141,7 +141,7 @@ public class SonarInstallation {
       // for unit test
       return new SonarInstallation[0];
     }
-    SonarPublisher.DescriptorImpl sonarDescriptor = jenkins.getDescriptorByType(SonarPublisher.DescriptorImpl.class);
+    SonarGlobalConfiguration sonarDescriptor = jenkins.getDescriptorByType(SonarGlobalConfiguration.class);
     return sonarDescriptor.getInstallations();
   }
 
@@ -154,7 +154,7 @@ public class SonarInstallation {
       } else {
         failureMsg = Messages.SonarInstallation_NoMatchInstallation(sonarInstallationName, SonarInstallation.all().length);
       }
-      failureMsg += "\n" + Messages.SonarPublisher_FixInstalltionTip();
+      failureMsg += "\n" + Messages.SonarInstallation_FixInstallationTip();
     } else {
       failureMsg = null;
     }
@@ -297,7 +297,7 @@ public class SonarInstallation {
 
   private Object readResolve() {
     // Perform password migration to Secret (SONARJNKNS-201)
-    // Data will be persisted when SonarPublisher.DescriptorImpl is saved.
+    // Data will be persisted when SonarGlobalConfiguration is saved.
     if (databasePassword != null) {
       setDatabasePassword(Scrambler.descramble(databasePassword));
       databasePassword = null;

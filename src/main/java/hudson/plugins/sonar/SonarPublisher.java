@@ -49,7 +49,6 @@ import hudson.model.AbstractProject;
 import hudson.model.JDK;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.Logger;
-import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.plugins.sonar.utils.SonarMaven;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
@@ -58,22 +57,15 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
-import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
-import hudson.util.ListBoxModel.Option;
 import jenkins.model.Jenkins;
 import jenkins.mvn.GlobalSettingsProvider;
 import jenkins.mvn.SettingsProvider;
 import jenkins.mvn.DefaultGlobalSettingsProvider;
 import jenkins.mvn.DefaultSettingsProvider;
-import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Old fields should be left so that old config data can be read in, but
@@ -422,7 +414,10 @@ public class SonarPublisher extends Notifier {
     return usePrivateRepository;
   }
 
-  @Extension(ordinal = 1000)
+  /**
+   * Optional because Maven plugin might not be available.
+   */
+  @Extension(optional = true, ordinal = 1000)
   public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
     @CopyOnWrite
@@ -431,7 +426,6 @@ public class SonarPublisher extends Notifier {
 
     public DescriptorImpl() {
       load();
-      save();
     }
 
     @Override
@@ -441,23 +435,38 @@ public class SonarPublisher extends Notifier {
 
     /**
      * @return all configured {@link hudson.plugins.sonar.SonarInstallation}
+     * @deprecated Global configuration has migrated to {@link SonarGlobalConfiguration}
      */
+    @Deprecated
     public SonarInstallation[] getInstallations() {
       return installations;
     }
 
+    /**
+     * @deprecated Global configuration has migrated to {@link SonarGlobalConfiguration} 
+     */
+    @Deprecated
     public boolean isBuildWrapperEnabled() {
       return buildWrapperEnabled;
     }
 
-    public void setInstallations(SonarInstallation... installations) {
+    
+    /**
+     * @deprecated Global configuration has migrated to {@link SonarGlobalConfiguration} 
+     */
+    @Deprecated
+    @VisibleForTesting
+    void setInstallations(SonarInstallation[] installations) {
       this.installations = installations;
-      save();
     }
 
-    public void setBuildWrapperEnabled(boolean enabled) {
+    /**
+     * @deprecated Global configuration has migrated to {@link SonarGlobalConfiguration} 
+     */
+    @Deprecated
+    @VisibleForTesting
+    void setBuildWrapperEnabled(boolean enabled) {
       this.buildWrapperEnabled = enabled;
-      save();
     }
 
     @Override
@@ -475,39 +484,22 @@ public class SonarPublisher extends Notifier {
     }
 
     /**
+     * Deletes all global configuration done through this component.
+     * To be done after migration to {@link SonarGlobalConfiguration}.
+     */
+    public void deleteGlobalConfiguration() {
+      installations = null;
+      buildWrapperEnabled = false;
+      save();
+    }
+
+    /**
      * This method is used in UI, so signature and location of this method is important (see SONARPLUGINS-1337).
      *
      * @return all configured {@link hudson.tasks.Maven.MavenInstallation}
      */
     public MavenInstallation[] getMavenInstallations() {
       return Jenkins.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations();
-    }
-
-    @Override
-    public boolean configure(StaplerRequest req, JSONObject json) {
-      List<SonarInstallation> list = req.bindJSONToList(SonarInstallation.class, json.get("inst"));
-      boolean enableBuildWrapper = json.getBoolean("enableBuildWrapper");
-      setInstallations(list.toArray(new SonarInstallation[list.size()]));
-      setBuildWrapperEnabled(enableBuildWrapper);
-
-      return true;
-    }
-
-    public FormValidation doCheckMandatory(@QueryParameter String value) {
-      return StringUtils.isBlank(value) ? FormValidation.error(Messages.SonarPublisher_MandatoryProperty()) : FormValidation.ok();
-    }
-
-    public FormValidation doCheckMandatoryAndNoSpaces(@QueryParameter String value) {
-      return (StringUtils.isBlank(value) || value.contains(" ")) ? FormValidation.error(Messages.SonarPublisher_MandatoryPropertySpaces()) : FormValidation.ok();
-    }
-
-    public ListBoxModel doFillServerVersionItems() {
-      ListBoxModel items = new ListBoxModel();
-
-      items.add(new Option("5.1 or lower", SQServerVersions.SQ_5_1_OR_LOWER));
-      items.add(new Option("5.2", SQServerVersions.SQ_5_2));
-      items.add(new Option("5.3 or higher", SQServerVersions.SQ_5_3_OR_HIGHER));
-      return items;
     }
 
     @Override
