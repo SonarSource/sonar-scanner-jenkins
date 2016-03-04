@@ -70,13 +70,19 @@ public class SQProjectResolver {
       projectInfo.setUrl(projectUrl);
 
       getQualityGate(wsClient, projectInfo, projectKey, version);
-      getCETask(wsClient, projectInfo, ceTaskId);
 
-      if (projectInfo.getStatus() != null && projectInfo.getProjectName() == null) {
-        projectInfo.setName(wsClient.getProjectName(projectKey));
+      if (projectInfo.getStatus() != null) {
+        getCETask(wsClient, projectInfo, ceTaskId);
+
+        if (projectInfo.getProjectName() == null) {
+          projectInfo.setName(wsClient.getProjectName(projectKey));
+        }
+
+        return projectInfo;
       }
-
-      return projectInfo;
+      
+      // if QG is not available for the project, without errors
+      return null;
 
     } catch (Exception e) {
       Logger.LOG.log(Level.WARNING, "Error fetching project information", e);
@@ -120,13 +126,13 @@ public class SQProjectResolver {
 
   private static boolean checkServerUrl(String serverUrl, String projectKey, SonarInstallation inst) {
     if (serverUrl == null || projectKey == null) {
-      Logger.LOG.fine(String.format("Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
+      Logger.LOG.info(String.format("Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
       return false;
     }
     String configUrl = StringUtils.isEmpty(inst.getServerUrl()) ? "http://localhost:9000" : inst.getServerUrl();
 
     if (!configUrl.equals(serverUrl)) {
-      Logger.LOG.info(String.format("Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, configUrl));
+      Logger.LOG.warning(String.format("Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, configUrl));
       return false;
     }
 

@@ -76,11 +76,11 @@ public class WsClient {
   public ProjectQualityGate getQualityGateBefore54(String projectKey) throws Exception {
     String url = serverUrl + API_RESOURCES + encode(projectKey);
     String text = client.getHttp(url, username, password);
-
     JSONArray resourceArray = (JSONArray) JSONSerializer.toJSON(text);
 
     if (resourceArray.size() != 1) {
       Logger.LOG.fine("Found " + resourceArray.size() + " resources for " + projectKey);
+      // in 4.5, for example, there is no default QG and a project might return an empty array. 
       return null;
     }
 

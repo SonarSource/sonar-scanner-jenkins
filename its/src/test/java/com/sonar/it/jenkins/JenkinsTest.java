@@ -65,6 +65,8 @@ public class JenkinsTest {
       .configureSonarRunner2_4Installation()
       .configureMsBuildSQScanner_installation()
       .configureSonarInstallation(orchestrator);
+    jenkins.checkSavedSonarInstallation(orchestrator);
+    jenkins.configureDefaultQG(orchestrator);
   }
 
   @Before
@@ -105,11 +107,12 @@ public class JenkinsTest {
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
 
     jenkins.enableInjectionVars(true)
-      .newFreestyleJobWithMaven(jobName, new File("projects", "abacus"), null)
+      .newFreestyleJobWithMaven(jobName, new File("projects", "abacus"), null, orchestrator)
       .executeJob(jobName);
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
+    jenkins.assertQGOnProjectPage(jobName);
   }
 
   @Test
@@ -123,6 +126,7 @@ public class JenkinsTest {
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
+    jenkins.assertQGOnProjectPage(jobName);
   }
 
   @Test
@@ -136,6 +140,7 @@ public class JenkinsTest {
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
+    jenkins.assertQGOnProjectPage(jobName);
   }
 
   @Test
@@ -153,6 +158,7 @@ public class JenkinsTest {
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
+    jenkins.assertQGOnProjectPage(jobName);
   }
 
   @Test
@@ -190,6 +196,7 @@ public class JenkinsTest {
     waitForComputationOnSQServer();
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
+    jenkins.assertQGOnProjectPage(jobName);
     if (isWindows()) {
       assertThat(result.getLogs()).contains("sonar-runner.bat -X -Duseless=Y -e");
     } else {
@@ -211,11 +218,8 @@ public class JenkinsTest {
   }
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
-    // Computation of Sonar URL was not reliable before 2.1 & Sonar 3.6
     assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
-    if (orchestrator.getServer().version().isGreaterThanOrEquals("3.6")) {
-      assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
-    }
+    assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
   }
 
   private void waitForComputationOnSQServer() {

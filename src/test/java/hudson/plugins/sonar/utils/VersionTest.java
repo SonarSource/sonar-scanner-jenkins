@@ -44,10 +44,10 @@ public class VersionTest {
     assertThat(a.equals(b)).isFalse(); // return false
     assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
   }
-  
+
   @Test
   public void testSnapshot() {
-    Version a = new Version("2.0-SNAPSHOT");
+    new Version("2.0-SNAPSHOT");
   }
 
   @Test
@@ -57,6 +57,12 @@ public class VersionTest {
     assertThat(a.compareTo(b)).isZero(); // return 0 (a=b)
     assertThat(a.equals(b)).isTrue(); // return true
     assertThat(a.hashCode()).isEqualTo(b.hashCode());
+  }
+
+  @Test
+  public void testToString() {
+    Version v = new Version("1.2.3");
+    assertThat(v.toString()).isEqualTo("1.2.3");
   }
 
   @Test

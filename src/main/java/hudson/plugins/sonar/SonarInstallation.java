@@ -50,12 +50,12 @@ public class SonarInstallation {
   /**
    * @since 2.5
    */
-  private final String serverVersion;
+  private String serverVersion;
 
   /**
    * @since 2.5
    */
-  private final String serverAuthenticationToken;
+  private String serverAuthenticationToken;
 
   /**
    * @since 1.5
@@ -107,10 +107,10 @@ public class SonarInstallation {
 
     if (SQ_5_3_OR_HIGHER.equals(serverVersion)) {
       this.serverAuthenticationToken = serverAuthenticationToken;
-      this.sonarLogin = null;
-      setSonarPassword(null);
+      this.sonarLogin = "";
+      setSonarPassword("");
     } else {
-      this.serverAuthenticationToken = null;
+      this.serverAuthenticationToken = "";
       this.sonarLogin = sonarLogin;
       setSonarPassword(sonarPassword);
     }
@@ -120,9 +120,9 @@ public class SonarInstallation {
       this.databaseLogin = databaseLogin;
       setDatabasePassword(databasePassword);
     } else {
-      this.databaseUrl = null;
-      this.databaseLogin = null;
-      setDatabasePassword(null);
+      this.databaseUrl = "";
+      this.databaseLogin = "";
+      setDatabasePassword("");
     }
 
     this.additionalAnalysisProperties = additionalAnalysisProperties;
@@ -199,18 +199,7 @@ public class SonarInstallation {
    * Automatically figures out a value in that case.
    */
   public String getServerVersion() {
-    if (serverVersion != null) {
-      return serverVersion;
-    }
-
-    if (!StringUtils.isEmpty(databaseUrl) || !StringUtils.isEmpty(databaseLogin)) {
-      return SQ_5_1_OR_LOWER;
-    }
-    if (!StringUtils.isEmpty(getSonarPassword())) {
-      return SQ_5_2;
-    }
-
-    return SQ_5_3_OR_HIGHER;
+    return serverVersion;
   }
 
   /**
@@ -309,7 +298,6 @@ public class SonarInstallation {
   private Object readResolve() {
     // Perform password migration to Secret (SONARJNKNS-201)
     // Data will be persisted when SonarPublisher.DescriptorImpl is saved.
-
     if (databasePassword != null) {
       setDatabasePassword(Scrambler.descramble(databasePassword));
       databasePassword = null;
@@ -318,6 +306,22 @@ public class SonarInstallation {
     if (sonarPassword != null) {
       setSonarPassword(Scrambler.descramble(sonarPassword));
       sonarPassword = null;
+    }
+
+    /*
+     * serverVersion might be null when upgrading to 2.5.
+     * Automatically migrate in that case
+     */
+    if (serverVersion == null) {
+      if (!StringUtils.isEmpty(databaseUrl) || !StringUtils.isEmpty(databaseLogin)) {
+        serverVersion = SQ_5_1_OR_LOWER;
+      } else if (!StringUtils.isEmpty(getSonarPassword())) {
+        serverVersion = SQ_5_2;
+      } else {
+        serverAuthenticationToken = sonarLogin;
+        sonarLogin = null;
+        serverVersion = SQ_5_3_OR_HIGHER;
+      }
     }
 
     return this;

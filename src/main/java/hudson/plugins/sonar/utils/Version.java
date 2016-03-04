@@ -56,6 +56,11 @@ public class Version implements Comparable<Version> {
   public final String get() {
     return this.versionStr;
   }
+  
+  @Override
+  public String toString() {
+    return this.versionStr;
+  }
 
   @Override
   public int compareTo(Version that) {

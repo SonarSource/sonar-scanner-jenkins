@@ -69,6 +69,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.jsonsimple.JSONValue;
+import org.sonar.wsclient.qualitygate.QualityGates;
 
 public class JenkinsOrchestrator extends SingleStartExternalResource {
   private static final Logger LOG = LoggerFactory.getLogger(JenkinsOrchestrator.class);
@@ -228,7 +229,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public JenkinsOrchestrator newFreestyleJobWithMaven(String jobName, File projectPath, String branch) {
+  public JenkinsOrchestrator newFreestyleJobWithMaven(String jobName, File projectPath, String branch, Orchestrator orchestrator) {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(By.name("hudson-plugins-sonar-SonarBuildWrapper")).click();
@@ -239,7 +240,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
     findElement(buttonByText("Add build step")).click();
     findElement(By.linkText("Invoke top-level Maven targets")).click();
-    setTextValue(findElement(By.name("_.targets"), 1), getMavenParams());
+    setTextValue(findElement(By.name("_.targets"), 1), getMavenParams(orchestrator));
 
     findElement(buttonByText("Save")).click();
     return this;
@@ -434,6 +435,49 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
+  public void configureDefaultQG(Orchestrator orchestrator) {
+    QualityGates qualityGates = orchestrator.getServer().adminWsClient().qualityGateClient().list();
+    assertThat(qualityGates.qualityGates().size()).isGreaterThan(0);
+
+    long id = qualityGates.qualityGates().iterator().next().id();
+    orchestrator.getServer().adminWsClient().qualityGateClient().setDefault(id);
+    System.out.println("Set default QG: " + id);
+  }
+
+  public void checkSavedSonarInstallation(Orchestrator orchestrator) {
+    Version serverVersion = orchestrator.getServer().version();
+
+    driver.get(server.getUrl() + "/configure");
+
+    assertThat(findElement(By.name("sonar.name")).getAttribute("value")).isEqualTo("SonarQube");
+    assertThat(findElement(By.name("sonar.serverUrl")).getAttribute("value")).isEqualTo(orchestrator.getServer().getUrl());
+    findElement(buttonByTextAfterElementByXpath("Advanced...", "//.[@name='sonar.name']")).click();
+
+    if (serverVersion.isGreaterThanOrEquals("5.3")) {
+      assertThat(findElement(By.name("sonar.serverAuthenticationToken")).getAttribute("value")).isNotEmpty();
+      assertThat(findElement(By.name("sonar.sonarLogin")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.sonarPassword")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databaseUrl")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databaseLogin")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databasePassword")).isEnabled()).isFalse();
+
+    } else if (serverVersion.isGreaterThan("5.2")) {
+      assertThat(findElement(By.name("sonar.sonarLogin")).getAttribute("value")).isEqualTo(Server.ADMIN_LOGIN);
+      assertThat(findElement(By.name("sonar.sonarPassword")).getAttribute("value")).isEqualTo(Server.ADMIN_PASSWORD);
+      assertThat(findElement(By.name("sonar.serverAuthenticationToken")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databaseUrl")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databaseLogin")).isEnabled()).isFalse();
+      assertThat(findElement(By.name("sonar.databasePassword")).isEnabled()).isFalse();
+    } else {
+      assertThat(findElement(By.name("sonar.sonarLogin")).getAttribute("value")).isEqualTo(Server.ADMIN_LOGIN);
+      assertThat(findElement(By.name("sonar.sonarPassword")).getAttribute("value")).isEqualTo(Server.ADMIN_PASSWORD);
+      assertThat(findElement(By.name("sonar.databaseUrl")).getAttribute("value")).isEqualTo(orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.url"));
+      assertThat(findElement(By.name("sonar.databaseLogin")).getAttribute("value")).isEqualTo(orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.username"));
+      assertThat(findElement(By.name("sonar.databasePassword")).getAttribute("value")).isEqualTo(orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.password"));
+      assertThat(findElement(By.name("sonar.serverAuthenticationToken")).isEnabled()).isFalse();
+    }
+  }
+
   public String generateToken(Orchestrator orchestrator) {
     String json = orchestrator.getServer().adminWsClient().post("api/user_tokens/generate", "name", "token");
     Map response = (Map) JSONValue.parse(json);
@@ -465,9 +509,15 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return result;
   }
 
-  private String getMavenParams() {
-    return "$SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.password=$SONAR_PASSWORD"
-      + " -Dsonar.jdbc.url=$SONAR_JDBC_URL -Dsonar.jdbc.username=$SONAR_JDBC_USERNAME -Dsonar.jdbc.password=$SONAR_JDBC_PASSWORD";
+  private String getMavenParams(Orchestrator orchestrator) {
+    Version serverVersion = orchestrator.getServer().version();
+
+    if (serverVersion.isGreaterThanOrEquals("5.3")) {
+      return "$SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_AUTH_TOKEN";
+    } else {
+      return "$SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.password=$SONAR_PASSWORD"
+        + " -Dsonar.jdbc.url=$SONAR_JDBC_URL -Dsonar.jdbc.username=$SONAR_JDBC_USERNAME -Dsonar.jdbc.password=$SONAR_JDBC_PASSWORD";
+    }
   }
 
   private By buttonByText(String text) {
@@ -535,5 +585,18 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   public void select(WebElement element, String optionValue) {
     Select select = new Select(element);
     select.selectByValue(optionValue);
+  }
+
+  public void assertQGOnProjectPage(String jobName) {
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    driver.get(server.getUrl() + "/job/" + jobName);
+    WebElement table = findElement(By.className("sonar-projects"));
+    WebElement qg = findElement(By.className("sonar-qg"));
+    assertThat(table).isNotNull();
+    assertThat(qg).isNotNull();
   }
 }

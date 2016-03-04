@@ -21,6 +21,7 @@ package hudson.plugins.sonar.client;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.aether.util.StringUtils;
 
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +42,7 @@ public class HttpClient {
     }
 
     conn.setRequestMethod("GET");
-    return IOUtils.toString(conn.getInputStream(), StandardCharsets.UTF_8.name());
+    InputStream is = conn.getInputStream();
+    return IOUtils.toString(is, StandardCharsets.UTF_8.name());
   }
 }
