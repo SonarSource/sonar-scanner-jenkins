@@ -19,7 +19,7 @@
 package hudson.plugins.sonar.client;
 
 import org.apache.commons.io.IOUtils;
-import org.eclipse.aether.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
