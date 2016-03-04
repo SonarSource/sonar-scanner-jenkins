@@ -417,7 +417,7 @@ public class SonarPublisher extends Notifier {
   /**
    * Optional because Maven plugin might not be available.
    */
-  @Extension(optional = true, ordinal = 1000)
+  @Extension(ordinal = 1000, optional = true)
   public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
     @CopyOnWrite
