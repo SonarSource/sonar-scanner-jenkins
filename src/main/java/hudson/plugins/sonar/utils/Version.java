@@ -19,47 +19,82 @@
 package hudson.plugins.sonar.utils;
 
 public class Version implements Comparable<Version> {
-
-  private String version;
+  private String versionStr;
+  private int[] parts;
 
   public Version(String version) {
-    if (version == null)
+    if (version == null) {
       throw new IllegalArgumentException("Version can not be null");
-    if (!version.matches("[0-9]+(\\.[0-9]+)*"))
+    }
+    if (!version.matches("[0-9]+(\\.[0-9]+)*")) {
       throw new IllegalArgumentException("Invalid version format");
-    this.version = version;
+    }
+    this.versionStr = version;
+    parse();
+  }
+
+  private void parse() {
+    String[] partsStr = this.get().split("\\.");
+    parts = new int[partsStr.length];
+
+    for (int i = 0; i < partsStr.length; i++) {
+      parts[i] = Integer.parseInt(partsStr[i]);
+    }
   }
 
   public final String get() {
-    return this.version;
+    return this.versionStr;
   }
 
   @Override
   public int compareTo(Version that) {
-    if (that == null)
+    if (that == null) {
       return 1;
-    String[] thisParts = this.get().split("\\.");
-    String[] thatParts = that.get().split("\\.");
+    }
+    int[] thisParts = parts;
+    int[] thatParts = that.parts;
     int length = Math.max(thisParts.length, thatParts.length);
     for (int i = 0; i < length; i++) {
-      int thisPart = i < thisParts.length ? Integer.parseInt(thisParts[i]) : 0;
-      int thatPart = i < thatParts.length ? Integer.parseInt(thatParts[i]) : 0;
-      if (thisPart < thatPart)
+      int thisPart = i < thisParts.length ? thisParts[i] : 0;
+      int thatPart = i < thatParts.length ? thatParts[i] : 0;
+      if (thisPart < thatPart) {
         return -1;
-      if (thisPart > thatPart)
+      }
+      if (thisPart > thatPart) {
         return 1;
+      }
     }
     return 0;
   }
 
   @Override
+  public int hashCode() {
+    int hash = 17;
+    boolean nonZero = false;
+
+    for (int i = parts.length - 1; i >= 0; i--) {
+      int part = parts[i];
+      if (!nonZero && part != 0) {
+        nonZero = true;
+      }
+      if (nonZero) {
+        hash = hash * 31 + part;
+      }
+    }
+    return hash;
+  }
+
+  @Override
   public boolean equals(Object that) {
-    if (this == that)
+    if (this == that) {
       return true;
-    if (that == null)
+    }
+    if (that == null) {
       return false;
-    if (this.getClass() != that.getClass())
+    }
+    if (this.getClass() != that.getClass()) {
       return false;
+    }
     return this.compareTo((Version) that) == 0;
   }
 }

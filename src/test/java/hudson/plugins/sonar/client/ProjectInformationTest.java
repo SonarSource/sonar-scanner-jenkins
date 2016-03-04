@@ -41,5 +41,7 @@ public class ProjectInformationTest {
     assertThat(proj.getProjectKey()).isEqualTo("key");
     assertThat(proj.getProjectName()).isEqualTo("name");
     assertThat(proj.hasErrors()).isTrue();
+    long time = System.currentTimeMillis();
+    assertThat(proj.created()).isBetween(time - 2500, time + 2500);
   }
 }

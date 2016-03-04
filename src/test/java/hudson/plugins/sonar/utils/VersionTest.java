@@ -33,6 +33,7 @@ public class VersionTest {
     Version b = new Version("1.1.1");
     assertThat(a.compareTo(b)).isLessThan(0); // return -1 (a<b)
     assertThat(a.equals(b)).isFalse(); // return false
+    assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
   }
 
   @Test
@@ -41,6 +42,7 @@ public class VersionTest {
     Version b = new Version("1.9.9");
     assertThat(a.compareTo(b)).isGreaterThan(0); // return 1 (a>b)
     assertThat(a.equals(b)).isFalse(); // return false
+    assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
   }
 
   @Test
@@ -49,6 +51,7 @@ public class VersionTest {
     Version b = new Version("1");
     assertThat(a.compareTo(b)).isZero(); // return 0 (a=b)
     assertThat(a.equals(b)).isTrue(); // return true
+    assertThat(a.hashCode()).isEqualTo(b.hashCode());
   }
 
   @Test
@@ -76,5 +79,6 @@ public class VersionTest {
     Version a = new Version("2.06");
     Version b = new Version("2.060");
     assertThat(a.equals(b)).isFalse(); // return false
+    assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
   }
 }
