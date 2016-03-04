@@ -76,7 +76,7 @@ public class SonarInstallationTest extends SonarTestCase {
 
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
-    assertThat(i.getServerAuthenticationToken()).isNull();
+    assertThat(i.getServerAuthenticationToken()).isNullOrEmpty();
     assertThat(i.getDatabaseUrl()).isEqualTo("db:url");
     assertThat(i.getDatabaseLogin()).isEqualTo("dbLogin");
     assertThat(i.getDatabasePassword()).isEqualTo("dbPasswd");
@@ -116,9 +116,9 @@ public class SonarInstallationTest extends SonarTestCase {
 
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
-    assertThat(i.getServerAuthenticationToken()).isNull();
-    assertThat(i.getDatabaseUrl()).isNull();
-    assertThat(i.getDatabaseLogin()).isNull();
+    assertThat(i.getServerAuthenticationToken()).isNullOrEmpty();
+    assertThat(i.getDatabaseUrl()).isNullOrEmpty();
+    assertThat(i.getDatabaseLogin()).isNullOrEmpty();
     assertThat(i.getDatabasePassword()).isNullOrEmpty();
     assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
     assertThat(i.getAdditionalProperties()).isEqualTo("props");
@@ -157,12 +157,12 @@ public class SonarInstallationTest extends SonarTestCase {
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
     assertThat(i.getServerAuthenticationToken()).isEqualTo("token");
-    assertThat(i.getDatabaseUrl()).isNull();
-    assertThat(i.getDatabaseLogin()).isNull();
+    assertThat(i.getDatabaseUrl()).isNullOrEmpty();
+    assertThat(i.getDatabaseLogin()).isNullOrEmpty();
     assertThat(i.getDatabasePassword()).isNullOrEmpty();
     assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
     assertThat(i.getAdditionalProperties()).isEqualTo("props");
-    assertThat(i.getSonarLogin()).isNull();
+    assertThat(i.getSonarLogin()).isNullOrEmpty();
     assertThat(i.getSonarPassword()).isNullOrEmpty();
     assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");
 

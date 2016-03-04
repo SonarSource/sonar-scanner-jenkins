@@ -70,19 +70,17 @@ public class SQProjectResolver {
       projectInfo.setUrl(projectUrl);
 
       getQualityGate(wsClient, projectInfo, projectKey, version);
-
-      if (projectInfo.getStatus() != null) {
-        getCETask(wsClient, projectInfo, ceTaskId);
-
-        if (projectInfo.getProjectName() == null) {
-          projectInfo.setName(wsClient.getProjectName(projectKey));
-        }
-
+      if (projectInfo.getStatus() == null) {
+        // if QG is not available for the project, without errors, projectInfo will be empty
         return projectInfo;
       }
-      
-      // if QG is not available for the project, without errors
-      return null;
+
+      getCETask(wsClient, projectInfo, ceTaskId);
+
+      if (projectInfo.getProjectName() == null) {
+        projectInfo.setName(wsClient.getProjectName(projectKey));
+      }
+      return projectInfo;
 
     } catch (Exception e) {
       Logger.LOG.log(Level.WARNING, "Error fetching project information", e);
