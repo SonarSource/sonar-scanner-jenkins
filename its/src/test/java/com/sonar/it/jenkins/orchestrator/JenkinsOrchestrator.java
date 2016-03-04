@@ -81,6 +81,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   private JenkinsServer server;
   private WebDriver driver;
   private CLI cli;
+  private static int tokenCounter = 0;
 
   JenkinsOrchestrator(Configuration config, JenkinsDistribution distribution) {
     this.config = config;
@@ -449,7 +450,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
     driver.get(server.getUrl() + "/configure");
     try {
-      Thread.sleep(1000);
+      Thread.sleep(2000);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
@@ -484,7 +485,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public String generateToken(Orchestrator orchestrator) {
-    String json = orchestrator.getServer().adminWsClient().post("api/user_tokens/generate", "name", "token");
+    String json = orchestrator.getServer().adminWsClient().post("api/user_tokens/generate", "name", "token" + tokenCounter++);
     Map response = (Map) JSONValue.parse(json);
     return (String) response.get("token");
   }
@@ -495,6 +496,18 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
       throw new IllegalStateException("Can not find the plugin " + hpi);
     }
     cli.execute("install-plugin", hpiFile.getAbsolutePath(), "-deploy");
+    return this;
+  }
+
+  public JenkinsOrchestrator disablePlugin(String name) throws IOException {
+    File f = new File(new File(server.getHome(), "plugins"), name + ".hpi.disabled");
+    f.createNewFile();
+    return this;
+  }
+
+  public JenkinsOrchestrator enablePlugin(String name) {
+    File f = new File(new File(server.getHome(), "plugins"), name + ".hpi.disabled");
+    FileUtils.deleteQuietly(f);
     return this;
   }
 
@@ -551,6 +564,14 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     }
   }
 
+  public void assertNoElement(By by) {
+    List<WebElement> elements = driver.findElements(by);
+    if (!elements.isEmpty()) {
+      System.err.println("Not expecting finding element, but found " + elements.size() + ". Save screenshot to: target/no_such_element.png");
+      takeScreenshot(new File("target/no_such_element.png"));
+    }
+  }
+
   public WebElement findElement(By by, int index) {
     try {
       List<WebElement> elms = driver.findElements(by);
@@ -585,6 +606,17 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
         return element.getAttribute("value").equals(text);
       }
     });
+  }
+
+  public void assertNoSonarPublisher(String jobName, File projectPath) {
+    newFreestyleJobConfig(jobName, projectPath);
+
+    WebElement addPostBuildButton = findElement(buttonByText("Add post-build action"));
+    scrollToElement(addPostBuildButton);
+    addPostBuildButton.click();
+    findElement(By.linkText("SonarQube analysis with Maven")).click();
+    assertNoElement(By.xpath("//div[@descriptorid='hudson.plugins.sonar.SonarPublisher']"));
+    findElement(buttonByText("Save")).click();
   }
 
   public void select(WebElement element, String optionValue) {

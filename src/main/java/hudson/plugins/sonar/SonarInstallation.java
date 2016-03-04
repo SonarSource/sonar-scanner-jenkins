@@ -48,12 +48,12 @@ public class SonarInstallation {
   private final String serverUrl;
 
   /**
-   * @since 2.5
+   * @since 2.4
    */
   private String serverVersion;
 
   /**
-   * @since 2.5
+   * @since 2.4
    */
   private String serverAuthenticationToken;
 
@@ -190,12 +190,15 @@ public class SonarInstallation {
     return serverUrl;
   }
 
+  /**
+   * @since 2.4
+   */
   public String getServerAuthenticationToken() {
     return serverAuthenticationToken;
   }
 
   /**
-   * serverVersion might be null when upgrading to 2.5.
+   * serverVersion might be null when upgrading to 2.4.
    * Automatically figures out a value in that case.
    */
   public String getServerVersion() {

@@ -36,6 +36,10 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import java.util.List;
 
+/**
+ * Since 2.4
+ * The global configuration was migrated from SonarPublisher to this component.
+ */
 @Extension(ordinal = 100)
 public class SonarGlobalConfiguration extends GlobalConfiguration {
   @CopyOnWrite
