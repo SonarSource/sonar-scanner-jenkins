@@ -128,6 +128,17 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
+  public void maskAuthToken() throws IOException, InterruptedException {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    configureSonar(new SonarInstallation("local", "http://localhost:9001", SQServerVersions.SQ_5_3_OR_HIGHER, "mytoken", null, null, null,
+      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", null, null));
+
+    OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
+    IOUtils.write("test sonar\ntest mytoken\n", os);
+    assertThat(new String(bos.toByteArray())).isEqualTo("test sonar\ntest ******\n");
+  }
+
+  @Test
   public void testEnvironment52() {
     SonarEnvironment env = wrapper.new SonarEnvironment(installation, stream);
 
@@ -151,7 +162,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("key", "value");
     verify(stream).println(contains("Injecting SonarQube environment variables"));
   }
-  
+
   @Test
   public void testEnvironment53() {
     installation = createTestInstallation(SQServerVersions.SQ_5_3_OR_HIGHER);
@@ -177,7 +188,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("key", "value");
     verify(stream).println(contains("Injecting SonarQube environment variables"));
   }
-  
+
   @Test
   public void testEnvironment51() {
     installation = createTestInstallation(SQServerVersions.SQ_5_1_OR_LOWER);
@@ -266,7 +277,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(build.getLog(1000)).contains("the pass is: ******");
     assertThat(build.getActions(SonarAnalysisAction.class)).hasSize(1);
   }
-  
+
   @Test
   public void testFailedBuild() throws Exception {
     // set up a free style project with our wrapper that will execute CaptureVarsBuilder
@@ -311,12 +322,12 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   private static SonarInstallation createTestInstallation() {
-    return new SonarInstallation("local", "http://localhost:9001", SQServerVersions.SQ_5_2, null, null, null, null, 
+    return new SonarInstallation("local", "http://localhost:9001", SQServerVersions.SQ_5_2, null, null, null, null,
       null, "-X", new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", "key=value");
   }
-  
+
   private static SonarInstallation createTestInstallation(String version) {
-    return new SonarInstallation("local", "http://localhost:9001", version, "$SONAR_CONFIG_NAME", null, null, null, 
+    return new SonarInstallation("local", "http://localhost:9001", version, "$SONAR_CONFIG_NAME", null, null, null,
       null, "-X", new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", "key=value");
   }
 }

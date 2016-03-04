@@ -91,11 +91,14 @@ public class SonarBuildWrapper extends BuildWrapper {
 
     List<String> passwords = new ArrayList<String>();
 
-    if (inst.getDatabasePassword() != null) {
+    if (!StringUtils.isBlank(inst.getDatabasePassword())) {
       passwords.add(inst.getDatabasePassword());
     }
-    if (!StringUtils.isEmpty(inst.getSonarPassword())) {
+    if (!StringUtils.isBlank(inst.getSonarPassword())) {
       passwords.add(inst.getSonarPassword());
+    }
+    if (!StringUtils.isBlank(inst.getServerAuthenticationToken())) {
+      passwords.add(inst.getServerAuthenticationToken());
     }
 
     return new MaskPasswordsOutputStream(outputStream, passwords);
@@ -201,7 +204,7 @@ public class SonarBuildWrapper extends BuildWrapper {
       map.put("SONAR_PASSWORD", getOrDefault(inst.getSonarPassword(), ""));
       map.put("SONAR_AUTH_TOKEN", getOrDefault(inst.getServerAuthenticationToken(), ""));
       map.put("SONAR_JDBC_URL", getOrDefault(inst.getDatabaseUrl(), ""));
-      
+
       String jdbcDefault = SQServerVersions.SQ_5_1_OR_LOWER.equals(inst.getServerVersion()) ? DEFAULT_SONAR : "";
       map.put("SONAR_JDBC_USERNAME", getOrDefault(inst.getDatabaseLogin(), jdbcDefault));
       map.put("SONAR_JDBC_PASSWORD", getOrDefault(inst.getDatabasePassword(), jdbcDefault));
