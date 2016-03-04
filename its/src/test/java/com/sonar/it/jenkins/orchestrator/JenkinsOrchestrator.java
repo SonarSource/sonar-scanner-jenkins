@@ -448,6 +448,11 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     Version serverVersion = orchestrator.getServer().version();
 
     driver.get(server.getUrl() + "/configure");
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
 
     assertThat(findElement(By.name("sonar.name")).getAttribute("value")).isEqualTo("SonarQube");
     assertThat(findElement(By.name("sonar.serverUrl")).getAttribute("value")).isEqualTo(orchestrator.getServer().getUrl());
