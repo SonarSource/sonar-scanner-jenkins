@@ -44,11 +44,16 @@ public class VersionTest {
     assertThat(a.equals(b)).isFalse(); // return false
     assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
   }
+  
+  @Test
+  public void testSnapshot() {
+    Version a = new Version("2.0-SNAPSHOT");
+  }
 
   @Test
   public void testOnlyMajor() {
-    Version a = new Version("1.0");
-    Version b = new Version("1");
+    Version a = new Version("1.0.0");
+    Version b = new Version("1.0");
     assertThat(a.compareTo(b)).isZero(); // return 0 (a=b)
     assertThat(a.equals(b)).isTrue(); // return true
     assertThat(a.hashCode()).isEqualTo(b.hashCode());
@@ -56,7 +61,7 @@ public class VersionTest {
 
   @Test
   public void testNull() {
-    Version a = new Version("1");
+    Version a = new Version("1.0");
     Version b = null;
     assertThat(a.compareTo(b)).isGreaterThan(0); // return 1 (a>b)
     assertThat(a.equals(b)).isFalse(); // return false
@@ -65,12 +70,12 @@ public class VersionTest {
   @Test
   public void testSort() {
     List<Version> versions = new ArrayList<Version>();
-    versions.add(new Version("2"));
+    versions.add(new Version("2.0"));
     versions.add(new Version("1.0.5"));
     versions.add(new Version("1.01.0"));
     versions.add(new Version("1.00.1"));
     assertThat(Collections.min(versions).get()).isEqualTo("1.00.1"); // return min version
-    assertThat(Collections.max(versions).get()).isEqualTo("2"); // return max version
+    assertThat(Collections.max(versions).get()).isEqualTo("2.0"); // return max version
 
   }
 

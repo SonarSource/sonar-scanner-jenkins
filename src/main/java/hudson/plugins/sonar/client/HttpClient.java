@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 
 public class HttpClient {
   public String getHttp(String urlToRead, String username, String password) throws Exception {
+    System.out.println(String.format("%s %s %s", urlToRead, username, password));
     URL url = new URL(urlToRead);
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
