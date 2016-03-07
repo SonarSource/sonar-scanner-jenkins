@@ -27,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.CheckForNull;
 
+import java.util.Locale;
 import java.util.logging.Level;
 
 public class SQProjectResolver {
@@ -124,13 +125,13 @@ public class SQProjectResolver {
 
   private static boolean checkServerUrl(String serverUrl, String projectKey, SonarInstallation inst) {
     if (serverUrl == null || projectKey == null) {
-      Logger.LOG.info(String.format("Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
+      Logger.LOG.info(String.format(Locale.US, "Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
       return false;
     }
     String configUrl = StringUtils.isEmpty(inst.getServerUrl()) ? "http://localhost:9000" : inst.getServerUrl();
 
     if (!configUrl.equals(serverUrl)) {
-      Logger.LOG.warning(String.format("Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, configUrl));
+      Logger.LOG.warning(String.format(Locale.US, "Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, configUrl));
       return false;
     }
 

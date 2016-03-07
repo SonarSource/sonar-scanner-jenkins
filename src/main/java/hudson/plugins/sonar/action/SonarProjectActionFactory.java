@@ -34,8 +34,10 @@ import javax.annotation.CheckForNull;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 @Extension
 /**
@@ -59,6 +61,7 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
       return Collections.emptyList();
     }
 
+    Set<String> urls = new HashSet<String>();
     List<ProminentProjectAction> sonarProjectActions = new LinkedList<ProminentProjectAction>();
     List<SonarAnalysisAction> filteredActions = new LinkedList<SonarAnalysisAction>();
 
@@ -67,7 +70,8 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
 
     if (lastBuild != null) {
       for (SonarAnalysisAction a : lastBuild.getActions(SonarAnalysisAction.class)) {
-        if (a.getUrl() != null) {
+        if (a.getUrl() != null && !urls.contains(a.getUrl())) {
+          urls.add(a.getUrl());
           sonarProjectActions.add(new SonarProjectIconAction(a));
           filteredActions.add(a);
         }

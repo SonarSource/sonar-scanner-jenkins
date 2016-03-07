@@ -20,6 +20,8 @@ package hudson.plugins.sonar.client;
 
 import hudson.model.InvisibleAction;
 
+import java.util.Locale;
+
 public class ProjectInformation extends InvisibleAction {
   private long created;
   private String[] errors;
@@ -52,7 +54,7 @@ public class ProjectInformation extends InvisibleAction {
   }
 
   public void setCeStatus(String ceStatus) {
-    this.ceStatus = (ceStatus != null) ? ceStatus.toLowerCase() : null;
+    this.ceStatus = (ceStatus != null) ? ceStatus.toLowerCase(Locale.US) : null;
   }
 
   public String getStatus() {

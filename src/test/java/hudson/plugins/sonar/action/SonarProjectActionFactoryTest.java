@@ -56,6 +56,20 @@ public class SonarProjectActionFactoryTest {
   }
 
   @Test
+  public void testNoRepeatedURLs() {
+    SonarAnalysisAction info1 = createBuildInfo("url1");
+    SonarAnalysisAction info2 = createBuildInfo("url1");
+    mockProject(true, info1, info2);
+
+    when(project.getLastBuild()).thenReturn(null);
+    Collection<? extends Action> actions = factory.createFor(project);
+    List<SonarProjectIconAction> projectActions = getSonarProjectIconAction(actions);
+    assertThat(projectActions).hasSize(1);
+    assertThat(projectActions.get(0).getBuildInfo()).isEqualTo(info1);
+    assertThat(projectActions.get(0).getUrlName()).isEqualTo("url1");
+  }
+
+  @Test
   public void testNoLastBuild() {
     mockProject(true);
     when(project.getLastBuild()).thenReturn(null);
