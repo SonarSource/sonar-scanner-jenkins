@@ -81,6 +81,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   private JenkinsServer server;
   private WebDriver driver;
   private CLI cli;
+  private static int tokenCounter = 0;
 
   JenkinsOrchestrator(Configuration config, JenkinsDistribution distribution) {
     this.config = config;
@@ -484,7 +485,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public String generateToken(Orchestrator orchestrator) {
-    String json = orchestrator.getServer().adminWsClient().post("api/user_tokens/generate", "name", "token");
+    String json = orchestrator.getServer().adminWsClient().post("api/user_tokens/generate", "name", "token" + tokenCounter++);
     Map response = (Map) JSONValue.parse(json);
     return (String) response.get("token");
   }
@@ -495,6 +496,18 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
       throw new IllegalStateException("Can not find the plugin " + hpi);
     }
     cli.execute("install-plugin", hpiFile.getAbsolutePath(), "-deploy");
+    return this;
+  }
+  
+  public JenkinsOrchestrator disablePlugin(String name) throws IOException {
+    File f = new File(new File(server.getHome(), "plugins"), name + ".hpi.disabled");
+    f.createNewFile();
+    return this;
+  }
+  
+  public JenkinsOrchestrator enablePlugin(String name) {
+    File f = new File(new File(server.getHome(), "plugins"), name + ".hpi.disabled");
+    FileUtils.deleteQuietly(f);
     return this;
   }
 

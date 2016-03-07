@@ -27,7 +27,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({JenkinsTest.class})
+@SuiteClasses({JenkinsTest.class, JenkinsWithoutMaven.class})
 public class JenkinsTestSuite {
 
   @ClassRule
