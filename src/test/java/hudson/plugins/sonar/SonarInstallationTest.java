@@ -34,7 +34,6 @@
 package hudson.plugins.sonar;
 
 import hudson.Util;
-import hudson.plugins.sonar.SonarPublisher.DescriptorImpl;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.SQServerVersions;
 import jenkins.model.Jenkins;
@@ -53,8 +52,8 @@ public class SonarInstallationTest extends SonarTestCase {
   @Test
   public void testRoundtrip51() throws IOException {
     TriggersConfig triggers = new TriggersConfig();
-    DescriptorImpl d = descriptor();
-    d.setInstallations(new SonarInstallation(
+    SonarGlobalConfiguration config = new SonarGlobalConfiguration();
+    config.setInstallations(new SonarInstallation(
       "Name",
       "server.url",
       SQServerVersions.SQ_5_1_OR_LOWER,
@@ -67,12 +66,11 @@ public class SonarInstallationTest extends SonarTestCase {
       triggers,
       "sonarLogin",
       "sonarPasswd",
-      "key=value"
-      ));
-    d.save();
+      "key=value"));
+    config.save();
 
-    SonarInstallation i = descriptor().getInstallations()[0];
-    String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), d.getId() + ".xml"));
+    SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
+    String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), config.getId() + ".xml"));
 
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
@@ -89,11 +87,11 @@ public class SonarInstallationTest extends SonarTestCase {
     assertThat(storedConfig).doesNotContain("dbPasswd");
     assertThat(storedConfig).doesNotContain("sonarPasswd");
   }
-  
+
   @Test
   public void testRoundtrip52() throws IOException {
     TriggersConfig triggers = new TriggersConfig();
-    DescriptorImpl d = descriptor();
+    SonarGlobalConfiguration d = new SonarGlobalConfiguration();
     d.setInstallations(new SonarInstallation(
       "Name",
       "server.url",
@@ -107,11 +105,10 @@ public class SonarInstallationTest extends SonarTestCase {
       triggers,
       "sonarLogin",
       "sonarPasswd",
-      "key=value"
-      ));
+      "key=value"));
     d.save();
 
-    SonarInstallation i = descriptor().getInstallations()[0];
+    SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
     String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), d.getId() + ".xml"));
 
     assertThat(i.getName()).isEqualTo("Name");
@@ -129,11 +126,11 @@ public class SonarInstallationTest extends SonarTestCase {
     assertThat(storedConfig).doesNotContain("dbPasswd");
     assertThat(storedConfig).doesNotContain("sonarPasswd");
   }
-  
+
   @Test
   public void testRoundtrip53() throws IOException {
     TriggersConfig triggers = new TriggersConfig();
-    DescriptorImpl d = descriptor();
+    SonarGlobalConfiguration d = new SonarGlobalConfiguration();
     d.setInstallations(new SonarInstallation(
       "Name",
       "server.url",
@@ -147,11 +144,10 @@ public class SonarInstallationTest extends SonarTestCase {
       triggers,
       "sonarLogin",
       "sonarPasswd",
-      "key=value"
-      ));
+      "key=value"));
     d.save();
 
-    SonarInstallation i = descriptor().getInstallations()[0];
+    SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
     String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), d.getId() + ".xml"));
 
     assertThat(i.getName()).isEqualTo("Name");
@@ -192,13 +188,9 @@ public class SonarInstallationTest extends SonarTestCase {
     SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, null, null, null, null, null, input);
     assertThat(inst.getAdditionalAnalysisPropertiesWindows()).isEqualTo(expectedEntries);
   }
-  
+
   private void assertAnalysisPropsUnix(String input, String... expectedEntries) {
     SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, null, null, null, null, null, input);
     assertThat(inst.getAdditionalAnalysisPropertiesUnix()).isEqualTo(expectedEntries);
-  }
-
-  private SonarPublisher.DescriptorImpl descriptor() {
-    return new SonarPublisher.DescriptorImpl();
   }
 }

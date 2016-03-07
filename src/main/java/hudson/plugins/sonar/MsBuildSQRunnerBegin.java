@@ -207,7 +207,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
       if (!StringUtils.isEmpty(value)) {
         return FormValidation.ok();
       }
-      return FormValidation.error(Messages.SonarPublisher_MandatoryProperty());
+      return FormValidation.error(Messages.SonarGlobalConfiguration_MandatoryProperty());
     }
 
     @Nullable
