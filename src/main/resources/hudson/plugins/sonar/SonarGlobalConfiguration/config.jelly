@@ -25,7 +25,7 @@
           </f:entry>
           
           <f:entry title="${%ServerToken}" description="${%ServerTokenDescr}">
-            <f:textbox clazz="sonar-53" name="sonar.serverAuthenticationToken" value="${inst.getServerAuthenticationToken()}"/>
+            <f:password clazz="sonar-53" name="sonar.serverAuthenticationToken" value="${inst.getServerAuthenticationToken()}"/>
           </f:entry>
 
           <f:entry title="${%ServerLogin}" description="${%ServerLoginDescr}">
