@@ -21,6 +21,8 @@ package hudson.plugins.sonar.client;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.base.Charsets;
+
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -37,12 +39,12 @@ public class HttpClient {
       if (!StringUtils.isEmpty(password)) {
         userpass = userpass + password;
       }
-      String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary(userpass.getBytes(StandardCharsets.UTF_8));
+      String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary(userpass.getBytes(Charsets.UTF_8));
       conn.setRequestProperty("Authorization", basicAuth);
     }
 
     conn.setRequestMethod("GET");
     InputStream is = conn.getInputStream();
-    return IOUtils.toString(is, StandardCharsets.UTF_8.name());
+    return IOUtils.toString(is, Charsets.UTF_8.name());
   }
 }
