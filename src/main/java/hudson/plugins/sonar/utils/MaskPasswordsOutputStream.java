@@ -36,6 +36,8 @@ package hudson.plugins.sonar.utils;
 import hudson.console.LineTransformationOutputStream;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.base.Charsets;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -88,11 +90,11 @@ public class MaskPasswordsOutputStream extends LineTransformationOutputStream {
 
   @Override
   protected void eol(byte[] bytes, int len) throws IOException {
-    String line = new String(bytes, 0, len, StandardCharsets.UTF_8);
+    String line = new String(bytes, 0, len, Charsets.UTF_8);
     if (passwordsAsPattern != null && !line.contains(URL_IN_LOGS)) {
       line = passwordsAsPattern.matcher(line).replaceAll(REPLACEMENT);
     }
-    logger.write(line.getBytes(StandardCharsets.UTF_8));
+    logger.write(line.getBytes(Charsets.UTF_8));
   }
 
   @Override
