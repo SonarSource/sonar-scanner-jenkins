@@ -129,7 +129,7 @@ public abstract class SonarTestCase {
   }
 
   protected MavenModuleSet setupSonarMavenProject(String pomName) throws Exception {
-    MavenModuleSet project = j.createMavenProject("MavenProject");
+    final MavenModuleSet project = j.jenkins.createProject(MavenModuleSet.class, "MavenProject");
     // Setup SCM
     project.setScm(new SingleFileSCM(pomName, getClass().getResource("/hudson/plugins/sonar/SonarTestCase/pom.xml")));
     // Setup Maven
