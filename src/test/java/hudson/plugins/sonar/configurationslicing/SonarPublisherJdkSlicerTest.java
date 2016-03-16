@@ -55,7 +55,7 @@ public class SonarPublisherJdkSlicerTest {
 
   @Test
   public void availableMavenProjectsWithSonarPublisher() throws IOException {
-    final MavenModuleSet project = j.createMavenProject();
+    final MavenModuleSet project = j.jenkins.createProject(MavenModuleSet.class, "random-name");
     assertThat(new SonarPublisherJdkSlicer().getWorkDomain().size()).isZero();
     project.getPublishersList().add(new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false));
     assertThat(new SonarPublisherJdkSlicer().getWorkDomain().size()).isEqualTo(1);
@@ -63,7 +63,7 @@ public class SonarPublisherJdkSlicerTest {
 
   @Test
   public void changeJobAdditionalProperties() throws Exception {
-    final MavenModuleSet project = j.createMavenProject();
+    final MavenModuleSet project = j.jenkins.createProject(MavenModuleSet.class, "random-name");
     final SonarPublisher mySonar = new SonarPublisher("MySonar", null, null, null, null, null, null, "1.7", null, null, false);
     project.getPublishersList().add(mySonar);
 
