@@ -55,7 +55,7 @@ public class SonarPublisherBranchSlicerTest {
 
   @Test
   public void availableMavenProjectsWithSonarPublisher() throws IOException {
-    final MavenModuleSet project = j.createMavenProject();
+    final MavenModuleSet project = j.jenkins.createProject(MavenModuleSet.class, "random-name");
     assertThat(new SonarPublisherBranchSlicer().getWorkDomain().size()).isZero();
     project.getPublishersList().add(new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false));
     assertThat(new SonarPublisherBranchSlicer().getWorkDomain().size()).isEqualTo(1);
@@ -63,7 +63,7 @@ public class SonarPublisherBranchSlicerTest {
 
   @Test
   public void changeJobAdditionalProperties() throws IOException {
-    final MavenModuleSet project = j.createMavenProject();
+    final MavenModuleSet project = j.jenkins.createProject(MavenModuleSet.class, "random-name");
     project.getPublishersList().add(new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false));
     final SonarPublisherBranchSlicer.SonarPublisherBranchSlicerSpec branchSpec = new SonarPublisherBranchSlicer.SonarPublisherBranchSlicerSpec();
     final List<String> values = branchSpec.getValues(project);
