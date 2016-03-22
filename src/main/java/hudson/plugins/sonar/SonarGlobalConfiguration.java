@@ -91,11 +91,11 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
       }
       // SonarPublisher might be null if Maven plugin is disabled or not installed
       DescriptorImpl publisher = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
-      if (publisher != null && publisher.getInstallations() != null && publisher.getInstallations().length > 0) {
+      if (publisher != null && publisher.getDeprecatedInstallations() != null && publisher.getDeprecatedInstallations().length > 0) {
 
         if (ArrayUtils.isEmpty(this.installations)) {
-          this.installations = publisher.getInstallations();
-          this.buildWrapperEnabled = publisher.isBuildWrapperEnabled();
+          this.installations = publisher.getDeprecatedInstallations();
+          this.buildWrapperEnabled = publisher.isDeprecatedBuildWrapperEnabled();
         } else {
           Logger.LOG.warning("SonarQube server configurations exist in both deprecated SonarPublisher and SonarGlobalConfiguration. Deleting deprecated configuration..");
         }

@@ -438,7 +438,7 @@ public class SonarPublisher extends Notifier {
      * @deprecated Global configuration has migrated to {@link SonarGlobalConfiguration}
      */
     @Deprecated
-    public SonarInstallation[] getInstallations() {
+    public SonarInstallation[] getDeprecatedInstallations() {
       return installations;
     }
 
@@ -446,7 +446,7 @@ public class SonarPublisher extends Notifier {
      * @deprecated Global configuration has migrated to {@link SonarGlobalConfiguration} 
      */
     @Deprecated
-    public boolean isBuildWrapperEnabled() {
+    public boolean isDeprecatedBuildWrapperEnabled() {
       return buildWrapperEnabled;
     }
 
@@ -456,7 +456,7 @@ public class SonarPublisher extends Notifier {
      */
     @Deprecated
     @VisibleForTesting
-    void setInstallations(SonarInstallation[] installations) {
+    void setDeprecatedInstallations(SonarInstallation[] installations) {
       this.installations = installations;
     }
 
@@ -465,8 +465,12 @@ public class SonarPublisher extends Notifier {
      */
     @Deprecated
     @VisibleForTesting
-    void setBuildWrapperEnabled(boolean enabled) {
+    void setDeprecatedBuildWrapperEnabled(boolean enabled) {
       this.buildWrapperEnabled = enabled;
+    }
+    
+    public SonarInstallation[] getInstallations() {
+      return SonarInstallation.all();
     }
 
     @Override

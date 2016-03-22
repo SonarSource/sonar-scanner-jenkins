@@ -42,8 +42,8 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
 
   private static SonarPublisher.DescriptorImpl getPublisherDescr(boolean buildWrapperEnabled, SonarInstallation... installations) {
     SonarPublisher.DescriptorImpl publisher = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
-    publisher.setInstallations(installations);
-    publisher.setBuildWrapperEnabled(buildWrapperEnabled);
+    publisher.setDeprecatedInstallations(installations);
+    publisher.setDeprecatedBuildWrapperEnabled(buildWrapperEnabled);
     return publisher;
   }
 
@@ -56,7 +56,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
     assertThat(globalConfiguration.isBuildWrapperEnabled()).isTrue();
     assertThat(globalConfiguration.getInstallations()).containsOnly(testInstallation);
 
-    assertThat(publisher.getInstallations()).isNull();
+    assertThat(publisher.getDeprecatedInstallations()).isNull();
   }
 
   @Test
@@ -67,7 +67,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
 
     assertThat(globalConfiguration.isBuildWrapperEnabled()).isFalse();
     assertThat(globalConfiguration.getInstallations()).containsOnly(existing);
-    assertThat(publisher.getInstallations()).isNull();
+    assertThat(publisher.getDeprecatedInstallations()).isNull();
   }
 
   @Test
