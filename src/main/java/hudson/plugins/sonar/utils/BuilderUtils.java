@@ -90,7 +90,7 @@ public class BuilderUtils {
       if (parent instanceof SCMTriggerItem) {
         SCMTriggerItem scmTrigger = (SCMTriggerItem) parent;
         Collection<? extends SCM> scms = scmTrigger.getSCMs();
-        if (scms != null && !scms.isEmpty()) {
+        if (!scms.isEmpty()) {
           SCM scm = scms.iterator().next();
           FilePath[] moduleRoots = scm.getModuleRoots(workspace, null);
           moduleRoot = moduleRoots != null && moduleRoots.length > 0 ? moduleRoots[0] : null;
