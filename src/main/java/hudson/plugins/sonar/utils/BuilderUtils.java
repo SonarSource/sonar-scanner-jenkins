@@ -38,6 +38,7 @@ import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.model.EnvironmentSpecific;
+import hudson.model.Node;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.scm.SCM;
@@ -58,10 +59,11 @@ public class BuilderUtils {
   @Nullable
   public static <T extends ToolInstallation & EnvironmentSpecific<T> & NodeSpecific<T>> T getBuildTool(@Nullable T tool, EnvVars env, TaskListener listener) throws IOException,
     InterruptedException {
-    if (tool == null) {
+    Node node = Computer.currentComputer().getNode();
+    if (tool == null || node == null) {
       return null;
     }
-    T t = tool.forNode(Computer.currentComputer().getNode(), listener);
+    T t = tool.forNode(node, listener);
     t = t.forEnvironment(env);
 
     return t;

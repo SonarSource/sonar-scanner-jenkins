@@ -18,7 +18,6 @@
  */
 package hudson.plugins.sonar.action;
 
-import hudson.model.Action;
 import hudson.model.InvisibleAction;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -29,7 +28,7 @@ import javax.annotation.CheckForNull;
  * Persists in a build SonarQube related information.
  */
 @ExportedBean(defaultVisibility = 2)
-public class SonarAnalysisAction extends InvisibleAction implements Action {
+public class SonarAnalysisAction extends InvisibleAction {
   private String installationName;
   private String ceTaskId;
   private String url;
