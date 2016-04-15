@@ -51,6 +51,14 @@
       <artifactId>fest-assert</artifactId>
       <version>1.4</version>
     </dependency>
+
+    <!-- pull dependency to local repo so that JenkinsOrchestrator finds it without needing to download it -->
+    <dependency>
+      <groupId>org.jenkins-ci.main</groupId>
+      <artifactId>jenkins-war</artifactId>
+      <version>${jenkins.runtimeVersion}</version>
+      <type>war</type>
+    </dependency>
   </dependencies>
 
   <build>
