@@ -19,13 +19,15 @@
  */
 package com.sonar.it.jenkins.orchestrator.container;
 
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import com.google.common.io.Resources;
 import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Random;
 import org.apache.commons.io.FileUtils;
@@ -128,15 +130,33 @@ public class JenkinsDownloader {
     try {
       FileUtils.forceMkdir(toFile.getParentFile());
 
+      HttpURLConnection conn;
       URL u = new URL(url);
 
       LOG.info("Download: " + u);
-      Resources.asByteSource(u).copyTo(Files.asByteSink(toFile));
-      LOG.info("Downloaded to: " + toFile);
+      // gets redirected multiple times, including from https -> http, so not done by Java
 
+      while (true) {
+        conn = (HttpURLConnection) u.openConnection();
+        conn.connect();
+        if (conn.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM
+          || conn.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
+          String newLocationHeader = conn.getHeaderField("Location");
+          LOG.info("Redirect: " + newLocationHeader);
+          conn.disconnect();
+          u = new URL(newLocationHeader);
+          continue;
+        }
+        break;
+      }
+
+      InputStream is = conn.getInputStream();
+      ByteStreams.copy(is, Files.asByteSink(toFile).openBufferedStream());
+      LOG.info("Downloaded to: " + toFile);
       return toFile;
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
+
   }
 }
