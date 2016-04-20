@@ -120,9 +120,11 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
   private void addArgsTo(ArgumentListBuilder args, SonarInstallation sonarInst, EnvVars env, Map<String, String> props) {
     args.add("begin");
 
+    String expandedProjectVersion = env.expand(projectVersion);
+	
     args.add("/k:" + projectKey + "");
     args.add("/n:" + projectName + "");
-    args.add("/v:" + projectVersion + "");
+    args.add("/v:" + expandedProjectVersion + "");
 
     // expand macros using itself
     EnvVars.resolve(props);
