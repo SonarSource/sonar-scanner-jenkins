@@ -49,7 +49,6 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
 
   public SonarGlobalConfiguration() {
     load();
-    save();
   }
 
   /**
