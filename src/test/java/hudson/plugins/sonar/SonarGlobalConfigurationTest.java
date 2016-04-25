@@ -53,6 +53,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
 
   @Test
   public void testMigration() {
+    globalConfiguration.migrate();
     assertThat(globalConfiguration.isBuildWrapperEnabled()).isTrue();
     assertThat(globalConfiguration.getInstallations()).containsOnly(testInstallation);
 
@@ -65,6 +66,8 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
     globalConfiguration.setInstallations(existing);
     globalConfiguration.setBuildWrapperEnabled(false);
 
+    globalConfiguration.migrate();
+    
     assertThat(globalConfiguration.isBuildWrapperEnabled()).isFalse();
     assertThat(globalConfiguration.getInstallations()).containsOnly(existing);
     assertThat(publisher.getDeprecatedInstallations()).isNull();

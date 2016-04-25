@@ -56,12 +56,10 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
    * @return all configured {@link hudson.plugins.sonar.SonarInstallation}
    */
   public SonarInstallation[] getInstallations() {
-    migrate();
     return installations;
   }
 
   public boolean isBuildWrapperEnabled() {
-    migrate();
     return buildWrapperEnabled;
   }
 
@@ -80,7 +78,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
    * It is thread safe and will refuse to migrate if a SonarQube installation already exists in this class.
    * Migration will only be attempted once. 
    */
-  private void migrate() {
+  public void migrate() {
     if (migrated) {
       return;
     }
@@ -102,8 +100,10 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
 
         publisher.deleteGlobalConfiguration();
       }
+      
       migrated = true;
     }
+    save();
   }
 
   @Override
