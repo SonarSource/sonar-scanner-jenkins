@@ -36,7 +36,6 @@ package hudson.plugins.sonar.action;
 import hudson.plugins.sonar.SonarTestCase;
 
 import hudson.plugins.sonar.action.SonarBuildBadgeAction;
-import org.junit.Before;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,15 +43,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Evgeny Mandrikov
  */
 public class SonarBuildBadgeActionTest extends SonarTestCase {
-  private SonarBuildBadgeAction action;
-
-  @Before
-  public void setUp() throws Exception {
-    action = new SonarBuildBadgeAction();
-  }
-
   @Test
   public void test() throws Exception {
+    SonarBuildBadgeAction action = new SonarBuildBadgeAction();
     assertThat(action.getIconFileName()).isNull();
     assertThat(action.getUrlName()).isNull();
 

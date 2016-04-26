@@ -23,7 +23,6 @@ import hudson.plugins.sonar.SonarTestCase;
 import hudson.plugins.sonar.action.SonarProjectIconAction;
 import hudson.model.AbstractProject;
 import hudson.util.RunList;
-import org.junit.Before;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -33,17 +32,11 @@ import static org.mockito.Mockito.when;
  * @author Evgeny Mandrikov
  */
 public class SonarProjectIconActionTest extends SonarTestCase {
-  private SonarProjectIconAction action;
-
-  @Before
-  public void setUp() throws Exception {
-    AbstractProject project = mock(AbstractProject.class);
-    action = new SonarProjectIconAction(new SonarAnalysisAction("inst"));
-    when(project.getBuilds()).thenReturn(new RunList());
-  }
-
   @Test
   public void test() throws Exception {
+    AbstractProject project = mock(AbstractProject.class);
+    SonarProjectIconAction action = new SonarProjectIconAction(new SonarAnalysisAction("inst"));
+    when(project.getBuilds()).thenReturn(new RunList());
     assertThat(action.getDisplayName()).isNotNull();
     assertThat(action.getIconFileName()).isNotNull();
     assertThat(action.getUrlName()).isNull();
