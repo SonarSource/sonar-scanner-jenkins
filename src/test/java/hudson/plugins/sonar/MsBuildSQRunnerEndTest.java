@@ -58,6 +58,21 @@ public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
     assertLogDoesntContains("dbPass", r);
     assertLogDoesntContains("mypass", r);
   }
+  
+  @Test
+  public void testToken() throws Exception {
+    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", SQServerVersions.SQ_5_3_OR_HIGHER, "token", null, null, null, null, null, null, null, null, null));
+    configureMsBuildScanner(false);
+
+    FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));
+    proj.getBuildersList().add(new MsBuildSQRunnerEnd());
+    Run<?, ?> r = build(proj, Result.SUCCESS);
+    assertLogContains("end ********", r);
+    assertLogContains("This is a fake MS Build Scanner", r);
+    
+    assertLogDoesntContains("token", r);
+    assertLogDoesntContains("login", r);
+  }
 
   @Test
   public void testDesc() {

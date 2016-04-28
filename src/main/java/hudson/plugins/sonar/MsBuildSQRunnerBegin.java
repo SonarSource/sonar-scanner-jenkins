@@ -129,8 +129,10 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
 
     for (Map.Entry<String, String> e : props.entrySet()) {
       if (!StringUtils.isEmpty(e.getValue())) {
-        // expand macros using environment variables and hide passwords
-        args.addKeyValuePair("/d:", e.getKey(), env.expand(e.getValue()), e.getKey().contains("password"));
+        // expand macros using environment variables and hide passwords/tokens
+        boolean hide = e.getKey().contains("password") ||
+          (!StringUtils.isEmpty(sonarInst.getServerAuthenticationToken()) && e.getKey().contains("login"));
+        args.addKeyValuePair("/d:", e.getKey(), env.expand(e.getValue()), hide);
       }
     }
 
