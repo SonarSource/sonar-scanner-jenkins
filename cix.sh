@@ -5,7 +5,7 @@ echo "Running with SQ=$SQ_VERSION"
 JENKINS_VERSION=1.580.3
  
 #deploy the version built by travis
-CURRENT_VERSION=`mvn help:evaluate -Dexpression="project.version" | grep -v '^\[\|Download\w\+\:'`  | grep -v '\[WARNING\]'`
+CURRENT_VERSION=`mvn help:evaluate -Dexpression="project.version" | grep -v '^\[\|Download\w\+\:'  | grep -v '\[WARNING\]'`
 echo "CURRENT_VERSION=$CURRENT_VERSION"
 RELEASE_VERSION=`echo $CURRENT_VERSION | sed "s/-.*//g"`
 echo "RELEASE_VERSION=$RELEASE_VERSION"
