@@ -85,8 +85,8 @@
   </contributors>
 
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/sonarqube-plugin.git</connection>
-    <developerConnection>scm:git:git://github.com/jenkinsci/sonarqube-plugin.git</developerConnection>
+    <connection>scm:git:ssh://github.com/jenkinsci/sonarqube-plugin.git</connection>
+    <developerConnection>scm:git:ssh://github.com/jenkinsci/sonarqube-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/sonarqube-plugin</url>
     <tag>HEAD</tag>
   </scm>
