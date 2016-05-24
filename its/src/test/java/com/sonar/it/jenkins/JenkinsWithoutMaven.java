@@ -21,21 +21,21 @@ package com.sonar.it.jenkins;
 
 import com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.URLLocation;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
 import org.sonar.wsclient.services.ResourceQuery;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -62,7 +62,8 @@ public class JenkinsWithoutMaven {
       .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/filesystem_scm/1.20/filesystem_scm.hpi")))
       .installPlugin(sqJenkinsPluginLocation)
       .configureMavenInstallation()
-      .configureSonarRunner2_4Installation()
+      .configureSQScannerInstallation("2.4", 0)
+      .configureSQScannerInstallation("2.6.1", 1)
       .configureMsBuildSQScanner_installation()
       .configureSonarInstallation(orchestrator);
     jenkins.checkSavedSonarInstallation(orchestrator);
@@ -75,29 +76,43 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
-  public void testFreestyleJobWithSonarRunner() throws Exception {
-    String jobName = "abacus-runner";
-    String projectKey = "abacus-runner";
+  public void testFreestyleJobWithSonarRunner_use_sq_scanner_2_4() throws Exception {
+    String jobName = "abacus-runner-sq-2.4";
+    String projectKey = "abacus-runner-2.4";
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
-    jenkins
-      .newFreestyleJobWithSonarRunner(jobName, "-X", new File("projects", "abacus"),
+    BuildResult result = jenkins
+      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "abacus"), "2.4",
         "sonar.projectKey", projectKey,
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
         "sonar.sources", "src/main/java")
       .executeJob(jobName);
-    waitForComputationOnSQServer();
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
-    assertSonarUrlOnJob(jobName, projectKey);
-    jenkins.assertQGOnProjectPage(jobName);
+
+    assertThat(result.getLogs()).contains("SonarQube Runner 2.4");
   }
-  
+
+  @Test
+  public void testFreestyleJobWithSonarRunner_use_sq_scanner_2_6_1() throws Exception {
+    String jobName = "abacus-runner-sq-2.6.1";
+    String projectKey = "abacus-runner-2.6.1";
+    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    BuildResult result = jenkins
+      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "abacus"), "2.6.1",
+        "sonar.projectKey", projectKey,
+        "sonar.projectVersion", "1.0",
+        "sonar.projectName", "Abacus",
+        "sonar.sources", "src/main/java")
+      .executeJob(jobName);
+
+    assertThat(result.getLogs()).contains("SonarQube Scanner 2.6.1");
+  }
+
   @Test
   public void testNoSonarPublisher() {
     String jobName = "no Sonar Publisher";
     jenkins.assertNoSonarPublisher(jobName, new File("projects", "noPublisher"));
   }
-  
+
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
     assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
     assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);

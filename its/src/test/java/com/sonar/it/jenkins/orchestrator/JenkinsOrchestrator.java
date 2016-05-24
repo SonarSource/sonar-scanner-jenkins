@@ -19,8 +19,6 @@
  */
 package com.sonar.it.jenkins.orchestrator;
 
-import javax.annotation.Nullable;
-
 import com.google.common.base.Function;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsDistribution;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsServer;
@@ -37,8 +35,6 @@ import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.version.Version;
 import hudson.cli.CLI;
-import static org.fest.assertions.Assertions.assertThat;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -47,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
+import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.lang.StringUtils;
@@ -62,7 +58,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.internal.Locatable;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -70,6 +65,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.wsclient.jsonsimple.JSONValue;
 import org.sonar.wsclient.qualitygate.QualityGates;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 public class JenkinsOrchestrator extends SingleStartExternalResource {
   private static final Logger LOG = LoggerFactory.getLogger(JenkinsOrchestrator.class);
@@ -247,7 +244,8 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public JenkinsOrchestrator newFreestyleJobWithSonarRunner(String jobName, @Nullable String additionalArgs, File projectPath, String... properties) {
+  public JenkinsOrchestrator newFreestyleJobWithSQScanner(String jobName, @Nullable String additionalArgs, File projectPath, @Nullable String sqScannerVersion,
+    String... properties) {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
@@ -263,6 +261,10 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
       }
     }
     setTextValue(findElement(By.name("_.properties")), builder.toString());
+
+    if (sqScannerVersion != null) {
+      select(findElement(By.name("sonar.sonarScannerName")), getSQScannerInstallName(sqScannerVersion));
+    }
 
     if (additionalArgs != null) {
       setTextValue(findElement(By.name("_.additionalArguments")), additionalArgs);
@@ -296,7 +298,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   private void activateSonarPostBuildMaven(String branch) {
     WebElement addPostBuildButton = findElement(buttonByText("Add post-build action"));
-    scrollToElement(addPostBuildButton);
     addPostBuildButton.click();
     findElement(By.linkText("SonarQube analysis with Maven")).click();
     // Here we need to wait for the Sonar step to be really activated
@@ -319,7 +320,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     driver.get(server.getUrl() + "/configure");
 
     WebElement addMavenButton = findElement(buttonByText("Add Maven"));
-    scrollToElement(addMavenButton);
     addMavenButton.click();
     setTextValue(findElement(By.name("_.name")), "Maven");
     findElement(By.name("hudson-tools-InstallSourceProperty")).click();
@@ -330,39 +330,46 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   /**
-   * Scroll to element plus some additional scroll to make element visible even with Jenkins bottom floating bar
+   * Scroll so that element is centered to make element visible even with Jenkins bottom/top floating bars
    */
-  public void scrollToElement(WebElement e) {
-    Locatable element = (Locatable) e;
-    Point p = element.getCoordinates().inViewPort();
+  public WebElement scrollTo(WebElement e) {
     JavascriptExecutor js = (JavascriptExecutor) driver;
-    js.executeScript("window.scrollTo(" + p.getX() + "," + (p.getY() + 250) + ");");
+    js.executeScript(
+      "const element = arguments[0]; const elementRect = element.getBoundingClientRect(); const absoluteElementTop = elementRect.top + window.pageYOffset; const top = absoluteElementTop - (window.innerHeight / 2); window.scrollTo(0, top);",
+      e);
     // Give the time for the floating bar to move at the bottom
     try {
       Thread.sleep(1000);
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
+    return e;
   }
 
-  public JenkinsOrchestrator configureSonarRunner2_4Installation() {
+  public JenkinsOrchestrator configureSQScannerInstallation(String version, int index) {
     driver.get(server.getUrl() + "/configure");
     WebDriverWait wait = new WebDriverWait(driver, 5);
     wait.until(ExpectedConditions.textToBePresentInElement(By.id("footer"), "Page generated"));
 
     SonarScannerInstaller installer = new SonarScannerInstaller(config.fileSystem());
-    File runnerScript = installer.install(Version.create("2.4"), config.fileSystem().workspace());
+    File runnerScript = installer.install(Version.create(version), config.fileSystem().workspace(), true);
 
-    WebElement addSonarRunnerButton = findElement(buttonByText("Add SonarQube Scanner"));
-    scrollToElement(addSonarRunnerButton);
-    addSonarRunnerButton.click();
-    setTextValue(findElement(By.name("_.name")), "Sonar Scanner");
-    findElement(By.name("hudson-tools-InstallSourceProperty")).click();
-    WebElement homeDir = findElement(By.name("_.home"));
+    if (index > 0) {
+      findElement(buttonByText("SonarQube Scanner installations...")).click();
+    }
+
+    findElement(buttonByText("Add SonarQube Scanner")).click();
+    setTextValue(findElement(By.name("_.name"), index), getSQScannerInstallName(version));
+    findElement(By.name("hudson-tools-InstallSourceProperty"), index).click();
+    WebElement homeDir = findElement(By.name("_.home"), index);
     setTextValue(homeDir, runnerScript.getParentFile().getParentFile().getAbsolutePath());
     findElement(buttonByText("Save")).click();
 
     return this;
+  }
+
+  private String getSQScannerInstallName(String version) {
+    return "SonarQube Scanner " + version;
   }
 
   public JenkinsOrchestrator configureMsBuildSQScanner_installation() {
@@ -370,9 +377,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     WebDriverWait wait = new WebDriverWait(driver, 5);
     wait.until(ExpectedConditions.textToBePresentInElement(By.id("footer"), "Page generated"));
 
-    WebElement addMSBuildSQRunnerButton = findElement(buttonByText("Add SonarQube Scanner for MSBuild"));
-    scrollToElement(addMSBuildSQRunnerButton);
-    addMSBuildSQRunnerButton.click();
+    findElement(buttonByText("Add SonarQube Scanner for MSBuild")).click();
     setTextValue(findElement(By.name("_.name")), "SQ runner");
     findElement(buttonByText("Save")).click();
 
@@ -556,7 +561,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   public WebElement findElement(By by) {
     try {
-      return driver.findElement(by);
+      return scrollTo(driver.findElement(by));
     } catch (NoSuchElementException e) {
       System.err.println("Element not found. Save screenshot to: target/no_such_element.png");
       takeScreenshot(new File("target/no_such_element.png"));
@@ -575,7 +580,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   public WebElement findElement(By by, int index) {
     try {
       List<WebElement> elms = driver.findElements(by);
-      return elms.get(index);
+      return scrollTo(elms.get(index));
     } catch (NoSuchElementException e) {
       System.err.println("Element not found. Save screenshot to: target/no_such_element.png");
       takeScreenshot(new File("target/no_such_element.png"));
@@ -612,7 +617,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     newFreestyleJobConfig(jobName, projectPath);
 
     WebElement addPostBuildButton = findElement(buttonByText("Add post-build action"));
-    scrollToElement(addPostBuildButton);
+    scrollTo(addPostBuildButton);
     addPostBuildButton.click();
     findElement(By.linkText("SonarQube analysis with Maven")).click();
     assertNoElement(By.xpath("//div[@descriptorid='hudson.plugins.sonar.SonarPublisher']"));

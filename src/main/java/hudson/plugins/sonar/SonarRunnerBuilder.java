@@ -33,40 +33,37 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.utils.BuilderUtils;
-
 import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.Action;
-import hudson.model.BuildListener;
-import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
+import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.JDK;
 import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.plugins.sonar.action.SonarMarkerAction;
+import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
-import jenkins.model.Jenkins;
-import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.DataBoundConstructor;
-
-import javax.annotation.Nullable;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map.Entry;
 import java.util.Properties;
+import javax.annotation.Nullable;
+import jenkins.model.Jenkins;
+import jenkins.tasks.SimpleBuildStep;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @since 1.7
@@ -97,8 +94,16 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   /**
    * Identifies {@link SonarRunnerInstallation} to be used.
    * @since 2.0
+   * @deprecated since 2.5
    */
-  private String sonarRunnerName;
+  @Deprecated
+  private transient String sonarRunnerName;
+
+  /**
+   * Identifies {@link SonarRunnerInstallation} to be used.
+   * @since 2.5
+   */
+  private String sonarScannerName;
 
   /**
    * Optional task to run
@@ -107,10 +112,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   private final String task;
 
   @DataBoundConstructor
-  public SonarRunnerBuilder(String installationName, String sonarRunnerName, String project, String properties, String javaOpts, String jdk, String task,
+  public SonarRunnerBuilder(String installationName, String sonarScannerName, String project, String properties, String javaOpts, String jdk, String task,
     String additionalArguments) {
     this.installationName = installationName;
-    this.sonarRunnerName = sonarRunnerName;
+    this.sonarScannerName = sonarScannerName;
     this.javaOpts = javaOpts;
     this.project = project;
     this.properties = properties;
@@ -133,12 +138,12 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   /**
    * @return name of {@link hudson.plugins.sonar.SonarRunnerInstallation}
    */
-  public String getSonarRunnerName() {
-    return Util.fixNull(sonarRunnerName);
+  public String getSonarScannerName() {
+    return Util.fixNull(sonarScannerName);
   }
 
-  public void setSonarRunnerName(String sonarRunnerName) {
-    this.sonarRunnerName = sonarRunnerName;
+  public void setSonarScannerName(String sonarScannerName) {
+    this.sonarScannerName = sonarScannerName;
   }
 
   /**
@@ -196,7 +201,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
   public SonarRunnerInstallation getSonarRunnerInstallation() {
     for (SonarRunnerInstallation sri : getDescriptor().getSonarRunnerInstallations()) {
-      if (sonarRunnerName != null && sonarRunnerName.equals(sri.getName())) {
+      if (sonarScannerName != null && sonarScannerName.equals(sri.getName())) {
         return sri;
       }
     }
@@ -258,7 +263,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       handleErrors(run, listener, sri, startTime, e);
       r = -1;
     }
-    
+
     // with workflows, we don't have realtime access to build logs, so url might be null
     // if the analyis doesn't succeed, it will also be null
     SonarUtils.addBuildInfoTo(run, getSonarInstallation().getName());
@@ -333,7 +338,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       args.appendMasked("sonar.jdbc.username", si.getDatabaseLogin());
       args.appendMasked("sonar.jdbc.password", si.getDatabasePassword());
       args.append("sonar.host.url", si.getServerUrl());
-      if(StringUtils.isNotBlank(si.getServerAuthenticationToken())) {
+      if (StringUtils.isNotBlank(si.getServerAuthenticationToken())) {
         args.appendMasked("sonar.login", si.getServerAuthenticationToken());
       } else if (StringUtils.isNotBlank(si.getSonarLogin())) {
         args.appendMasked("sonar.login", si.getSonarLogin());
@@ -402,6 +407,14 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   @Override
   public Action getProjectAction(AbstractProject<?, ?> project) {
     return new SonarMarkerAction();
+  }
+
+  protected Object readResolve() {
+    // Migrate old field to new field
+    if (sonarRunnerName != null) {
+      sonarScannerName = sonarRunnerName;
+    }
+    return this;
   }
 
   @Extension

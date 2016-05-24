@@ -49,7 +49,7 @@ public class SonarRunnerBuilderSQRunnerSlicer extends UnorderedStringSlicer<Proj
 
     @Override
     public String getName() {
-      return "SonarQube (Build Step) - SonarQube Runner Slicer";
+      return "SonarQube (Build Step) - SonarQube Scanner Slicer";
     }
 
     @Override
@@ -59,12 +59,12 @@ public class SonarRunnerBuilderSQRunnerSlicer extends UnorderedStringSlicer<Proj
 
     @Override
     protected String doGetValue(SonarRunnerBuilder builder) {
-      return defaultValueIfBlank(builder.getSonarRunnerName());
+      return defaultValueIfBlank(builder.getSonarScannerName());
     }
 
     @Override
     protected void doSetValue(SonarRunnerBuilder builder, String value) {
-      builder.setSonarRunnerName(nullIfDefaultValue(value));
+      builder.setSonarScannerName(nullIfDefaultValue(value));
     }
 
     @Override

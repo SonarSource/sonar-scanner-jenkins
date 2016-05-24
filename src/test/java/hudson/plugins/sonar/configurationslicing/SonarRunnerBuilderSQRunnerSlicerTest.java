@@ -35,13 +35,12 @@ package hudson.plugins.sonar.configurationslicing;
 
 import hudson.model.FreeStyleProject;
 import hudson.plugins.sonar.SonarRunnerBuilder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -71,7 +70,7 @@ public class SonarRunnerBuilderSQRunnerSlicerTest {
     newValues.add("SQ Runner 2.4");
     spec.setValues(project, newValues);
 
-    assertThat(mySonar.getSonarRunnerName()).isEqualTo("SQ Runner 2.4");
+    assertThat(mySonar.getSonarScannerName()).isEqualTo("SQ Runner 2.4");
   }
 
 }

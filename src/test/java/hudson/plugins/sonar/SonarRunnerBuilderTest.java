@@ -36,13 +36,15 @@ package hudson.plugins.sonar;
 import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.FilePath;
-import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.BuildListener;
 import hudson.model.Node;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.scm.SCM;
 import hudson.util.ArgumentListBuilder;
+import java.io.File;
+import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -52,9 +54,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
-import java.io.File;
-import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -111,7 +110,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X -e");
     builder.addAdditionalArguments(args, inst);
     assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X -e");
-    
+
     builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X");
     args.clear();
     builder.addAdditionalArguments(args, inst);
@@ -124,7 +123,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     assertThat(builder.getJavaOpts()).isEmpty();
     assertThat(builder.getProject()).isEmpty();
     assertThat(builder.getProperties()).isEmpty();
-    assertThat(builder.getSonarRunnerName()).isEmpty();
+    assertThat(builder.getSonarScannerName()).isEmpty();
     assertThat(builder.getAdditionalArguments()).isEmpty();
   }
 
@@ -159,7 +158,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
       .contains("-Dsonar.password=sonarpassword")
       .doesNotContain("-Dsonar.login=token");
   }
-  
+
   @Test
   public void shouldPopulateSonarLoginPasswordParameters53() throws IOException, InterruptedException {
     SonarInstallation installation = mock(SonarInstallation.class);
