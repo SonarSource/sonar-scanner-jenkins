@@ -33,7 +33,7 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.model.TaskListener;
+import hudson.AbortException;
 import hudson.Util;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Scrambler;
@@ -41,7 +41,10 @@ import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-import static hudson.plugins.sonar.utils.SQServerVersions.*;
+
+import static hudson.plugins.sonar.utils.SQServerVersions.SQ_5_1_OR_LOWER;
+import static hudson.plugins.sonar.utils.SQServerVersions.SQ_5_2;
+import static hudson.plugins.sonar.utils.SQServerVersions.SQ_5_3_OR_HIGHER;
 
 public class SonarInstallation {
   private final String name;
@@ -145,7 +148,7 @@ public class SonarInstallation {
     return sonarDescriptor.getInstallations();
   }
 
-  public static boolean isValid(String sonarInstallationName, TaskListener listener) {
+  public static void checkValid(String sonarInstallationName) throws AbortException {
     String failureMsg;
     SonarInstallation sonarInstallation = SonarInstallation.get(sonarInstallationName);
     if (sonarInstallation == null) {
@@ -159,10 +162,8 @@ public class SonarInstallation {
       failureMsg = null;
     }
     if (failureMsg != null) {
-      listener.fatalError(failureMsg);
-      return false;
+      throw new AbortException(failureMsg);
     }
-    return true;
   }
 
   /**

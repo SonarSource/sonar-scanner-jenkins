@@ -33,39 +33,38 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.action.SonarMarkerAction;
-import hudson.CopyOnWrite;
-import hudson.Extension;
-import hudson.EnvVars;
-import hudson.Launcher;
 import com.google.common.annotations.VisibleForTesting;
+import hudson.CopyOnWrite;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.Launcher;
 import hudson.Util;
 import hudson.maven.MavenModuleSet;
-import hudson.model.Action;
-import hudson.model.BuildListener;
-import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
+import hudson.model.BuildListener;
 import hudson.model.JDK;
+import hudson.model.Result;
+import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarMaven;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Maven;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
+import java.io.IOException;
 import jenkins.model.Jenkins;
-import jenkins.mvn.GlobalSettingsProvider;
-import jenkins.mvn.SettingsProvider;
 import jenkins.mvn.DefaultGlobalSettingsProvider;
 import jenkins.mvn.DefaultSettingsProvider;
+import jenkins.mvn.GlobalSettingsProvider;
+import jenkins.mvn.SettingsProvider;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.IOException;
 
 /**
  * Old fields should be left so that old config data can be read in, but
@@ -315,9 +314,8 @@ public class SonarPublisher extends Notifier {
 
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
-      return false;
-    }
+    SonarInstallation.checkValid(getInstallationName());
+
     SonarInstallation sonarInstallation = getInstallation();
 
     if (isSkip(build, listener, sonarInstallation)) {
@@ -370,7 +368,6 @@ public class SonarPublisher extends Notifier {
       return SonarMaven.executeMaven(build, launcher, listener, mavenInstallName, pomName, sonarInstallation, this, getJDK(),
         getSettings(), getGlobalSettings(), usesPrivateRepository());
     } catch (IOException e) {
-      Logger.printFailureMessage(listener);
       Util.displayIOException(e, listener);
       Logger.LOG.throwing(this.getClass().getName(), "setValues", e);
       e.printStackTrace(listener.fatalError("command execution failed"));
@@ -379,7 +376,6 @@ public class SonarPublisher extends Notifier {
       Logger.LOG.throwing(this.getClass().getName(), "executeSonar", e);
       return false;
     } catch (Exception e) {
-      Logger.printFailureMessage(listener);
       e.printStackTrace(listener.fatalError("command execution failed"));
       Logger.LOG.throwing(this.getClass().getName(), "executeSonar", e);
       return false;
@@ -450,7 +446,6 @@ public class SonarPublisher extends Notifier {
       return buildWrapperEnabled;
     }
 
-    
     /**
      * @deprecated Global configuration has migrated to {@link SonarGlobalConfiguration} 
      */
@@ -468,7 +463,7 @@ public class SonarPublisher extends Notifier {
     void setDeprecatedBuildWrapperEnabled(boolean enabled) {
       this.buildWrapperEnabled = enabled;
     }
-    
+
     public SonarInstallation[] getInstallations() {
       return SonarInstallation.all();
     }

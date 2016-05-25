@@ -34,6 +34,7 @@
 package hudson.plugins.sonar;
 
 import com.google.common.annotations.VisibleForTesting;
+import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -45,12 +46,12 @@ import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.JDK;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
-import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
@@ -213,14 +214,18 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   }
 
   @Override
+  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+    performInternal(build, build.getWorkspace(), launcher, listener);
+    return true;
+  }
+
+  @Override
   public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
     performInternal(run, workspace, launcher, listener);
   }
 
-  private boolean performInternal(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
-    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
-      return false;
-    }
+  private void performInternal(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+    SonarInstallation.checkValid(getInstallationName());
 
     ArgumentListBuilder args = new ArgumentListBuilder();
 
@@ -230,12 +235,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     if (sri == null) {
       args.add(launcher.isUnix() ? "sonar-runner" : "sonar-runner.bat");
     } else {
-      sri = BuilderUtils.getBuildTool(sri, env, listener);
+      sri = BuilderUtils.getBuildTool(sri, env, listener, workspace);
       String exe = sri.getExecutable(launcher);
       if (exe == null) {
-        Logger.printFailureMessage(listener);
-        listener.fatalError(Messages.SonarScanner_ExecutableNotFound(sri.getName()));
-        return false;
+        throw new AbortException(Messages.SonarScanner_ExecutableNotFound(sri.getName()));
       }
       args.add(exe);
       env.put("SONAR_RUNNER_HOME", sri.getHome());
@@ -245,38 +248,32 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     addTaskArgument(args);
     addAdditionalArguments(args, sonarInst);
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    if (!populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst)) {
-      return false;
-    }
+    populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst);
 
     // Java
-    computeJdkToUse(run, workspace, listener, env);
+    computeJdkToUse(run, workspace, listener, env, workspace);
 
     // Java options
     env.put("SONAR_RUNNER_OPTS", getJavaOpts());
 
     long startTime = System.currentTimeMillis();
-    int r;
     try {
-      r = executeSonarRunner(run, workspace, launcher, listener, args, env);
+      int r = executeSonarRunner(run, workspace, launcher, listener, args, env);
+      if (r != 0) {
+        run.setResult(Result.FAILURE);
+        return;
+      }
     } catch (IOException e) {
       handleErrors(run, listener, sri, startTime, e);
-      r = -1;
+      return;
     }
 
     // with workflows, we don't have realtime access to build logs, so url might be null
     // if the analyis doesn't succeed, it will also be null
     SonarUtils.addBuildInfoTo(run, getSonarInstallation().getName());
-    return r == 0;
-  }
-
-  @Override
-  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    return performInternal(build, build.getWorkspace(), launcher, listener);
   }
 
   private void handleErrors(Run<?, ?> build, TaskListener listener, SonarRunnerInstallation sri, long startTime, IOException e) {
-    Logger.printFailureMessage(listener);
     Util.displayIOException(e, listener);
 
     String errorMessage = Messages.SonarScanner_ExecFailed();
@@ -285,6 +282,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       errorMessage += Messages.SonarScanner_GlobalConfigNeeded();
     }
     e.printStackTrace(listener.fatalError(errorMessage));
+    build.setResult(Result.FAILURE);
   }
 
   private static int executeSonarRunner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
@@ -301,10 +299,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return project;
   }
 
-  private void computeJdkToUse(Run<?, ?> build, FilePath workspace, TaskListener listener, EnvVars env) throws IOException, InterruptedException {
+  private void computeJdkToUse(Run<?, ?> build, FilePath workspace, TaskListener listener, EnvVars env, FilePath ws) throws IOException, InterruptedException {
     JDK jdkToUse = getJdkToUse(getProject(build));
     if (jdkToUse != null) {
-      Computer computer = Computer.currentComputer();
+      Computer computer = BuilderUtils.getComputer(ws);
       // just in case we are not in a build
       if (computer != null) {
         jdkToUse = jdkToUse.forNode(computer.getNode(), listener);
@@ -331,7 +329,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   }
 
   @VisibleForTesting
-  boolean populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
+  void populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
     TaskListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.jdbc.url", si.getDatabaseUrl());
@@ -358,8 +356,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
         // first check if this appears to be a valid relative path from workspace root
         if (workspace == null) {
-          listener.fatalError("Project workspace is null");
-          return false;
+          throw new AbortException("Project workspace is null");
         }
         FilePath projectSettingsFilePath2 = workspace.child(projectSettingsFile);
         if (projectSettingsFilePath2.exists()) {
@@ -367,8 +364,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
           projectSettingsFilePath = projectSettingsFilePath2;
         } else {
           // neither file exists. So this now really does look like an error.
-          listener.fatalError("Unable to find Sonar project settings at " + projectSettingsFilePath);
-          return false;
+          throw new AbortException("Unable to find Sonar project settings at " + projectSettingsFilePath);
         }
       }
       args.append("project.settings", projectSettingsFilePath.getRemote());
@@ -384,7 +380,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       args.append("sonar.projectBaseDir", moduleRoot.getRemote());
     }
 
-    return true;
   }
 
   private void loadProperties(ExtendedArgumentListBuilder args, Properties p) {

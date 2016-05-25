@@ -33,30 +33,28 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.Util;
-import hudson.util.FormValidation;
-import org.kohsuke.stapler.QueryParameter;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.TaskListener;
+import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
-import jenkins.model.Jenkins;
-import org.codehaus.plexus.util.StringUtils;
-import org.kohsuke.stapler.DataBoundConstructor;
-
-import javax.annotation.Nullable;
-
+import hudson.util.FormValidation;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
+import jenkins.model.Jenkins;
+import org.codehaus.plexus.util.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
   private final String msBuildRunnerInstallationName;
@@ -87,7 +85,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     saveSonarInstanceName(run, getSonarInstallationName());
 
     MsBuildSQRunnerInstallation msBuildScanner = getDescriptor().getMsBuildScannerInstallation(msBuildRunnerInstallationName);
-    args.add(getExeName(msBuildScanner, env, launcher, listener));
+    args.add(getExeName(msBuildScanner, env, launcher, listener, workspace));
     Map<String, String> props = getSonarProps(sonarInstallation);
     addArgsTo(args, sonarInstallation, env, props);
 

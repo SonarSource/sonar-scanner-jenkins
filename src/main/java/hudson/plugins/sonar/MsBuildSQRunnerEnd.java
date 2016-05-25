@@ -33,29 +33,27 @@
  */
 package hudson.plugins.sonar;
 
-import org.codehaus.plexus.util.StringUtils;
-import hudson.plugins.sonar.utils.SonarUtils;
-import hudson.model.Action;
-import hudson.plugins.sonar.action.SonarMarkerAction;
-import org.kohsuke.stapler.DataBoundConstructor;
-import jenkins.model.Jenkins;
 import hudson.AbortException;
 import hudson.EnvVars;
-import hudson.plugins.sonar.utils.BuilderUtils;
-import hudson.util.ArgumentListBuilder;
 import hudson.Extension;
-import hudson.model.AbstractProject;
-import hudson.tasks.BuildStepDescriptor;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.TaskListener;
+import hudson.model.AbstractProject;
+import hudson.model.Action;
 import hudson.model.Run;
-
+import hudson.model.TaskListener;
+import hudson.plugins.sonar.action.SonarMarkerAction;
+import hudson.plugins.sonar.utils.BuilderUtils;
+import hudson.plugins.sonar.utils.SonarUtils;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
+import hudson.util.ArgumentListBuilder;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import hudson.tasks.Builder;
+import jenkins.model.Jenkins;
+import org.codehaus.plexus.util.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
   @DataBoundConstructor
@@ -74,7 +72,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
 
     MsBuildSQRunnerInstallation msBuildScanner = Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerBegin.DescriptorImpl.class)
       .getMsBuildScannerInstallation(scannerName);
-    args.add(getExeName(msBuildScanner, env, launcher, listener));
+    args.add(getExeName(msBuildScanner, env, launcher, listener, workspace));
     addArgs(args, env, sonarInstallation);
 
     int result = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(run, workspace)).join();

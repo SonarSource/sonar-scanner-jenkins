@@ -19,14 +19,12 @@
 package hudson.plugins.sonar.client;
 
 import hudson.plugins.sonar.utils.Logger;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import javax.annotation.CheckForNull;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
-
-import javax.annotation.CheckForNull;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 public class WsClient {
   public static final String API_RESOURCES = "/api/resources?format=json&depth=0&metrics=alert_status&resource=";
@@ -80,7 +78,7 @@ public class WsClient {
 
     if (resourceArray.size() != 1) {
       Logger.LOG.fine("Found " + resourceArray.size() + " resources for " + projectKey);
-      // in 4.5, for example, there is no default QG and a project might return an empty array. 
+      // in 4.5, for example, there is no default QG and a project might return an empty array.
       return null;
     }
 
