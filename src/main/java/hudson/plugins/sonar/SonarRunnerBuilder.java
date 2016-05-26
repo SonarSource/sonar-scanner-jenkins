@@ -144,15 +144,15 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   /**
    * Gets the JDK that this Sonar builder is configured with, or null.
    */
-  public JDK getJDK() {
+  public JDK getJdkFromJenkins() {
     return Jenkins.getInstance().getJDK(jdk);
   }
 
-  public String getJdkName() {
+  public String getJdk() {
     return jdk;
   }
 
-  public void setJdkName(String jdk) {
+  public void setJdk(String jdk) {
     this.jdk = jdk;
   }
 
@@ -392,7 +392,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
    * @return JDK to be used with this project.
    */
   private JDK getJdkToUse(@Nullable AbstractProject<?, ?> project) {
-    JDK jdkToUse = getJDK();
+    JDK jdkToUse = getJdkFromJenkins();
     if (jdkToUse == null && project != null) {
       jdkToUse = project.getJDK();
     }
