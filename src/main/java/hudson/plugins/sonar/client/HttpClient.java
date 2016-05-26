@@ -18,33 +18,22 @@
  */
 package hudson.plugins.sonar.client;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-
-import com.google.common.base.Charsets;
-
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import org.sonarqube.ws.client.GetRequest;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsResponse;
 
 public class HttpClient {
-  public String getHttp(String urlToRead, String username, String password) throws Exception {
-    URL url = new URL(urlToRead);
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+  public String getHttp(String url, String usernameOrToken, String password) throws Exception {
+    String baseUrl = StringUtils.substringBeforeLast(url, "/");
+    String path = StringUtils.substringAfterLast(url, "/");
+    HttpConnector httpConnector = HttpConnector.newBuilder()
+      .userAgent("Scanner for Jenkins")
+      .url(baseUrl)
+      .credentials(usernameOrToken, password)
+      .build();
+    WsResponse response = httpConnector.call(new GetRequest(path));
+    return response.content();
 
-    if (!StringUtils.isEmpty(username)) {
-      // to support authentication tokens
-      String userpass = username + ":";
-      if (!StringUtils.isEmpty(password)) {
-        userpass = userpass + password;
-      }
-      String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary(userpass.getBytes(Charsets.UTF_8));
-      conn.setRequestProperty("Authorization", basicAuth);
-    }
-
-    conn.setRequestMethod("GET");
-    InputStream is = conn.getInputStream();
-    return IOUtils.toString(is, Charsets.UTF_8.name());
   }
 }

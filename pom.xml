@@ -106,7 +106,7 @@
     <gitRepositoryName>jenkins-sonar-plugin</gitRepositoryName>
     <version.artifactory.plugin>2.4.1</version.artifactory.plugin>
     <jenkins.version>1.580.3</jenkins.version>
-    <java.level>6</java.level>
+    <java.level>7</java.level>
     <findbugs.failOnError>false</findbugs.failOnError>
   </properties>
 
@@ -124,6 +124,11 @@
   </pluginRepositories>
 
   <dependencies>
+    <dependency>
+      <groupId>org.sonarsource.sonarqube</groupId>
+      <artifactId>sonar-ws</artifactId>
+      <version>5.6-RC1</version>
+    </dependency>
     <dependency>
       <!-- needed for SonarPublisher -->
       <groupId>org.jenkins-ci.main</groupId>
