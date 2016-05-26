@@ -74,7 +74,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
 
     MsBuildSQRunnerInstallation msBuildScanner = Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerBegin.DescriptorImpl.class)
       .getMsBuildScannerInstallation(scannerName);
-    args.add(getExeName(msBuildScanner, env, launcher, listener));
+    args.add(getExeName(msBuildScanner, env, launcher, listener, workspace));
     addArgs(args, env, sonarInstallation);
 
     int result = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(run, workspace)).join();

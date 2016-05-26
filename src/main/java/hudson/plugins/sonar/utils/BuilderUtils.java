@@ -57,9 +57,9 @@ public class BuilderUtils {
   }
 
   @Nullable
-  public static <T extends ToolInstallation & EnvironmentSpecific<T> & NodeSpecific<T>> T getBuildTool(@Nullable T tool, EnvVars env, TaskListener listener) throws IOException,
+  public static <T extends ToolInstallation & EnvironmentSpecific<T> & NodeSpecific<T>> T getBuildTool(@Nullable T tool, EnvVars env, TaskListener listener, FilePath workspace) throws IOException,
     InterruptedException {
-    Node node = Computer.currentComputer().getNode();
+    Node node = workspace.toComputer().getNode();
     if (tool == null || node == null) {
       return null;
     }
