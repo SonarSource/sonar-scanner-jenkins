@@ -230,7 +230,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     if (sri == null) {
       args.add(launcher.isUnix() ? "sonar-runner" : "sonar-runner.bat");
     } else {
-      sri = BuilderUtils.getBuildTool(sri, env, listener);
+      sri = BuilderUtils.getBuildTool(sri, env, listener, workspace);
       String exe = sri.getExecutable(launcher);
       if (exe == null) {
         Logger.printFailureMessage(listener);
@@ -304,7 +304,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   private void computeJdkToUse(Run<?, ?> build, FilePath workspace, TaskListener listener, EnvVars env) throws IOException, InterruptedException {
     JDK jdkToUse = getJdkToUse(getProject(build));
     if (jdkToUse != null) {
-      Computer computer = Computer.currentComputer();
+      Computer computer = workspace.toComputer();
       // just in case we are not in a build
       if (computer != null) {
         jdkToUse = jdkToUse.forNode(computer.getNode(), listener);
