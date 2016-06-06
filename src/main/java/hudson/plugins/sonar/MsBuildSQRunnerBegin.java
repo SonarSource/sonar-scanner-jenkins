@@ -33,33 +33,40 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.Util;
-import hudson.util.FormValidation;
-import org.kohsuke.stapler.QueryParameter;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.TaskListener;
+import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
-import jenkins.model.Jenkins;
-import org.codehaus.plexus.util.StringUtils;
-import org.kohsuke.stapler.DataBoundConstructor;
-
-import javax.annotation.Nullable;
-
+import hudson.util.FormValidation;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
+import jenkins.model.Jenkins;
+import org.codehaus.plexus.util.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
-  private final String msBuildRunnerInstallationName;
+
+  /**
+   * @deprecated since 2.4.3
+   */
+  @Deprecated
+  private transient String msBuildRunnerInstallationName;
+  /**
+   * @since 2.4.3
+   */
+  private String msBuildScannerInstallationName;
   private final String sonarInstallationName;
   private final String projectKey;
   private final String projectName;
@@ -67,9 +74,9 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
   private final String additionalArguments;
 
   @DataBoundConstructor
-  public MsBuildSQRunnerBegin(String msBuildRunnerInstallationName, String sonarInstallationName, String projectKey, String projectName, String projectVersion,
+  public MsBuildSQRunnerBegin(String msBuildScannerInstallationName, String sonarInstallationName, String projectKey, String projectName, String projectVersion,
     String additionalArguments) {
-    this.msBuildRunnerInstallationName = msBuildRunnerInstallationName;
+    this.msBuildScannerInstallationName = msBuildScannerInstallationName;
     this.sonarInstallationName = sonarInstallationName;
     this.projectKey = projectKey;
     this.projectName = projectName;
@@ -83,10 +90,10 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
 
     EnvVars env = BuilderUtils.getEnvAndBuildVars(run, listener);
     SonarInstallation sonarInstallation = getSonarInstallation(getSonarInstallationName(), listener);
-    saveScannerName(run, msBuildRunnerInstallationName);
+    saveScannerName(run, msBuildScannerInstallationName);
     saveSonarInstanceName(run, getSonarInstallationName());
 
-    MsBuildSQRunnerInstallation msBuildScanner = getDescriptor().getMsBuildScannerInstallation(msBuildRunnerInstallationName);
+    MsBuildSQRunnerInstallation msBuildScanner = getDescriptor().getMsBuildScannerInstallation(msBuildScannerInstallationName);
     args.add(getExeName(msBuildScanner, env, launcher, listener));
     Map<String, String> props = getSonarProps(sonarInstallation);
     addArgsTo(args, sonarInstallation, env, props);
@@ -166,16 +173,21 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
   }
 
   public String getMsBuildScannerInstallationName() {
-    return Util.fixEmptyAndTrim(msBuildRunnerInstallationName);
+    return Util.fixEmptyAndTrim(msBuildScannerInstallationName);
   }
 
   public String getAdditionalArguments() {
     return Util.fixEmptyAndTrim(additionalArguments);
   }
 
-  /*
-   * 
-   */
+  protected Object readResolve() {
+    // Migrate old field to new field
+    if (msBuildRunnerInstallationName != null) {
+      msBuildScannerInstallationName = msBuildRunnerInstallationName;
+    }
+    return this;
+  }
+
   @Extension
   public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
     @Override

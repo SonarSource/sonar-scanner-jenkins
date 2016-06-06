@@ -22,7 +22,6 @@ package com.sonar.it.jenkins;
 import com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.URLLocation;
@@ -64,7 +63,8 @@ public class JenkinsWithoutMaven {
       .configureMavenInstallation()
       .configureSQScannerInstallation("2.4", 0)
       .configureSQScannerInstallation("2.6.1", 1)
-      .configureMsBuildSQScanner_installation()
+      .configureMsBuildSQScanner_installation("1.1", 0)
+      .configureMsBuildSQScanner_installation("2.0", 1)
       .configureSonarInstallation(orchestrator);
     jenkins.checkSavedSonarInstallation(orchestrator);
     jenkins.configureDefaultQG(orchestrator);
@@ -113,12 +113,4 @@ public class JenkinsWithoutMaven {
     jenkins.assertNoSonarPublisher(jobName, new File("projects", "noPublisher"));
   }
 
-  private void assertSonarUrlOnJob(String jobName, String projectKey) {
-    assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
-    assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
-  }
-
-  private void waitForComputationOnSQServer() {
-    new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();
-  }
 }
