@@ -275,7 +275,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public JenkinsOrchestrator newFreestyleJobWithMsBuildSQRunner(String jobName, @Nullable String additionalArgs, File projectPath, String projectKey, String projectName,
-    String projectVersion) {
+    String projectVersion, @Nullable String msbuildScannerVersion) {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
@@ -284,6 +284,10 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     setTextValue(findElement(By.name("_.projectKey")), projectKey);
     setTextValue(findElement(By.name("_.projectName")), projectName);
     setTextValue(findElement(By.name("_.projectVersion")), projectVersion);
+
+    if (msbuildScannerVersion != null) {
+      select(findElement(By.name("msBuildScannerInstallationName")), getScannerMSBuildInstallName(msbuildScannerVersion));
+    }
 
     if (additionalArgs != null) {
       setTextValue(findElement(By.name("_.additionalArguments")), additionalArgs);
@@ -383,7 +387,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
     findElement(buttonByText("Add SonarQube Scanner for MSBuild")).click();
     setTextValue(findElement(By.name("_.name"), index), getScannerMSBuildInstallName(version));
-    new Select(findElement(By.name("_.id"), index)).selectByValue(version);
+    select(findElement(By.name("_.id"), index), version);
     findElement(buttonByText("Save")).click();
 
     return this;

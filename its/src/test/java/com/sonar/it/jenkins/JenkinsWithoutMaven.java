@@ -108,6 +108,44 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
+  public void testFreestyleJobWithMsBuildSQRunner_2_0() {
+    File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
+    String jobName = "abacus-msbuild-sq-runner-2-0";
+    String projectKey = "abacus-msbuild-sq-runner-2-0";
+    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    BuildResult result = jenkins
+      .newFreestyleJobWithMsBuildSQRunner(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "2.0")
+      .executeJobQuietly(jobName);
+
+    assertThat(result.getLogs())
+      .contains(
+        "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation" + File.separator + "Scanner_for_MSBuild_2.0" + File.separator
+          + "MSBuild.SonarQube.Runner.exe begin /k:" + projectKey + " \"/n:Abacus with space\" /v:1.0 /d:sonar.host.url="
+          + orchestrator.getServer().getUrl());
+
+    assertThat(toolPath).isDirectory();
+  }
+
+  @Test
+  public void testFreestyleJobWithMsBuildSQRunner_1_1() {
+    File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
+    String jobName = "abacus-msbuild-sq-runner-1-1";
+    String projectKey = "abacus-msbuild-sq-runner-1-1";
+    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    BuildResult result = jenkins
+      .newFreestyleJobWithMsBuildSQRunner(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "1.1")
+      .executeJobQuietly(jobName);
+
+    assertThat(result.getLogs())
+      .contains(
+        "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation" + File.separator + "Scanner_for_MSBuild_1.1" + File.separator
+          + "MSBuild.SonarQube.Runner.exe begin /k:" + projectKey + " \"/n:Abacus with space\" /v:1.0 /d:sonar.host.url="
+          + orchestrator.getServer().getUrl());
+
+    assertThat(toolPath).isDirectory();
+  }
+
+  @Test
   public void testNoSonarPublisher() {
     String jobName = "no Sonar Publisher";
     jenkins.assertNoSonarPublisher(jobName, new File("projects", "noPublisher"));

@@ -162,25 +162,6 @@ public class JenkinsTest {
   }
 
   @Test
-  public void testFreestyleJobWithMsBuildSQRunner() {
-    File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
-    String jobName = "abacus-msbuild-sq-runner";
-    String projectKey = "abacus-msbuild-sq-runner";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
-    BuildResult result = jenkins
-      .newFreestyleJobWithMsBuildSQRunner(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0")
-      .executeJobQuietly(jobName);
-
-    assertThat(result.getLogs())
-      .contains(
-        "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation" + File.separator + "SQ_runner" + File.separator
-          + "MSBuild.SonarQube.Runner.exe begin /k:abacus-msbuild-sq-runner \"/n:Abacus with space\" /v:1.0 /d:sonar.host.url="
-          + orchestrator.getServer().getUrl());
-
-    assertThat(toolPath).isDirectory();
-  }
-
-  @Test
   public void testFreestyleJobWithSonarRunnerAndBranch() throws Exception {
     String jobName = "abacus-runner-branch";
     String projectKey = "abacus-runner:branch";
