@@ -105,7 +105,7 @@
     <sonar.exclusions>target/generated-sources/**/*</sonar.exclusions>
     <gitRepositoryName>jenkins-sonar-plugin</gitRepositoryName>
     <version.artifactory.plugin>2.4.1</version.artifactory.plugin>
-    <jenkins.version>1.609.1</jenkins.version>
+    <jenkins.version>1.642.3</jenkins.version>
     <java.level>6</java.level>
     <findbugs.failOnError>false</findbugs.failOnError>
     <workflow.version>1.8</workflow.version>
@@ -147,6 +147,11 @@
       <artifactId>workflow-step-api</artifactId>
       <version>${workflow.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-job</artifactId>
+      <version>${workflow.version}</version>
+    </dependency>    
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>jquery</artifactId>
