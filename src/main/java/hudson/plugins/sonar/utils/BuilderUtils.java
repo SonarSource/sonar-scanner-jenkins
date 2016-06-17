@@ -37,6 +37,7 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
+import hudson.model.EnvironmentContributingAction;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Node;
 import hudson.model.Run;
@@ -49,6 +50,8 @@ import java.util.Collection;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import jenkins.triggers.SCMTriggerItem;
+
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 public class BuilderUtils {
   private BuilderUtils() {
@@ -85,9 +88,17 @@ public class BuilderUtils {
    */
   public static EnvVars getEnvAndBuildVars(Run<?, ?> run, TaskListener listener) throws IOException, InterruptedException {
     EnvVars env = run.getEnvironment(listener);
+
     if (run instanceof AbstractBuild) {
       env.overrideAll(((AbstractBuild<?, ?>) run).getBuildVariables());
+    } else if (run instanceof WorkflowRun) {
+      for (hudson.model.Action act : run.getAllActions()) {
+        if (act instanceof EnvironmentContributingAction) {
+          ((EnvironmentContributingAction) act).buildEnvVars(null, env);
+        }
+      }
     }
+    
     return env;
   }
 
