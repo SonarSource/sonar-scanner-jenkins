@@ -36,7 +36,8 @@ package hudson.plugins.sonar.utils;
 import hudson.console.LineTransformationOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
@@ -49,10 +50,12 @@ public class MaskPasswordsOutputStream extends LineTransformationOutputStream {
   private static final String URL_IN_LOGS = "ANALYSIS SUCCESSFUL, you can browse ";
   private final OutputStream logger;
   private final Pattern passwordsAsPattern;
+  private final Charset charset;
 
-  public MaskPasswordsOutputStream(OutputStream logger, Collection<String> passwords) {
+  public MaskPasswordsOutputStream(OutputStream logger, Charset charset, Collection<String> passwords) {
 
     this.logger = logger;
+    this.charset = charset;
 
     if (passwords != null && !passwords.isEmpty()) {
 
@@ -87,11 +90,11 @@ public class MaskPasswordsOutputStream extends LineTransformationOutputStream {
 
   @Override
   protected void eol(byte[] bytes, int len) throws IOException {
-    String line = new String(bytes, 0, len, StandardCharsets.UTF_8);
+    String line = charset.decode(ByteBuffer.wrap(bytes, 0, len)).toString();
     if (passwordsAsPattern != null && !line.contains(URL_IN_LOGS)) {
       line = passwordsAsPattern.matcher(line).replaceAll(REPLACEMENT);
     }
-    logger.write(line.getBytes(StandardCharsets.UTF_8));
+    logger.write(line.getBytes(charset));
   }
 
   @Override

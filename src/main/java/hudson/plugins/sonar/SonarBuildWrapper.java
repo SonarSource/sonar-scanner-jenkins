@@ -33,29 +33,21 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.util.ArgumentListBuilder;
-
-import hudson.plugins.sonar.action.SonarMarkerAction;
-import hudson.plugins.sonar.utils.SonarUtils;
-import hudson.model.Action;
-import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
-import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
-import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.EnvVars;
-import hudson.plugins.sonar.utils.Logger;
-
-import javax.annotation.Nullable;
-
-import org.kohsuke.stapler.DataBoundConstructor;
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
+import hudson.model.BuildListener;
+import hudson.plugins.sonar.action.SonarMarkerAction;
+import hudson.plugins.sonar.utils.Logger;
+import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
+import hudson.plugins.sonar.utils.SQServerVersions;
+import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
-
+import hudson.util.ArgumentListBuilder;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -65,6 +57,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
+import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SonarBuildWrapper extends BuildWrapper {
   private static final String DEFAULT_SONAR = "sonar";
@@ -89,7 +85,7 @@ public class SonarBuildWrapper extends BuildWrapper {
 
     Logger.LOG.info(Messages.SonarBuildWrapper_MaskingPasswords());
 
-    List<String> passwords = new ArrayList<String>();
+    List<String> passwords = new ArrayList<>();
 
     if (!StringUtils.isBlank(inst.getDatabasePassword())) {
       passwords.add(inst.getDatabasePassword());
@@ -101,7 +97,7 @@ public class SonarBuildWrapper extends BuildWrapper {
       passwords.add(inst.getServerAuthenticationToken());
     }
 
-    return new MaskPasswordsOutputStream(outputStream, passwords);
+    return new MaskPasswordsOutputStream(outputStream, build.getCharset(), passwords);
   }
 
   @Override
@@ -174,7 +170,7 @@ public class SonarBuildWrapper extends BuildWrapper {
       Map<String, String> sonarEnv = createVars(installation);
 
       // resolve variables against each other
-      Map<String, String> sonarEnvResolved = new HashMap<String, String>(sonarEnv);
+      Map<String, String> sonarEnvResolved = new HashMap<>(sonarEnv);
       EnvVars.resolve(sonarEnvResolved);
 
       for (String k : sonarEnv.keySet()) {
@@ -196,7 +192,7 @@ public class SonarBuildWrapper extends BuildWrapper {
     }
 
     private Map<String, String> createVars(SonarInstallation inst) {
-      Map<String, String> map = new HashMap<String, String>();
+      Map<String, String> map = new HashMap<>();
 
       map.put("SONAR_CONFIG_NAME", inst.getName());
       map.put("SONAR_HOST_URL", getOrDefault(inst.getServerUrl(), "http://localhost:9000"));

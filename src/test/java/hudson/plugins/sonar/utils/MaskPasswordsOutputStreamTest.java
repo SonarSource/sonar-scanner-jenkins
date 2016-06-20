@@ -39,9 +39,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
 
 public class MaskPasswordsOutputStreamTest {
   private ByteArrayOutputStream os;
@@ -77,7 +77,7 @@ public class MaskPasswordsOutputStreamTest {
 
   private BufferedWriter getWriter(String... passwords) {
     os = new ByteArrayOutputStream();
-    MaskPasswordsOutputStream filteredOs = new MaskPasswordsOutputStream(os, Arrays.asList(passwords));
+    MaskPasswordsOutputStream filteredOs = new MaskPasswordsOutputStream(os, StandardCharsets.UTF_8, Arrays.asList(passwords));
     return new BufferedWriter(new OutputStreamWriter(filteredOs));
   }
 
