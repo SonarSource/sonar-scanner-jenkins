@@ -18,15 +18,10 @@
  */
 package hudson.plugins.sonar.utils;
 
-import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.model.Action;
 import hudson.model.Actionable;
 import hudson.model.Run;
-import org.apache.commons.io.IOUtils;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
-
+import hudson.plugins.sonar.action.SonarAnalysisAction;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,6 +31,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 
 /**
  * @author Julien HENRY
@@ -66,7 +63,7 @@ public final class SonarUtils {
   }
 
   public static <T extends Action> List<T> getPersistentActions(Actionable actionable, Class<T> type) {
-    List<T> filtered = new LinkedList<T>();
+    List<T> filtered = new LinkedList<>();
 
     // we use this method to avoid recursively calling transitive action factories
     for (Action a : actionable.getActions()) {
@@ -79,10 +76,10 @@ public final class SonarUtils {
     }
     return filtered;
   }
-  
+
   @CheckForNull
   public static <T extends Action> T getPersistentAction(Actionable actionable, Class<T> type) {
- // we use this method to avoid recursively calling transitive action factories
+    // we use this method to avoid recursively calling transitive action factories
     for (Action a : actionable.getActions()) {
       if (a == null) {
         continue;
@@ -114,10 +111,8 @@ public final class SonarUtils {
   }
 
   private static String extractPatternFromLogs(String pattern, Run<?, ?> build) throws IOException {
-    BufferedReader br = null;
     String url = null;
-    try {
-      br = new BufferedReader(build.getLogReader());
+    try (BufferedReader br = new BufferedReader(build.getLogReader())) {
       String strLine;
       Pattern p = Pattern.compile(pattern);
       while ((strLine = br.readLine()) != null) {
@@ -126,8 +121,6 @@ public final class SonarUtils {
           url = match.group(1);
         }
       }
-    } finally {
-      IOUtils.closeQuietly(br);
     }
     return url;
   }

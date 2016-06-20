@@ -33,26 +33,23 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.utils.BuilderUtils;
-
+import hudson.AbortException;
+import hudson.EnvVars;
 import hudson.Launcher;
-import hudson.model.TaskListener;
-import org.codehaus.plexus.util.StringUtils;
 import hudson.Util;
-import hudson.model.Run;
 import hudson.model.AbstractBuild;
 import hudson.model.EnvironmentContributingAction;
 import hudson.model.InvisibleAction;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.tasks.Builder;
-import jenkins.tasks.SimpleBuildStep;
-import hudson.AbortException;
-import hudson.EnvVars;
-
-import javax.annotation.Nullable;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import javax.annotation.Nullable;
+import jenkins.tasks.SimpleBuildStep;
+import org.apache.commons.lang.StringUtils;
 
 public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleBuildStep {
   protected static final String EXE = "MSBuild.SonarQube.Runner.exe";
