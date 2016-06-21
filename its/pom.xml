@@ -19,7 +19,7 @@
 
   <properties>
     <argLine>-server</argLine>
-    <jenkins.runtimeVersion>1.580.3</jenkins.runtimeVersion>
+    <jenkins.runtimeVersion>1.651.3</jenkins.runtimeVersion>
   </properties>
 
   <repositories>
@@ -44,7 +44,7 @@
     <dependency>
       <groupId>org.jenkins-ci.main</groupId>
       <artifactId>cli</artifactId>
-      <version>1.596.1</version>
+      <version>1.651.3</version>
     </dependency>
 
     <dependency>

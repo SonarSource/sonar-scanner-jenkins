@@ -58,7 +58,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
@@ -352,8 +351,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   public JenkinsOrchestrator configureSQScannerInstallation(String version, int index) {
     driver.get(server.getUrl() + "/configure");
-    WebDriverWait wait = new WebDriverWait(driver, 5);
-    wait.until(ExpectedConditions.textToBePresentInElementLocated(By.id("footer"), "Page generated"));
 
     SonarScannerInstaller installer = new SonarScannerInstaller(config.fileSystem());
     File runnerScript = installer.install(Version.create(version), config.fileSystem().workspace(), true);
@@ -378,8 +375,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   public JenkinsOrchestrator configureMsBuildSQScanner_installation(String version, int index) {
     driver.get(server.getUrl() + "/configure");
-    WebDriverWait wait = new WebDriverWait(driver, 5);
-    wait.until(ExpectedConditions.textToBePresentInElementLocated(By.id("footer"), "Page generated"));
 
     if (index > 0) {
       findElement(buttonByText("SonarQube Scanner for MSBuild installations...")).click();
