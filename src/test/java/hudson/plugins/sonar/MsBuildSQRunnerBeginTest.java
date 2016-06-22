@@ -35,9 +35,11 @@ package hudson.plugins.sonar;
 
 import javax.annotation.Nullable;
 
+import hudson.EnvVars;
 import hudson.model.EnvironmentContributingAction;
 import hudson.model.Result;
 import hudson.model.Run;
+import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.model.FreeStyleProject;
 import org.junit.Test;
 
@@ -54,6 +56,20 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     Run<?, ?> r = build(proj, Result.SUCCESS);
 
     assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0", r);
+    assertLogContains("This is a fake MS Build Scanner", r);
+    assertThat(r.getAction(EnvironmentContributingAction.class)).isNotNull();
+  }
+  
+  @Test
+  public void testNormalExecWithEnvVar() throws Exception {
+    configureDefaultSonar();
+    configureMsBuildScanner(false);
+    addEnvVar("CUSTOM_KEY", "customKey");
+
+    FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default", "$CUSTOM_KEY", null);
+    Run<?, ?> r = build(proj, Result.SUCCESS);
+
+    assertLogContains(getExeName() + " begin /k:customKey /n:name /v:1.0", r);
     assertLogContains("This is a fake MS Build Scanner", r);
     assertThat(r.getAction(EnvironmentContributingAction.class)).isNotNull();
   }
@@ -77,7 +93,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     configureSonar(inst);
     configureMsBuildScanner(true);
 
-    FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default", "/y");
+    FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default", "key", "/y");
     Run<?, ?> r = build(proj, Result.FAILURE);
 
     assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0 /d:key=value /x:a=b /y", r);
@@ -108,12 +124,19 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     Run<?, ?> r = build(proj, Result.FAILURE);
     assertLogContains("No SonarQube Scanner for MSBuild installation found", r);
   }
-
-  private FreeStyleProject createFreeStyleProjectWithMSBuild(String sonarInst, String msBuildInst) throws Exception {
-    return createFreeStyleProjectWithMSBuild(sonarInst, msBuildInst, null);
+  
+  private void addEnvVar(String key, String value) {
+    EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
+    EnvVars envVars = prop.getEnvVars();
+    envVars.put(key, value);
+    j.jenkins.getGlobalNodeProperties().add(prop);
   }
 
-  private FreeStyleProject createFreeStyleProjectWithMSBuild(String sonarInst, String msBuildInst, @Nullable String additionalArgs) throws Exception {
-    return setupFreeStyleProject(new MsBuildSQRunnerBegin(msBuildInst, sonarInst, "key", "name", "1.0", additionalArgs));
+  private FreeStyleProject createFreeStyleProjectWithMSBuild(String sonarInst, String msBuildInst) throws Exception {
+    return createFreeStyleProjectWithMSBuild(sonarInst, msBuildInst, "key", null);
+  }
+
+  private FreeStyleProject createFreeStyleProjectWithMSBuild(String sonarInst, String msBuildInst, String key, @Nullable String additionalArgs) throws Exception {
+    return setupFreeStyleProject(new MsBuildSQRunnerBegin(msBuildInst, sonarInst, key, "name", "1.0", additionalArgs));
   }
 }
