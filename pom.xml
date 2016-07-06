@@ -96,14 +96,14 @@
   </issueManagement>
   <ciManagement>
     <system>Travis</system>
-    <url>https://travis-ci.org/SonarSource/jenkins-sonar-plugin</url>
+    <url>https://travis-ci.org/SonarSource/sonar-scanner-jenkins</url>
   </ciManagement>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <hudson.version>${project.parent.version}</hudson.version>
     <sonar.exclusions>target/generated-sources/**/*</sonar.exclusions>
-    <gitRepositoryName>jenkins-sonar-plugin</gitRepositoryName>
+    <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
     <version.artifactory.plugin>2.4.1</version.artifactory.plugin>
     <jenkins.version>1.580.3</jenkins.version>
     <java.level>7</java.level>
