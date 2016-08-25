@@ -22,6 +22,7 @@ import hudson.plugins.sonar.Messages;
 import hudson.plugins.sonar.SonarPlugin;
 import hudson.PluginWrapper;
 import hudson.model.ProminentProjectAction;
+import hudson.plugins.sonar.utils.SonarUtils;
 import jenkins.model.Jenkins;
 
 /**
@@ -31,14 +32,20 @@ import jenkins.model.Jenkins;
  * @since 1.2
  */
 public final class SonarProjectIconAction implements ProminentProjectAction {
+
   private final SonarAnalysisAction buildInfo;
+  private final String displayName;
 
   public SonarProjectIconAction() {
     this.buildInfo = null;
+    this.displayName = Messages.SonarAction_Sonar();
   }
 
-  public SonarProjectIconAction(SonarAnalysisAction buildInfo) {
+  public SonarProjectIconAction(SonarAnalysisAction buildInfo, boolean extended) {
     this.buildInfo = buildInfo;
+    String projectName = extended ? SonarUtils.extractSonarProjectNameFromURL(buildInfo.getUrl()) : null;
+    String suffix = projectName == null ? "" : (": " + projectName);
+    this.displayName = Messages.SonarAction_Sonar() + suffix;
   }
 
   @Override
@@ -50,7 +57,7 @@ public final class SonarProjectIconAction implements ProminentProjectAction {
 
   @Override
   public String getDisplayName() {
-    return Messages.SonarAction_Sonar();
+    return displayName;
   }
 
   @Override

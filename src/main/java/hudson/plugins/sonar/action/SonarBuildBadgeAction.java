@@ -23,6 +23,7 @@ import hudson.plugins.sonar.SonarPlugin;
 
 import hudson.PluginWrapper;
 import hudson.model.BuildBadgeAction;
+import hudson.plugins.sonar.utils.SonarUtils;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -37,13 +38,18 @@ import org.kohsuke.stapler.export.ExportedBean;
 public final class SonarBuildBadgeAction implements BuildBadgeAction {
 
   private final String url;
+  private final String displayName;
 
   public SonarBuildBadgeAction() {
     this.url = null;
+    this.displayName = Messages.SonarAction_Sonar();
   }
 
-  public SonarBuildBadgeAction(String url) {
+  public SonarBuildBadgeAction(String url, boolean extended) {
     this.url = url;
+    String projectName = extended ? SonarUtils.extractSonarProjectNameFromURL(url) : null;
+    String suffix = projectName == null ? "" : (": " + projectName);
+    this.displayName = Messages.SonarAction_Sonar() + suffix;
   }
 
   public String getTooltip() {
@@ -52,7 +58,7 @@ public final class SonarBuildBadgeAction implements BuildBadgeAction {
 
   @Override
   public String getDisplayName() {
-    return Messages.SonarAction_Sonar();
+    return displayName;
   }
 
   public String getIcon() {
