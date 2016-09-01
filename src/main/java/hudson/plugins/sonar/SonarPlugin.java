@@ -39,7 +39,10 @@ import jenkins.model.Jenkins;
 public class SonarPlugin extends Plugin {
   @Override
   public void postInitialize() {
-    SonarGlobalConfiguration globalConfiguration = Jenkins.getInstance().getDescriptorByType(SonarGlobalConfiguration.class);
-    globalConfiguration.migrate();
+    Jenkins j = Jenkins.getInstance();
+    if (j != null) {
+      SonarGlobalConfiguration globalConfiguration = j.getDescriptorByType(SonarGlobalConfiguration.class);
+      globalConfiguration.migrate();
+    }
   }
 }

@@ -87,22 +87,28 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
         return;
       }
       // SonarPublisher might be null if Maven plugin is disabled or not installed
-      DescriptorImpl publisher = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
+      Jenkins j = Jenkins.getInstance();
+
+      if (j == null) {
+        return;
+      }
+
+      DescriptorImpl publisher = j.getDescriptorByType(SonarPublisher.DescriptorImpl.class);
       if (publisher != null && publisher.getDeprecatedInstallations() != null && publisher.getDeprecatedInstallations().length > 0) {
 
         if (ArrayUtils.isEmpty(this.installations)) {
           this.installations = publisher.getDeprecatedInstallations();
           this.buildWrapperEnabled = publisher.isDeprecatedBuildWrapperEnabled();
+          save();
         } else {
           Logger.LOG.warning("SonarQube server configurations exist in both deprecated SonarPublisher and SonarGlobalConfiguration. Deleting deprecated configuration..");
         }
 
         publisher.deleteGlobalConfiguration();
       }
-      
+
       migrated = true;
     }
-    save();
   }
 
   @Override
