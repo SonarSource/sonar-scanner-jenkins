@@ -44,22 +44,26 @@ import hudson.model.TaskListener;
 import hudson.scm.SCM;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolInstallation;
-import jenkins.triggers.SCMTriggerItem;
-
-import javax.annotation.Nullable;
-
 import java.io.IOException;
 import java.util.Collection;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+import jenkins.triggers.SCMTriggerItem;
 
 public class BuilderUtils {
   private BuilderUtils() {
     // only static
   }
 
-  @Nullable
-  public static <T extends ToolInstallation & EnvironmentSpecific<T> & NodeSpecific<T>> T getBuildTool(@Nullable T tool, EnvVars env, TaskListener listener) throws IOException,
+  @CheckForNull
+  public static <T extends ToolInstallation & EnvironmentSpecific<T> & NodeSpecific<T>> T getBuildTool(@Nullable T tool, EnvVars env, TaskListener listener, FilePath workspace)
+    throws IOException,
     InterruptedException {
-    Node node = Computer.currentComputer().getNode();
+    Computer computer = workspace.toComputer();
+    if (computer == null) {
+      return null;
+    }
+    Node node = computer.getNode();
     if (tool == null || node == null) {
       return null;
     }

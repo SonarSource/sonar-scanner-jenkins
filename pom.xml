@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>2.3</version>
+    <version>2.9</version>
     <relativePath />
   </parent>
 
@@ -105,9 +105,14 @@
     <sonar.exclusions>target/generated-sources/**/*</sonar.exclusions>
     <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
     <version.artifactory.plugin>2.4.1</version.artifactory.plugin>
-    <jenkins.version>1.580.3</jenkins.version>
-    <java.level>7</java.level>
+    <jenkins.version>2.7.3</jenkins.version>
+    <jenkins-test-harness.version>2.9</jenkins-test-harness.version>
+    <java.level>8</java.level>
     <findbugs.failOnError>false</findbugs.failOnError>
+    <!-- Disable parallel tests on Travis -->
+    <concurrency>1</concurrency>
+    <!-- Skip Findbugs -->
+    <findbugs.skip>true</findbugs.skip>
   </properties>
 
   <repositories>
@@ -132,7 +137,7 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>5.6-RC1</version>
+      <version>5.6</version>
     </dependency>
     <dependency>
       <!-- needed for SonarPublisher -->
@@ -222,7 +227,7 @@
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.7.5.201505241946</version>
+          <version>0.7.6.201602180812</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -258,17 +263,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <systemPropertyVariables>
-            <!-- We should override default port defined in {@link hudson.UDPBroadcastThread#PORT} to avoid intersections 
-              with real Hudson on Nemo. -->
-            <hudson.udp>33849</hudson.udp>
-          </systemPropertyVariables>
-        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -35,6 +35,7 @@ package hudson.plugins.sonar;
 
 import hudson.AbortException;
 import hudson.EnvVars;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractBuild;
@@ -89,8 +90,9 @@ public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleB
     return name;
   }
 
-  protected String getExeName(MsBuildSQRunnerInstallation msBuildScanner, EnvVars env, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
-    MsBuildSQRunnerInstallation inst = BuilderUtils.getBuildTool(msBuildScanner, env, listener);
+  protected String getExeName(MsBuildSQRunnerInstallation msBuildScanner, EnvVars env, Launcher launcher, TaskListener listener, FilePath ws)
+    throws IOException, InterruptedException {
+    MsBuildSQRunnerInstallation inst = BuilderUtils.getBuildTool(msBuildScanner, env, listener, ws);
 
     String exe;
     if (inst != null) {
