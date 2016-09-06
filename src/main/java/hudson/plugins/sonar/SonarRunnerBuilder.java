@@ -39,6 +39,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.maven.agent.AbortException;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
@@ -214,7 +215,15 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
   @Override
   public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
-    performInternal(run, workspace, launcher, listener);
+    boolean success = performInternal(run, workspace, launcher, listener);
+    if (!success) {
+      throw new AbortException("Error during execution of the SonarQube Scanner");
+    }
+  }
+
+  @Override
+  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+    return performInternal(build, build.getWorkspace(), launcher, listener);
   }
 
   private boolean performInternal(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
@@ -270,11 +279,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     // if the analyis doesn't succeed, it will also be null
     SonarUtils.addBuildInfoTo(run, getSonarInstallation().getName());
     return r == 0;
-  }
-
-  @Override
-  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    return performInternal(build, build.getWorkspace(), launcher, listener);
   }
 
   private void handleErrors(Run<?, ?> build, TaskListener listener, SonarRunnerInstallation sri, long startTime, IOException e) {

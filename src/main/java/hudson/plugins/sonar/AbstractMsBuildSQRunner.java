@@ -90,9 +90,9 @@ public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleB
     return name;
   }
 
-  protected String getExeName(MsBuildSQRunnerInstallation msBuildScanner, EnvVars env, Launcher launcher, TaskListener listener, FilePath ws)
+  protected String getExeName(MsBuildSQRunnerInstallation msBuildScanner, EnvVars env, Launcher launcher, TaskListener listener, FilePath workspace)
     throws IOException, InterruptedException {
-    MsBuildSQRunnerInstallation inst = BuilderUtils.getBuildTool(msBuildScanner, env, listener, ws);
+    MsBuildSQRunnerInstallation inst = BuilderUtils.getBuildTool(msBuildScanner, env, listener, workspace);
 
     String exe;
     if (inst != null) {
