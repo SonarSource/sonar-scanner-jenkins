@@ -221,11 +221,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     }
   }
 
-  @Override
-  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    return performInternal(build, build.getWorkspace(), launcher, listener);
-  }
-
   private boolean performInternal(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
     if (!SonarInstallation.isValid(getInstallationName(), listener)) {
       return false;
