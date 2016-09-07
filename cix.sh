@@ -20,4 +20,4 @@ cd ..
 
 cd its
 export MAVEN_HOME=`dirname $(dirname $(readlink -f $(which mvn)))`
-mvn -Djenkins.runtimeVersion="$JENKINS_VERSION" -Dsonar.runtimeVersion="$SQ_VERSION" -Dmaven.test.redirectTestOutputToFile=false verify 
+mvn -B -e -Djenkins.runtimeVersion="$JENKINS_VERSION" -Dsonar.runtimeVersion="$SQ_VERSION" -Dmaven.test.redirectTestOutputToFile=false verify 

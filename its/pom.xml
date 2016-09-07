@@ -33,7 +33,7 @@
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator</artifactId>
-      <version>3.11</version>
+      <version>3.12</version>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
@@ -80,6 +80,9 @@
             <includes>
               <include>**/JenkinsTestSuite.java</include>
             </includes>
+            <systemProperties>
+              <jenkins.runtimeVersion>${jenkins.runtimeVersion}</jenkins.runtimeVersion>
+            </systemProperties>
           </configuration>
         </plugin>
       </plugins>
