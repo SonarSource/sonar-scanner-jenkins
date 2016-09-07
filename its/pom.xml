@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>23</version>
+    <version>36</version>
     <relativePath />
   </parent>
 
@@ -33,13 +33,7 @@
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator</artifactId>
-      <version>3.13-build682</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.reflections</groupId>
-          <artifactId>reflections</artifactId>
-        </exclusion>
-      </exclusions>
+      <version>3.13-build683</version>
     </dependency>
 
     <dependency>

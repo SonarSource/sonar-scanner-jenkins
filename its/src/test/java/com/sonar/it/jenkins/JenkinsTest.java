@@ -144,7 +144,7 @@ public class JenkinsTest {
   }
 
   @Test
-  public void testFreestyleJobWithSonarRunner() throws Exception {
+  public void testFreestyleJobWithSonarQubeScanner() throws Exception {
     String jobName = "abacus-runner";
     String projectKey = "abacus-runner";
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
@@ -162,7 +162,7 @@ public class JenkinsTest {
   }
 
   @Test
-  public void testFreestyleJobWithSonarRunnerAndBranch() throws Exception {
+  public void testFreestyleJobWithSonarQubeScannerAndBranch() throws Exception {
     String jobName = "abacus-runner-branch";
     String projectKey = "abacus-runner:branch";
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
@@ -178,7 +178,7 @@ public class JenkinsTest {
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
     jenkins.assertQGOnProjectPage(jobName);
-    if (isWindows()) {
+    if (JenkinsTestSuite.isWindows()) {
       assertThat(result.getLogs()).contains("sonar-runner.bat -X -Duseless=Y -e");
     } else {
       assertThat(result.getLogs()).contains("sonar-runner -X -Duseless=Y -e");
@@ -205,10 +205,6 @@ public class JenkinsTest {
 
   private void waitForComputationOnSQServer() {
     new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();
-  }
-
-  protected boolean isWindows() {
-    return File.pathSeparatorChar == ';' || System.getProperty("os.name").startsWith("Windows");
   }
 
 }

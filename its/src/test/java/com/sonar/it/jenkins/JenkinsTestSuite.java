@@ -21,6 +21,7 @@ package com.sonar.it.jenkins;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.locator.FileLocation;
+import java.io.File;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -38,4 +39,7 @@ public class JenkinsTestSuite {
     .restoreProfileAtStartup(FileLocation.ofClasspath("/com/sonar/it/jenkins/JenkinsTest/sonar-way-it-profile_java.xml"))
     .build();
 
+  static boolean isWindows() {
+    return File.pathSeparatorChar == ';' || System.getProperty("os.name").startsWith("Windows");
+  }
 }

@@ -228,7 +228,8 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
     SonarRunnerInstallation sri = getSonarRunnerInstallation();
     if (sri == null) {
-      args.add(launcher.isUnix() ? "sonar-runner" : "sonar-runner.bat");
+      // No idea if the path contains old sonar-runner or new sonar-scanner, so prefer the new one
+      args.add(launcher.isUnix() ? "sonar-scanner" : "sonar-scanner.bat");
     } else {
       sri = BuilderUtils.getBuildTool(sri, env, listener, workspace);
       String exe = sri.getExecutable(launcher);
@@ -238,7 +239,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
         return false;
       }
       args.add(exe);
-      env.put("SONAR_RUNNER_HOME", sri.getHome());
     }
 
     SonarInstallation sonarInst = getSonarInstallation();
@@ -253,6 +253,8 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     computeJdkToUse(run, workspace, listener, env);
 
     // Java options
+    env.put("SONAR_SCANNER_OPTS", getJavaOpts());
+    // For backward compatibility with old sonar-runner
     env.put("SONAR_RUNNER_OPTS", getJavaOpts());
 
     long startTime = System.currentTimeMillis();

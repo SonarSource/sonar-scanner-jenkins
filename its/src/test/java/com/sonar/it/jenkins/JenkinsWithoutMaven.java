@@ -76,7 +76,7 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
-  public void testFreestyleJobWithSonarRunner_use_sq_scanner_2_4() throws Exception {
+  public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_4() throws Exception {
     String jobName = "abacus-runner-sq-2.4";
     String projectKey = "abacus-runner-2.4";
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
@@ -88,11 +88,16 @@ public class JenkinsWithoutMaven {
         "sonar.sources", "src/main/java")
       .executeJob(jobName);
 
+    if (JenkinsTestSuite.isWindows()) {
+      assertThat(result.getLogs()).contains("sonar-runner.bat");
+    } else {
+      assertThat(result.getLogs()).contains("sonar-runner");
+    }
     assertThat(result.getLogs()).contains("SonarQube Runner 2.4");
   }
 
   @Test
-  public void testFreestyleJobWithSonarRunner_use_sq_scanner_2_6_1() throws Exception {
+  public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_6_1() throws Exception {
     String jobName = "abacus-runner-sq-2.6.1";
     String projectKey = "abacus-runner-2.6.1";
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
@@ -104,6 +109,11 @@ public class JenkinsWithoutMaven {
         "sonar.sources", "src/main/java")
       .executeJob(jobName);
 
+    if (JenkinsTestSuite.isWindows()) {
+      assertThat(result.getLogs()).contains("sonar-scanner.bat");
+    } else {
+      assertThat(result.getLogs()).contains("sonar-scanner");
+    }
     assertThat(result.getLogs()).contains("SonarQube Scanner 2.6.1");
   }
 

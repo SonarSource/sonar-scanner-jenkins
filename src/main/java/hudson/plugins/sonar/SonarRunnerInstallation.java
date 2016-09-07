@@ -33,33 +33,31 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.Launcher;
-
 import hudson.CopyOnWrite;
-import hudson.Extension;
 import hudson.EnvVars;
-import hudson.Util;
+import hudson.Extension;
 import hudson.Functions;
+import hudson.Launcher;
+import hudson.Util;
 import hudson.model.EnvironmentSpecific;
-import hudson.model.TaskListener;
 import hudson.model.Node;
+import hudson.model.TaskListener;
 import hudson.slaves.NodeSpecific;
-import hudson.tools.ToolInstaller;
-import hudson.tools.ToolProperty;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
+import hudson.tools.ToolInstaller;
+import hudson.tools.ToolProperty;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
 /**
-* Represents a Sonar scanner installation in a system.
+* Represents a SonarQube Scanner installation in a system.
 */
 public class SonarRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<SonarRunnerInstallation>, NodeSpecific<SonarRunnerInstallation> {
   private static final long serialVersionUID = 1L;
@@ -70,23 +68,27 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
   }
 
   /**
-  * Gets the executable path of this Sonar runner on the given target system.
-  */
+   * Gets the executable path of this SonarQube Scanner on the given target system.
+   */
   public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
     return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
       @Override
       public String call() throws IOException {
-        File exe = getExeFile();
+        File exe = getExeFile("sonar-scanner");
         if (exe.exists()) {
           return exe.getPath();
+        }
+        File oldExe = getExeFile("sonar-runner");
+        if (oldExe.exists()) {
+          return oldExe.getPath();
         }
         return null;
       }
     });
   }
 
-  private File getExeFile() {
-    String execName = Functions.isWindows() ? "sonar-runner.bat" : "sonar-runner";
+  private File getExeFile(String name) {
+    String execName = Functions.isWindows() ? (name + ".bat") : name;
     String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars);
 
     return new File(home, "bin/" + execName);
