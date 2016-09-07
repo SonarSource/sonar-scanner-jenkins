@@ -534,7 +534,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   public BuildResult executeJobQuietly(String jobName) {
     BuildResult result = new BuildResult();
-    result.setStatus(cli.execute("build", jobName, "-s"));
+    result.addStatus(cli.execute("build", jobName, "-s"));
     WriterOutputStream out = new WriterOutputStream(result.getLogsWriter());
     cli.execute(Arrays.asList("console", jobName), System.in, out, out);
     return result;
