@@ -170,6 +170,8 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("SONAR_JDBC_PASSWORD", "");
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "sonar:sonar");
     assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
+
+    assertThat(map).containsEntry("SONARQUBE_SCANNER_PARAMS", "{ \"sonar.host.url\" : \"http:\\/\\/localhost:9001\", \"sonar.login\" : \"local\"}");
   }
 
   @Test

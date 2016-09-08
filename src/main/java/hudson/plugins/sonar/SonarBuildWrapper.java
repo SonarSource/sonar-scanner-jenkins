@@ -61,6 +61,7 @@ import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildWrapper;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SonarBuildWrapper extends SimpleBuildWrapper {
@@ -98,10 +99,15 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     Map<String, String> map = new HashMap<>();
 
     map.put("SONAR_CONFIG_NAME", inst.getName());
-    map.put("SONAR_HOST_URL", getOrDefault(inst.getServerUrl(), "http://localhost:9000"));
-    map.put("SONAR_LOGIN", getOrDefault(inst.getSonarLogin(), ""));
-    map.put("SONAR_PASSWORD", getOrDefault(inst.getSonarPassword(), ""));
-    map.put("SONAR_AUTH_TOKEN", getOrDefault(inst.getServerAuthenticationToken(), ""));
+    String hostUrl = getOrDefault(inst.getServerUrl(), "http://localhost:9000");
+    map.put("SONAR_HOST_URL", hostUrl);
+    String login = getOrDefault(inst.getSonarLogin(), "");
+    map.put("SONAR_LOGIN", login);
+    String password = getOrDefault(inst.getSonarPassword(), "");
+    map.put("SONAR_PASSWORD", password);
+    String token = getOrDefault(inst.getServerAuthenticationToken(), "");
+    map.put("SONAR_AUTH_TOKEN", token);
+
     map.put("SONAR_JDBC_URL", getOrDefault(inst.getDatabaseUrl(), ""));
 
     String jdbcDefault = SQServerVersions.SQ_5_1_OR_LOWER.equals(inst.getServerVersion()) ? DEFAULT_SONAR : "";
@@ -115,6 +121,18 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     }
 
     map.put("SONAR_EXTRA_PROPS", getOrDefault(getAdditionalProps(inst), ""));
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("{ \"sonar.host.url\" : \"").append(StringEscapeUtils.escapeJson(hostUrl)).append("\"");
+    if (!login.isEmpty() || !token.isEmpty()) {
+      sb.append(", \"sonar.login\" : \"").append(StringEscapeUtils.escapeJson(token.isEmpty() ? login : token)).append("\"");
+    }
+    if (!password.isEmpty()) {
+      sb.append(", \"sonar.password\" : \"").append(StringEscapeUtils.escapeJson(password)).append("\"");
+    }
+    sb.append("}");
+
+    map.put("SONARQUBE_SCANNER_PARAMS", sb.toString());
 
     // resolve variables against each other
     EnvVars.resolve(map);
