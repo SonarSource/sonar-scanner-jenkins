@@ -36,29 +36,27 @@ package hudson.plugins.sonar;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.BuildListener;
 import hudson.model.FreeStyleProject;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.plugins.sonar.SonarBuildWrapper.DescriptorImpl;
-import hudson.plugins.sonar.SonarBuildWrapper.SonarEnvironment;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.SQServerVersions;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.jvnet.hudson.test.TestBuilder;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.jvnet.hudson.test.TestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.contains;
@@ -93,7 +91,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
   @Test
   public void testDescriptor() {
-    DescriptorImpl desc = wrapper.getDescriptor();
+    DescriptorImpl desc = (DescriptorImpl) wrapper.getDescriptor();
 
     assertThat(desc.getDisplayName()).isEqualTo("Prepare SonarQube Scanner environment");
     assertThat(desc.getHelpFile()).isEqualTo("/plugin/sonar/help-buildWrapper.html");
@@ -140,11 +138,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
   @Test
   public void testEnvironment52() {
-    SonarEnvironment env = wrapper.new SonarEnvironment(installation, stream);
-
-    Map<String, String> map = new HashMap<String, String>();
-    map.put("key", "value");
-    env.buildEnvVars(map);
+    Map<String, String> map = SonarBuildWrapper.createVars(installation);
 
     assertThat(map).containsEntry("SONAR_HOST_URL", "http://localhost:9001");
     assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
@@ -157,20 +151,13 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("SONAR_JDBC_PASSWORD", "");
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "sonar:sonar");
     assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
-
-    // existing entries still there
-    assertThat(map).containsEntry("key", "value");
-    verify(stream).println(contains("Injecting SonarQube environment variables"));
   }
 
   @Test
   public void testEnvironment53() {
     installation = createTestInstallation(SQServerVersions.SQ_5_3_OR_HIGHER);
-    SonarEnvironment env = wrapper.new SonarEnvironment(installation, stream);
 
-    Map<String, String> map = new HashMap<String, String>();
-    map.put("key", "value");
-    env.buildEnvVars(map);
+    Map<String, String> map = SonarBuildWrapper.createVars(installation);
 
     assertThat(map).containsEntry("SONAR_HOST_URL", "http://localhost:9001");
     assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
@@ -183,20 +170,13 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("SONAR_JDBC_PASSWORD", "");
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "sonar:sonar");
     assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
-
-    // existing entries still there
-    assertThat(map).containsEntry("key", "value");
-    verify(stream).println(contains("Injecting SonarQube environment variables"));
   }
 
   @Test
   public void testEnvironment51() {
     installation = createTestInstallation(SQServerVersions.SQ_5_1_OR_LOWER);
-    SonarEnvironment env = wrapper.new SonarEnvironment(installation, stream);
 
-    Map<String, String> map = new HashMap<String, String>();
-    map.put("key", "value");
-    env.buildEnvVars(map);
+    Map<String, String> map = SonarBuildWrapper.createVars(installation);
 
     assertThat(map).containsEntry("SONAR_HOST_URL", "http://localhost:9001");
     assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
@@ -209,19 +189,14 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("SONAR_JDBC_PASSWORD", "sonar");
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "sonar:sonar");
     assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
-
-    // existing entries still there
-    assertThat(map).containsEntry("key", "value");
-    verify(stream).println(contains("Injecting SonarQube environment variables"));
   }
 
   @Test
   public void testEnvironmentMojoVersion() {
     installation = new SonarInstallation(null, null, null, null, null, null, null, "2.0", null, null, null, null, null);
-    SonarEnvironment env = wrapper.new SonarEnvironment(installation, stream);
 
-    Map<String, String> map = new HashMap<String, String>();
-    env.buildEnvVars(map);
+    Map<String, String> map = SonarBuildWrapper.createVars(installation);
+
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "org.codehaus.mojo:sonar-maven-plugin:2.0:sonar");
   }
 
@@ -249,11 +224,11 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     configureSonar(createTestInstallation());
     enableBuildWrapper(false);
 
-    assertThat(wrapper.getDescriptor().isApplicable(mock(AbstractProject.class))).isFalse();
+    assertThat(((DescriptorImpl) wrapper.getDescriptor()).isApplicable(mock(AbstractProject.class))).isFalse();
 
     enableBuildWrapper(true);
 
-    assertThat(wrapper.getDescriptor().isApplicable(mock(AbstractProject.class))).isTrue();
+    assertThat(((DescriptorImpl) wrapper.getDescriptor()).isApplicable(mock(AbstractProject.class))).isTrue();
   }
 
   @Test

@@ -33,36 +33,37 @@
  */
 package hudson.plugins.sonar;
 
+import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
+import hudson.console.ConsoleLogFilter;
 import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.BuildListener;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
 import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.plugins.sonar.utils.SonarUtils;
-import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.util.ArgumentListBuilder;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
+import jenkins.tasks.SimpleBuildWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class SonarBuildWrapper extends BuildWrapper {
+public class SonarBuildWrapper extends SimpleBuildWrapper {
   private static final String DEFAULT_SONAR = "sonar";
   private String installationName = null;
 
@@ -72,15 +73,73 @@ public class SonarBuildWrapper extends BuildWrapper {
   }
 
   @Override
-  public DescriptorImpl getDescriptor() {
-    return (DescriptorImpl) super.getDescriptor();
+  public void setUp(Context context, Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment)
+    throws IOException, InterruptedException {
+
+    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
+      return;
+    }
+
+    SonarInstallation installation = SonarInstallation.get(getInstallationName());
+
+    String msg = Messages.SonarBuildWrapper_Injecting(installation.getName());
+    Logger.LOG.info(msg);
+    listener.getLogger().println(msg);
+
+    context.getEnv().putAll(createVars(installation));
+
+    context.setDisposer(new AddBuildInfo(installation));
+
+    build.addAction(new SonarMarkerAction());
+  }
+
+  @VisibleForTesting
+  static Map<String, String> createVars(SonarInstallation inst) {
+    Map<String, String> map = new HashMap<>();
+
+    map.put("SONAR_CONFIG_NAME", inst.getName());
+    map.put("SONAR_HOST_URL", getOrDefault(inst.getServerUrl(), "http://localhost:9000"));
+    map.put("SONAR_LOGIN", getOrDefault(inst.getSonarLogin(), ""));
+    map.put("SONAR_PASSWORD", getOrDefault(inst.getSonarPassword(), ""));
+    map.put("SONAR_AUTH_TOKEN", getOrDefault(inst.getServerAuthenticationToken(), ""));
+    map.put("SONAR_JDBC_URL", getOrDefault(inst.getDatabaseUrl(), ""));
+
+    String jdbcDefault = SQServerVersions.SQ_5_1_OR_LOWER.equals(inst.getServerVersion()) ? DEFAULT_SONAR : "";
+    map.put("SONAR_JDBC_USERNAME", getOrDefault(inst.getDatabaseLogin(), jdbcDefault));
+    map.put("SONAR_JDBC_PASSWORD", getOrDefault(inst.getDatabasePassword(), jdbcDefault));
+
+    if (StringUtils.isEmpty(inst.getMojoVersion())) {
+      map.put("SONAR_MAVEN_GOAL", "sonar:sonar");
+    } else {
+      map.put("SONAR_MAVEN_GOAL", SonarUtils.getMavenGoal(inst.getMojoVersion()));
+    }
+
+    map.put("SONAR_EXTRA_PROPS", getOrDefault(getAdditionalProps(inst), ""));
+
+    // resolve variables against each other
+    EnvVars.resolve(map);
+
+    return map;
+  }
+
+  private static String getAdditionalProps(SonarInstallation inst) {
+    ArgumentListBuilder builder = new ArgumentListBuilder();
+    // no need to tokenize since we need a String anyway
+    builder.add(inst.getAdditionalAnalysisPropertiesUnix());
+    builder.add(inst.getAdditionalProperties());
+
+    return StringUtils.join(builder.toList(), ' ');
+  }
+
+  private static String getOrDefault(String value, String defaultValue) {
+    return !StringUtils.isEmpty(value) ? value : defaultValue;
   }
 
   @Override
-  public OutputStream decorateLogger(AbstractBuild build, OutputStream outputStream) throws IOException, InterruptedException {
+  public ConsoleLogFilter createLoggerDecorator(Run<?, ?> build) {
     SonarInstallation inst = SonarInstallation.get(getInstallationName());
     if (inst == null) {
-      return outputStream;
+      return null;
     }
 
     Logger.LOG.info(Messages.SonarBuildWrapper_MaskingPasswords());
@@ -97,12 +156,43 @@ public class SonarBuildWrapper extends BuildWrapper {
       passwords.add(inst.getServerAuthenticationToken());
     }
 
-    return new MaskPasswordsOutputStream(outputStream, build.getCharset(), passwords);
+    return new SonarQubePasswordLogFilter(passwords, build.getCharset().name());
   }
 
-  @Override
-  public Collection<? extends Action> getProjectActions(AbstractProject job) {
-    return Collections.singletonList(new SonarMarkerAction());
+  private static final class AddBuildInfo extends Disposer {
+
+    private static final long serialVersionUID = 1L;
+
+    private final SonarInstallation installation;
+
+    public AddBuildInfo(SonarInstallation installation) {
+      this.installation = installation;
+    }
+
+    @Override
+    public void tearDown(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+      // null result means success so far. If no logs are found, it's probably because it was simply skipped
+      SonarUtils.addBuildInfoTo(build, installation.getName(), build.getResult() == null);
+    }
+  }
+
+  private static class SonarQubePasswordLogFilter extends ConsoleLogFilter implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private final List<String> passwords;
+    private final String consoleCharset;
+
+    public SonarQubePasswordLogFilter(List<String> passwords, String consoleCharset) {
+      this.passwords = passwords;
+      this.consoleCharset = consoleCharset;
+    }
+
+    @Override
+    public OutputStream decorateLogger(Run ignore, OutputStream logger) throws IOException, InterruptedException {
+      return new MaskPasswordsOutputStream(logger, Charset.forName(consoleCharset), passwords);
+    }
+
   }
 
   /**
@@ -115,16 +205,6 @@ public class SonarBuildWrapper extends BuildWrapper {
 
   public void setInstallationName(@Nullable String installationName) {
     this.installationName = installationName;
-  }
-
-  @Override
-  public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
-      return new Environment() {
-      };
-    }
-
-    return new SonarEnvironment(SonarInstallation.get(getInstallationName()), listener.getLogger());
   }
 
   @Extension
@@ -152,81 +232,4 @@ public class SonarBuildWrapper extends BuildWrapper {
     }
   }
 
-  class SonarEnvironment extends Environment {
-    private final SonarInstallation installation;
-    private final PrintStream buildLogger;
-
-    SonarEnvironment(SonarInstallation installation, PrintStream buildLogger) {
-      this.installation = installation;
-      this.buildLogger = buildLogger;
-    }
-
-    @Override
-    public void buildEnvVars(Map<String, String> env) {
-      String msg = Messages.SonarBuildWrapper_Injecting(installation.getName());
-      Logger.LOG.info(msg);
-      buildLogger.println(msg);
-
-      Map<String, String> sonarEnv = createVars(installation);
-
-      // resolve variables against each other
-      Map<String, String> sonarEnvResolved = new HashMap<>(sonarEnv);
-      EnvVars.resolve(sonarEnvResolved);
-
-      for (String k : sonarEnv.keySet()) {
-        String v = sonarEnvResolved.get(k);
-        env.put(k, v);
-      }
-    }
-
-    @Override
-    public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
-      // null result means success so far. If no logs are found, it's probably because it was simply skipped
-      if (build.getResult() == null) {
-        SonarUtils.addBuildInfoTo(build, installation.getName(), true);
-      } else {
-        SonarUtils.addBuildInfoTo(build, installation.getName(), false);
-      }
-
-      return true;
-    }
-
-    private Map<String, String> createVars(SonarInstallation inst) {
-      Map<String, String> map = new HashMap<>();
-
-      map.put("SONAR_CONFIG_NAME", inst.getName());
-      map.put("SONAR_HOST_URL", getOrDefault(inst.getServerUrl(), "http://localhost:9000"));
-      map.put("SONAR_LOGIN", getOrDefault(inst.getSonarLogin(), ""));
-      map.put("SONAR_PASSWORD", getOrDefault(inst.getSonarPassword(), ""));
-      map.put("SONAR_AUTH_TOKEN", getOrDefault(inst.getServerAuthenticationToken(), ""));
-      map.put("SONAR_JDBC_URL", getOrDefault(inst.getDatabaseUrl(), ""));
-
-      String jdbcDefault = SQServerVersions.SQ_5_1_OR_LOWER.equals(inst.getServerVersion()) ? DEFAULT_SONAR : "";
-      map.put("SONAR_JDBC_USERNAME", getOrDefault(inst.getDatabaseLogin(), jdbcDefault));
-      map.put("SONAR_JDBC_PASSWORD", getOrDefault(inst.getDatabasePassword(), jdbcDefault));
-
-      if (StringUtils.isEmpty(inst.getMojoVersion())) {
-        map.put("SONAR_MAVEN_GOAL", "sonar:sonar");
-      } else {
-        map.put("SONAR_MAVEN_GOAL", SonarUtils.getMavenGoal(inst.getMojoVersion()));
-      }
-
-      map.put("SONAR_EXTRA_PROPS", getOrDefault(getAdditionalProps(inst), ""));
-
-      return map;
-    }
-
-    private String getAdditionalProps(SonarInstallation inst) {
-      ArgumentListBuilder builder = new ArgumentListBuilder();
-      // no need to tokenize since we need a String anyway
-      builder.add(inst.getAdditionalAnalysisPropertiesUnix());
-      builder.add(inst.getAdditionalProperties());
-
-      return StringUtils.join(builder.toList(), ' ');
-    }
-
-    private String getOrDefault(String value, String defaultValue) {
-      return !StringUtils.isEmpty(value) ? value : defaultValue;
-    }
-  }
 }

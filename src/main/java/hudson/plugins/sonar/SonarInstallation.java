@@ -33,17 +33,24 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.model.TaskListener;
 import hudson.Util;
+import hudson.model.TaskListener;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Scrambler;
 import hudson.util.Secret;
+import java.io.Serializable;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-import static hudson.plugins.sonar.utils.SQServerVersions.*;
 
-public class SonarInstallation {
+import static hudson.plugins.sonar.utils.SQServerVersions.SQ_5_1_OR_LOWER;
+import static hudson.plugins.sonar.utils.SQServerVersions.SQ_5_2;
+import static hudson.plugins.sonar.utils.SQServerVersions.SQ_5_3_OR_HIGHER;
+
+public class SonarInstallation implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
   private final String name;
   private final String serverUrl;
 
@@ -298,7 +305,7 @@ public class SonarInstallation {
     sonarSecret = Secret.fromString(Util.fixEmptyAndTrim(sonarPassword));
   }
 
-  private Object readResolve() {
+  protected Object readResolve() {
     // Perform password migration to Secret (SONARJNKNS-201)
     // Data will be persisted when SonarGlobalConfiguration is saved.
     if (databasePassword != null) {

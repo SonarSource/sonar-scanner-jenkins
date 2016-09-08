@@ -22,22 +22,22 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Actionable;
+import hudson.model.BuildableItemWithBuildWrappers;
 import hudson.model.ProminentProjectAction;
 import hudson.model.Run;
+import hudson.plugins.sonar.SonarBuildWrapper;
 import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
 import hudson.plugins.sonar.utils.SonarUtils;
-import jenkins.model.TransientActionFactory;
-
-import javax.annotation.CheckForNull;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.CheckForNull;
+import jenkins.model.TransientActionFactory;
 
 @Extension
 /**
@@ -95,8 +95,16 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
    * Returns whether the project has any Sonar analysis currently configured.
    * The goal is to not display anything if no analysis is currently configured, even if the latest build did perform an analysis
    */
-  private static boolean projectHasSonarAnalysis(Actionable actionable) {
-    return !SonarUtils.getPersistentActions(actionable, SonarMarkerAction.class).isEmpty();
+  private static boolean projectHasSonarAnalysis(AbstractProject project) {
+    if (project instanceof BuildableItemWithBuildWrappers) {
+      // SonarBuildWrapper is no more able to contribute project actions since it was made compatible with pipeline
+      for (Object wrapper : ((BuildableItemWithBuildWrappers) project).getBuildWrappersList()) {
+        if (wrapper instanceof SonarBuildWrapper) {
+          return true;
+        }
+      }
+    }
+    return !SonarUtils.getPersistentActions(project, SonarMarkerAction.class).isEmpty();
   }
 
   /**

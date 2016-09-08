@@ -35,26 +35,27 @@ package hudson.plugins.sonar.model;
 
 import hudson.EnvVars;
 import hudson.Util;
-import hudson.model.BuildListener;
-import hudson.model.Result;
 import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
 import hudson.model.Cause;
+import hudson.model.Result;
 import hudson.plugins.sonar.Messages;
 import hudson.triggers.SCMTrigger;
 import hudson.util.VariableResolver;
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author Evgeny Mandrikov
  * @since 1.2
  */
 public class TriggersConfig implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   private boolean skipScmCause;
 
