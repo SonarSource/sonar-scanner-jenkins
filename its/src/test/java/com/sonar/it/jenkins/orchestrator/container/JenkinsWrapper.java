@@ -23,6 +23,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.coverage.JaCoCoArgumentsBuilder;
 import hudson.cli.CLI;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -34,13 +40,6 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.net.SocketException;
-import java.net.URL;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class JenkinsWrapper {
   private static final Logger LOG = LoggerFactory.getLogger(JenkinsWrapper.class);
@@ -100,6 +99,7 @@ public class JenkinsWrapper {
       command.addArgument("-Xmx512M");
       command.addArgument("-XX:MaxPermSize=128m");
       command.addArgument("-Djava.awt.headless=true");
+      command.addArgument("-Djenkins.install.runSetupWizard=false");
       command.addArgument("-DJENKINS_HOME=" + workingDir.getAbsolutePath());
       String jaCoCoArgument = JaCoCoArgumentsBuilder.getJaCoCoArgument(config);
       if (jaCoCoArgument != null) {

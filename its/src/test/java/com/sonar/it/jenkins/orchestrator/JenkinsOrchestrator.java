@@ -58,6 +58,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
@@ -68,6 +69,8 @@ import org.sonar.wsclient.qualitygate.QualityGates;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class JenkinsOrchestrator extends SingleStartExternalResource {
+  private static final By MAVEN_POST_BUILD_LABEL = By.linkText("SonarQube analysis with Maven");
+
   private static final Logger LOG = LoggerFactory.getLogger(JenkinsOrchestrator.class);
 
   private final Configuration config;
@@ -128,6 +131,10 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+    // Force updatecenter initialization
+    driver.get(server.getUrl() + "/pluginManager");
+    findElement(By.linkText("Advanced")).click();
+    findElement(buttonByText("Check now")).click();
   }
 
   public void stop() {
@@ -199,9 +206,21 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   private void newJob(String jobName, String type) {
     driver.get(server.getUrl() + "/newJob");
-    setTextValue(findElement(By.id("name")), jobName);
-    findElement(By.xpath("//input[@type='radio' and @name='mode' and @value='" + type + "']")).click();
-    findElement(By.id("ok-button")).click();
+    WebElement jobNameInput = findElement(By.id("name"));
+    setTextValue(jobNameInput, jobName);
+    WebElement jobTypeElt = findElement(By.xpath("//input[@type='radio' and @name='mode' and @value='" + type + "']"));
+    if (server.getVersion().isGreaterThan("2")) {
+      // Input is not visible, should click on parent
+      jobTypeElt.findElement(By.xpath("..")).click();
+    } else {
+      jobTypeElt.click();
+    }
+    emulateBlur(jobNameInput);
+    WebElement okButton = findElement(By.id("ok-button"));
+    // May take a while before button is clickable after selecting job type
+    new WebDriverWait(driver, 10)
+      .until(ExpectedConditions.elementToBeClickable(okButton))
+      .click();
   }
 
   public JenkinsOrchestrator newMavenJobWithSonar(String jobName, File projectPath, String branch) {
@@ -302,7 +321,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   private void activateSonarPostBuildMaven(String branch) {
     WebElement addPostBuildButton = findElement(buttonByText("Add post-build action"));
     addPostBuildButton.click();
-    findElement(By.linkText("SonarQube analysis with Maven")).click();
+    findElement(MAVEN_POST_BUILD_LABEL).click();
     // Here we need to wait for the Sonar step to be really activated
     WebElement sonarPublisher = findElement(By.xpath("//div[@descriptorid='hudson.plugins.sonar.SonarPublisher']"));
     if (StringUtils.isNotBlank(branch)) {
@@ -320,7 +339,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     if (config.fileSystem().mavenHome() == null) {
       throw new RuntimeException("Please configure MAVEN_HOME");
     }
-    driver.get(server.getUrl() + "/configure");
+    openConfigureToolsPage();
 
     WebElement addMavenButton = findElement(buttonByText("Add Maven"));
     addMavenButton.click();
@@ -330,6 +349,14 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     findElement(buttonByText("Save")).click();
 
     return this;
+  }
+
+  private void openConfigureToolsPage() {
+    if (server.getVersion().isGreaterThan("2")) {
+      driver.get(server.getUrl() + "/configureTools");
+    } else {
+      driver.get(server.getUrl() + "/configure");
+    }
   }
 
   /**
@@ -349,8 +376,17 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return e;
   }
 
+  public void emulateBlur(WebElement e) {
+    JavascriptExecutor js = (JavascriptExecutor) driver;
+    js.executeScript("var obj = arguments[0];"
+      + "var ev = document.createEvent('MouseEvents');"
+      + "ev.initEvent('blur', true, false);"
+      + "obj.dispatchEvent(ev);"
+      + "return true;", e);
+  }
+
   public JenkinsOrchestrator configureSQScannerInstallation(String version, int index) {
-    driver.get(server.getUrl() + "/configure");
+    openConfigureToolsPage();
 
     SonarScannerInstaller installer = new SonarScannerInstaller(config.fileSystem());
     File runnerScript = installer.install(Version.create(version), config.fileSystem().workspace(), true);
@@ -374,7 +410,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public JenkinsOrchestrator configureMsBuildSQScanner_installation(String version, int index) {
-    driver.get(server.getUrl() + "/configure");
+    openConfigureToolsPage();
 
     if (index > 0) {
       findElement(buttonByText("SonarQube Scanner for MSBuild installations...")).click();
@@ -512,21 +548,14 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public JenkinsOrchestrator disablePlugin(String name) throws IOException {
-    File f = new File(new File(server.getHome(), "plugins"), name + ".hpi.disabled");
-    f.createNewFile();
-    return this;
-  }
-
-  public JenkinsOrchestrator enablePlugin(String name) {
-    File f = new File(new File(server.getHome(), "plugins"), name + ".hpi.disabled");
-    FileUtils.deleteQuietly(f);
+  public JenkinsOrchestrator installPlugin(String pluginKey) {
+    cli.execute("install-plugin", pluginKey, "-deploy");
     return this;
   }
 
   public BuildResult executeJob(String jobName) {
     BuildResult result = executeJobQuietly(jobName);
-    if (result.getStatus() != 0) {
+    if (!result.isSuccess()) {
       throw new RuntimeException("Error during build of " + jobName + "\n" + result.getLogs());
     }
     return result;
@@ -622,14 +651,14 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public void assertNoSonarPublisher(String jobName, File projectPath) {
-    newFreestyleJobConfig(jobName, projectPath);
-
-    WebElement addPostBuildButton = findElement(buttonByText("Add post-build action"));
-    scrollTo(addPostBuildButton);
-    addPostBuildButton.click();
-    findElement(By.linkText("SonarQube analysis with Maven")).click();
-    assertNoElement(By.xpath("//div[@descriptorid='hudson.plugins.sonar.SonarPublisher']"));
-    findElement(buttonByText("Save")).click();
+    try {
+      newFreestyleJobConfig(jobName, projectPath);
+      findElement(buttonByText("Add post-build action")).click();
+      assertNoElement(MAVEN_POST_BUILD_LABEL);
+      // Save to avoid alert asking if we want to leave
+    } finally {
+      findElement(buttonByText("Save")).click();
+    }
   }
 
   public void select(WebElement element, String optionValue) {

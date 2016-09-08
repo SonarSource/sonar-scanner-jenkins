@@ -25,10 +25,8 @@ import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
-import com.sonar.orchestrator.locator.URLLocation;
 import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URL;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -55,10 +53,15 @@ public class JenkinsTest {
 
   @BeforeClass
   public static void setUpJenkins() throws MalformedURLException {
+    if (jenkins.getServer().getVersion().isGreaterThan("2")) {
+      // Maven plugin no more installed by default
+      jenkins.installPlugin("maven-plugin");
+    }
+
     Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
-      .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/jquery/1.11.2-0/jquery.hpi")))
-      .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/filesystem_scm/1.20/filesystem_scm.hpi")))
+      .installPlugin("jquery")
+      .installPlugin("filesystem_scm")
       .installPlugin(sqJenkinsPluginLocation)
       .configureMavenInstallation()
       // Single installation

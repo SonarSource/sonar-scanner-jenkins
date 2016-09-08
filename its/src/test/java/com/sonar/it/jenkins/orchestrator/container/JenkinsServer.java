@@ -19,6 +19,7 @@
  */
 package com.sonar.it.jenkins.orchestrator.container;
 
+import com.sonar.orchestrator.version.Version;
 import java.io.File;
 
 public class JenkinsServer {
@@ -48,8 +49,8 @@ public class JenkinsServer {
     return distribution;
   }
 
-  public String getVersion() {
-    return distribution.getVersion();
+  public Version getVersion() {
+    return Version.create(distribution.getVersion());
   }
 
 }

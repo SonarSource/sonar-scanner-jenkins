@@ -6,8 +6,17 @@ SQ_VERSION:
   - DEV
   - LTS
 
+JENKINS_VERSION:
+  - 1.651.3
+  - 2.7.3
+
 SLAVE:
   - linux
 
 exclude:
+  - SQ_VERSION: LTS
+    JENKINS_VERSION: 2.7.3
+
+  - SQ_VERSION: DEV
+    JENKINS_VERSION: 1.651.3
   

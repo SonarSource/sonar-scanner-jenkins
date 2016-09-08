@@ -56,11 +56,9 @@ public class JenkinsWithoutMaven {
     orchestrator.resetData();
     Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
-      .disablePlugin("maven-plugin")
       .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/jquery/1.11.2-0/jquery.hpi")))
       .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/filesystem_scm/1.20/filesystem_scm.hpi")))
       .installPlugin(sqJenkinsPluginLocation)
-      .configureMavenInstallation()
       .configureSQScannerInstallation("2.4", 0)
       .configureSQScannerInstallation("2.6.1", 1)
       .configureMsBuildSQScanner_installation("1.1", 0)
@@ -158,7 +156,8 @@ public class JenkinsWithoutMaven {
   @Test
   public void testNoSonarPublisher() {
     String jobName = "no Sonar Publisher";
-    jenkins.assertNoSonarPublisher(jobName, new File("projects", "noPublisher"));
+    jenkins
+      .assertNoSonarPublisher(jobName, new File("projects", "noPublisher"));
   }
 
 }
