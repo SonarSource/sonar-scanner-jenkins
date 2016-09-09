@@ -63,6 +63,7 @@ import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -412,6 +413,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return this;
   }
 
+  @Symbol("sonarScanner")
   @Extension
   public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
