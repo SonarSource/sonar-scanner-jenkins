@@ -214,15 +214,8 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
   @Override
   public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
-    boolean success = performInternal(run, workspace, launcher, listener);
-    if (!success) {
-      throw new AbortException("Error during execution of the SonarQube Scanner");
-    }
-  }
-
-  private boolean performInternal(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
     if (!SonarInstallation.isValid(getInstallationName(), listener)) {
-      return false;
+      throw new AbortException("Invalid Sonar installation");
     }
 
     ArgumentListBuilder args = new ArgumentListBuilder();
@@ -238,8 +231,9 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       String exe = sri.getExecutable(launcher);
       if (exe == null) {
         Logger.printFailureMessage(listener);
-        listener.fatalError(Messages.SonarScanner_ExecutableNotFound(sri.getName()));
-        return false;
+        String msg = Messages.SonarScanner_ExecutableNotFound(sri.getName());
+        listener.fatalError(msg);
+        throw new AbortException(msg);
       }
       args.add(exe);
     }
@@ -248,9 +242,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     addTaskArgument(args);
     addAdditionalArguments(args, sonarInst);
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    if (!populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst)) {
-      return false;
-    }
+    populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst);
 
     // Java
     computeJdkToUse(run, workspace, listener, env);
@@ -261,18 +253,21 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     env.put("SONAR_RUNNER_OPTS", getJavaOpts());
 
     long startTime = System.currentTimeMillis();
-    int r;
+    int exitCode;
     try {
-      r = executeSonarRunner(run, workspace, launcher, listener, args, env);
+      exitCode = executeSonarRunner(run, workspace, launcher, listener, args, env);
     } catch (IOException e) {
       handleErrors(run, listener, sri, startTime, e);
-      r = -1;
+      exitCode = -1;
     }
 
     // with workflows, we don't have realtime access to build logs, so url might be null
     // if the analyis doesn't succeed, it will also be null
     SonarUtils.addBuildInfoTo(run, getSonarInstallation().getName());
-    return r == 0;
+
+    if (exitCode != 0) {
+      throw new AbortException("Sonar runner exited with non-zero code: " + exitCode);
+    }
   }
 
   private void handleErrors(Run<?, ?> build, TaskListener listener, SonarRunnerInstallation sri, long startTime, IOException e) {
@@ -331,7 +326,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   }
 
   @VisibleForTesting
-  boolean populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
+  void populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
     TaskListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.jdbc.url", si.getDatabaseUrl());
@@ -358,8 +353,9 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
         // first check if this appears to be a valid relative path from workspace root
         if (workspace == null) {
-          listener.fatalError("Project workspace is null");
-          return false;
+          String msg = "Project workspace is null";
+          listener.fatalError(msg);
+          throw new AbortException(msg);
         }
         FilePath projectSettingsFilePath2 = workspace.child(projectSettingsFile);
         if (projectSettingsFilePath2.exists()) {
@@ -367,8 +363,9 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
           projectSettingsFilePath = projectSettingsFilePath2;
         } else {
           // neither file exists. So this now really does look like an error.
-          listener.fatalError("Unable to find Sonar project settings at " + projectSettingsFilePath);
-          return false;
+          String msg = "Unable to find Sonar project settings at " + projectSettingsFilePath;
+          listener.fatalError(msg);
+          throw new AbortException(msg);
         }
       }
       args.append("project.settings", projectSettingsFilePath.getRemote());
@@ -383,8 +380,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       FilePath moduleRoot = BuilderUtils.getModuleRoot(build, workspace);
       args.append("sonar.projectBaseDir", moduleRoot.getRemote());
     }
-
-    return true;
   }
 
   private void loadProperties(ExtendedArgumentListBuilder args, Properties p) {
