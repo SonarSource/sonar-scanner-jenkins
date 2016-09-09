@@ -65,6 +65,7 @@ import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  * @since 1.7
@@ -75,10 +76,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
    * Identifies {@link SonarInstallation} to be used.
    */
   private String installationName;
-  private final String project;
-  private final String properties;
-  private final String javaOpts;
-  private final String additionalArguments;
+  private String project;
+  private String properties;
+  private String javaOpts;
+  private String additionalArguments;
 
   /**
    * Identifies {@link JDK} to be used.
@@ -110,9 +111,15 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
    * Optional task to run
    * @since 2.1
    */
-  private final String task;
+  private String task;
 
   @DataBoundConstructor
+  public SonarRunnerBuilder() {
+    // all fields are optional
+  }
+
+  // We're moving to using @DataBoundSetter instead and a much leaner @DataBoundConstructor
+  @Deprecated
   public SonarRunnerBuilder(String installationName, String sonarScannerName, String project, String properties, String javaOpts, String jdk, String task,
     String additionalArguments) {
     this.installationName = installationName;
@@ -132,6 +139,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(installationName);
   }
 
+  @DataBoundSetter
   public void setInstallationName(String installationName) {
     this.installationName = installationName;
   }
@@ -143,6 +151,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(sonarScannerName);
   }
 
+  @DataBoundSetter
   public void setSonarScannerName(String sonarScannerName) {
     this.sonarScannerName = sonarScannerName;
   }
@@ -155,9 +164,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   }
 
   public String getJdk() {
-    return jdk;
+    return Util.fixNull(jdk);
   }
 
+  @DataBoundSetter
   public void setJdk(String jdk) {
     this.jdk = jdk;
   }
@@ -169,11 +179,20 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(project);
   }
 
+  public void setProject(String project) {
+    this.project = project;
+  }
+
   /**
    * @return additional properties, never <tt>null</tt>
    */
   public String getProperties() {
     return Util.fixNull(properties);
+  }
+
+  @DataBoundSetter
+  public void setProperties(String properties) {
+    this.properties = properties;
   }
 
   /**
@@ -183,8 +202,18 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(javaOpts);
   }
 
+  @DataBoundSetter
+  public void setJavaOpts(String javaOpts) {
+    this.javaOpts = javaOpts;
+  }
+
   public String getAdditionalArguments() {
     return Util.fixNull(additionalArguments);
+  }
+
+  @DataBoundSetter
+  public void setAdditionalArguments(String additionalArguments) {
+    this.additionalArguments = additionalArguments;
   }
 
   public SonarInstallation getSonarInstallation() {
@@ -192,7 +221,12 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   }
 
   public String getTask() {
-    return task;
+    return Util.fixNull(task);
+  }
+
+  @DataBoundSetter
+  public void setTask(String task) {
+    this.task = task;
   }
 
   @Override
