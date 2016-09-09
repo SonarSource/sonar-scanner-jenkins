@@ -59,12 +59,12 @@ public class SonarRunnerBuilderJdkSlicer extends UnorderedStringSlicer<Project<?
 
     @Override
     protected String doGetValue(SonarRunnerBuilder builder) {
-      return defaultValueIfBlank(builder.getJdkName());
+      return defaultValueIfBlank(builder.getJdk());
     }
 
     @Override
     protected void doSetValue(SonarRunnerBuilder builder, String value) {
-      builder.setJdkName(nullIfDefaultValue(value));
+      builder.setJdk(nullIfDefaultValue(value));
     }
 
     @Override
