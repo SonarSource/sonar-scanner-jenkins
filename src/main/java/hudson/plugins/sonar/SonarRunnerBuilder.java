@@ -164,7 +164,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   }
 
   public String getJdk() {
-    return Util.fixNull(jdk);
+    return jdk != null && !jdk.isEmpty() ? jdk : "(Inherit From Job)";
   }
 
   @DataBoundSetter
