@@ -62,6 +62,7 @@ import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SonarBuildWrapper extends SimpleBuildWrapper {
@@ -225,6 +226,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     this.installationName = installationName;
   }
 
+  @Symbol("withSonarQubeEnv")
   @Extension
   public static final class DescriptorImpl extends BuildWrapperDescriptor {
     @Override
