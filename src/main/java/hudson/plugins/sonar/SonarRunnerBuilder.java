@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map.Entry;
 import java.util.Properties;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
@@ -159,6 +160,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   /**
    * Gets the JDK that this Sonar builder is configured with, or null.
    */
+  @CheckForNull
   public JDK getJdkFromJenkins() {
     return Jenkins.getInstance().getJDK(jdk);
   }
@@ -250,7 +252,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   @Override
   public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
     if (!SonarInstallation.isValid(getInstallationName(), listener)) {
-      throw new AbortException("Invalid Sonar installation");
+      throw new AbortException("Invalid SonarQube server installation");
     }
 
     ArgumentListBuilder args = new ArgumentListBuilder();
@@ -290,7 +292,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     long startTime = System.currentTimeMillis();
     int exitCode;
     try {
-      exitCode = executeSonarRunner(run, workspace, launcher, listener, args, env);
+      exitCode = executeSonarQubeScanner(run, workspace, launcher, listener, args, env);
     } catch (IOException e) {
       handleErrors(run, listener, sri, startTime, e);
       exitCode = -1;
@@ -301,7 +303,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     SonarUtils.addBuildInfoTo(run, getSonarInstallation().getName());
 
     if (exitCode != 0) {
-      throw new AbortException("Sonar runner exited with non-zero code: " + exitCode);
+      throw new AbortException("SonarQube scanner exited with non-zero code: " + exitCode);
     }
   }
 
@@ -317,7 +319,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     e.printStackTrace(listener.fatalError(errorMessage));
   }
 
-  private static int executeSonarRunner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
+  private static int executeSonarQubeScanner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
     InterruptedException {
     return launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(build, workspace)).join();
   }
@@ -398,7 +400,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
           projectSettingsFilePath = projectSettingsFilePath2;
         } else {
           // neither file exists. So this now really does look like an error.
-          String msg = "Unable to find Sonar project settings at " + projectSettingsFilePath;
+          String msg = "Unable to find SonarQube project settings at " + projectSettingsFilePath;
           listener.fatalError(msg);
           throw new AbortException(msg);
         }
