@@ -39,10 +39,10 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.maven.agent.AbortException;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
-import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.JDK;
 import hudson.model.Run;
@@ -59,11 +59,14 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map.Entry;
 import java.util.Properties;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  * @since 1.7
@@ -74,10 +77,10 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
    * Identifies {@link SonarInstallation} to be used.
    */
   private String installationName;
-  private final String project;
-  private final String properties;
-  private final String javaOpts;
-  private final String additionalArguments;
+  private String project;
+  private String properties;
+  private String javaOpts;
+  private String additionalArguments;
 
   /**
    * Identifies {@link JDK} to be used.
@@ -109,9 +112,15 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
    * Optional task to run
    * @since 2.1
    */
-  private final String task;
+  private String task;
 
   @DataBoundConstructor
+  public SonarRunnerBuilder() {
+    // all fields are optional
+  }
+
+  // We're moving to using @DataBoundSetter instead and a much leaner @DataBoundConstructor
+  @Deprecated
   public SonarRunnerBuilder(String installationName, String sonarScannerName, String project, String properties, String javaOpts, String jdk, String task,
     String additionalArguments) {
     this.installationName = installationName;
@@ -131,6 +140,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(installationName);
   }
 
+  @DataBoundSetter
   public void setInstallationName(String installationName) {
     this.installationName = installationName;
   }
@@ -142,6 +152,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(sonarScannerName);
   }
 
+  @DataBoundSetter
   public void setSonarScannerName(String sonarScannerName) {
     this.sonarScannerName = sonarScannerName;
   }
@@ -149,15 +160,17 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   /**
    * Gets the JDK that this Sonar builder is configured with, or null.
    */
-  public JDK getJDK() {
+  @CheckForNull
+  public JDK getJdkFromJenkins() {
     return Jenkins.getInstance().getJDK(jdk);
   }
 
-  public String getJdkName() {
-    return jdk;
+  public String getJdk() {
+    return jdk != null && !jdk.isEmpty() ? jdk : "(Inherit From Job)";
   }
 
-  public void setJdkName(String jdk) {
+  @DataBoundSetter
+  public void setJdk(String jdk) {
     this.jdk = jdk;
   }
 
@@ -168,11 +181,20 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(project);
   }
 
+  public void setProject(String project) {
+    this.project = project;
+  }
+
   /**
    * @return additional properties, never <tt>null</tt>
    */
   public String getProperties() {
     return Util.fixNull(properties);
+  }
+
+  @DataBoundSetter
+  public void setProperties(String properties) {
+    this.properties = properties;
   }
 
   /**
@@ -182,8 +204,18 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(javaOpts);
   }
 
+  @DataBoundSetter
+  public void setJavaOpts(String javaOpts) {
+    this.javaOpts = javaOpts;
+  }
+
   public String getAdditionalArguments() {
     return Util.fixNull(additionalArguments);
+  }
+
+  @DataBoundSetter
+  public void setAdditionalArguments(String additionalArguments) {
+    this.additionalArguments = additionalArguments;
   }
 
   public SonarInstallation getSonarInstallation() {
@@ -191,7 +223,12 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   }
 
   public String getTask() {
-    return task;
+    return Util.fixNull(task);
+  }
+
+  @DataBoundSetter
+  public void setTask(String task) {
+    this.task = task;
   }
 
   @Override
@@ -214,12 +251,8 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
   @Override
   public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
-    performInternal(run, workspace, launcher, listener);
-  }
-
-  private boolean performInternal(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
     if (!SonarInstallation.isValid(getInstallationName(), listener)) {
-      return false;
+      throw new AbortException("Invalid SonarQube server installation");
     }
 
     ArgumentListBuilder args = new ArgumentListBuilder();
@@ -235,8 +268,9 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       String exe = sri.getExecutable(launcher);
       if (exe == null) {
         Logger.printFailureMessage(listener);
-        listener.fatalError(Messages.SonarScanner_ExecutableNotFound(sri.getName()));
-        return false;
+        String msg = Messages.SonarScanner_ExecutableNotFound(sri.getName());
+        listener.fatalError(msg);
+        throw new AbortException(msg);
       }
       args.add(exe);
     }
@@ -245,9 +279,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     addTaskArgument(args);
     addAdditionalArguments(args, sonarInst);
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    if (!populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst)) {
-      return false;
-    }
+    populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst);
 
     // Java
     computeJdkToUse(run, workspace, listener, env);
@@ -258,23 +290,21 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     env.put("SONAR_RUNNER_OPTS", getJavaOpts());
 
     long startTime = System.currentTimeMillis();
-    int r;
+    int exitCode;
     try {
-      r = executeSonarRunner(run, workspace, launcher, listener, args, env);
+      exitCode = executeSonarQubeScanner(run, workspace, launcher, listener, args, env);
     } catch (IOException e) {
       handleErrors(run, listener, sri, startTime, e);
-      r = -1;
+      exitCode = -1;
     }
 
     // with workflows, we don't have realtime access to build logs, so url might be null
     // if the analyis doesn't succeed, it will also be null
     SonarUtils.addBuildInfoTo(run, getSonarInstallation().getName());
-    return r == 0;
-  }
 
-  @Override
-  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    return performInternal(build, build.getWorkspace(), launcher, listener);
+    if (exitCode != 0) {
+      throw new AbortException("SonarQube scanner exited with non-zero code: " + exitCode);
+    }
   }
 
   private void handleErrors(Run<?, ?> build, TaskListener listener, SonarRunnerInstallation sri, long startTime, IOException e) {
@@ -289,8 +319,8 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     e.printStackTrace(listener.fatalError(errorMessage));
   }
 
-  private static int executeSonarRunner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env) throws IOException,
-    InterruptedException {
+  private static int executeSonarQubeScanner(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, ArgumentListBuilder args, EnvVars env)
+    throws IOException, InterruptedException {
     return launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(build, workspace)).join();
   }
 
@@ -333,7 +363,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   }
 
   @VisibleForTesting
-  boolean populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
+  void populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
     TaskListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.jdbc.url", si.getDatabaseUrl());
@@ -360,8 +390,9 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
         // first check if this appears to be a valid relative path from workspace root
         if (workspace == null) {
-          listener.fatalError("Project workspace is null");
-          return false;
+          String msg = "Project workspace is null";
+          listener.fatalError(msg);
+          throw new AbortException(msg);
         }
         FilePath projectSettingsFilePath2 = workspace.child(projectSettingsFile);
         if (projectSettingsFilePath2.exists()) {
@@ -369,8 +400,9 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
           projectSettingsFilePath = projectSettingsFilePath2;
         } else {
           // neither file exists. So this now really does look like an error.
-          listener.fatalError("Unable to find Sonar project settings at " + projectSettingsFilePath);
-          return false;
+          String msg = "Unable to find SonarQube project settings at " + projectSettingsFilePath;
+          listener.fatalError(msg);
+          throw new AbortException(msg);
         }
       }
       args.append("project.settings", projectSettingsFilePath.getRemote());
@@ -385,8 +417,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
       FilePath moduleRoot = BuilderUtils.getModuleRoot(build, workspace);
       args.append("sonar.projectBaseDir", moduleRoot.getRemote());
     }
-
-    return true;
   }
 
   private void loadProperties(ExtendedArgumentListBuilder args, Properties p) {
@@ -399,7 +429,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
    * @return JDK to be used with this project.
    */
   private JDK getJdkToUse(@Nullable AbstractProject<?, ?> project) {
-    JDK jdkToUse = getJDK();
+    JDK jdkToUse = getJdkFromJenkins();
     if (jdkToUse == null && project != null) {
       jdkToUse = project.getJDK();
     }
@@ -419,6 +449,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return this;
   }
 
+  @Symbol("sonarScanner")
   @Extension
   public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
