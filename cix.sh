@@ -19,5 +19,4 @@ mv sonar-$NEW_VERSION.hpi sonar.hpi
 cd ..
 
 cd its
-export MAVEN_HOME=`dirname $(dirname $(readlink -f $(which mvn)))`
 mvn -B -e -Djenkins.runtimeVersion="$JENKINS_VERSION" -Dsonar.runtimeVersion="$SQ_VERSION" -Dmaven.test.redirectTestOutputToFile=false verify 
