@@ -69,9 +69,11 @@ import org.sonar.wsclient.qualitygate.QualityGates;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class JenkinsOrchestrator extends SingleStartExternalResource {
+  private static final Logger LOG = LoggerFactory.getLogger(JenkinsOrchestrator.class);
+
   private static final By MAVEN_POST_BUILD_LABEL = By.linkText("SonarQube analysis with Maven");
 
-  private static final Logger LOG = LoggerFactory.getLogger(JenkinsOrchestrator.class);
+  public static final String DEFAULT_SONAR_QUBE_INSTALLATION = "SonarQube";
 
   private final Configuration config;
   private final JenkinsDistribution distribution;
@@ -449,7 +451,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     driver.get(server.getUrl() + "/configure");
     findElement(buttonByText("Add SonarQube")).click();
 
-    setTextValue(findElement(By.name("sonar.name")), "SonarQube");
+    setTextValue(findElement(By.name("sonar.name")), DEFAULT_SONAR_QUBE_INSTALLATION);
     setTextValue(findElement(By.name("sonar.serverUrl")), orchestrator.getServer().getUrl());
     findElement(buttonByTextAfterElementByXpath("Advanced...", "//.[@name='sonar.name']")).click();
 
