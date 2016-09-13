@@ -167,6 +167,10 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return distribution;
   }
 
+  public CLI getCli() {
+    return cli;
+  }
+
   /**
    * Use environment variables and system properties
    */
