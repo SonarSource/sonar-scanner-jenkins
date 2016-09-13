@@ -21,7 +21,6 @@ package com.sonar.it.jenkins;
 
 import com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator;
 import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import hudson.cli.CLI;
@@ -30,7 +29,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 import org.apache.commons.io.output.NullOutputStream;
-import org.apache.commons.io.output.WriterOutputStream;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -65,7 +63,7 @@ public class JenkinsPipelineTest {
   }
 
   @Test
-  public void no_sq_vars_without_env_wrapper() throws FailedExecutionException {
+  public void no_sq_vars_without_env_wrapper() throws JenkinsOrchestrator.FailedExecutionException {
     String logs = runAndGetLogs("no-withSonarQubeEnv", DUMP_ENV_VARS_PIPELINE_CMD);
     try {
       verifyEnvVarsExist(logs);
@@ -76,37 +74,31 @@ public class JenkinsPipelineTest {
   }
 
   @Test
-  public void env_wrapper_without_params_should_inject_sq_vars() throws FailedExecutionException {
+  public void env_wrapper_without_params_should_inject_sq_vars() throws JenkinsOrchestrator.FailedExecutionException {
     String script = "withSonarQubeEnv { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-parameterless", script);
   }
 
   @Test
-  public void env_wrapper_with_specific_sq_should_inject_sq_vars() throws FailedExecutionException {
+  public void env_wrapper_with_specific_sq_should_inject_sq_vars() throws JenkinsOrchestrator.FailedExecutionException {
     String script = "withSonarQubeEnv('" + DEFAULT_SONAR_QUBE_INSTALLATION + "') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-SonarQube", script);
   }
 
-  @Test(expected = FailedExecutionException.class)
-  public void env_wrapper_with_nonexistent_sq_should_fail() throws FailedExecutionException {
+  @Test(expected = JenkinsOrchestrator.FailedExecutionException.class)
+  public void env_wrapper_with_nonexistent_sq_should_fail() throws JenkinsOrchestrator.FailedExecutionException {
     String script = "withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-nonexistent", script);
   }
 
-  private void runAndVerifyEnvVarsExist(String jobName, String script) throws FailedExecutionException {
+  private void runAndVerifyEnvVarsExist(String jobName, String script) throws JenkinsOrchestrator.FailedExecutionException {
     String logs = runAndGetLogs(jobName, script);
     verifyEnvVarsExist(logs);
   }
 
-  private String runAndGetLogs(String jobName, String script) throws FailedExecutionException {
+  private String runAndGetLogs(String jobName, String script) throws JenkinsOrchestrator.FailedExecutionException {
     createPipelineJobFromScript(jobName, script);
-    return executeJob(jobName).getLogs();
-  }
-
-  private static class FailedExecutionException extends Exception {
-    FailedExecutionException(String message) {
-      super(message);
-    }
+    return jenkins.executeJob(jobName).getLogs();
   }
 
   private void verifyEnvVarsExist(String logs) {
@@ -115,25 +107,6 @@ public class JenkinsPipelineTest {
     assertThat(logs).contains("SONAR_HOST_URL=");
     assertThat(logs).contains("SONAR_MAVEN_GOAL=sonar:sonar");
     assertThat(logs).contains("SONARQUBE_SCANNER_PARAMS={ \"sonar.host.url\" : \"http:\\/\\/localhost:");
-  }
-
-  private BuildResult executeJob(String jobName) throws FailedExecutionException {
-    BuildResult result = executeJobQuietly(jobName);
-    if (!result.isSuccess()) {
-      throw new FailedExecutionException("Error during build of " + jobName + "\n" + result.getLogs());
-    }
-    return result;
-  }
-
-  // note: jenkins.executeJobQuietly doesn't work, as it uses the console command,
-  // which seems to have a bug and doesn't see pipeline jobs, as if they don't exist
-  // TODO check if rewriting jenkins.executeJobQuietly will not break other tests
-  private BuildResult executeJobQuietly(String jobName) {
-    BuildResult result = new BuildResult();
-    WriterOutputStream out = new WriterOutputStream(result.getLogsWriter());
-    int exitCode = cli.execute(Arrays.asList("build", jobName, "-s", "-v"), null, out, out);
-    result.addStatus(exitCode);
-    return result;
   }
 
   private static void createPipelineJobFromScript(String jobName, String script) {
