@@ -59,13 +59,13 @@ import org.junit.Test;
 import org.jvnet.hudson.test.TestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.contains;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class SonarBuildWrapperTest extends SonarTestCase {
+
   private SonarBuildWrapper wrapper;
   private SonarInstallation installation;
   private PrintStream stream;
@@ -207,8 +207,13 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     // non existing installation
     BuildListener listener = mock(BuildListener.class);
     when(listener.getLogger()).thenReturn(stream);
-    wrapper.setUp(mock(AbstractBuild.class), mock(Launcher.class), listener);
-    verify(listener).fatalError(contains("does not match"));
+
+    try {
+      wrapper.setUp(mock(AbstractBuild.class), mock(Launcher.class), listener);
+      fail("Expected exception");
+    } catch (AbortException e) {
+      assertThat(e).hasMessageContaining("does not match");
+    }
   }
 
   @Test
