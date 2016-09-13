@@ -33,6 +33,7 @@
  */
 package hudson.plugins.sonar;
 
+import hudson.AbortException;
 import hudson.Util;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.model.TriggersConfig;
@@ -153,6 +154,22 @@ public class SonarInstallation implements Serializable {
   }
 
   public static boolean isValid(String sonarInstallationName, TaskListener listener) {
+    String failureMsg = validationMsg(sonarInstallationName);
+    if (failureMsg != null) {
+      listener.fatalError(failureMsg);
+      return false;
+    }
+    return true;
+  }
+
+  public static void checkValid(String sonarInstallationName) throws AbortException {
+    String failureMsg = validationMsg(sonarInstallationName);
+    if (failureMsg != null) {
+      throw new AbortException(failureMsg);
+    }
+  }
+
+  private static String validationMsg(String sonarInstallationName) {
     String failureMsg;
     SonarInstallation sonarInstallation = SonarInstallation.get(sonarInstallationName);
     if (sonarInstallation == null) {
@@ -165,11 +182,7 @@ public class SonarInstallation implements Serializable {
     } else {
       failureMsg = null;
     }
-    if (failureMsg != null) {
-      listener.fatalError(failureMsg);
-      return false;
-    }
-    return true;
+    return failureMsg;
   }
 
   /**

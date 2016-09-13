@@ -78,10 +78,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
   public void setUp(Context context, Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment)
     throws IOException, InterruptedException {
 
-    if (!SonarInstallation.isValid(getInstallationName(), listener)) {
-      return;
-    }
-
+    SonarInstallation.checkValid(getInstallationName());
     SonarInstallation installation = SonarInstallation.get(getInstallationName());
 
     String msg = Messages.SonarBuildWrapper_Injecting(installation.getName());
