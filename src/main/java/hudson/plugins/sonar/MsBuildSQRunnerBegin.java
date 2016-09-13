@@ -77,6 +77,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
 
   @DataBoundConstructor
   public MsBuildSQRunnerBegin() {
+    // no mandatory field by default
   }
 
   /**
@@ -243,14 +244,6 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     }
 
     public FormValidation doCheckProjectKey(@QueryParameter String value) {
-      return checkNotEmpty(value);
-    }
-
-    public FormValidation doCheckProjectName(@QueryParameter String value) {
-      return checkNotEmpty(value);
-    }
-
-    public FormValidation doCheckProjectVersion(@QueryParameter String value) {
       return checkNotEmpty(value);
     }
 
