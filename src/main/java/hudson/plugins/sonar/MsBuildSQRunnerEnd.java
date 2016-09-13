@@ -53,6 +53,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
@@ -130,6 +131,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     return new SonarMarkerAction();
   }
 
+  @Symbol("sonarScannerMSBuildEnd")
   @Extension
   public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
     @Override

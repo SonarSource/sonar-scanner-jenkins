@@ -53,7 +53,9 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
@@ -67,13 +69,20 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
    * @since 2.4.3
    */
   private String msBuildScannerInstallationName;
-  private final String sonarInstallationName;
-  private final String projectKey;
-  private final String projectName;
-  private final String projectVersion;
-  private final String additionalArguments;
+  private String sonarInstallationName;
+  private String projectKey;
+  private String projectName;
+  private String projectVersion;
+  private String additionalArguments;
 
   @DataBoundConstructor
+  public MsBuildSQRunnerBegin() {
+  }
+
+  /**
+   * @deprecated since 2.5. Moved to use {@link DataBoundSetter}
+   */
+  @Deprecated
   public MsBuildSQRunnerBegin(String msBuildScannerInstallationName, String sonarInstallationName, String projectKey, String projectName, String projectVersion,
     String additionalArguments) {
     this.msBuildScannerInstallationName = msBuildScannerInstallationName;
@@ -153,41 +162,69 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     return (DescriptorImpl) super.getDescriptor();
   }
 
-  /*
-   * FOR UI
-   */
   public String getProjectKey() {
-    return Util.fixEmptyAndTrim(projectKey);
+    return Util.fixNull(projectKey);
+  }
+
+  @DataBoundSetter
+  public void setProjectKey(String projectKey) {
+    this.projectKey = projectKey;
   }
 
   public String getProjectVersion() {
-    return Util.fixEmptyAndTrim(projectVersion);
+    return Util.fixNull(projectVersion);
+  }
+
+  @DataBoundSetter
+  public void setProjectVersion(String projectVersion) {
+    this.projectVersion = projectVersion;
   }
 
   public String getProjectName() {
-    return Util.fixEmptyAndTrim(projectName);
+    return Util.fixNull(projectName);
+  }
+
+  @DataBoundSetter
+  public void setProjectName(String projectName) {
+    this.projectName = projectName;
   }
 
   public String getSonarInstallationName() {
-    return Util.fixEmptyAndTrim(sonarInstallationName);
+    return Util.fixNull(sonarInstallationName);
+  }
+
+  @DataBoundSetter
+  public void setSonarInstallationName(String sonarInstallationName) {
+    this.sonarInstallationName = sonarInstallationName;
   }
 
   public String getMsBuildScannerInstallationName() {
-    return Util.fixEmptyAndTrim(msBuildScannerInstallationName);
+    return Util.fixNull(msBuildScannerInstallationName);
+  }
+
+  @DataBoundSetter
+  public void setMsBuildScannerInstallationName(String msBuildScannerInstallationName) {
+    this.msBuildScannerInstallationName = msBuildScannerInstallationName;
   }
 
   public String getAdditionalArguments() {
-    return Util.fixEmptyAndTrim(additionalArguments);
+    return Util.fixNull(additionalArguments);
+  }
+
+  @DataBoundSetter
+  public void setAdditionalArguments(String additionalArguments) {
+    this.additionalArguments = additionalArguments;
   }
 
   protected Object readResolve() {
     // Migrate old field to new field
     if (msBuildRunnerInstallationName != null) {
-      msBuildScannerInstallationName = msBuildRunnerInstallationName;
+      msBuildScannerInstallationName = Util.fixNull(msBuildRunnerInstallationName);
     }
     return this;
   }
 
+  @Symbol("sonarScannerMSBuildBegin")
   @Extension
   public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
     @Override
