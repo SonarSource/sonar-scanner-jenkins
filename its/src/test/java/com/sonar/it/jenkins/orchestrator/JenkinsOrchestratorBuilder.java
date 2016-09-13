@@ -24,11 +24,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsDistribution;
 import com.sonar.orchestrator.config.Configuration;
-import org.apache.commons.lang.StringUtils;
-
-import javax.annotation.Nullable;
-
 import java.util.Map;
+import javax.annotation.Nullable;
+import org.apache.commons.lang.StringUtils;
 
 public class JenkinsOrchestratorBuilder {
 
@@ -77,6 +75,8 @@ public class JenkinsOrchestratorBuilder {
     Preconditions.checkState(!Strings.isNullOrEmpty(version), "Missing Jenkins version");
 
     this.distribution.setVersion(version);
+    System.out.println("DEBUG !!!! maven.home=" + finalConfig.getString("maven.home"));
+    System.out.println("DEBUG !!!! maven.home=" + finalConfig.fileSystem().mavenHome());
     return new JenkinsOrchestrator(finalConfig, distribution);
   }
 }
