@@ -292,8 +292,8 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public JenkinsOrchestrator newFreestyleJobWithMsBuildSQRunner(String jobName, @Nullable String additionalArgs, File projectPath, String projectKey, String projectName,
-    String projectVersion, @Nullable String msbuildScannerVersion) {
+  public JenkinsOrchestrator newFreestyleJobWithScannerForMsBuild(String jobName, @Nullable String additionalArgs, File projectPath, String projectKey, String projectName,
+    String projectVersion, @Nullable String msbuildScannerVersion, @Nullable String solutionFile) {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
@@ -309,6 +309,13 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
     if (additionalArgs != null) {
       setTextValue(findElement(By.name("_.additionalArguments")), additionalArgs);
+    }
+
+    if (solutionFile != null) {
+      findElement(buttonByText("Add build step")).click();
+      findElement(By.linkText("Build a Visual Studio project or solution using MSBuild")).click();
+      select(findElement(By.name("msBuildBuilder.msBuildName")), "MSBuild");
+      setTextValue(findElement(By.name("msBuildBuilder.msBuildFile")), solutionFile);
     }
 
     findElement(buttonByText("Add build step")).click();
@@ -346,6 +353,21 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     setTextValue(findElement(By.name("_.name")), "Maven");
     findElement(By.name("hudson-tools-InstallSourceProperty")).click();
     setTextValue(findElement(By.name("_.home")), config.fileSystem().mavenHome().getAbsolutePath());
+    findElement(buttonByText("Save")).click();
+
+    return this;
+  }
+
+  public JenkinsOrchestrator configureMSBuildInstallation() {
+    if (config.getString("MSBUILD_PATH") == null) {
+      throw new RuntimeException("Please configure MSBUILD_PATH");
+    }
+    openConfigureToolsPage();
+
+    WebElement addMSBuildButton = findElement(buttonByText("Add MSBuild"));
+    addMSBuildButton.click();
+    setTextValue(findElement(By.name("_.name")), "MSBuild");
+    setTextValue(findElement(By.name("_.home")), config.getString("MSBUILD_PATH"));
     findElement(buttonByText("Save")).click();
 
     return this;
@@ -618,7 +640,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     try {
       List<WebElement> elms = driver.findElements(by);
       return scrollTo(elms.get(index));
-    } catch (NoSuchElementException e) {
+    } catch (NoSuchElementException | IndexOutOfBoundsException e) {
       System.err.println("Element not found. Save screenshot to: target/no_such_element.png");
       takeScreenshot(new File("target/no_such_element.png"));
       throw e;

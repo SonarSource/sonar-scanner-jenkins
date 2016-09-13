@@ -36,6 +36,9 @@ public class JenkinsTestSuite {
     // TODO Java projects should be replaced by Xoo projects
     .setOrchestratorProperty("javaVersion", "LATEST_RELEASE")
     .addPlugin("java")
+    // Needed by Scanner for MSBuild
+    .setOrchestratorProperty("csharpVersion", "LATEST_RELEASE")
+    .addPlugin("csharp")
     .restoreProfileAtStartup(FileLocation.ofClasspath("/com/sonar/it/jenkins/JenkinsTest/sonar-way-it-profile_java.xml"))
     .build();
 

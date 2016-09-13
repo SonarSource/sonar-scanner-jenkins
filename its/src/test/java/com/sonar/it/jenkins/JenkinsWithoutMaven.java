@@ -22,6 +22,7 @@ package com.sonar.it.jenkins;
 import com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.URLLocation;
@@ -29,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -37,6 +39,7 @@ import org.sonar.wsclient.services.PropertyUpdateQuery;
 import org.sonar.wsclient.services.ResourceQuery;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 public class JenkinsWithoutMaven {
   @ClassRule
@@ -58,12 +61,16 @@ public class JenkinsWithoutMaven {
     jenkins
       .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/jquery/1.11.2-0/jquery.hpi")))
       .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/filesystem_scm/1.20/filesystem_scm.hpi")))
+      .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/msbuild/1.26/msbuild.hpi")))
       .installPlugin(sqJenkinsPluginLocation)
       .configureSQScannerInstallation("2.4", 0)
       .configureSQScannerInstallation("2.6.1", 1)
       .configureMsBuildSQScanner_installation("1.1", 0)
       .configureMsBuildSQScanner_installation("2.0", 1)
       .configureSonarInstallation(orchestrator);
+    if (SystemUtils.IS_OS_WINDOWS) {
+      jenkins.configureMSBuildInstallation();
+    }
     jenkins.checkSavedSonarInstallation(orchestrator);
     jenkins.configureDefaultQG(orchestrator);
   }
@@ -116,13 +123,28 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
-  public void testFreestyleJobWithMsBuildSQRunner_2_0() {
+  public void testFreestyleJobWithScannerForMsBuild() {
+    assumeTrue(SystemUtils.IS_OS_WINDOWS);
+    String jobName = "csharp";
+    String projectKey = "csharp";
+    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    jenkins
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "csharp"), projectKey, "CSharp", "1.0", "2.0", "ConsoleApplication1.sln")
+      .executeJob(jobName);
+
+    waitForComputationOnSQServer();
+    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
+    assertSonarUrlOnJob(jobName, projectKey);
+  }
+
+  @Test
+  public void testFreestyleJobWithScannerForMsBuild_2_0() {
     File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
     String jobName = "abacus-msbuild-sq-runner-2-0";
     String projectKey = "abacus-msbuild-sq-runner-2-0";
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithMsBuildSQRunner(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "2.0")
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "2.0", null)
       .executeJobQuietly(jobName);
 
     assertThat(result.getLogs())
@@ -135,13 +157,13 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
-  public void testFreestyleJobWithMsBuildSQRunner_1_1() {
+  public void testFreestyleJobWithScannerForMsBuild_1_1() {
     File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
     String jobName = "abacus-msbuild-sq-runner-1-1";
     String projectKey = "abacus-msbuild-sq-runner-1-1";
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithMsBuildSQRunner(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "1.1")
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "1.1", null)
       .executeJobQuietly(jobName);
 
     assertThat(result.getLogs())
@@ -158,6 +180,15 @@ public class JenkinsWithoutMaven {
     String jobName = "no Sonar Publisher";
     jenkins
       .assertNoSonarPublisher(jobName, new File("projects", "noPublisher"));
+  }
+
+  private void assertSonarUrlOnJob(String jobName, String projectKey) {
+    assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
+    assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
+  }
+
+  private static void waitForComputationOnSQServer() {
+    new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();
   }
 
 }

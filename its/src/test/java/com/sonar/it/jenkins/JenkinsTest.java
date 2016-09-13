@@ -206,7 +206,7 @@ public class JenkinsTest {
     assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
   }
 
-  private void waitForComputationOnSQServer() {
+  private static void waitForComputationOnSQServer() {
     new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();
   }
 
