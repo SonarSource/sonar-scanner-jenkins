@@ -57,8 +57,7 @@ public class JenkinsPipelineTest {
       .installPlugin("workflow-aggregator")
       .installPlugin(sqJenkinsPluginLocation)
       .configureSQScannerInstallation("2.6.1", 0)
-      .configureSonarInstallation(orchestrator)
-    ;
+      .configureSonarInstallation(orchestrator);
     cli = jenkins.getCli();
   }
 
