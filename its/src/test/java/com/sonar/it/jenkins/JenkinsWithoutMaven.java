@@ -20,6 +20,7 @@
 package com.sonar.it.jenkins;
 
 import com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator;
+import com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator.FailedExecutionException;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
@@ -123,7 +124,7 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
-  public void testFreestyleJobWithScannerForMsBuild() {
+  public void testFreestyleJobWithScannerForMsBuild() throws FailedExecutionException {
     assumeTrue(SystemUtils.IS_OS_WINDOWS);
     String jobName = "csharp";
     String projectKey = "csharp";
