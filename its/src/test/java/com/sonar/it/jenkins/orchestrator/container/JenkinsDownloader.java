@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 public class JenkinsDownloader {
   private static final Logger LOG = LoggerFactory.getLogger(JenkinsDownloader.class);
 
+  private static final AtomicInteger sharedDirId = new AtomicInteger(0);
   private final FileSystem fileSystem;
   private final Zips zips;
 
@@ -48,9 +49,8 @@ public class JenkinsDownloader {
   public synchronized File download(JenkinsDistribution distrib) {
     LOG.info("Downloading Jenkins-" + distrib.getVersion());
 
-    String key = generateKey();
-
-    File toDir = new File(fileSystem.workspace(), key);
+    // Add a "j" prefix to not conflict with SonarQube
+    File toDir = new File(fileSystem.workspace(), "j" + String.valueOf(sharedDirId.addAndGet(1)));
     if (toDir.exists()) {
       try {
         FileUtils.cleanDirectory(toDir);
@@ -70,10 +70,6 @@ public class JenkinsDownloader {
     }
 
     return toDir;
-  }
-
-  static String generateKey() {
-    return String.valueOf(new Random().nextInt(1000));
   }
 
   public File downloadWar(JenkinsDistribution distrib) {
