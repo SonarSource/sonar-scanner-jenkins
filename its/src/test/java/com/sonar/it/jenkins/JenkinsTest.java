@@ -104,7 +104,7 @@ public class JenkinsTest {
   }
 
   @Test
-  public void testVariableInjection() {
+  public void testVariableInjection() throws JenkinsOrchestrator.FailedExecutionException {
     String jobName = "abacus-freestyle-vars";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
     assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();

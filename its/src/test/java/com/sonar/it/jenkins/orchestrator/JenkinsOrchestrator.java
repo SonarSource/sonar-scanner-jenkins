@@ -20,6 +20,7 @@
 package com.sonar.it.jenkins.orchestrator;
 
 import com.google.common.base.Function;
+import com.sonar.it.jenkins.JenkinsPipelineTest;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsDistribution;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsServer;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsWrapper;
@@ -69,9 +70,11 @@ import org.sonar.wsclient.qualitygate.QualityGates;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class JenkinsOrchestrator extends SingleStartExternalResource {
+  private static final Logger LOG = LoggerFactory.getLogger(JenkinsOrchestrator.class);
+
   private static final By MAVEN_POST_BUILD_LABEL = By.linkText("SonarQube analysis with Maven");
 
-  private static final Logger LOG = LoggerFactory.getLogger(JenkinsOrchestrator.class);
+  public static final String DEFAULT_SONAR_QUBE_INSTALLATION = "SonarQube";
 
   private final Configuration config;
   private final JenkinsDistribution distribution;
@@ -81,6 +84,12 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   private WebDriver driver;
   private CLI cli;
   private static int tokenCounter = 0;
+
+  public static class FailedExecutionException extends Exception {
+    FailedExecutionException(String message) {
+      super(message);
+    }
+  }
 
   JenkinsOrchestrator(Configuration config, JenkinsDistribution distribution) {
     this.config = config;
@@ -165,6 +174,10 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   public JenkinsDistribution getDistribution() {
     return distribution;
+  }
+
+  public CLI getCli() {
+    return cli;
   }
 
   /**
@@ -467,7 +480,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     driver.get(server.getUrl() + "/configure");
     findElement(buttonByText("Add SonarQube")).click();
 
-    setTextValue(findElement(By.name("sonar.name")), "SonarQube");
+    setTextValue(findElement(By.name("sonar.name")), DEFAULT_SONAR_QUBE_INSTALLATION);
     setTextValue(findElement(By.name("sonar.serverUrl")), orchestrator.getServer().getUrl());
     findElement(buttonByTextAfterElementByXpath("Advanced...", "//.[@name='sonar.name']")).click();
 
@@ -575,19 +588,19 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public BuildResult executeJob(String jobName) {
+  public BuildResult executeJob(String jobName) throws FailedExecutionException {
     BuildResult result = executeJobQuietly(jobName);
     if (!result.isSuccess()) {
-      throw new RuntimeException("Error during build of " + jobName + "\n" + result.getLogs());
+      throw new FailedExecutionException("Error during build of " + jobName + "\n" + result.getLogs());
     }
     return result;
   }
 
   public BuildResult executeJobQuietly(String jobName) {
     BuildResult result = new BuildResult();
-    result.addStatus(cli.execute("build", jobName, "-s"));
     WriterOutputStream out = new WriterOutputStream(result.getLogsWriter());
-    cli.execute(Arrays.asList("console", jobName), System.in, out, out);
+    int exitCode = cli.execute(Arrays.asList("build", jobName, "-s", "-v"), null, out, out);
+    result.addStatus(exitCode);
     return result;
   }
 
