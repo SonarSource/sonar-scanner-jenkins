@@ -5,8 +5,10 @@
     Il est même possible de spécifier tous les paramètres de SonarQube ici et de laisser vide le champ "Chemin vers les propriétés du projet"
   </p>
 <pre style="border: solid #BBBBBB 1px; padding: 1em">
-# required metadata
+# unique project identifier (required)
 sonar.projectKey=my:project
+
+# project metadata (used to be required, optional since SonarQube 6.1)
 sonar.projectName=My project
 sonar.projectVersion=1.0
 
@@ -16,17 +18,16 @@ sonar.sources=srcDir1,srcDir2
 # path to test source directories (optional)
 sonar.tests=testDir1,testDir2
 
-# path to project binaries (optional), for example directory of Java bytecode
-sonar.binaries=binDir
+# path to Java project compiled classes (optional)
+sonar.java.binaries=bin
 
-# optional comma-separated list of paths to libraries. Only path to JAR file and path to directory of classes are supported.
-sonar.libraries=path/to/library.jar,path/to/classes/dir
-
-# Uncomment this line to analyse a project which is not a java project.
-# The value of the property must be the key of the language.
-sonar.language=cobol
+# comma-separated list of paths to libraries (optional)
+sonar.java.libraries=path/to/library.jar,path/to/classes/dir
 
 # Additional parameters
 sonar.my.property=value
 </pre>
+  <p>
+    Consultez <a target="_new" href="http://redirect.sonarsource.com/doc/analyzing-with-sq-runner.html">la documentation officielle</a> pour plus d'information.
+  </p>
 </div>
