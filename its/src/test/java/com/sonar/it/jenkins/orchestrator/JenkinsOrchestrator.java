@@ -20,7 +20,6 @@
 package com.sonar.it.jenkins.orchestrator;
 
 import com.google.common.base.Function;
-import com.sonar.it.jenkins.JenkinsPipelineTest;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsDistribution;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsServer;
 import com.sonar.it.jenkins.orchestrator.container.JenkinsWrapper;
@@ -85,7 +84,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   private CLI cli;
   private static int tokenCounter = 0;
 
-  public static class FailedExecutionException extends Exception {
+  public static class FailedExecutionException extends RuntimeException {
     FailedExecutionException(String message) {
       super(message);
     }
@@ -588,7 +587,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
-  public BuildResult executeJob(String jobName) throws FailedExecutionException {
+  public BuildResult executeJob(String jobName) {
     BuildResult result = executeJobQuietly(jobName);
     if (!result.isSuccess()) {
       throw new FailedExecutionException("Error during build of " + jobName + "\n" + result.getLogs());

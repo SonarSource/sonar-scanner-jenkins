@@ -73,29 +73,29 @@ public class JenkinsPipelineTest {
   }
 
   @Test
-  public void env_wrapper_without_params_should_inject_sq_vars() throws JenkinsOrchestrator.FailedExecutionException {
+  public void env_wrapper_without_params_should_inject_sq_vars() {
     String script = "withSonarQubeEnv { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-parameterless", script);
   }
 
   @Test
-  public void env_wrapper_with_specific_sq_should_inject_sq_vars() throws JenkinsOrchestrator.FailedExecutionException {
+  public void env_wrapper_with_specific_sq_should_inject_sq_vars() {
     String script = "withSonarQubeEnv('" + DEFAULT_SONAR_QUBE_INSTALLATION + "') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-SonarQube", script);
   }
 
   @Test(expected = JenkinsOrchestrator.FailedExecutionException.class)
-  public void env_wrapper_with_nonexistent_sq_should_fail() throws JenkinsOrchestrator.FailedExecutionException {
+  public void env_wrapper_with_nonexistent_sq_should_fail() {
     String script = "withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-nonexistent", script);
   }
 
-  private void runAndVerifyEnvVarsExist(String jobName, String script) throws JenkinsOrchestrator.FailedExecutionException {
+  private void runAndVerifyEnvVarsExist(String jobName, String script) {
     String logs = runAndGetLogs(jobName, script);
     verifyEnvVarsExist(logs);
   }
 
-  private String runAndGetLogs(String jobName, String script) throws JenkinsOrchestrator.FailedExecutionException {
+  private String runAndGetLogs(String jobName, String script) {
     createPipelineJobFromScript(jobName, script);
     return jenkins.executeJob(jobName).getLogs();
   }
