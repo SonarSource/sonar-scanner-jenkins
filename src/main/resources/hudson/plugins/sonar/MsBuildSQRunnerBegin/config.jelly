@@ -22,12 +22,16 @@
 
   <!-- ############ MS Build Scanner Installation ############ -->
   <j:set var="scanners" value="${descriptor.getMsBuildScannerInstallations()}" />
+  <j:set var="globalToolConfigRelPath" value="${descriptor.globalToolConfigRelPath}" />
   <j:if test="${empty(scanners)}">
     <!-- no MS Build Scanner is configured. this will be an error, so warn the user now -->
     <f:entry title="${%MsBuildScannerTitle}">
       <div class="error">
         ${%MsBuildScanner.error.1}&lt;br>
-        ${%MsBuildScanner.error.2(rootURL)}
+        <j:choose>
+        <j:when test="${descriptor.beforeV2}">${%MsBuildScanner.error.2.beforeV2(rootURL, globalToolConfigRelPath)}</j:when>
+        <j:otherwise>${%MsBuildScanner.error.2(rootURL, globalToolConfigRelPath)}</j:otherwise>
+        </j:choose>
       </div>
     </f:entry>
   </j:if>
