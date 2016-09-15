@@ -26,11 +26,9 @@ import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
-import com.sonar.orchestrator.locator.URLLocation;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -60,9 +58,9 @@ public class JenkinsWithoutMaven {
     orchestrator.resetData();
     Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
-      .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/jquery/1.11.2-0/jquery.hpi")))
-      .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/filesystem_scm/1.20/filesystem_scm.hpi")))
-      .installPlugin(URLLocation.create(new URL("http://mirrors.jenkins-ci.org/plugins/msbuild/1.26/msbuild.hpi")))
+      .installPlugin("filesystem_scm")
+      .installPlugin("jquery")
+      .installPlugin("msbuild")
       .installPlugin(sqJenkinsPluginLocation)
       .configureSQScannerInstallation("2.4", 0)
       .configureSQScannerInstallation("2.6.1", 1)
