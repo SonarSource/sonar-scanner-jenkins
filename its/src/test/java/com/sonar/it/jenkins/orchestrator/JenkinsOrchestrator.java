@@ -385,11 +385,15 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return this;
   }
 
+  private String getSystemConfigUrl() {
+    return server.getUrl() + "/configure";
+  }
+
   private void openConfigureToolsPage() {
     if (server.getVersion().isGreaterThan("2")) {
       driver.get(server.getUrl() + "/configureTools");
     } else {
-      driver.get(server.getUrl() + "/configure");
+      driver.get(getSystemConfigUrl());
     }
   }
 
@@ -463,7 +467,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public JenkinsOrchestrator enableInjectionVars(boolean enable) {
-    driver.get(server.getUrl() + "/configure");
+    driver.get(getSystemConfigUrl());
 
     WebElement checkbox = findElement(By.name("enableBuildWrapper"));
     if (checkbox.isSelected() != enable) {
@@ -476,7 +480,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   public JenkinsOrchestrator configureSonarInstallation(Orchestrator orchestrator) {
     Version serverVersion = orchestrator.getServer().version();
 
-    driver.get(server.getUrl() + "/configure");
+    driver.get(getSystemConfigUrl());
     findElement(buttonByText("Add SonarQube")).click();
 
     setTextValue(findElement(By.name("sonar.name")), DEFAULT_SONAR_QUBE_INSTALLATION);
@@ -531,7 +535,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   public void checkSavedSonarInstallation(Orchestrator orchestrator) {
     Version serverVersion = orchestrator.getServer().version();
 
-    driver.get(server.getUrl() + "/configure");
+    driver.get(getSystemConfigUrl());
     try {
       Thread.sleep(2000);
     } catch (InterruptedException e) {
