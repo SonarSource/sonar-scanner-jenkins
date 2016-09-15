@@ -53,15 +53,15 @@ public class JenkinsTest {
 
   @BeforeClass
   public static void setUpJenkins() throws MalformedURLException {
-    if (jenkins.getServer().getVersion().isGreaterThan("2")) {
+    if (jenkins.getServer().getVersion().isGreaterThanOrEquals("2")) {
       // Maven plugin no more installed by default
       jenkins.installPlugin("maven-plugin");
     }
 
     Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
-      .installPlugin("jquery")
       .installPlugin("filesystem_scm")
+      .installPlugin("jquery")
       .installPlugin(sqJenkinsPluginLocation)
       .configureMavenInstallation()
       // Single installation

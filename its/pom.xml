@@ -74,6 +74,7 @@
           <configuration>
             <includes>
               <include>**/JenkinsTestSuite.java</include>
+              <include>**/ConditionalTestSuite.java</include>
             </includes>
             <systemProperties>
               <jenkins.runtimeVersion>${jenkins.runtimeVersion}</jenkins.runtimeVersion>
