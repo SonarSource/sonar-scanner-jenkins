@@ -38,12 +38,16 @@
 
   <!-- SonarQube Scanner -->
   <j:set var="scanners" value="${descriptor.getSonarRunnerInstallations()}" />
+  <j:set var="globalToolConfigRelPath" value="${descriptor.globalToolConfigRelPath}" />
   <j:if test="${empty(scanners)}">
     <!-- no scanner installation is configured. this will be an error, so warn the user now -->
     <f:entry title="${%SonarScanner}">
       <div class="error">
         ${%Sonar Scanner Version.error.1}&lt;br>
-        ${%Sonar Scanner Version.error.2(rootURL)}
+        <j:choose>
+        <j:when test="${descriptor.beforeV2}">${%Sonar Scanner Version.error.2.beforeV2(rootURL, globalToolConfigRelPath)}</j:when>
+        <j:otherwise>${%Sonar Scanner Version.error.2(rootURL, globalToolConfigRelPath)}</j:otherwise>
+        </j:choose>
       </div>
     </f:entry>
   </j:if>
