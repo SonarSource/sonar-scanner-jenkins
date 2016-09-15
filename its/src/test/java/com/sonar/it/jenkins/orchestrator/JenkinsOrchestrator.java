@@ -389,9 +389,13 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return server.getUrl() + "/configure";
   }
 
+  private String getGlobalToolConfigUrl() {
+    return server.getUrl() + "/configureTools";
+  }
+
   private void openConfigureToolsPage() {
     if (server.getVersion().isGreaterThan("2")) {
-      driver.get(server.getUrl() + "/configureTools");
+      driver.get(getGlobalToolConfigUrl());
     } else {
       driver.get(getSystemConfigUrl());
     }
