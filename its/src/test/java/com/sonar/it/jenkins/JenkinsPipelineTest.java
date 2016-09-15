@@ -38,7 +38,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 public class JenkinsPipelineTest {
-  private static final String DUMP_ENV_VARS_PIPELINE_CMD = "sh 'env | sort'";
+  private static final String DUMP_ENV_VARS_PIPELINE_CMD = JenkinsTestSuite.isWindows() ? "bat 'set'" : "sh 'env | sort'";
 
   @ClassRule
   public static Orchestrator orchestrator = JenkinsTestSuite.ORCHESTRATOR;
