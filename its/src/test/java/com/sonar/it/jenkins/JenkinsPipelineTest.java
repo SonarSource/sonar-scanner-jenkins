@@ -36,6 +36,7 @@ import org.junit.Test;
 import static com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator.DEFAULT_SONAR_QUBE_INSTALLATION;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 public class JenkinsPipelineTest {
   private static final String DUMP_ENV_VARS_PIPELINE_CMD = JenkinsTestSuite.isWindows() ? "bat 'set'" : "sh 'env | sort'";
@@ -50,6 +51,7 @@ public class JenkinsPipelineTest {
 
   @BeforeClass
   public static void setUpJenkins() throws MalformedURLException {
+    assumeTrue(jenkins.getServer().getVersion().isGreaterThanOrEquals("2"));
     Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
       .installPlugin("jquery")
