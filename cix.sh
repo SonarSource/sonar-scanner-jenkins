@@ -2,8 +2,6 @@
 set -euo pipefail
 echo "Running with SQ=$SQ_VERSION"
 
-JENKINS_VERSION=1.651.3
- 
 #deploy the version built by travis
 CURRENT_VERSION=`mvn help:evaluate -Dexpression="project.version" | grep -v '^\[\|Download\w\+\:'  | grep -v '\[WARNING\]'`
 echo "CURRENT_VERSION=$CURRENT_VERSION"
