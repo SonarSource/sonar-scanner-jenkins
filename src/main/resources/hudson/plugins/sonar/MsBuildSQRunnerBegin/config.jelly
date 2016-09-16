@@ -59,7 +59,7 @@
     <f:textbox />
   </f:entry>
   
-  <f:entry title="${%AdditionalArguments}" field="additionalArguments" description="${%AdditionalArgumentsDesc}">
+  <f:entry title="${%AdditionalArguments}" field="additionalArguments" help="/plugin/sonar/help-ms-build-sq-scanner-additional-args.html">
     <f:expandableTextbox />
   </f:entry>
 
