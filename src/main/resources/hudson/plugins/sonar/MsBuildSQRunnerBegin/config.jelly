@@ -29,7 +29,7 @@
       <div class="error">
         ${%MsBuildScanner.error.1}&lt;br>
         <j:choose>
-        <j:when test="${descriptor.beforeV2}">${%MsBuildScanner.error.2.beforeV2(globalToolConfigUrl)}</j:when>
+        <j:when test="${descriptor.BEFORE_V2}">${%MsBuildScanner.error.2.beforeV2(globalToolConfigUrl)}</j:when>
         <j:otherwise>${%MsBuildScanner.error.2(globalToolConfigUrl)}</j:otherwise>
         </j:choose>
       </div>

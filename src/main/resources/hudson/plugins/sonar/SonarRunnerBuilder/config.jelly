@@ -45,7 +45,7 @@
       <div class="error">
         ${%Sonar Scanner Version.error.1}&lt;br>
         <j:choose>
-        <j:when test="${descriptor.beforeV2}">${%Sonar Scanner Version.error.2.beforeV2(globalToolConfigUrl)}</j:when>
+        <j:when test="${descriptor.BEFORE_V2}">${%Sonar Scanner Version.error.2.beforeV2(globalToolConfigUrl)}</j:when>
         <j:otherwise>${%Sonar Scanner Version.error.2(globalToolConfigUrl)}</j:otherwise>
         </j:choose>
       </div>

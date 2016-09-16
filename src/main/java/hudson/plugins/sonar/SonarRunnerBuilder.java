@@ -454,7 +454,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   @Extension
   public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
     // Used in jelly configuration for conditional display of the UI
-    public static final boolean beforeV2 = JenkinsRouter.BEFORE_V2;
+    public static final boolean BEFORE_V2 = JenkinsRouter.BEFORE_V2;
 
     public String getGlobalToolConfigUrl() {
       return JenkinsRouter.getGlobalToolConfigUrl();
