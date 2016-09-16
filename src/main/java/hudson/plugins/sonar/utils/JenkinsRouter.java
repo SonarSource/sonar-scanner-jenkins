@@ -48,13 +48,16 @@ public final class JenkinsRouter {
     throw new AssertionError("utility class, forbidden constructor");
   }
 
-  /**
-   * Get the relative path to the Global Tool Configuration screen.
-   * For the complete URL, you still need to get the rootURL from the runtime.
-   *
-   * @return relative path to the Global Tool Configuration screen
-   */
-  public static String getGlobalToolConfigRelPath() {
+  public static String getGlobalToolConfigUrl() {
+    return getRootUrl() + getGlobalToolConfigRelPath();
+  }
+
+  private static String getRootUrl() {
+    return Jenkins.getInstance().getRootUrl();
+  }
+
+  private static String getGlobalToolConfigRelPath() {
     return BEFORE_V2 ? "configure" : "configureTools";
   }
+
 }
