@@ -43,6 +43,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.utils.BuilderUtils;
+import hudson.plugins.sonar.utils.JenkinsRouter;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
@@ -228,6 +229,13 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
   @Symbol("sonarScannerMSBuildBegin")
   @Extension
   public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
+    // Used in jelly configuration for conditional display of the UI
+    public static final boolean BEFORE_V2 = JenkinsRouter.BEFORE_V2;
+
+    public String getGlobalToolConfigUrl() {
+      return JenkinsRouter.getGlobalToolConfigUrl();
+    }
+
     @Override
     public boolean isApplicable(Class<? extends AbstractProject> jobType) {
       return true;

@@ -50,6 +50,7 @@ import hudson.model.TaskListener;
 import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
+import hudson.plugins.sonar.utils.JenkinsRouter;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
@@ -452,6 +453,12 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   @Symbol("sonarScanner")
   @Extension
   public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
+    // Used in jelly configuration for conditional display of the UI
+    public static final boolean BEFORE_V2 = JenkinsRouter.BEFORE_V2;
+
+    public String getGlobalToolConfigUrl() {
+      return JenkinsRouter.getGlobalToolConfigUrl();
+    }
 
     /**
      * This method is used in UI, so signature and location of this method is important.
