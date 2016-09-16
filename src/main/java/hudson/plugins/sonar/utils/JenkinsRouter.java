@@ -36,6 +36,10 @@ package hudson.plugins.sonar.utils;
 import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
 
+/**
+ * Utility class to encapsulate the details of routing information in the Jenkins web application.
+ * Use this class to get Jenkins URLs and relative paths.
+ */
 public final class JenkinsRouter {
 
   public static final boolean BEFORE_V2 = Jenkins.getVersion().isOlderThan(new VersionNumber("2"));
@@ -44,6 +48,12 @@ public final class JenkinsRouter {
     throw new AssertionError("utility class, forbidden constructor");
   }
 
+  /**
+   * Get the relative path to the Global Tool Configuration screen.
+   * For the complete URL, you still need to get the rootURL from the runtime.
+   *
+   * @return relative path to the Global Tool Configuration screen
+   */
   public static String getGlobalToolConfigRelPath() {
     return BEFORE_V2 ? "configure" : "configureTools";
   }
