@@ -267,7 +267,13 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     setTextValue(findElement(By.name("_.targets")), "clean package");
 
     findElement(buttonByText("Add build step")).click();
+    
     findElement(By.linkText("Invoke top-level Maven targets")).click();
+    try {
+      Thread.sleep(2000);
+    } catch (InterruptedException e1) {
+      e1.printStackTrace();
+    }
     setTextValue(findElement(By.name("_.targets"), 1), getMavenParams(orchestrator));
 
     findElement(buttonByText("Save")).click();
