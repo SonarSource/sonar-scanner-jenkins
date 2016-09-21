@@ -182,6 +182,7 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return Util.fixNull(project);
   }
 
+  @DataBoundSetter
   public void setProject(String project) {
     this.project = project;
   }
