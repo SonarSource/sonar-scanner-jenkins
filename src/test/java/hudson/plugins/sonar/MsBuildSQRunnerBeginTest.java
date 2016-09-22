@@ -33,14 +33,13 @@
  */
 package hudson.plugins.sonar;
 
-import javax.annotation.Nullable;
-
 import hudson.EnvVars;
-import hudson.model.EnvironmentContributingAction;
+import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
+import hudson.plugins.sonar.AbstractMsBuildSQRunner.SonarQubeScannerMsBuildParams;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
-import hudson.model.FreeStyleProject;
+import javax.annotation.Nullable;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,9 +56,9 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
     assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0", r);
     assertLogContains("This is a fake MS Build Scanner", r);
-    assertThat(r.getAction(EnvironmentContributingAction.class)).isNotNull();
+    assertThat(r.getAction(SonarQubeScannerMsBuildParams.class)).isNotNull();
   }
-  
+
   @Test
   public void testNormalExecWithEnvVar() throws Exception {
     configureDefaultSonar();
@@ -71,7 +70,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
     assertLogContains(getExeName() + " begin /k:customKey /n:name /v:1.0", r);
     assertLogContains("This is a fake MS Build Scanner", r);
-    assertThat(r.getAction(EnvironmentContributingAction.class)).isNotNull();
+    assertThat(r.getAction(SonarQubeScannerMsBuildParams.class)).isNotNull();
   }
 
   @Test
@@ -124,7 +123,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     Run<?, ?> r = build(proj, Result.FAILURE);
     assertLogContains("No SonarQube Scanner for MSBuild installation found", r);
   }
-  
+
   private void addEnvVar(String key, String value) {
     EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
     EnvVars envVars = prop.getEnvVars();

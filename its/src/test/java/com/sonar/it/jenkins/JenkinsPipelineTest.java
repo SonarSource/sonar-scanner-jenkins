@@ -27,13 +27,16 @@ import hudson.cli.CLI;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import org.apache.commons.io.output.NullOutputStream;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import static com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator.DEFAULT_SONAR_QUBE_INSTALLATION;
+import static com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator.DEFAULT_SONARQUBE_INSTALLATION;
+import static java.util.regex.Matcher.quoteReplacement;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -55,11 +58,16 @@ public class JenkinsPipelineTest {
     Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
       .installPlugin("jquery")
+      .installPlugin("msbuild")
       // the pipeline plugin -> downloads ~28 other plugins...
       .installPlugin("workflow-aggregator")
       .installPlugin(sqJenkinsPluginLocation)
       .configureSQScannerInstallation("2.6.1", 0)
+      .configureMsBuildSQScanner_installation("2.1", 0)
       .configureSonarInstallation(orchestrator);
+    if (SystemUtils.IS_OS_WINDOWS) {
+      jenkins.configureMSBuildInstallation();
+    }
     cli = jenkins.getCli();
   }
 
@@ -82,7 +90,7 @@ public class JenkinsPipelineTest {
 
   @Test
   public void env_wrapper_with_specific_sq_should_inject_sq_vars() {
-    String script = "withSonarQubeEnv('" + DEFAULT_SONAR_QUBE_INSTALLATION + "') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
+    String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-SonarQube", script);
   }
 
@@ -90,6 +98,16 @@ public class JenkinsPipelineTest {
   public void env_wrapper_with_nonexistent_sq_should_fail() {
     String script = "withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-nonexistent", script);
+  }
+
+  @Test
+  public void msbuild_pipeline() {
+    assumeTrue(SystemUtils.IS_OS_WINDOWS);
+    String script = "bat 'xcopy " + Paths.get("projects/csharp").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n"
+      + "sonarScannerMSBuildBegin projectKey: 'csharp', projectName: 'CSharp', projectVersion: '1.0'\n"
+      + "bat '\\\"%MSBUILD_PATH%\\\" /t:Rebuild'\n"
+      + "sonarScannerMSBuildEnd()";
+    assertThat(runAndGetLogs("csharp-pipeline", script)).contains("ANALYSIS SUCCESSFUL, you can browse");
   }
 
   private void runAndVerifyEnvVarsExist(String jobName, String script) {
@@ -104,7 +122,7 @@ public class JenkinsPipelineTest {
 
   private void verifyEnvVarsExist(String logs) {
     assertThat(logs).contains("SONAR_AUTH_TOKEN=");
-    assertThat(logs).contains("SONAR_CONFIG_NAME=" + DEFAULT_SONAR_QUBE_INSTALLATION);
+    assertThat(logs).contains("SONAR_CONFIG_NAME=" + DEFAULT_SONARQUBE_INSTALLATION);
     assertThat(logs).contains("SONAR_HOST_URL=");
     assertThat(logs).contains("SONAR_MAVEN_GOAL=sonar:sonar");
     assertThat(logs).contains("SONARQUBE_SCANNER_PARAMS={ \"sonar.host.url\" : \"http:\\/\\/localhost:");
