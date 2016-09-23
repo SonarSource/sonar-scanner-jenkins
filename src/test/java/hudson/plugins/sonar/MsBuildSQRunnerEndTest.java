@@ -33,20 +33,21 @@
  */
 package hudson.plugins.sonar;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import hudson.model.AbstractProject;
-import hudson.plugins.sonar.MsBuildSQRunnerEnd.DescriptorImpl;
-import hudson.plugins.sonar.utils.SQServerVersions;
+import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
+import hudson.plugins.sonar.MsBuildSQRunnerEnd.DescriptorImpl;
+import hudson.plugins.sonar.utils.SQServerVersions;
 import org.junit.Test;
-import hudson.model.FreeStyleProject;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
   @Test
   public void testNormalExec() throws Exception {
-    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", SQServerVersions.SQ_5_1_OR_LOWER, null, "http://dbhost.org", "dbLogin", "dbPass", null, null, null, "login", "mypass", null));
+    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", SQServerVersions.SQ_5_1_OR_LOWER, null, "http://dbhost.org", "dbLogin", "dbPass", null, null, null,
+      "login", "mypass", null));
     configureMsBuildScanner(false);
 
     FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));
@@ -58,7 +59,7 @@ public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
     assertLogDoesntContains("dbPass", r);
     assertLogDoesntContains("mypass", r);
   }
-  
+
   @Test
   public void testToken() throws Exception {
     configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", SQServerVersions.SQ_5_3_OR_HIGHER, "token", null, null, null, null, null, null, null, null, null));
@@ -69,7 +70,7 @@ public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
     Run<?, ?> r = build(proj, Result.SUCCESS);
     assertLogContains("end ********", r);
     assertLogContains("This is a fake MS Build Scanner", r);
-    
+
     assertLogDoesntContains("token", r);
     assertLogDoesntContains("login", r);
   }
@@ -88,6 +89,6 @@ public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
 
     FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerEnd());
     Run<?, ?> r = build(proj, Result.FAILURE);
-    assertLogContains("No SonarQube Scanner for MSBuild installation found in the build environment", r);
+    assertLogContains("Missing parameters in the build environment. Was the begin step invoked before?", r);
   }
 }

@@ -67,8 +67,13 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     ArgumentListBuilder args = new ArgumentListBuilder();
 
     EnvVars env = BuilderUtils.getEnvAndBuildVars(run, listener);
-    String scannerName = loadScannerName(env);
-    String sonarInstName = loadSonarInstanceName(env);
+    SonarQubeScannerMsBuildParams beginParams = run.getAction(SonarQubeScannerMsBuildParams.class);
+    if (beginParams == null) {
+      throw new AbortException(Messages.MsBuildScannerEnd_NoBeginStep());
+    }
+
+    String scannerName = beginParams.getScannerName();
+    String sonarInstName = beginParams.getSqServerName();
     SonarInstallation sonarInstallation = getSonarInstallation(sonarInstName, listener);
 
     MsBuildSQRunnerInstallation msBuildScanner = Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerBegin.DescriptorImpl.class)

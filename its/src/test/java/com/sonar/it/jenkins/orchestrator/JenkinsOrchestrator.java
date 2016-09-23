@@ -53,6 +53,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Point;
+import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -73,7 +74,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   private static final By MAVEN_POST_BUILD_LABEL = By.linkText("SonarQube analysis with Maven");
 
-  public static final String DEFAULT_SONAR_QUBE_INSTALLATION = "SonarQube";
+  public static final String DEFAULT_SONARQUBE_INSTALLATION = "SonarQube";
 
   private final Configuration config;
   private final JenkinsDistribution distribution;
@@ -126,6 +127,8 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     FirefoxProfile profile = new FirefoxProfile();
     // Disable native events on all OS to avoid strange characters when using sendKeys
     profile.setEnableNativeEvents(false);
+    // force language to be English
+    profile.setPreference("intl.accept_languages", "en");
     driver = new FirefoxDriver(profile);
 
     driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
@@ -267,14 +270,9 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     setTextValue(findElement(By.name("_.targets")), "clean package");
 
     findElement(buttonByText("Add build step")).click();
-    
+
     findElement(By.linkText("Invoke top-level Maven targets")).click();
-    try {
-      Thread.sleep(2000);
-    } catch (InterruptedException e1) {
-      e1.printStackTrace();
-    }
-    setTextValue(findElement(By.name("_.targets"), 1), getMavenParams(orchestrator));
+    setTextValue(findElement(driver, By.name("_.targets"), 1), getMavenParams(orchestrator));
 
     findElement(buttonByText("Save")).click();
     return this;
@@ -439,14 +437,17 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     SonarScannerInstaller installer = new SonarScannerInstaller(config.fileSystem());
     File runnerScript = installer.install(Version.create(version), config.fileSystem().workspace(), true);
 
+    String toolName = "SonarQube Scanner";
+
     if (index > 0) {
-      findElement(buttonByText("SonarQube Scanner installations...")).click();
+      findElement(buttonByText(toolName + " installations...")).click();
     }
 
-    findElement(buttonByText("Add SonarQube Scanner")).click();
-    setTextValue(findElement(By.name("_.name"), index), getSQScannerInstallName(version));
-    findElement(By.name("hudson-tools-InstallSourceProperty"), index).click();
-    WebElement homeDir = findElement(By.name("_.home"), index);
+    findElement(buttonByText("Add " + toolName)).click();
+    WebElement toolArea = findElement(driver, By.xpath("//div[@name='tool'][.//div[normalize-space(.) = '" + toolName + "']]"), index);
+    setTextValue(findElement(toolArea, By.name("_.name")), getSQScannerInstallName(version));
+    findElement(toolArea, By.name("hudson-tools-InstallSourceProperty")).click();
+    WebElement homeDir = findElement(toolArea, By.name("_.home"));
     setTextValue(homeDir, runnerScript.getParentFile().getParentFile().getAbsolutePath());
     findElement(buttonByText("Save")).click();
 
@@ -460,13 +461,16 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   public JenkinsOrchestrator configureMsBuildSQScanner_installation(String version, int index) {
     openConfigureToolsPage();
 
+    String toolName = "SonarQube Scanner for MSBuild";
+
     if (index > 0) {
-      findElement(buttonByText("SonarQube Scanner for MSBuild installations...")).click();
+      findElement(buttonByText(toolName + " installations...")).click();
     }
 
-    findElement(buttonByText("Add SonarQube Scanner for MSBuild")).click();
-    setTextValue(findElement(By.name("_.name"), index), getScannerMSBuildInstallName(version));
-    select(findElement(By.name("_.id"), index), version);
+    findElement(buttonByText("Add " + toolName)).click();
+    WebElement toolArea = findElement(driver, By.xpath("//div[@name='tool'][.//div[normalize-space(.) = '" + toolName + "']]"), index);
+    setTextValue(findElement(toolArea, By.name("_.name")), getScannerMSBuildInstallName(version));
+    select(findElement(toolArea, By.name("_.id")), version);
     findElement(buttonByText("Save")).click();
 
     return this;
@@ -493,7 +497,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     driver.get(getSystemConfigUrl());
     findElement(buttonByText("Add SonarQube")).click();
 
-    setTextValue(findElement(By.name("sonar.name")), DEFAULT_SONAR_QUBE_INSTALLATION);
+    setTextValue(findElement(By.name("sonar.name")), DEFAULT_SONARQUBE_INSTALLATION);
     setTextValue(findElement(By.name("sonar.serverUrl")), orchestrator.getServer().getUrl());
     findElement(buttonByTextAfterElementByXpath("Advanced...", "//.[@name='sonar.name']")).click();
 
@@ -645,8 +649,12 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public WebElement findElement(By by) {
+    return findElement(driver, by);
+  }
+
+  public WebElement findElement(SearchContext context, By by) {
     try {
-      return scrollTo(driver.findElement(by));
+      return scrollTo(context.findElement(by));
     } catch (NoSuchElementException e) {
       System.err.println("Element not found. Save screenshot to: target/no_such_element.png");
       takeScreenshot(new File("target/no_such_element.png"));
@@ -662,9 +670,9 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     }
   }
 
-  public WebElement findElement(By by, int index) {
+  public WebElement findElement(SearchContext context, By by, int index) {
     try {
-      List<WebElement> elms = driver.findElements(by);
+      List<WebElement> elms = context.findElements(by);
       return scrollTo(elms.get(index));
     } catch (NoSuchElementException | IndexOutOfBoundsException e) {
       System.err.println("Element not found. Save screenshot to: target/no_such_element.png");

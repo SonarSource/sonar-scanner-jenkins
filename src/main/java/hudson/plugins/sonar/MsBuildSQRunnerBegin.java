@@ -101,10 +101,9 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
 
     EnvVars env = BuilderUtils.getEnvAndBuildVars(run, listener);
     SonarInstallation sonarInstallation = getSonarInstallation(getSonarInstallationName(), listener);
-    saveScannerName(run, msBuildScannerInstallationName);
-    saveSonarInstanceName(run, getSonarInstallationName());
-
     MsBuildSQRunnerInstallation msBuildScanner = getDescriptor().getMsBuildScannerInstallation(msBuildScannerInstallationName);
+    run.addAction(new SonarQubeScannerMsBuildParams(msBuildScannerInstallationName, getSonarInstallationName()));
+
     args.add(getExeName(msBuildScanner, env, launcher, listener, workspace));
     Map<String, String> props = getSonarProps(sonarInstallation);
     addArgsTo(args, sonarInstallation, env, props);
@@ -263,10 +262,10 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     }
 
     @Nullable
-    public MsBuildSQRunnerInstallation getMsBuildScannerInstallation(String name) {
+    public MsBuildSQRunnerInstallation getMsBuildScannerInstallation(@Nullable String name) {
       MsBuildSQRunnerInstallation[] msInst = getMsBuildScannerInstallations();
 
-      if (name == null && msInst.length > 0) {
+      if (StringUtils.isEmpty(name) && msInst.length > 0) {
         return msInst[0];
       }
 
