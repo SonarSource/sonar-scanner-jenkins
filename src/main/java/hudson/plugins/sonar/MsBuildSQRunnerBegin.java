@@ -54,7 +54,6 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -225,7 +224,6 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     return this;
   }
 
-  @Symbol("sonarScannerMSBuildBegin")
   @Extension
   public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
     // Used in jelly configuration for conditional display of the UI

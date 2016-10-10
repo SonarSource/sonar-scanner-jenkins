@@ -38,15 +38,17 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
 import hudson.model.InvisibleAction;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.tasks.Builder;
 import java.io.IOException;
 import javax.annotation.Nullable;
-import jenkins.tasks.SimpleBuildStep;
 
-public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleBuildStep {
+public abstract class AbstractMsBuildSQRunner extends Builder {
   protected static final String EXE = "MSBuild.SonarQube.Runner.exe";
   static final String INST_NAME_KEY = "msBuildScannerInstallationName";
   static final String SONAR_INST_NAME_KEY = "sonarInstanceName";
@@ -57,6 +59,18 @@ public abstract class AbstractMsBuildSQRunner extends Builder implements SimpleB
     }
     return SonarInstallation.get(instName);
   }
+
+  @Override
+  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+    FilePath workspace = build.getWorkspace();
+    if (workspace == null) {
+      throw new AbortException("no workspace for " + build);
+    }
+    perform(build, workspace, launcher, listener);
+    return true;
+  }
+
+  protected abstract void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException;
 
   protected String getExeName(MsBuildSQRunnerInstallation msBuildScanner, EnvVars env, Launcher launcher, TaskListener listener, FilePath workspace)
     throws IOException, InterruptedException {

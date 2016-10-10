@@ -43,6 +43,7 @@ import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.BuildListener;
 import hudson.model.Computer;
 import hudson.model.JDK;
 import hudson.model.Run;
@@ -63,16 +64,14 @@ import java.util.Properties;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
-import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  * @since 1.7
  */
-public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
+public class SonarRunnerBuilder extends Builder {
 
   /**
    * Identifies {@link SonarInstallation} to be used.
@@ -252,7 +251,16 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
   }
 
   @Override
-  public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
+  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+    FilePath workspace = build.getWorkspace();
+    if (workspace == null) {
+      throw new AbortException("no workspace for " + build);
+    }
+    perform(build, workspace, launcher, listener);
+    return true;
+  }
+
+  private void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
     if (!SonarInstallation.isValid(getInstallationName(), listener)) {
       throw new AbortException("Invalid SonarQube server installation");
     }
@@ -451,7 +459,6 @@ public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
     return this;
   }
 
-  @Symbol("sonarScanner")
   @Extension
   public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
     // Used in jelly configuration for conditional display of the UI
