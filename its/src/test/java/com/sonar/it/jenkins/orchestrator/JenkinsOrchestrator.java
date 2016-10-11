@@ -272,7 +272,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     findElement(buttonByText("Add build step")).click();
 
     findElement(By.linkText("Invoke top-level Maven targets")).click();
-    setTextValue(findElement(driver, By.name("_.targets"), 1), getMavenParams(orchestrator));
+    setTextValue(findElement(driver, By.xpath("(//input[@name='_.targets'])[2]")), getMavenParams(orchestrator));
 
     findElement(buttonByText("Save")).click();
     return this;
@@ -444,7 +444,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     }
 
     findElement(buttonByText("Add " + toolName)).click();
-    WebElement toolArea = findElement(driver, By.xpath("//div[@name='tool'][.//div[normalize-space(.) = '" + toolName + "']]"), index);
+    WebElement toolArea = findElement(driver, By.xpath("(//div[@name='tool'][.//div[normalize-space(.) = '" + toolName + "']])[" + (index + 1) + "]"));
     setTextValue(findElement(toolArea, By.name("_.name")), getSQScannerInstallName(version));
     findElement(toolArea, By.name("hudson-tools-InstallSourceProperty")).click();
     WebElement homeDir = findElement(toolArea, By.name("_.home"));
@@ -468,7 +468,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     }
 
     findElement(buttonByText("Add " + toolName)).click();
-    WebElement toolArea = findElement(driver, By.xpath("//div[@name='tool'][.//div[normalize-space(.) = '" + toolName + "']]"), index);
+    WebElement toolArea = findElement(driver, By.xpath("(//div[@name='tool'][.//div[normalize-space(.) = '" + toolName + "']])[" + (index + 1) + "]"));
     setTextValue(findElement(toolArea, By.name("_.name")), getScannerMSBuildInstallName(version));
     select(findElement(toolArea, By.name("_.id")), version);
     findElement(buttonByText("Save")).click();
@@ -667,17 +667,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     if (!elements.isEmpty()) {
       System.err.println("Not expecting finding element, but found " + elements.size() + ". Save screenshot to: target/no_such_element.png");
       takeScreenshot(new File("target/no_such_element.png"));
-    }
-  }
-
-  public WebElement findElement(SearchContext context, By by, int index) {
-    try {
-      List<WebElement> elms = context.findElements(by);
-      return scrollTo(elms.get(index));
-    } catch (NoSuchElementException | IndexOutOfBoundsException e) {
-      System.err.println("Element not found. Save screenshot to: target/no_such_element.png");
-      takeScreenshot(new File("target/no_such_element.png"));
-      throw e;
     }
   }
 
