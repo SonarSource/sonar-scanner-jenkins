@@ -53,6 +53,7 @@ import java.util.Collections;
 import java.util.List;
 import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -105,6 +106,7 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
   }
 
   @Extension
+  @Symbol("sonarScanner")
   public static class DescriptorImpl extends ToolDescriptor<SonarRunnerInstallation> {
     @CopyOnWrite
     private volatile SonarRunnerInstallation[] installations = new SonarRunnerInstallation[0];

@@ -54,6 +54,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -225,6 +226,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
   }
 
   @Extension
+  @Symbol("msSonarScanner")
   public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
     // Used in jelly configuration for conditional display of the UI
     public static final boolean BEFORE_V2 = JenkinsRouter.BEFORE_V2;
