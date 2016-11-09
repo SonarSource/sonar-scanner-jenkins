@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -111,6 +112,8 @@
     <findbugs.failOnError>false</findbugs.failOnError>
     <!-- Disable parallel tests on Travis -->
     <concurrency>1</concurrency>
+    <!-- Don't rerun failing tests -->
+    <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
     <!-- Skip Findbugs -->
     <findbugs.skip>true</findbugs.skip>
   </properties>
@@ -147,12 +150,12 @@
       <optional>true</optional>
       <exclusions>
         <exclusion>
-	       <groupId>org.apache.httpcomponents</groupId>
-	       <artifactId>httpclient</artifactId>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
         </exclusion>
         <exclusion>
-           <groupId>org.apache.httpcomponents</groupId>
-           <artifactId>httpcore</artifactId>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpcore</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -178,7 +181,7 @@
           <artifactId>hamcrest-core</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
@@ -198,13 +201,14 @@
       <version>1.6</version>
       <scope>test</scope>
     </dependency>
-     <dependency>
-       <groupId>org.jenkins-ci.modules</groupId>
-       <artifactId>sshd</artifactId>
-       <version>1.6</version>
-       <scope>test</scope><!-- needed by git-server (via workflow-aggregator -> workflow-cps-global-lib) and otherwise unavailable during tests -->
-     </dependency>
-     <dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.modules</groupId>
+      <artifactId>sshd</artifactId>
+      <version>1.6</version>
+      <scope>test</scope><!-- needed by git-server (via workflow-aggregator -> workflow-cps-global-lib) and otherwise unavailable 
+        during tests -->
+    </dependency>
+    <dependency>
       <groupId>org.jvnet.mock-javamail</groupId>
       <artifactId>mock-javamail</artifactId>
       <version>1.9</version>
@@ -240,6 +244,13 @@
     </pluginManagement>
 
     <plugins>
+      <plugin>
+        <groupId>org.jenkins-ci.tools</groupId>
+        <artifactId>maven-hpi-plugin</artifactId>
+        <configuration>
+          <disabledTestInjection>true</disabledTestInjection>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
@@ -312,8 +323,8 @@
             </executions>
           </plugin>
           <plugin>
-            <!-- this maven plugin is not deployed in Maven Central. It should be downloaded
-            from JFrog JCenter or from SonarSource repositories -->
+            <!-- this maven plugin is not deployed in Maven Central. It should be downloaded from JFrog JCenter or from SonarSource 
+              repositories -->
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>artifactory-maven-plugin</artifactId>
             <version>${version.artifactory.plugin}</version>
