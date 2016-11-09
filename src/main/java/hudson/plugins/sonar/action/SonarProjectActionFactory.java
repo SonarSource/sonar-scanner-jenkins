@@ -57,7 +57,7 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
 
   @Override
   public Collection<? extends Action> createFor(AbstractProject project) {
-    if (project == null || !projectHasSonarAnalysis(project)) {
+    if (!projectHasSonarAnalysis(project)) {
       return Collections.emptyList();
     }
 

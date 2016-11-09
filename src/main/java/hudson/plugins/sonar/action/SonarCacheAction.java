@@ -22,14 +22,13 @@ import com.google.common.annotations.VisibleForTesting;
 import hudson.model.InvisibleAction;
 import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
-
-import javax.annotation.CheckForNull;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 
 public class SonarCacheAction extends InvisibleAction {
   private Map<String, ProjectInformation> infoByTaskId;
@@ -38,8 +37,8 @@ public class SonarCacheAction extends InvisibleAction {
   private List<ProjectInformation> lastProjInfo;
 
   public SonarCacheAction() {
-    this.infoByTaskId = new HashMap<String, ProjectInformation>();
-    this.infoByUrl = new HashMap<String, ProjectInformation>();
+    this.infoByTaskId = new HashMap<>();
+    this.infoByUrl = new HashMap<>();
   }
 
   public List<ProjectInformation> get(SQProjectResolver resolver, long lastBuildTime, List<SonarAnalysisAction> analysis) {
@@ -47,7 +46,7 @@ public class SonarCacheAction extends InvisibleAction {
       return lastProjInfo;
     }
 
-    List<ProjectInformation> list = new ArrayList<ProjectInformation>(analysis.size());
+    List<ProjectInformation> list = new ArrayList<>(analysis.size());
 
     for (SonarAnalysisAction a : analysis) {
       ProjectInformation proj = get(resolver, lastBuildTime, a);
@@ -90,7 +89,7 @@ public class SonarCacheAction extends InvisibleAction {
   }
 
   @VisibleForTesting
-  static boolean isEntryValid(ProjectInformation cached, long lastBuild) {
+  static boolean isEntryValid(@Nullable ProjectInformation cached, long lastBuild) {
     if (cached == null) {
       return false;
     }
