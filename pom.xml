@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>2.18</version>
+    <version>2.9</version>
     <relativePath />
   </parent>
 
@@ -105,8 +105,8 @@
     <sonar.exclusions>target/generated-sources/**/*</sonar.exclusions>
     <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
     <version.artifactory.plugin>2.4.1</version.artifactory.plugin>
-    <jenkins.version>2.19.2</jenkins.version>
-    <jenkins-test-harness.version>2.17</jenkins-test-harness.version>
+    <jenkins.version>2.7.3</jenkins.version>
+    <jenkins-test-harness.version>2.9</jenkins-test-harness.version>
     <java.level>8</java.level>
     <findbugs.failOnError>false</findbugs.failOnError>
     <!-- Disable parallel tests on Travis -->
