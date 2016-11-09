@@ -119,9 +119,7 @@ public class SonarRunnerBuilder extends Builder {
     // all fields are optional
   }
 
-  /**
-   * @deprecated We're moving to using @DataBoundSetter instead and a much leaner @DataBoundConstructor 
-   */
+  // We're moving to using @DataBoundSetter instead and a much leaner @DataBoundConstructor
   @Deprecated
   public SonarRunnerBuilder(String installationName, String sonarScannerName, String project, String properties, String javaOpts, String jdk, String task,
     String additionalArguments) {
@@ -306,7 +304,7 @@ public class SonarRunnerBuilder extends Builder {
     try {
       exitCode = executeSonarQubeScanner(run, workspace, launcher, listener, args, env);
     } catch (IOException e) {
-      handleErrors(listener, sri, startTime, e);
+      handleErrors(run, listener, sri, startTime, e);
       exitCode = -1;
     }
 
@@ -319,7 +317,7 @@ public class SonarRunnerBuilder extends Builder {
     }
   }
 
-  private void handleErrors(TaskListener listener, @Nullable SonarRunnerInstallation sri, long startTime, IOException e) {
+  private void handleErrors(Run<?, ?> build, TaskListener listener, SonarRunnerInstallation sri, long startTime, IOException e) {
     Logger.printFailureMessage(listener);
     Util.displayIOException(e, listener);
 
@@ -376,7 +374,7 @@ public class SonarRunnerBuilder extends Builder {
 
   @VisibleForTesting
   void populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
-    TaskListener listener, EnvVars env, @Nullable SonarInstallation si) throws IOException, InterruptedException {
+    TaskListener listener, EnvVars env, SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.jdbc.url", si.getDatabaseUrl());
       args.appendMasked("sonar.jdbc.username", si.getDatabaseLogin());
@@ -401,6 +399,11 @@ public class SonarRunnerBuilder extends Builder {
         // and diagnosing it nicely. See HUDSON-1782
 
         // first check if this appears to be a valid relative path from workspace root
+        if (workspace == null) {
+          String msg = "Project workspace is null";
+          listener.fatalError(msg);
+          throw new AbortException(msg);
+        }
         FilePath projectSettingsFilePath2 = workspace.child(projectSettingsFile);
         if (projectSettingsFilePath2.exists()) {
           // This must be what the user meant. Let it continue.
@@ -426,7 +429,7 @@ public class SonarRunnerBuilder extends Builder {
     }
   }
 
-  private static void loadProperties(ExtendedArgumentListBuilder args, Properties p) {
+  private void loadProperties(ExtendedArgumentListBuilder args, Properties p) {
     for (Entry<Object, Object> entry : p.entrySet()) {
       args.append(entry.getKey().toString(), entry.getValue().toString());
     }

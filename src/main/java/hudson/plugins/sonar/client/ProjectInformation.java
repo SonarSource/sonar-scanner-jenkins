@@ -19,9 +19,8 @@
 package hudson.plugins.sonar.client;
 
 import hudson.model.InvisibleAction;
+
 import java.util.Locale;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 
 public class ProjectInformation extends InvisibleAction {
   private long created;
@@ -41,7 +40,7 @@ public class ProjectInformation extends InvisibleAction {
   public long created() {
     return created;
   }
-
+  
   public String getCeUrl() {
     return ceUrl;
   }
@@ -54,11 +53,10 @@ public class ProjectInformation extends InvisibleAction {
     return ceStatus;
   }
 
-  public void setCeStatus(@Nullable String ceStatus) {
+  public void setCeStatus(String ceStatus) {
     this.ceStatus = (ceStatus != null) ? ceStatus.toLowerCase(Locale.US) : null;
   }
 
-  @CheckForNull
   public String getStatus() {
     return status;
   }

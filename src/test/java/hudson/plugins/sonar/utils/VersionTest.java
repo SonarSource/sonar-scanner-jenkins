@@ -18,10 +18,11 @@
  */
 package hudson.plugins.sonar.utils;
 
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,6 +63,14 @@ public class VersionTest {
   public void testToString() {
     Version v = new Version("1.2.3");
     assertThat(v.toString()).isEqualTo("1.2.3");
+  }
+
+  @Test
+  public void testNull() {
+    Version a = new Version("1.0");
+    Version b = null;
+    assertThat(a.compareTo(b)).isGreaterThan(0); // return 1 (a>b)
+    assertThat(a.equals(b)).isFalse(); // return false
   }
 
   @Test

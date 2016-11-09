@@ -57,7 +57,7 @@ public class MaskPasswordsOutputStream extends LineTransformationOutputStream {
     this.logger = logger;
     this.charset = charset;
 
-    if (!passwords.isEmpty()) {
+    if (passwords != null && !passwords.isEmpty()) {
 
       // passwords are aggregated into a regex which is compiled as a pattern
       // for efficiency

@@ -22,10 +22,11 @@ import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Run;
 import hudson.plugins.sonar.utils.SonarUtils;
+import jenkins.model.TransientActionFactory;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import jenkins.model.TransientActionFactory;
 
 @Extension
 public class SonarBuildBadgeActionFactory extends TransientActionFactory<Run> {
@@ -41,6 +42,9 @@ public class SonarBuildBadgeActionFactory extends TransientActionFactory<Run> {
    * The badge will have an URL if there aren't multiple URLs.
    */
   public Collection<? extends Action> createFor(Run run) {
+    if (run == null) {
+      return Collections.emptyList();
+    }
     List<SonarAnalysisAction> actions = SonarUtils.getPersistentActions(run, SonarAnalysisAction.class);
 
     if (actions.isEmpty()) {

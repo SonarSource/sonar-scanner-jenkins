@@ -18,7 +18,6 @@
  */
 package hudson.plugins.sonar.utils;
 
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +26,9 @@ public class Version implements Comparable<Version> {
   private int[] parts;
 
   public Version(String version) {
-    Objects.requireNonNull(version, "Version can not be null");
+    if (version == null) {
+      throw new IllegalArgumentException("Version can not be null");
+    }
     if (!version.matches("[0-9]+(\\.[0-9]+)+(.*)?")) {
       throw new IllegalArgumentException("Invalid version format: " + version);
     }
@@ -55,7 +56,7 @@ public class Version implements Comparable<Version> {
   public final String get() {
     return this.versionStr;
   }
-
+  
   @Override
   public String toString() {
     return this.versionStr;
@@ -63,6 +64,9 @@ public class Version implements Comparable<Version> {
 
   @Override
   public int compareTo(Version that) {
+    if (that == null) {
+      return 1;
+    }
     int[] thisParts = parts;
     int[] thatParts = that.parts;
     int length = Math.max(thisParts.length, thatParts.length);

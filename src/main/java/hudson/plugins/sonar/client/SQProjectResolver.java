@@ -23,11 +23,12 @@ import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.client.WsClient.ProjectQualityGate;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.Version;
+import org.apache.commons.lang.StringUtils;
+
+import javax.annotation.CheckForNull;
+
 import java.util.Locale;
 import java.util.logging.Level;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
-import org.apache.commons.lang.StringUtils;
 
 public class SQProjectResolver {
   private final HttpClient client;
@@ -42,7 +43,7 @@ public class SQProjectResolver {
    * Errors that should be displayed are included in {@link ProjectInformation#getErrors()}.
    */
   @CheckForNull
-  public ProjectInformation resolve(@Nullable String projectUrl, @Nullable String ceTaskId, String installationName) {
+  public ProjectInformation resolve(String projectUrl, String ceTaskId, String installationName) {
     SonarInstallation inst = SonarInstallation.get(installationName);
     if (inst == null) {
       Logger.LOG.info("Invalid installation name: " + installationName);
@@ -88,7 +89,7 @@ public class SQProjectResolver {
     }
   }
 
-  private static void getCETask(WsClient wsClient, ProjectInformation projectInfo, @Nullable String ceTaskId) throws Exception {
+  private static void getCETask(WsClient wsClient, ProjectInformation projectInfo, String ceTaskId) throws Exception {
     if (ceTaskId == null) {
       return;
     }
@@ -122,7 +123,7 @@ public class SQProjectResolver {
     }
   }
 
-  private static boolean checkServerUrl(@Nullable String serverUrl, @Nullable String projectKey, SonarInstallation inst) {
+  private static boolean checkServerUrl(String serverUrl, String projectKey, SonarInstallation inst) {
     if (serverUrl == null || projectKey == null) {
       Logger.LOG.info(String.format(Locale.US, "Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
       return false;
@@ -137,13 +138,11 @@ public class SQProjectResolver {
     return true;
   }
 
-  @CheckForNull
-  static String extractServerUrl(@Nullable String url) {
+  static String extractServerUrl(String url) {
     return StringUtils.substringBefore(url, "/dashboard");
   }
 
-  @CheckForNull
-  static String extractProjectKey(@Nullable String url) {
+  static String extractProjectKey(String url) {
     return StringUtils.substringAfterLast(url, "/dashboard/index/");
   }
 }

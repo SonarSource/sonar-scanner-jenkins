@@ -20,11 +20,12 @@ package hudson.plugins.sonar.action;
 
 import hudson.model.Action;
 import hudson.model.Run;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import org.junit.Before;
-import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -32,12 +33,18 @@ import static org.mockito.Mockito.when;
 
 public class SonarBuildBadgeActionFactoryTest {
   private SonarBuildBadgeActionFactory factory;
-
+  
   @Before
   public void setUp() {
     factory = new SonarBuildBadgeActionFactory();
   }
-
+  
+  @Test
+  public void testNoBadgeIfInvalidRun() {
+    Collection<? extends Action> badges = factory.createFor(null);
+    assertThat(badges).isEmpty();
+  }
+  
   @Test
   public void testNoBadgeIfNoSonar() {
     Run r = mock(Run.class);
@@ -45,7 +52,7 @@ public class SonarBuildBadgeActionFactoryTest {
     Collection<? extends Action> badges = factory.createFor(r);
     assertThat(badges).isEmpty();
   }
-
+  
   @Test
   public void testUrl() {
     Run r = mock(Run.class);
@@ -53,7 +60,7 @@ public class SonarBuildBadgeActionFactoryTest {
     Collection<? extends Action> badges = factory.createFor(r);
     assertBadge(badges, "http://myserver/myproject");
   }
-
+  
   @Test
   public void testMultipleAnalysis() {
     Run r = mock(Run.class);
@@ -65,7 +72,7 @@ public class SonarBuildBadgeActionFactoryTest {
     Collection<? extends Action> badges = factory.createFor(r);
     assertBadge(badges, null);
   }
-
+  
   @Test
   public void testNoUrl() {
     Run r = mock(Run.class);
@@ -73,7 +80,7 @@ public class SonarBuildBadgeActionFactoryTest {
     Collection<? extends Action> badges = factory.createFor(r);
     assertBadge(badges, null);
   }
-
+  
   private static void assertBadge(Collection<? extends Action> actions, String url) {
     assertThat(actions).hasSize(1);
     Action action = actions.iterator().next();
@@ -81,7 +88,7 @@ public class SonarBuildBadgeActionFactoryTest {
     SonarBuildBadgeAction badge = (SonarBuildBadgeAction) action;
     assertThat(badge.getUrl()).isEqualTo(url);
   }
-
+  
   private static SonarAnalysisAction createBuildInfo(String url) {
     SonarAnalysisAction buildInfo = new SonarAnalysisAction("my sonar");
     buildInfo.setUrl(url);
