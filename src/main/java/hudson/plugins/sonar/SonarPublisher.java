@@ -33,39 +33,39 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.action.SonarMarkerAction;
-import hudson.CopyOnWrite;
-import hudson.Extension;
-import hudson.EnvVars;
-import hudson.Launcher;
 import com.google.common.annotations.VisibleForTesting;
+import hudson.CopyOnWrite;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.Launcher;
 import hudson.Util;
 import hudson.maven.MavenModuleSet;
-import hudson.model.Action;
-import hudson.model.BuildListener;
-import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
+import hudson.model.BuildListener;
 import hudson.model.JDK;
+import hudson.model.Result;
+import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarMaven;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Maven;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import hudson.tasks.Maven;
 import hudson.tasks.Maven.MavenInstallation;
+import java.io.IOException;
+import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
-import jenkins.mvn.GlobalSettingsProvider;
-import jenkins.mvn.SettingsProvider;
 import jenkins.mvn.DefaultGlobalSettingsProvider;
 import jenkins.mvn.DefaultSettingsProvider;
+import jenkins.mvn.GlobalSettingsProvider;
+import jenkins.mvn.SettingsProvider;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.IOException;
 
 /**
  * Old fields should be left so that old config data can be read in, but
@@ -161,7 +161,7 @@ public class SonarPublisher extends Notifier {
     String branch,
     TriggersConfig triggers,
     String jobAdditionalProperties, String mavenOpts,
-    String mavenInstallationName, String rootPom, String jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings, boolean usePrivateRepository) {
+    String mavenInstallationName, String rootPom, String jdk, @Nullable SettingsProvider settings, @Nullable GlobalSettingsProvider globalSettings, boolean usePrivateRepository) {
     this.installationName = installationName;
     this.branch = branch;
     this.jdk = StringUtils.trimToNull(jdk);
@@ -450,7 +450,6 @@ public class SonarPublisher extends Notifier {
       return buildWrapperEnabled;
     }
 
-    
     /**
      * @deprecated Global configuration has migrated to {@link SonarGlobalConfiguration} 
      */
@@ -468,7 +467,7 @@ public class SonarPublisher extends Notifier {
     void setDeprecatedBuildWrapperEnabled(boolean enabled) {
       this.buildWrapperEnabled = enabled;
     }
-    
+
     public SonarInstallation[] getInstallations() {
       return SonarInstallation.all();
     }
