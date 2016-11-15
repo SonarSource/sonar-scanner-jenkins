@@ -10,8 +10,8 @@
     <hudson.plugins.sonar.SonarInstallation>
       <name>Scrambled</name>
       <disabled>false</disabled>
-      <databasePassword>scrambledDbPasswd</databasePassword>
-      <sonarPassword>scrambledSonarPasswd</sonarPassword>
+      <databasePassword>c2NyYW1ibGVkRGJQYXNzd2Q=</databasePassword>
+      <sonarPassword>c2NyYW1ibGVkU29uYXJQYXNzd2Q=</sonarPassword>
     </hudson.plugins.sonar.SonarInstallation>
     <hudson.plugins.sonar.SonarInstallation>
       <name>Secret</name>
