@@ -154,7 +154,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
 
     args.add(sonarInst.getAdditionalAnalysisPropertiesWindows());
     args.addTokenized(sonarInst.getAdditionalProperties());
-    args.addTokenized(additionalArguments);
+    args.addTokenized(env.expand(additionalArguments));
   }
 
   @Override
