@@ -63,6 +63,12 @@
       <version>2.6.1</version>
       <type>zip</type>
     </dependency>
+
+    <dependency>
+      <groupId>org.sonarsource.sonarqube</groupId>
+      <artifactId>sonar-ws</artifactId>
+      <version>5.6</version>
+    </dependency>
   </dependencies>
 
   <build>

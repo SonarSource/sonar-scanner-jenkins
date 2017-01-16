@@ -35,8 +35,8 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
-import org.sonar.wsclient.services.ResourceQuery;
 
+import static com.sonar.it.jenkins.JenkinsTestSuite.getProject;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -83,7 +83,7 @@ public class JenkinsWithoutMaven {
   public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_4() throws Exception {
     String jobName = "abacus-runner-sq-2.4";
     String projectKey = "abacus-runner-2.4";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
       .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "abacus"), "2.4",
         "sonar.projectKey", projectKey,
@@ -104,7 +104,7 @@ public class JenkinsWithoutMaven {
   public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_6_1() throws Exception {
     String jobName = "abacus-runner-sq-2.6.1";
     String projectKey = "abacus-runner-2.6.1";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
       .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "abacus"), "2.6.1",
         "sonar.projectKey", projectKey,
@@ -126,13 +126,13 @@ public class JenkinsWithoutMaven {
     assumeTrue(SystemUtils.IS_OS_WINDOWS);
     String jobName = "csharp";
     String projectKey = "csharp";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     jenkins
       .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "csharp"), projectKey, "CSharp", "1.0", "2.0", "ConsoleApplication1.sln")
       .executeJob(jobName);
 
     waitForComputationOnSQServer();
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
+    assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
   }
 
@@ -141,7 +141,7 @@ public class JenkinsWithoutMaven {
     File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
     String jobName = "abacus-msbuild-sq-runner-2-0";
     String projectKey = "abacus-msbuild-sq-runner-2-0";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
       .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "2.0", null)
       .executeJobQuietly(jobName);
@@ -160,7 +160,7 @@ public class JenkinsWithoutMaven {
     File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
     String jobName = "abacus-msbuild-sq-runner-1-1";
     String projectKey = "abacus-msbuild-sq-runner-1-1";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
       .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "1.1", null)
       .executeJobQuietly(jobName);

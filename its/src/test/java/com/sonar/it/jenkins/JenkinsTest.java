@@ -32,8 +32,8 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
-import org.sonar.wsclient.services.ResourceQuery;
 
+import static com.sonar.it.jenkins.JenkinsTestSuite.getProject;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assume.assumeFalse;
 
@@ -81,12 +81,12 @@ public class JenkinsTest {
   public void testMavenJob() throws Exception {
     String jobName = "abacus-maven";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     jenkins
       .newMavenJobWithSonar(jobName, new File("projects", "abacus"), null)
       .executeJob(jobName);
     waitForComputationOnSQServer();
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
+    assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
   }
 
@@ -94,12 +94,12 @@ public class JenkinsTest {
   public void testMavenJobWithBranch() throws Exception {
     String jobName = "abacus-maven-branch";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin:branch";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     jenkins
       .newMavenJobWithSonar(jobName, new File("projects", "abacus"), "branch")
       .executeJob(jobName);
     waitForComputationOnSQServer();
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
+    assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
   }
 
@@ -107,13 +107,13 @@ public class JenkinsTest {
   public void testVariableInjection() throws JenkinsOrchestrator.FailedExecutionException {
     String jobName = "abacus-freestyle-vars";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
 
     jenkins.enableInjectionVars(true)
       .newFreestyleJobWithMaven(jobName, new File("projects", "abacus"), null, orchestrator)
       .executeJob(jobName);
     waitForComputationOnSQServer();
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
+    assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
     jenkins.assertQGOnProjectPage(jobName);
   }
@@ -122,12 +122,12 @@ public class JenkinsTest {
   public void testFreestyleJobWithSonarMaven() throws Exception {
     String jobName = "abacus-freestyle";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     jenkins
       .newFreestyleJobWithSonar(jobName, new File("projects", "abacus"), null)
       .executeJob(jobName);
     waitForComputationOnSQServer();
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
+    assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
     jenkins.assertQGOnProjectPage(jobName);
   }
@@ -136,12 +136,12 @@ public class JenkinsTest {
   public void testFreestyleJobWithSonarMavenAndBranch() throws Exception {
     String jobName = "abacus-freestyle-branch";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin:branch";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     jenkins
       .newFreestyleJobWithSonar(jobName, new File("projects", "abacus"), "branch")
       .executeJob(jobName);
     waitForComputationOnSQServer();
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
+    assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
     jenkins.assertQGOnProjectPage(jobName);
   }
@@ -150,7 +150,7 @@ public class JenkinsTest {
   public void testFreestyleJobWithSonarQubeScanner() throws Exception {
     String jobName = "abacus-runner";
     String projectKey = "abacus-runner";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     jenkins
       .newFreestyleJobWithSQScanner(jobName, "-X", new File("projects", "abacus"), null,
         "sonar.projectKey", projectKey,
@@ -159,7 +159,7 @@ public class JenkinsTest {
         "sonar.sources", "src/main/java")
       .executeJob(jobName);
     waitForComputationOnSQServer();
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
+    assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
     jenkins.assertQGOnProjectPage(jobName);
   }
@@ -168,7 +168,7 @@ public class JenkinsTest {
   public void testFreestyleJobWithSonarQubeScannerAndBranch() throws Exception {
     String jobName = "abacus-runner-branch";
     String projectKey = "abacus-runner:branch";
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNull();
+    assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
       .newFreestyleJobWithSQScanner(jobName, "-X -Duseless=Y -e", new File("projects", "abacus"), null,
         "sonar.projectKey", "abacus-runner",
@@ -178,7 +178,7 @@ public class JenkinsTest {
         "sonar.branch", "branch")
       .executeJob(jobName);
     waitForComputationOnSQServer();
-    assertThat(orchestrator.getServer().getWsClient().find(ResourceQuery.create(projectKey))).isNotNull();
+    assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
     jenkins.assertQGOnProjectPage(jobName);
     if (JenkinsTestSuite.isWindows()) {

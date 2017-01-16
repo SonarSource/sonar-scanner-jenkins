@@ -22,10 +22,18 @@ package com.sonar.it.jenkins;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.io.File;
+import javax.annotation.CheckForNull;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.sonarqube.ws.WsComponents;
+import org.sonarqube.ws.WsComponents.Component;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.HttpException;
+import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.component.ShowWsRequest;
 
 @RunWith(Suite.class)
 @SuiteClasses({JenkinsTest.class, JenkinsWithoutMaven.class, JenkinsPipelineTest.class})
@@ -44,5 +52,23 @@ public class JenkinsTestSuite {
 
   static boolean isWindows() {
     return File.pathSeparatorChar == ';' || System.getProperty("os.name").startsWith("Windows");
+  }
+
+  @CheckForNull
+  static Component getProject(String componentKey) {
+    try {
+      return newWsClient().components().show(new ShowWsRequest().setKey(componentKey)).getComponent();
+    } catch (HttpException e) {
+      if (e.code() == 404) {
+        return null;
+      }
+      throw new IllegalStateException(e);
+    }
+  }
+
+  static WsClient newWsClient() {
+    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
+      .url(ORCHESTRATOR.getServer().getUrl())
+      .build());
   }
 }
