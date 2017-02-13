@@ -1,4 +1,4 @@
-Jenkins SonarQube Plugin
+SonarQube Scanner for Jenkins
 Copyright (C) 2007-2017 SonarSource SA
 mailto:info AT sonarsource DOT com
 
