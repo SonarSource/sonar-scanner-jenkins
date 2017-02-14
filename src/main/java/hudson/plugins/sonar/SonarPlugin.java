@@ -34,6 +34,7 @@
 package hudson.plugins.sonar;
 
 import hudson.Plugin;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 
 public class SonarPlugin extends Plugin {
@@ -41,7 +42,9 @@ public class SonarPlugin extends Plugin {
   public void postInitialize() {
     Jenkins j = Jenkins.getInstance();
     if (j != null) {
-      SonarGlobalConfiguration globalConfiguration = j.getDescriptorByType(SonarGlobalConfiguration.class);
+      SonarGlobalConfiguration globalConfiguration = Jenkins.getInstance()
+        .getExtensionList(GlobalConfiguration.class)
+        .get(SonarGlobalConfiguration.class);
       globalConfiguration.migrate();
     }
   }

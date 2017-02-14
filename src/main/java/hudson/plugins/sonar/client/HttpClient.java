@@ -24,7 +24,7 @@ import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsResponse;
 
 public class HttpClient {
-  public String getHttp(String url, String usernameOrToken, String password) throws Exception {
+  public String getHttp(String url, String usernameOrToken, String password) {
     String baseUrl = StringUtils.substringBeforeLast(url, "/");
     String path = StringUtils.substringAfterLast(url, "/");
     HttpConnector httpConnector = HttpConnector.newBuilder()
@@ -34,6 +34,5 @@ public class HttpClient {
       .build();
     WsResponse response = httpConnector.call(new GetRequest(path));
     return response.content();
-
   }
 }

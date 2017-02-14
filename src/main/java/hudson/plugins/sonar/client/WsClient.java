@@ -18,20 +18,23 @@
  */
 package hudson.plugins.sonar.client;
 
+import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.utils.Logger;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
-
-import javax.annotation.CheckForNull;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+import net.sf.json.JSONSerializer;
+import org.apache.commons.lang.StringUtils;
 
 public class WsClient {
   public static final String API_RESOURCES = "/api/resources?format=json&depth=0&metrics=alert_status&resource=";
   public static final String API_MEASURES = "/api/measures/component?metricKeys=alert_status&componentKey=";
   public static final String API_PROJECT_STATUS = "/api/qualitygates/project_status?projectKey=";
+  public static final String API_PROJECT_STATUS_WITH_ANALYSISID = "/api/qualitygates/project_status?analysisId=";
   public static final String API_VERSION = "/api/server/version";
   public static final String API_PROJECT_NAME = "/api/projects/index?format=json&key=";
   public static final String API_CE_TASK = "/api/ce/task?id=";
@@ -48,17 +51,43 @@ public class WsClient {
     this.password = password;
   }
 
-  public CETask getCETask(String taskId) throws Exception {
+  public static WsClient create(HttpClient client, SonarInstallation inst) {
+    String serverUrl = StringUtils.isEmpty(inst.getServerUrl()) ? SonarInstallation.DEFAULT_SERVER_URL : inst.getServerUrl();
+    if (StringUtils.isNotEmpty(inst.getServerAuthenticationToken())) {
+      return new WsClient(client, serverUrl, inst.getServerAuthenticationToken(), null);
+    } else {
+      return new WsClient(client, serverUrl, inst.getSonarLogin(), inst.getSonarPassword());
+    }
+  }
+
+  public CETask getCETask(String taskId) {
     String url = serverUrl + API_CE_TASK + taskId;
     String text = client.getHttp(url, username, password);
+    try {
+      JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
+      JSONObject task = json.getJSONObject("task");
+
+      String status = task.getString("status");
+      String componentName = task.getString("componentName");
+      String componentKey = task.getString("componentKey");
+      // No analysisId if task is pending
+      String analysisId = task.optString("analysisId", null);
+      return new CETask(status, componentName, componentKey, url, analysisId);
+    } catch (JSONException e) {
+      throw new IllegalStateException("Unable to parse response from " + url + ":\n" + text);
+    }
+
+  }
+
+  public ProjectQualityGate getQualityGateWithAnalysisId(String analysisId) {
+    String url = serverUrl + API_PROJECT_STATUS_WITH_ANALYSISID + encode(analysisId);
+    String text = client.getHttp(url, username, password);
     JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
-    JSONObject task = json.getJSONObject("task");
+    JSONObject projectStatus = json.getJSONObject("projectStatus");
 
-    String status = task.getString("status");
-    String componentName = task.getString("componentName");
-    String componentKey = task.getString("componentKey");
+    String status = projectStatus.getString("status");
 
-    return new CETask(status, componentName, componentKey, url);
+    return new ProjectQualityGate(null, status);
   }
 
   public ProjectQualityGate getQualityGate54(String projectKey) throws Exception {
@@ -80,7 +109,7 @@ public class WsClient {
 
     if (resourceArray.size() != 1) {
       Logger.LOG.fine("Found " + resourceArray.size() + " resources for " + projectKey);
-      // in 4.5, for example, there is no default QG and a project might return an empty array. 
+      // in 4.5, for example, there is no default QG and a project might return an empty array.
       return null;
     }
 
@@ -142,8 +171,13 @@ public class WsClient {
     return obj.getString("nm");
   }
 
-  private static String encode(String param) throws UnsupportedEncodingException {
-    return URLEncoder.encode(param, "UTF-8");
+  private static String encode(String param) {
+    try {
+      return URLEncoder.encode(param, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      // Should never occurs
+      return param;
+    }
   }
 
   private static String parseError(JSONObject json) {
@@ -158,18 +192,24 @@ public class WsClient {
     return errorMsg.toString();
   }
 
-  static class CETask {
+  public static class CETask {
+
+    public static final String STATUS_SUCCESS = "SUCCESS";
+    public static final String STATUS_FAILURE = "FAILED";
+    public static final String STATUS_CANCELED = "CANCELED";
+
     private final String status;
     private final String componentName;
     private final String componentKey;
     private final String url;
+    private final String analysisId;
 
-    public CETask(String status, String componentName, String componentKey, String ceUrl) {
-      super();
+    public CETask(String status, String componentName, String componentKey, String ceUrl, @Nullable String analysisId) {
       this.status = status;
       this.componentName = componentName;
       this.componentKey = componentKey;
       this.url = ceUrl;
+      this.analysisId = analysisId;
     }
 
     public String getUrl() {
@@ -187,9 +227,17 @@ public class WsClient {
     public String getComponentKey() {
       return componentKey;
     }
+
+    /**
+     * @return null if status is PENDING
+     */
+    @CheckForNull
+    public String getAnalysisId() {
+      return analysisId;
+    }
   }
 
-  static class ProjectQualityGate {
+  public static class ProjectQualityGate {
     private final String status;
     private final String projectName;
 
@@ -198,12 +246,12 @@ public class WsClient {
       this.status = status;
     }
 
-    String getStatus() {
+    public String getStatus() {
       return status;
     }
 
     @CheckForNull
-    String getProjectName() {
+    public String getProjectName() {
       return projectName;
     }
 
