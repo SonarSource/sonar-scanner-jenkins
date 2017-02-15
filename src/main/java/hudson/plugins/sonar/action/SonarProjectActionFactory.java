@@ -19,10 +19,10 @@
 package hudson.plugins.sonar.action;
 
 import hudson.Extension;
-import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Actionable;
 import hudson.model.BuildableItemWithBuildWrappers;
+import hudson.model.Job;
 import hudson.model.ProminentProjectAction;
 import hudson.model.Run;
 import hudson.plugins.sonar.SonarBuildWrapper;
@@ -31,7 +31,6 @@ import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
 import hudson.plugins.sonar.utils.SonarUtils;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,7 +42,7 @@ import jenkins.model.TransientActionFactory;
 /**
  * We don't use {@link TransientProjectActionFactory} because it appears to be cached and requires Jenkins to restart.
  */
-public class SonarProjectActionFactory extends TransientActionFactory<AbstractProject> {
+public class SonarProjectActionFactory extends TransientActionFactory<Job> {
   private SQProjectResolver resolver;
 
   public SonarProjectActionFactory() {
@@ -51,19 +50,15 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
   }
 
   @Override
-  public Class<AbstractProject> type() {
-    return AbstractProject.class;
+  public Class<Job> type() {
+    return Job.class;
   }
 
   @Override
-  public Collection<? extends Action> createFor(AbstractProject project) {
-    if (!projectHasSonarAnalysis(project)) {
-      return Collections.emptyList();
-    }
-
-    Set<String> urls = new HashSet<String>();
-    List<ProminentProjectAction> sonarProjectActions = new LinkedList<ProminentProjectAction>();
-    List<SonarAnalysisAction> filteredActions = new LinkedList<SonarAnalysisAction>();
+  public Collection<? extends Action> createFor(Job project) {
+    Set<String> urls = new HashSet<>();
+    List<ProminentProjectAction> sonarProjectActions = new LinkedList<>();
+    List<SonarAnalysisAction> filteredActions = new LinkedList<>();
 
     // don't fetch builds that haven't finished yet
     Run<?, ?> lastBuild = project.getLastCompletedBuild();
@@ -79,8 +74,10 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
     }
 
     if (sonarProjectActions.isEmpty()) {
-      // display at least 1 wave without any URL in the project page
-      sonarProjectActions.add(new SonarProjectIconAction());
+      if (projectHasSonarAnalysis(project)) {
+        // display at least 1 wave without any URL in the project page
+        sonarProjectActions.add(new SonarProjectIconAction());
+      }
     } else {
       SonarProjectPageAction projectPage = createProjectPage(lastBuild, filteredActions);
       if (projectPage != null) {
@@ -95,7 +92,7 @@ public class SonarProjectActionFactory extends TransientActionFactory<AbstractPr
    * Returns whether the project has any Sonar analysis currently configured.
    * The goal is to not display anything if no analysis is currently configured, even if the latest build did perform an analysis
    */
-  private static boolean projectHasSonarAnalysis(AbstractProject project) {
+  private static boolean projectHasSonarAnalysis(Job project) {
     if (project instanceof BuildableItemWithBuildWrappers) {
       // SonarBuildWrapper is no more able to contribute project actions since it was made compatible with pipeline
       for (Object wrapper : ((BuildableItemWithBuildWrappers) project).getBuildWrappersList()) {
