@@ -21,14 +21,13 @@ package hudson.plugins.sonar.action;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -131,9 +130,9 @@ public class SonarProjectActionFactoryTest {
   private void mockProject(boolean markProject, SonarAnalysisAction... buildInfos) {
     AbstractBuild build = mock(AbstractBuild.class);
     when(project.getLastCompletedBuild()).thenReturn(build);
-    when(build.getActions(SonarAnalysisAction.class)).thenReturn(Arrays.asList(buildInfos));
 
     if (markProject) {
+      when(build.getActions(SonarAnalysisAction.class)).thenReturn(Arrays.asList(buildInfos));
       when(project.getActions()).thenReturn(Collections.singletonList(new SonarMarkerAction()));
     }
   }
