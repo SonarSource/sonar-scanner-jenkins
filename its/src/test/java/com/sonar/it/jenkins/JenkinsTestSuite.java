@@ -36,7 +36,7 @@ import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.component.ShowWsRequest;
 
 @RunWith(Suite.class)
-@SuiteClasses({JenkinsTest.class, JenkinsWithoutMaven.class, JenkinsPipelineTest.class})
+@SuiteClasses({JenkinsTest.class, JenkinsWithoutMaven.class})
 public class JenkinsTestSuite {
 
   @ClassRule
