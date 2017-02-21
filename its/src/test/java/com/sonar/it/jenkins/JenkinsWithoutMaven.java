@@ -63,7 +63,7 @@ public class JenkinsWithoutMaven {
       .installPlugin("msbuild")
       .installPlugin(sqJenkinsPluginLocation)
       .configureSQScannerInstallation("2.4", 0)
-      .configureSQScannerInstallation("2.6.1", 1)
+      .configureSQScannerInstallation("2.8", 1)
       .configureMsBuildSQScanner_installation("1.1", 0)
       .configureMsBuildSQScanner_installation("2.0", 1)
       .configureSonarInstallation(orchestrator);
@@ -101,12 +101,12 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
-  public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_6_1() throws Exception {
-    String jobName = "abacus-runner-sq-2.6.1";
-    String projectKey = "abacus-runner-2.6.1";
+  public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_8() throws Exception {
+    String jobName = "abacus-runner-sq-2.8";
+    String projectKey = "abacus-runner-2.8";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "abacus"), "2.6.1",
+      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "abacus"), "2.8",
         "sonar.projectKey", projectKey,
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
@@ -118,7 +118,7 @@ public class JenkinsWithoutMaven {
     } else {
       assertThat(result.getLogs()).contains("sonar-scanner");
     }
-    assertThat(result.getLogs()).contains("SonarQube Scanner 2.6.1");
+    assertThat(result.getLogs()).contains("SonarQube Scanner 2.8");
   }
 
   @Test

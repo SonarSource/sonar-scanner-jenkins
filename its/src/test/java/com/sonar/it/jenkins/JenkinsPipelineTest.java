@@ -21,6 +21,7 @@ package com.sonar.it.jenkins;
 
 import com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import hudson.cli.CLI;
@@ -31,9 +32,16 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.SystemUtils;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.sonar.wsclient.qualitygate.NewCondition;
+import org.sonar.wsclient.qualitygate.QualityGate;
+import org.sonar.wsclient.qualitygate.QualityGateClient;
+import org.sonar.wsclient.services.PropertyDeleteQuery;
+import org.sonar.wsclient.services.PropertyUpdateQuery;
 
 import static com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator.DEFAULT_SONARQUBE_INSTALLATION;
 import static java.util.regex.Matcher.quoteReplacement;
@@ -43,7 +51,8 @@ import static org.junit.Assume.assumeTrue;
 
 public class JenkinsPipelineTest {
   private static final String DUMP_ENV_VARS_PIPELINE_CMD = JenkinsTestSuite.isWindows() ? "bat 'set'" : "sh 'env | sort'";
-
+  private static final String GLOBAL_WEBHOOK_PROPERTY = "sonar.webhooks.global";
+  private static long DEFAULT_QUALITY_GATE;
   @ClassRule
   public static Orchestrator orchestrator = JenkinsTestSuite.ORCHESTRATOR;
 
@@ -62,18 +71,31 @@ public class JenkinsPipelineTest {
       // the pipeline plugin -> downloads ~28 other plugins...
       .installPlugin("workflow-aggregator")
       .installPlugin(sqJenkinsPluginLocation)
-      .configureSQScannerInstallation("2.6.1", 0)
+      .configureSQScannerInstallation("2.8", 0)
       .configureMsBuildSQScanner_installation("2.1", 0)
       .configureSonarInstallation(orchestrator);
     if (SystemUtils.IS_OS_WINDOWS) {
       jenkins.configureMSBuildInstallation();
     }
     cli = jenkins.getCli();
+    // Set up webhook
+    enableWebhook();
+    DEFAULT_QUALITY_GATE = qgClient().list().defaultGate().id();
+  }
+
+  @AfterClass
+  public static void cleanup() {
+    disableGlobalWebhooks();
+  }
+
+  @After
+  public void restoreQualityGate() {
+    qgClient().setDefault(DEFAULT_QUALITY_GATE);
   }
 
   @Test
   public void no_sq_vars_without_env_wrapper() throws JenkinsOrchestrator.FailedExecutionException {
-    String logs = runAndGetLogs("no-withSonarQubeEnv", DUMP_ENV_VARS_PIPELINE_CMD);
+    String logs = runAndGetLogs("no-withSonarQubeEnv", "node {" + DUMP_ENV_VARS_PIPELINE_CMD + "}");
     try {
       verifyEnvVarsExist(logs);
     } catch (AssertionError e) {
@@ -84,34 +106,118 @@ public class JenkinsPipelineTest {
 
   @Test
   public void env_wrapper_without_params_should_inject_sq_vars() {
-    String script = "withSonarQubeEnv { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
+    String script = "node { withSonarQubeEnv { " + DUMP_ENV_VARS_PIPELINE_CMD + " }}";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-parameterless", script);
   }
 
   @Test
   public void env_wrapper_with_specific_sq_should_inject_sq_vars() {
-    String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
+    String script = "node {withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }}";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-SonarQube", script);
   }
 
   @Test(expected = JenkinsOrchestrator.FailedExecutionException.class)
   public void env_wrapper_with_nonexistent_sq_should_fail() {
-    String script = "withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
+    String script = "node {withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }}";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-nonexistent", script);
   }
 
   @Test
   public void msbuild_pipeline() {
     assumeTrue(SystemUtils.IS_OS_WINDOWS);
-    String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n"
+    String script = "node {\n"
+      + "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n"
       + "  bat 'xcopy " + Paths.get("projects/csharp").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n"
       + "  def sqScannerMsBuildHome = tool 'Scanner for MSBuild 2.1'\n"
       // FIXME starting from SQ Scanner for MSBuild 2.2 it should no more be required to pass server URL
       + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe begin /k:csharp /n:CSharp /v:1.0 /d:sonar.host.url=%SONAR_HOST_URL% /d:sonar.login=%SONAR_AUTH_TOKEN%\"\n"
       + "  bat '\\\"%MSBUILD_PATH%\\\" /t:Rebuild'\n"
       + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe end /d:sonar.login=%SONAR_AUTH_TOKEN%\"\n"
+      + "}\n"
       + "}";
     assertThat(runAndGetLogs("csharp-pipeline", script)).contains("ANALYSIS SUCCESSFUL, you can browse");
+  }
+
+  @Test
+  public void qualitygate_pipeline_ok() {
+    assumeTrue(orchestrator.getServer().version().isGreaterThan("6.2"));
+    StringBuilder script = new StringBuilder();
+    script.append("node {\n");
+    script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
+    if (SystemUtils.IS_OS_WINDOWS) {
+      script.append("  bat 'xcopy " + Paths.get("projects/abacus").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
+    } else {
+      script.append("  sh 'cp -rf " + Paths.get("projects/abacus").toAbsolutePath().toString() + "/. .'\n");
+    }
+    script.append("  def scannerHome = tool 'SonarQube Scanner 2.8'\n");
+    if (SystemUtils.IS_OS_WINDOWS) {
+      script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat -Dsonar.projectKey=abacus -Dsonar.sources=src/main/java\"\n");
+    } else {
+      script.append("  sh \"${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=abacus -Dsonar.sources=src/main/java\"\n");
+    }
+    script.append("}\n");
+    script.append("def qg = waitForQualityGate()\n");
+    script.append("if (qg.status != 'OK') { error 'Quality gate failure'}\n");
+    script.append("}");
+    createPipelineJobFromScript("abacus-pipeline", script.toString());
+    BuildResult buildResult = jenkins.executeJob("abacus-pipeline");
+    assertThat(buildResult.getLastStatus()).isEqualTo(0);
+  }
+
+  @Test
+  public void qualitygate_pipeline_ko() {
+    assumeTrue(orchestrator.getServer().version().isGreaterThan("6.2"));
+
+    QualityGate simple = qgClient().create("AlwaysFail");
+    qgClient().setDefault(simple.id());
+    qgClient().createCondition(NewCondition.create(simple.id()).metricKey("lines").operator("GT").errorThreshold("0"));
+
+    try {
+      StringBuilder script = new StringBuilder();
+      script.append("node {\n");
+      script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
+      if (SystemUtils.IS_OS_WINDOWS) {
+        script.append("  bat 'xcopy " + Paths.get("projects/abacus").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
+      } else {
+        script.append("  sh 'cp -rf " + Paths.get("projects/abacus").toAbsolutePath().toString() + "/. .'\n");
+      }
+      script.append("  def scannerHome = tool 'SonarQube Scanner 2.8'\n");
+      if (SystemUtils.IS_OS_WINDOWS) {
+        script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat -Dsonar.projectKey=abacus -Dsonar.sources=src/main/java\"\n");
+      } else {
+        script.append("  sh \"${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=abacus -Dsonar.sources=src/main/java\"\n");
+      }
+      script.append("}\n");
+      script.append("def qg = waitForQualityGate()\n");
+      script.append("if (qg.status != 'OK') { error 'Quality gate failure'}\n");
+      script.append("}");
+      createPipelineJobFromScript("abacus-pipeline-ko", script.toString());
+      BuildResult buildResult = jenkins.executeJobQuietly("abacus-pipeline-ko");
+
+      assertThat(buildResult.getLastStatus()).isNotEqualTo(0);
+
+    } finally {
+      qgClient().unsetDefault();
+      qgClient().destroy(simple.id());
+    }
+  }
+
+  private static void enableWebhook() {
+    setProperty(GLOBAL_WEBHOOK_PROPERTY + ".1.name", "Jenkins");
+    setProperty(GLOBAL_WEBHOOK_PROPERTY + ".1.url", jenkins.getServer().getUrl() + "/sonarqube-webhook/");
+    setProperty(GLOBAL_WEBHOOK_PROPERTY, "1");
+  }
+
+  private static QualityGateClient qgClient() {
+    return orchestrator.getServer().adminWsClient().qualityGateClient();
+  }
+
+  private static void setProperty(String key, String value) {
+    orchestrator.getServer().getAdminWsClient().update(new PropertyUpdateQuery(key, value));
+  }
+
+  private static void disableGlobalWebhooks() {
+    orchestrator.getServer().getAdminWsClient().delete(new PropertyDeleteQuery(GLOBAL_WEBHOOK_PROPERTY));
   }
 
   private void runAndVerifyEnvVarsExist(String jobName, String script) {
@@ -152,7 +258,7 @@ public class JenkinsPipelineTest {
       + "    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>\n"
       + "  </properties>\n"
       + "  <definition class=\"org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition\" plugin=\"workflow-cps@2.13\">\n"
-      + "    <script>node { " + script + " }</script>\n"
+      + "    <script>" + script + "</script>\n"
       + "    <sandbox>true</sandbox>\n"
       + "  </definition>\n"
       + "  <triggers/>\n"
@@ -163,4 +269,5 @@ public class JenkinsPipelineTest {
     NullOutputStream nullOutputStream = new NullOutputStream();
     cli.execute(Arrays.asList("create-job", jobName), stdin, nullOutputStream, nullOutputStream);
   }
+
 }

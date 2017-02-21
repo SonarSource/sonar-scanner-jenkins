@@ -28,6 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.kohsuke.stapler.StaplerRequest;
@@ -63,17 +64,21 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
     String payload = IOUtils.toString(req.getReader());
 
     LOGGER.info("Received POST from " + req.getRemoteHost());
-    JSONObject o = JSONObject.fromObject(payload);
+    try {
+      JSONObject o = JSONObject.fromObject(payload);
 
-    LOGGER.fine(() -> "Full details of the POST was " + o.toString());
-    String taskId = o.getString("taskId");
-    String status = o.getString("status");
-    String qgStatus = null;
-    if (CETask.STATUS_SUCCESS.equals(status)) {
-      qgStatus = o.getJSONObject("qualityGate").getString("status");
-    }
-    for (Listener listener : listeners) {
-      listener.onTaskCompleted(taskId, status, qgStatus);
+      LOGGER.fine(() -> "Full details of the POST was " + o.toString());
+      String taskId = o.getString("taskId");
+      String status = o.getString("status");
+      String qgStatus = null;
+      if (CETask.STATUS_SUCCESS.equals(status)) {
+        qgStatus = o.getJSONObject("qualityGate").getString("status");
+      }
+      for (Listener listener : listeners) {
+        listener.onTaskCompleted(taskId, status, qgStatus);
+      }
+    } catch (JSONException e) {
+      LOGGER.warning(() -> "Invalid payload " + payload);
     }
   }
 
