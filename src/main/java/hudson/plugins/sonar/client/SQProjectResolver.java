@@ -45,7 +45,7 @@ public class SQProjectResolver {
   public ProjectInformation resolve(@Nullable String projectUrl, @Nullable String ceTaskId, String installationName) {
     SonarInstallation inst = SonarInstallation.get(installationName);
     if (inst == null) {
-      Logger.LOG.info("Invalid installation name: " + installationName);
+      Logger.LOG.info(() -> "Invalid installation name: " + installationName);
       return null;
     }
 
@@ -53,17 +53,11 @@ public class SQProjectResolver {
       String projectKey = extractProjectKey(projectUrl);
       String serverUrl = extractServerUrl(projectUrl);
 
-      WsClient wsClient;
-      if (StringUtils.isNotEmpty(inst.getServerAuthenticationToken())) {
-        wsClient = new WsClient(client, serverUrl, inst.getServerAuthenticationToken(), null);
-      } else {
-        wsClient = new WsClient(client, serverUrl, inst.getSonarLogin(), inst.getSonarPassword());
-      }
-
       if (!checkServerUrl(serverUrl, projectKey, inst)) {
         return null;
       }
 
+      WsClient wsClient = WsClient.create(client, inst);
       Version version = new Version(wsClient.getServerVersion());
 
       ProjectInformation projectInfo = new ProjectInformation(projectKey);
@@ -88,7 +82,7 @@ public class SQProjectResolver {
     }
   }
 
-  private static void getCETask(WsClient wsClient, ProjectInformation projectInfo, @Nullable String ceTaskId) throws Exception {
+  private static void getCETask(WsClient wsClient, ProjectInformation projectInfo, @Nullable String ceTaskId) {
     if (ceTaskId == null) {
       return;
     }
@@ -124,13 +118,13 @@ public class SQProjectResolver {
 
   private static boolean checkServerUrl(@Nullable String serverUrl, @Nullable String projectKey, SonarInstallation inst) {
     if (serverUrl == null || projectKey == null) {
-      Logger.LOG.info(String.format(Locale.US, "Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
+      Logger.LOG.info(() -> String.format(Locale.US, "Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
       return false;
     }
-    String configUrl = StringUtils.isEmpty(inst.getServerUrl()) ? "http://localhost:9000" : inst.getServerUrl();
+    String configUrl = StringUtils.isEmpty(inst.getServerUrl()) ? SonarInstallation.DEFAULT_SERVER_URL : inst.getServerUrl();
 
     if (!configUrl.equals(serverUrl)) {
-      Logger.LOG.warning(String.format(Locale.US, "Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, configUrl));
+      Logger.LOG.warning(() -> String.format(Locale.US, "Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, configUrl));
       return false;
     }
 

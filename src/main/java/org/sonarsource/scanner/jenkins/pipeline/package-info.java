@@ -16,23 +16,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package hudson.plugins.sonar.client;
+@ParametersAreNonnullByDefault
+package org.sonarsource.scanner.jenkins.pipeline;
 
-import org.apache.commons.lang.StringUtils;
-import org.sonarqube.ws.client.GetRequest;
-import org.sonarqube.ws.client.HttpConnector;
-import org.sonarqube.ws.client.WsResponse;
-
-public class HttpClient {
-  public String getHttp(String url, String usernameOrToken, String password) {
-    String baseUrl = StringUtils.substringBeforeLast(url, "/");
-    String path = StringUtils.substringAfterLast(url, "/");
-    HttpConnector httpConnector = HttpConnector.newBuilder()
-      .userAgent("Scanner for Jenkins")
-      .url(baseUrl)
-      .credentials(usernameOrToken, password)
-      .build();
-    WsResponse response = httpConnector.call(new GetRequest(path));
-    return response.content();
-  }
-}
+import javax.annotation.ParametersAreNonnullByDefault;
