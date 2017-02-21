@@ -96,21 +96,4 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
 
   }
 
-  // {
-  // "taskId":"AVpBJY0hh5C8Sya1ZSgH",
-  // "status":"SUCCESS",
-  // "analysedAt":"2017-02-15T10:41:01+0100",
-  // "project":{"key":"clirr","name":"clirr"},
-  // "qualityGate":{
-  // "name":"SonarQube way",
-  // "status":"OK",
-  // "conditions":[
-  // {"metric":"new_security_rating","operator":"GREATER_THAN","value":"1","status":"OK","onLeakPeriod":true,"errorThreshold":"1"},
-  // {"metric":"new_reliability_rating","operator":"GREATER_THAN","value":"1","status":"OK","onLeakPeriod":true,"errorThreshold":"1"},
-  // {"metric":"new_maintainability_rating","operator":"GREATER_THAN","value":"1","status":"OK","onLeakPeriod":true,"errorThreshold":"1"},
-  // {"metric":"new_coverage","operator":"LESS_THAN","status":"NO_VALUE","onLeakPeriod":true,"errorThreshold":"80"}
-  // ]},
-  // "properties":{}
-  // }
-
 }

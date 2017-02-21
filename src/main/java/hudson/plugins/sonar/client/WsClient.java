@@ -31,6 +31,7 @@ import net.sf.json.JSONSerializer;
 import org.apache.commons.lang.StringUtils;
 
 public class WsClient {
+  private static final String STATUS_ATTR = "status";
   public static final String API_RESOURCES = "/api/resources?format=json&depth=0&metrics=alert_status&resource=";
   public static final String API_MEASURES = "/api/measures/component?metricKeys=alert_status&componentKey=";
   public static final String API_PROJECT_STATUS = "/api/qualitygates/project_status?projectKey=";
@@ -67,14 +68,14 @@ public class WsClient {
       JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
       JSONObject task = json.getJSONObject("task");
 
-      String status = task.getString("status");
+      String status = task.getString(STATUS_ATTR);
       String componentName = task.getString("componentName");
       String componentKey = task.getString("componentKey");
       // No analysisId if task is pending
       String analysisId = task.optString("analysisId", null);
       return new CETask(status, componentName, componentKey, url, analysisId);
     } catch (JSONException e) {
-      throw new IllegalStateException("Unable to parse response from " + url + ":\n" + text);
+      throw new IllegalStateException("Unable to parse response from " + url + ":\n" + text, e);
     }
 
   }
@@ -85,7 +86,7 @@ public class WsClient {
     JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
     JSONObject projectStatus = json.getJSONObject("projectStatus");
 
-    String status = projectStatus.getString("status");
+    String status = projectStatus.getString(STATUS_ATTR);
 
     return new ProjectQualityGate(null, status);
   }
@@ -96,19 +97,19 @@ public class WsClient {
     JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
     JSONObject projectStatus = json.getJSONObject("projectStatus");
 
-    String status = projectStatus.getString("status");
+    String status = projectStatus.getString(STATUS_ATTR);
 
     return new ProjectQualityGate(null, status);
   }
 
   @CheckForNull
-  public ProjectQualityGate getQualityGateBefore54(String projectKey) throws Exception {
+  public ProjectQualityGate getQualityGateBefore54(String projectKey) {
     String url = serverUrl + API_RESOURCES + encode(projectKey);
     String text = client.getHttp(url, username, password);
     JSONArray resourceArray = (JSONArray) JSONSerializer.toJSON(text);
 
     if (resourceArray.size() != 1) {
-      Logger.LOG.fine("Found " + resourceArray.size() + " resources for " + projectKey);
+      Logger.LOG.fine(() -> "Found " + resourceArray.size() + " resources for " + projectKey);
       // in 4.5, for example, there is no default QG and a project might return an empty array.
       return null;
     }
@@ -130,7 +131,7 @@ public class WsClient {
     throw new IllegalStateException("Failed to parse response from resources API: " + url);
   }
 
-  public ProjectQualityGate getQualityGateMeasures(String projectKey) throws Exception {
+  public ProjectQualityGate getQualityGateMeasures(String projectKey) throws MessageException {
     String url = serverUrl + API_MEASURES + encode(projectKey);
 
     String text = client.getHttp(url, username, password);
@@ -155,16 +156,16 @@ public class WsClient {
     return null;
   }
 
-  public String getServerVersion() throws Exception {
+  public String getServerVersion() {
     return client.getHttp(serverUrl + API_VERSION, null, null);
   }
 
-  public String getProjectName(String projectKey) throws Exception {
+  public String getProjectName(String projectKey) {
     String url = serverUrl + API_PROJECT_NAME + encode(projectKey);
     String http = client.getHttp(url, username, password);
     JSONArray jsonArray = (JSONArray) JSONSerializer.toJSON(http);
     if (jsonArray.size() != 1) {
-      throw new Exception("Can't find project " + projectKey + ". Number of projects found: " + jsonArray.size());
+      throw new IllegalStateException("Can't find project " + projectKey + ". Number of projects found: " + jsonArray.size());
     }
 
     JSONObject obj = jsonArray.getJSONObject(0);

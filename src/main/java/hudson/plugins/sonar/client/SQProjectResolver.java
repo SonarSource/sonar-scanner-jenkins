@@ -82,7 +82,7 @@ public class SQProjectResolver {
     }
   }
 
-  private static void getCETask(WsClient wsClient, ProjectInformation projectInfo, @Nullable String ceTaskId) throws Exception {
+  private static void getCETask(WsClient wsClient, ProjectInformation projectInfo, @Nullable String ceTaskId) {
     if (ceTaskId == null) {
       return;
     }
@@ -118,13 +118,13 @@ public class SQProjectResolver {
 
   private static boolean checkServerUrl(@Nullable String serverUrl, @Nullable String projectKey, SonarInstallation inst) {
     if (serverUrl == null || projectKey == null) {
-      Logger.LOG.info(String.format(Locale.US, "Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
+      Logger.LOG.info(() -> String.format(Locale.US, "Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
       return false;
     }
     String configUrl = StringUtils.isEmpty(inst.getServerUrl()) ? SonarInstallation.DEFAULT_SERVER_URL : inst.getServerUrl();
 
     if (!configUrl.equals(serverUrl)) {
-      Logger.LOG.warning(String.format(Locale.US, "Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, configUrl));
+      Logger.LOG.warning(() -> String.format(Locale.US, "Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, configUrl));
       return false;
     }
 
