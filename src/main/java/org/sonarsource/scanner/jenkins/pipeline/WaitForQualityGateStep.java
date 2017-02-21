@@ -182,7 +182,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     }
 
     @Override
-    public void onTaskCompleted(String taskId, String taskStatus, String qgStatus) {
+    public void onTaskCompleted(String taskId, String taskStatus, @Nullable String qgStatus) {
       if (taskId.equals(step.taskId)) {
         try {
           PauseAction.endCurrentPause(getContext().get(FlowNode.class));
