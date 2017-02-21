@@ -41,7 +41,6 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.support.actions.PauseAction;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
 
 public class WaitForQualityGateStep extends Step implements Serializable {
 
@@ -71,12 +70,10 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     super();
   }
 
-  @DataBoundSetter
   public void setTaskId(@Nullable String taskId) {
     this.taskId = taskId;
   }
 
-  @DataBoundSetter
   public void setInstallationName(String installationName) {
     this.installationName = installationName;
   }
