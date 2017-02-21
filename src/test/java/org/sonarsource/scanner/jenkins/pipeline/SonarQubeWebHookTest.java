@@ -77,6 +77,17 @@ public class SonarQubeWebHookTest {
 
     assertThat(eventsPerListener).containsOnly(entry("ListenerA", "AVpBJY0hh5C8Sya1ZSgHSUCCESSOK"),
       entry("ListenerB", "AVpBJY0hh5C8Sya1ZSgHSUCCESSOK"));
+
+    eventsPerListener.clear();
+
+    // No quality gate defined
+    jenkins.postJSON("sonarqube-webhook/", "{\n" +
+      "\"taskId\":\"AVpBJY0hh5C8Sya1ZSgH\",\n" +
+      "\"status\":\"SUCCESS\",\n" +
+      "}");
+
+    assertThat(eventsPerListener).containsOnly(entry("ListenerA", "AVpBJY0hh5C8Sya1ZSgHSUCCESSNONE"),
+      entry("ListenerB", "AVpBJY0hh5C8Sya1ZSgHSUCCESSNONE"));
   }
 
 }

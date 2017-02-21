@@ -25,6 +25,7 @@ import hudson.plugins.sonar.client.WsClient.CETask;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
@@ -72,13 +73,13 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
       String status = o.getString("status");
       String qgStatus = null;
       if (CETask.STATUS_SUCCESS.equals(status)) {
-        qgStatus = o.getJSONObject("qualityGate").getString("status");
+        qgStatus = o.has("qualityGate") ? o.getJSONObject("qualityGate").getString("status") : "NONE";
       }
       for (Listener listener : listeners) {
         listener.onTaskCompleted(taskId, status, qgStatus);
       }
     } catch (JSONException e) {
-      LOGGER.warning(() -> "Invalid payload " + payload);
+      LOGGER.log(Level.WARNING, e, () -> "Invalid payload " + payload);
     }
   }
 
