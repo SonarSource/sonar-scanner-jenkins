@@ -24,3 +24,4 @@ notifications:
   email: false
   webhooks:
     - secure: "JWhfaDTuY/3mpOwGzfBFHO9Y3nEz98FVWrn9yuTPRqRVCFUXdO7G63QWwQiyr7VQoq2IrbsRpbX7ssWW3dJN8sdVwQarRgsVq30KzPONI77/U0Lw9OmixukBnt2IEgjGiJrmBUARd5naCejGlA7iNCLfFbEoudnSMhsdBHux82Y=" 
+  on_start: always
