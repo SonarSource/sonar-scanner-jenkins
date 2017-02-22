@@ -8,12 +8,6 @@ jdk:
 script:
   - ./travis.sh
 
-env:
-  global:
-    - DISPLAY=:99.0
-  matrix:
-    - TARGET=CI
-
 cache:
   directories:
     - $HOME/.m2/repository
