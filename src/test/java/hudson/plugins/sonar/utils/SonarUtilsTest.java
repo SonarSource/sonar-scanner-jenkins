@@ -140,7 +140,7 @@ public class SonarUtilsTest {
 
   private Run<?, ?> mockedRunWithSonarAction(String url) throws IOException {
     Run<?, ?> build = mock(Run.class);
-    when(build.getAction(SonarBuildBadgeAction.class)).thenReturn(url != null ? new SonarBuildBadgeAction(url) : null);
+    when(build.getAction(SonarBuildBadgeAction.class)).thenReturn(url != null ? new SonarBuildBadgeAction(url, false) : null);
     return build;
   }
 

@@ -62,6 +62,11 @@ public final class SonarUtils {
     return extractPatternFromLogs(URL_PATTERN_IN_LOGS, build);
   }
 
+  public static String extractSonarProjectNameFromURL(String url) {
+    int index = url == null ? 0 : url.lastIndexOf("/");
+    return index > 0 ? url.substring(index + 1) : null;
+  }
+
   public static <T extends Action> List<T> getPersistentActions(Actionable actionable, Class<T> type) {
     List<T> filtered = new LinkedList<>();
 

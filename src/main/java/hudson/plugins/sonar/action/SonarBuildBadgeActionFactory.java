@@ -63,6 +63,6 @@ public class SonarBuildBadgeActionFactory extends TransientActionFactory<Run> {
       }
     }
 
-    return Collections.singletonList(new SonarBuildBadgeAction(url));
+    return Collections.singletonList(new SonarBuildBadgeAction(url, actions.size() > 1));
   }
 }
