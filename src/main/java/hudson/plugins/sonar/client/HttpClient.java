@@ -33,6 +33,7 @@ public class HttpClient {
       .credentials(usernameOrToken, password)
       .build();
     WsResponse response = httpConnector.call(new GetRequest(path));
+    response.failIfNotSuccessful();
     return response.content();
   }
 }

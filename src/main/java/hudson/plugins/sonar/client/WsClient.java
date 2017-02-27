@@ -83,12 +83,16 @@ public class WsClient {
   public ProjectQualityGate getQualityGateWithAnalysisId(String analysisId) {
     String url = serverUrl + API_PROJECT_STATUS_WITH_ANALYSISID + encode(analysisId);
     String text = client.getHttp(url, username, password);
-    JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
-    JSONObject projectStatus = json.getJSONObject("projectStatus");
+    try {
+      JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
+      JSONObject projectStatus = json.getJSONObject("projectStatus");
 
-    String status = projectStatus.getString(STATUS_ATTR);
+      String status = projectStatus.getString(STATUS_ATTR);
 
-    return new ProjectQualityGate(null, status);
+      return new ProjectQualityGate(null, status);
+    } catch (JSONException e) {
+      throw new IllegalStateException("Unable to parse response from " + url + ":\n" + text, e);
+    }
   }
 
   public ProjectQualityGate getQualityGate54(String projectKey) throws Exception {
