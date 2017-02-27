@@ -24,7 +24,6 @@ import com.sun.net.httpserver.HttpServer;
 import hudson.model.Result;
 import hudson.plugins.sonar.SonarGlobalConfiguration;
 import hudson.plugins.sonar.SonarInstallation;
-import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.utils.SonarUtils;
 import java.io.File;
 import java.io.IOException;
@@ -78,6 +77,20 @@ public class WaitForQualityGateStepTest {
   }
 
   @Test
+  public void failIfNoTaskIdInContext() {
+    story.addStep(new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
+        p.setDefinition(new CpsFlowDefinition("waitForQualityGate()", true));
+        WorkflowRun r = story.j.waitForCompletion(p.scheduleBuild2(0).waitForStart());
+        story.j.assertBuildStatus(Result.FAILURE, r);
+        story.j.assertLogContains("Unable to get SonarQube task id and/or server name.", r);
+      }
+    });
+  }
+
+  @Test
   public void waitForQualityGateOk() {
     story.addStep(new Statement() {
       @Override
@@ -85,7 +98,8 @@ public class WaitForQualityGateStepTest {
         handler.status = "PENDING";
         WorkflowRun b = submitPipeline();
 
-        submitWebHook("SUCCESS", "OK", b);
+        submitWebHook("another task", "FAILURE", "KO", b);
+        submitWebHook(FAKE_TASK_ID, "SUCCESS", "OK", b);
         story.j.assertBuildStatusSuccess(story.j.waitForCompletion(b));
       }
     });
@@ -99,8 +113,39 @@ public class WaitForQualityGateStepTest {
         handler.status = "PENDING";
         WorkflowRun b = submitPipeline();
 
-        submitWebHook("SUCCESS", "KO", b);
+        submitWebHook(FAKE_TASK_ID, "SUCCESS", "KO", b);
         story.j.assertBuildStatus(Result.FAILURE, story.j.waitForCompletion(b));
+      }
+    });
+  }
+
+  @Test
+  public void waitForQualityGateCancelPipeline() {
+    story.addStep(new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        handler.status = "PENDING";
+        WorkflowRun b = submitPipeline();
+        waitForStepToWait();
+        b.doStop();
+        story.j.assertBuildStatus(Result.ABORTED, story.j.waitForCompletion(b));
+        assertThat(SonarQubeWebHook.get().listeners).isEmpty();
+      }
+    });
+  }
+
+  @Test
+  public void waitForQualityGateTaskFailure() {
+    story.addStep(new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        handler.status = "PENDING";
+        WorkflowRun b = submitPipeline();
+
+        submitWebHook(FAKE_TASK_ID, "FAILED", null, b);
+        WorkflowRun r = story.j.waitForCompletion(b);
+        story.j.assertBuildStatus(Result.FAILURE, r);
+        story.j.assertLogContains("SonarQube analysis '" + FAKE_TASK_ID + "' failed: FAILED", r);
       }
     });
   }
@@ -150,7 +195,7 @@ public class WaitForQualityGateStepTest {
       public void evaluate() throws Throwable {
         WorkflowJob p = story.j.jenkins.getItemByFullName(JOB_NAME, WorkflowJob.class);
         WorkflowRun b = p.getLastBuild();
-        submitWebHook("SUCCESS", "OK", b);
+        submitWebHook(FAKE_TASK_ID, "SUCCESS", "OK", b);
         story.j.assertBuildStatusSuccess(story.j.waitForCompletion(b));
       }
     });
@@ -184,13 +229,11 @@ public class WaitForQualityGateStepTest {
     });
   }
 
-  private void submitWebHook(String endTaskStatus, String qgStatus, WorkflowRun b) throws InterruptedException, IOException, SAXException {
+  private void submitWebHook(String taskId, String endTaskStatus, String qgStatus, WorkflowRun b) throws InterruptedException, IOException, SAXException {
     waitForStepToWait();
 
-    SonarAnalysisAction action = b.getAction(SonarAnalysisAction.class);
-    assertThat(action.getCeTaskId()).isEqualTo(FAKE_TASK_ID);
     story.j.postJSON("sonarqube-webhook/", "{\n" +
-      "\"taskId\":\"" + FAKE_TASK_ID + "\",\n" +
+      "\"taskId\":\"" + taskId + "\",\n" +
       "\"status\":\"" + endTaskStatus + "\",\n" +
       "\"qualityGate\":{\"status\":\"" + qgStatus + "\"}\n" +
       "}");

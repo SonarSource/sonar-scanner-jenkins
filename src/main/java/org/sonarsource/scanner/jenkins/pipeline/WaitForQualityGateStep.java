@@ -114,19 +114,17 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     }
 
     private void processStepParameters() throws IOException, InterruptedException {
-      if (step.getTaskId() == null || step.getInstallationName() == null) {
-        // Try to read from the Action that may have been previously defined by the SonarBuildWrapper
-        for (SonarAnalysisAction a : getContext().get(Run.class).getActions(SonarAnalysisAction.class)) {
-          if (a.getCeTaskId() != null) {
-            step.setTaskId(a.getCeTaskId());
-            step.setInstallationName(a.getInstallationName());
-          }
+      // Try to read from the Action that may have been previously defined by the SonarBuildWrapper
+      for (SonarAnalysisAction a : getContext().get(Run.class).getActions(SonarAnalysisAction.class)) {
+        if (a.getCeTaskId() != null) {
+          step.setTaskId(a.getCeTaskId());
+          step.setInstallationName(a.getInstallationName());
         }
       }
       if (step.getTaskId() == null || step.getInstallationName() == null) {
         throw new IllegalStateException(
           "Unable to get SonarQube task id and/or server name. "
-            + "If you are not using the 'withSonarQubeEnv' wrapper to run your analysis, you have to pass the attributes manually to this step.");
+            + "Please use the 'withSonarQubeEnv' wrapper to run your analysis.");
       }
     }
 
