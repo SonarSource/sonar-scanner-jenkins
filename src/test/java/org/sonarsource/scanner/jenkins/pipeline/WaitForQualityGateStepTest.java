@@ -181,6 +181,20 @@ public class WaitForQualityGateStepTest {
   }
 
   @Test
+  public void finishEarlyFail() {
+    story.addStep(new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        handler.status = "FAILED";
+        WorkflowRun r = submitPipeline();
+
+        story.j.assertBuildStatus(Result.FAILURE, story.j.waitForCompletion(r));
+        story.j.assertLogContains("SonarQube analysis '" + FAKE_TASK_ID + "' failed: FAILED", r);
+      }
+    });
+  }
+
+  @Test
   public void waitForQualityGateOk_survive_restart() {
     story.addStep(new Statement() {
       @Override

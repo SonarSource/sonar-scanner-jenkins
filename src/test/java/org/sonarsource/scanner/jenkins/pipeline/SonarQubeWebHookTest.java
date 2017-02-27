@@ -43,6 +43,11 @@ public class SonarQubeWebHookTest {
     assertThat(aut.getUrlName()).isNotNull();
   }
 
+  @Test(expected = Exception.class)
+  public void invalidPayload() throws Exception {
+    jenkins.postJSON("sonarqube-webhook/", "foo");
+  }
+
   @Test
   public void testListener() throws Exception {
 

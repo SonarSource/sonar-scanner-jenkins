@@ -29,6 +29,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletResponse;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -36,7 +37,6 @@ import org.apache.commons.io.IOUtils;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.RequirePOST;
-import org.kohsuke.stapler.interceptor.RespondSuccess;
 
 @Extension
 public class SonarQubeWebHook implements UnprotectedRootAction {
@@ -62,7 +62,6 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
   }
 
   @RequirePOST
-  @RespondSuccess
   public void doIndex(StaplerRequest req, StaplerResponse rsp) throws IOException {
     String payload = IOUtils.toString(req.getReader());
 
@@ -82,7 +81,9 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
       }
     } catch (JSONException e) {
       LOGGER.log(Level.WARNING, e, () -> "Invalid payload " + payload);
+      rsp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON Payload");
     }
+    rsp.setStatus(HttpServletResponse.SC_OK);
   }
 
   public static SonarQubeWebHook get() {
