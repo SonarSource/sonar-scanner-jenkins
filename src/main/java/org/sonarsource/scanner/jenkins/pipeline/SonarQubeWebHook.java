@@ -18,6 +18,7 @@
  */
 package org.sonarsource.scanner.jenkins.pipeline;
 
+import com.google.common.annotations.VisibleForTesting;
 import hudson.Extension;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
@@ -42,7 +43,8 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
   private static final Logger LOGGER = Logger.getLogger(SonarQubeWebHook.class.getName());
   public static final String URLNAME = "sonarqube-webhook";
 
-  private List<Listener> listeners = new CopyOnWriteArrayList<>();
+  @VisibleForTesting
+  List<Listener> listeners = new CopyOnWriteArrayList<>();
 
   @Override
   public String getIconFileName() {
