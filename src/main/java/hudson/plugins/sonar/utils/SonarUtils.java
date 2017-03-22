@@ -18,14 +18,14 @@
  */
 package hudson.plugins.sonar.utils;
 
+import hudson.FilePath;
 import hudson.model.Action;
 import hudson.model.Actionable;
 import hudson.model.Run;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -91,21 +91,22 @@ public final class SonarUtils {
     return null;
   }
 
-  public static Properties extractReportTask(Run<?, ?> build) throws IOException {
-    String path = extractPatternFromLogs(WORKING_DIR_PATTERN_IN_LOGS, build);
-    if (path == null) {
+  public static Properties extractReportTask(Run<?, ?> build, FilePath workspace) throws IOException, InterruptedException {
+    String workDirPath = extractPatternFromLogs(WORKING_DIR_PATTERN_IN_LOGS, build);
+    if (workDirPath == null) {
       return null;
     }
 
-    File reportTask = new File(path, REPORT_TASK_FILE_NAME);
-    if (!reportTask.isFile()) {
+    FilePath workDir = workspace.child(workDirPath);
+
+    FilePath reportTaskFile = workDir.child(REPORT_TASK_FILE_NAME);
+    if (!reportTaskFile.exists()) {
       return null;
     }
 
-    FileInputStream input = new FileInputStream(reportTask);
+    String content = reportTaskFile.readToString();
     Properties p = new Properties();
-    p.load(input);
-    input.close();
+    p.load(new StringReader(content));
     return p;
 
   }
@@ -130,9 +131,10 @@ public final class SonarUtils {
    * Collects as much information as it finds from the sonar analysis in the build and adds it as an action to the build.
    * Even if no information is found, the action is added, marking in the build that a sonar analysis ran. 
    */
-  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, String installationName, boolean skippedIfNoBuild) throws IOException {
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, FilePath workspace, String installationName, boolean skippedIfNoBuild)
+    throws IOException, InterruptedException {
     SonarAnalysisAction buildInfo = new SonarAnalysisAction(installationName);
-    Properties reportTask = extractReportTask(build);
+    Properties reportTask = extractReportTask(build, workspace);
 
     if (reportTask != null) {
       buildInfo.setUrl(reportTask.getProperty(DASHBOARD_URL_KEY));
@@ -149,8 +151,8 @@ public final class SonarUtils {
     return buildInfo;
   }
 
-  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, String installationName) throws IOException {
-    return addBuildInfoTo(build, installationName, false);
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, FilePath workspace, String installationName) throws IOException, InterruptedException {
+    return addBuildInfoTo(build, workspace, installationName, false);
   }
 
   public static SonarAnalysisAction addBuildInfoFromLastBuildTo(Run<?, ?> build, String installationName, boolean isSkipped) {
