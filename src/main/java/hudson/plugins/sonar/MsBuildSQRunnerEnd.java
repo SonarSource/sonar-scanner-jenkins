@@ -83,11 +83,11 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     int result = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(run, workspace)).join();
 
     if (result != 0) {
-      addBadge(run, sonarInstallation);
+      addBadge(run, workspace, sonarInstallation);
       throw new AbortException(Messages.MSBuildScanner_ExecFailed(result));
     }
 
-    addBadge(run, sonarInstallation);
+    addBadge(run, workspace, sonarInstallation);
   }
 
   private static void addArgs(ArgumentListBuilder args, EnvVars env, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
@@ -126,8 +126,8 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     return map;
   }
 
-  private static void addBadge(Run<?, ?> run, SonarInstallation sonarInstallation) throws IOException {
-    SonarUtils.addBuildInfoTo(run, sonarInstallation.getName());
+  private static void addBadge(Run<?, ?> run, FilePath workspace, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
+    SonarUtils.addBuildInfoTo(run, workspace, sonarInstallation.getName());
   }
 
   @Override

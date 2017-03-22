@@ -33,22 +33,20 @@
  */
 package hudson.plugins.sonar.utils;
 
-import hudson.plugins.sonar.action.SonarAnalysisAction;
-import hudson.plugins.sonar.action.SonarBuildBadgeAction;
+import hudson.FilePath;
 import hudson.model.AbstractBuild;
-import hudson.model.Action;
 import hudson.model.Run;
-import org.apache.commons.io.FileUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-
+import hudson.plugins.sonar.action.SonarAnalysisAction;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Properties;
+import org.apache.commons.io.FileUtils;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -71,11 +69,11 @@ public class SonarUtilsTest {
   }
 
   @Test
-  public void testExtractReport() throws IOException {
+  public void testExtractReport() throws Exception {
     File report = new File(temp.getRoot(), "report-task.txt");
     FileUtils.write(report, "key1=value1");
 
-    assertThat(SonarUtils.extractReportTask(mockedBuild(""))).isNull();
+    assertThat(SonarUtils.extractReportTask(mockedBuild(""), new FilePath(temp.getRoot()))).isNull();
     String log1 = "foo\n" +
       "[INFO] [16:36:31.386] Working dir: /tmp/not_existing_dir\n"
       + "bar";
@@ -85,8 +83,8 @@ public class SonarUtilsTest {
 
     Properties props = new Properties();
     props.put("key1", "value1");
-    assertThat(SonarUtils.extractReportTask(mockedBuild(log1))).isNull();
-    assertThat(SonarUtils.extractReportTask(mockedBuild(log2))).isEqualTo(props);
+    assertThat(SonarUtils.extractReportTask(mockedBuild(log1), new FilePath(temp.getRoot()))).isNull();
+    assertThat(SonarUtils.extractReportTask(mockedBuild(log2), new FilePath(temp.getRoot()))).isEqualTo(props);
   }
 
   @Test
@@ -109,20 +107,20 @@ public class SonarUtilsTest {
 
   @Test
   public void testAddBuildInfoFromLastBuild() {
-     SonarAnalysisAction a1 = new SonarAnalysisAction("inst");
-     a1.setSkipped(true);
-     a1.setUrl("url1");
-     a1.setCeTaskId("task1");
-     
-     Run last = mockedRun(null, a1);
-     Run r = mockedRun(last);
-     
-     SonarAnalysisAction action = SonarUtils.addBuildInfoFromLastBuildTo(r, "inst", false);
-     
-     assertThat(action.getInstallationName()).isEqualTo("inst");
-     assertThat(action.isSkipped()).isFalse();
-     assertThat(action.getCeTaskId()).isNull();
-     assertThat(action.getUrl()).isEqualTo("url1");
+    SonarAnalysisAction a1 = new SonarAnalysisAction("inst");
+    a1.setSkipped(true);
+    a1.setUrl("url1");
+    a1.setCeTaskId("task1");
+
+    Run last = mockedRun(null, a1);
+    Run r = mockedRun(last);
+
+    SonarAnalysisAction action = SonarUtils.addBuildInfoFromLastBuildTo(r, "inst", false);
+
+    assertThat(action.getInstallationName()).isEqualTo("inst");
+    assertThat(action.isSkipped()).isFalse();
+    assertThat(action.getCeTaskId()).isNull();
+    assertThat(action.getUrl()).isEqualTo("url1");
   }
 
   private static Run mockedRun(Run previous, SonarAnalysisAction... actions) {
@@ -135,12 +133,6 @@ public class SonarUtilsTest {
   private static AbstractBuild<?, ?> mockedBuild(String log) throws IOException {
     AbstractBuild<?, ?> build = mock(AbstractBuild.class);
     when(build.getLogReader()).thenReturn(new StringReader(log));
-    return build;
-  }
-
-  private Run<?, ?> mockedRunWithSonarAction(String url) throws IOException {
-    Run<?, ?> build = mock(Run.class);
-    when(build.getAction(SonarBuildBadgeAction.class)).thenReturn(url != null ? new SonarBuildBadgeAction(url) : null);
     return build;
   }
 

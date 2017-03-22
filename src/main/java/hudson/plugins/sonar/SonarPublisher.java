@@ -331,7 +331,7 @@ public class SonarPublisher extends Notifier {
       // returning false has no effect on the global build status so need to do it manually
       build.setResult(Result.FAILURE);
     }
-    SonarUtils.addBuildInfoTo(build, sonarInstallation.getName());
+    SonarUtils.addBuildInfoTo(build, build.getWorkspace(), sonarInstallation.getName());
     listener.getLogger().println("SonarQube analysis completed: " + build.getResult());
     return sonarSuccess;
   }
