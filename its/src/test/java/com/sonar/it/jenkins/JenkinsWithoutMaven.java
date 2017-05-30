@@ -176,9 +176,10 @@ public class JenkinsWithoutMaven {
 
   @Test
   public void testNoSonarPublisher() {
+    // Maven plugin no more installed by default in version 2
+    assumeTrue(jenkins.getServer().getVersion().isGreaterThanOrEquals("2"));
     String jobName = "no Sonar Publisher";
-    jenkins
-      .assertNoSonarPublisher(jobName, new File("projects", "noPublisher"));
+    jenkins.assertNoSonarPublisher(jobName, new File("projects", "noPublisher"));
   }
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
