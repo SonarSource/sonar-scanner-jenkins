@@ -67,11 +67,13 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.jenkinsci.Symbol;
+import jenkins.tasks.SimpleBuildStep;
 
 /**
  * @since 1.7
  */
-public class SonarRunnerBuilder extends Builder {
+public class SonarRunnerBuilder extends Builder implements SimpleBuildStep {
 
   /**
    * Identifies {@link SonarInstallation} to be used.
@@ -262,7 +264,7 @@ public class SonarRunnerBuilder extends Builder {
     return true;
   }
 
-  private void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
+  public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
     if (!SonarInstallation.isValid(getInstallationName(), listener)) {
       throw new AbortException("Invalid SonarQube server installation");
     }
@@ -456,6 +458,7 @@ public class SonarRunnerBuilder extends Builder {
     return this;
   }
 
+  @Symbol("sonar")
   @Extension
   public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
     // Used in jelly configuration for conditional display of the UI
