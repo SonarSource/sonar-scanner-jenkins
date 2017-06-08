@@ -75,6 +75,8 @@ public class JenkinsOrchestratorBuilder {
     Preconditions.checkState(!Strings.isNullOrEmpty(version), "Missing Jenkins version");
 
     this.distribution.setVersion(version);
+    System.out.println("DEBUG !!!! maven.home=" + finalConfig.getString("maven.home"));
+    System.out.println("DEBUG !!!! maven.home=" + finalConfig.fileSystem().mavenHome());
     return new JenkinsOrchestrator(finalConfig, distribution);
   }
 }
