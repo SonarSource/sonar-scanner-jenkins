@@ -137,10 +137,10 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
-  public void testFreestyleJobWithScannerForMsBuild_2_0() {
+  public void testFreestyleJobWithScannerForMsBuild_3_0() {
     File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
-    String jobName = "abacus-msbuild-sq-runner-2-0";
-    String projectKey = "abacus-msbuild-sq-runner-2-0";
+    String jobName = "abacus-msbuild-sq-runner-3_0";
+    String projectKey = "abacus-msbuild-sq-runner-3_0";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
       .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "3.0.0.629", null)
@@ -156,18 +156,18 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
-  public void testFreestyleJobWithScannerForMsBuild_1_1() {
+  public void testFreestyleJobWithScannerForMsBuild_2_3_2() {
     File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
-    String jobName = "abacus-msbuild-sq-runner-1-1";
-    String projectKey = "abacus-msbuild-sq-runner-1-1";
+    String jobName = "abacus-msbuild-sq-runner-2_3_2";
+    String projectKey = "abacus-msbuild-sq-runner-2_3_2";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "1.1", null)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "2.3.2.573", null)
       .executeJobQuietly(jobName);
 
     assertThat(result.getLogs())
       .contains(
-        "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation" + File.separator + "Scanner_for_MSBuild_1.1" + File.separator
+        "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation" + File.separator + "Scanner_for_MSBuild_2.3.2.573" + File.separator
           + "MSBuild.SonarQube.Runner.exe begin /k:" + projectKey + " \"/n:Abacus with space\" /v:1.0 /d:sonar.host.url="
           + orchestrator.getServer().getUrl());
 
