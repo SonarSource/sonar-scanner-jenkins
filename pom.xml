@@ -104,7 +104,7 @@
     <hudson.version>${project.parent.version}</hudson.version>
     <sonar.exclusions>target/generated-sources/**/*</sonar.exclusions>
     <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
-    <version.artifactory.plugin>2.4.1</version.artifactory.plugin>
+    <version.artifactory.plugin>2.6.1</version.artifactory.plugin>
     <jenkins.version>2.32.2</jenkins.version>
     <jenkins-test-harness.version>2.18</jenkins-test-harness.version>
     <java.level>8</java.level>
@@ -113,6 +113,8 @@
     <concurrency>1</concurrency>
     <!-- Skip Findbugs -->
     <findbugs.skip>true</findbugs.skip>
+    <!-- No need to rerun tests, because of HAP-859, artifactory plugin will not upload the artifact -->
+    <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
   </properties>
 
   <repositories>

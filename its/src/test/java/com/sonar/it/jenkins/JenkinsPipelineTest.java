@@ -72,7 +72,7 @@ public class JenkinsPipelineTest {
       .installPlugin("workflow-aggregator")
       .installPlugin(sqJenkinsPluginLocation)
       .configureSQScannerInstallation("2.8", 0)
-      .configureMsBuildSQScanner_installation("2.1", 0)
+      .configureMsBuildSQScanner_installation("3.0.0.629", 0)
       .configureSonarInstallation(orchestrator);
     if (SystemUtils.IS_OS_WINDOWS) {
       jenkins.configureMSBuildInstallation();
@@ -128,11 +128,10 @@ public class JenkinsPipelineTest {
     String script = "node {\n"
       + "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n"
       + "  bat 'xcopy " + Paths.get("projects/csharp").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n"
-      + "  def sqScannerMsBuildHome = tool 'Scanner for MSBuild 2.1'\n"
-      // FIXME starting from SQ Scanner for MSBuild 2.2 it should no more be required to pass server URL
-      + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe begin /k:csharp /n:CSharp /v:1.0 /d:sonar.host.url=%SONAR_HOST_URL% /d:sonar.login=%SONAR_AUTH_TOKEN%\"\n"
+      + "  def sqScannerMsBuildHome = tool 'Scanner for MSBuild 3.0.0.629'\n"
+      + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe begin /k:csharp /n:CSharp /v:1.0\"\n"
       + "  bat '\\\"%MSBUILD_PATH%\\\" /t:Rebuild'\n"
-      + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe end /d:sonar.login=%SONAR_AUTH_TOKEN%\"\n"
+      + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe end\"\n"
       + "}\n"
       + "}";
     assertThat(runAndGetLogs("csharp-pipeline", script)).contains("ANALYSIS SUCCESSFUL, you can browse");
