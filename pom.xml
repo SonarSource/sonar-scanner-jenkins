@@ -113,6 +113,8 @@
     <concurrency>1</concurrency>
     <!-- Skip Findbugs -->
     <findbugs.skip>true</findbugs.skip>
+    <!-- No need to rerun tests, because of HAP-859, artifactory plugin will not upload the artifact -->
+    <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
   </properties>
 
   <repositories>
