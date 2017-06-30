@@ -99,6 +99,7 @@ public class JenkinsWrapper {
       command.addArgument("-Xmx512M");
       command.addArgument("-XX:MaxPermSize=128m");
       command.addArgument("-Djava.awt.headless=true");
+      command.addArgument("-Dhudson.model.DownloadService.noSignatureCheck=true");
       command.addArgument("-Djenkins.install.runSetupWizard=false");
       command.addArgument("-DJENKINS_HOME=" + workingDir.getAbsolutePath());
       String jaCoCoArgument = JaCoCoArgumentsBuilder.getJaCoCoArgument(config);
