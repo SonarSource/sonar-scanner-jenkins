@@ -81,6 +81,7 @@ public class WaitForQualityGateStepTest {
     story.addStep(new Statement() {
       @Override
       public void evaluate() throws Throwable {
+        SonarQubeWebHook.get().listeners.clear();
         WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
         p.setDefinition(new CpsFlowDefinition("waitForQualityGate()", true));
         WorkflowRun r = story.j.waitForCompletion(p.scheduleBuild2(0).waitForStart());
@@ -141,6 +142,7 @@ public class WaitForQualityGateStepTest {
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
         WorkflowRun b = submitPipeline();
+        waitForStepToWait();
 
         submitWebHook(FAKE_TASK_ID, "FAILED", null, b);
         WorkflowRun r = story.j.waitForCompletion(b);
@@ -261,6 +263,7 @@ public class WaitForQualityGateStepTest {
   }
 
   private WorkflowRun submitPipeline() throws IOException, InterruptedException, ExecutionException {
+    SonarQubeWebHook.get().listeners.clear();
     String serverUrl = "http://localhost:" + port + "/sonarqube";
     File fakeWorkDir = temp.newFolder();
     FileUtils.write(new File(fakeWorkDir, SonarUtils.REPORT_TASK_FILE_NAME), "dashboardUrl=" + serverUrl + "/dashboard\nceTaskId=" + FAKE_TASK_ID);

@@ -20,12 +20,15 @@ package hudson.plugins.sonar;
 
 import hudson.CopyOnWrite;
 import hudson.Extension;
+import hudson.init.InitMilestone;
+import hudson.init.Initializer;
 import hudson.plugins.sonar.SonarPublisher.DescriptorImpl;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.ListBoxModel.Option;
+import java.util.List;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -33,8 +36,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
-
-import java.util.List;
 
 /**
  * Since 2.4
@@ -77,6 +78,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
    * It is thread safe and will refuse to migrate if a SonarQube installation already exists in this class.
    * Migration will only be attempted once. 
    */
+  @Initializer(after = InitMilestone.PLUGINS_PREPARED)
   public void migrate() {
     if (migrated) {
       return;
@@ -88,11 +90,6 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
       }
       // SonarPublisher might be null if Maven plugin is disabled or not installed
       Jenkins j = Jenkins.getInstance();
-
-      if (j == null) {
-        return;
-      }
-
       DescriptorImpl publisher = j.getDescriptorByType(SonarPublisher.DescriptorImpl.class);
       if (publisher != null && publisher.getDeprecatedInstallations() != null && publisher.getDeprecatedInstallations().length > 0) {
 
