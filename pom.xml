@@ -166,6 +166,12 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>jquery</artifactId>
       <version>1.11.2-0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
