@@ -191,7 +191,7 @@ public class WaitForQualityGateStepTest {
         WorkflowRun r = submitPipeline();
 
         story.j.assertBuildStatus(Result.FAILURE, story.j.waitForCompletion(r));
-        story.j.assertLogContains("SonarQube analysis '" + FAKE_TASK_ID + "' failed: FAILED", r);
+        story.j.assertLogContains("SonarQube task '" + FAKE_TASK_ID + "' status is 'FAILED'", r);
       }
     });
   }
