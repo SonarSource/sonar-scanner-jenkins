@@ -148,15 +148,15 @@ public class JenkinsTest {
 
   @Test
   public void testFreestyleJobWithSonarQubeScanner() throws Exception {
-    String jobName = "abacus-runner";
-    String projectKey = "abacus-runner";
+    String jobName = "js-runner";
+    String projectKey = "js-runner";
     assertThat(getProject(projectKey)).isNull();
     jenkins
-      .newFreestyleJobWithSQScanner(jobName, "-X", new File("projects", "abacus"), null,
+      .newFreestyleJobWithSQScanner(jobName, "-X", new File("projects", "js"), null,
         "sonar.projectKey", projectKey,
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
-        "sonar.sources", "src/main/java")
+        "sonar.sources", "src")
       .executeJob(jobName);
     waitForComputationOnSQServer();
     assertThat(getProject(projectKey)).isNotNull();
@@ -166,15 +166,15 @@ public class JenkinsTest {
 
   @Test
   public void testFreestyleJobWithSonarQubeScannerAndBranch() throws Exception {
-    String jobName = "abacus-runner-branch";
-    String projectKey = "abacus-runner:branch";
+    String jobName = "js-runner-branch";
+    String projectKey = "js-runner:branch";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithSQScanner(jobName, "-X -Duseless=Y -e", new File("projects", "abacus"), null,
-        "sonar.projectKey", "abacus-runner",
+      .newFreestyleJobWithSQScanner(jobName, "-X -Duseless=Y -e", new File("projects", "js"), null,
+        "sonar.projectKey", "js-runner",
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
-        "sonar.sources", "src/main/java",
+        "sonar.sources", "src",
         "sonar.branch", "branch")
       .executeJob(jobName);
     waitForComputationOnSQServer();
@@ -195,7 +195,7 @@ public class JenkinsTest {
     assumeFalse(orchestrator.getServer().version().isGreaterThanOrEquals("5.2"));
     String jobName = "refresh-views";
     BuildResult result = jenkins
-      .newFreestyleJobWithSQScanner(jobName, null, new File("projects", "abacus"), null, "sonar.task", "views")
+      .newFreestyleJobWithSQScanner(jobName, null, new File("projects", "js"), null, "sonar.task", "views")
       .executeJobQuietly(jobName);
     // Since views is not installed
     assertThat(result.getLogs()).contains("Task views does not exist");

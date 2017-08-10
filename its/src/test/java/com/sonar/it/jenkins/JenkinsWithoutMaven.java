@@ -81,15 +81,15 @@ public class JenkinsWithoutMaven {
 
   @Test
   public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_4() throws Exception {
-    String jobName = "abacus-runner-sq-2.4";
-    String projectKey = "abacus-runner-2.4";
+    String jobName = "js-runner-sq-2.4";
+    String projectKey = "js-runner-2.4";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "abacus"), "2.4",
+      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "js"), "2.4",
         "sonar.projectKey", projectKey,
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
-        "sonar.sources", "src/main/java")
+        "sonar.sources", "src")
       .executeJob(jobName);
 
     if (JenkinsTestSuite.isWindows()) {
@@ -102,15 +102,15 @@ public class JenkinsWithoutMaven {
 
   @Test
   public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_8() throws Exception {
-    String jobName = "abacus-runner-sq-2.8";
-    String projectKey = "abacus-runner-2.8";
+    String jobName = "js-runner-sq-2.8";
+    String projectKey = "js-runner-2.8";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "abacus"), "2.8",
+      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "js"), "2.8",
         "sonar.projectKey", projectKey,
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
-        "sonar.sources", "src/main/java")
+        "sonar.sources", "src")
       .executeJob(jobName);
 
     if (JenkinsTestSuite.isWindows()) {
@@ -138,18 +138,19 @@ public class JenkinsWithoutMaven {
 
   @Test
   public void testFreestyleJobWithScannerForMsBuild_3_0() {
+    assumeTrue(SystemUtils.IS_OS_WINDOWS);
     File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
-    String jobName = "abacus-msbuild-sq-runner-3_0";
-    String projectKey = "abacus-msbuild-sq-runner-3_0";
+    String jobName = "msbuild-sq-runner-3_0";
+    String projectKey = "msbuild-sq-runner-3_0";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "3.0.0.629", null)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "js"), projectKey, "JS with space", "1.0", "3.0.0.629", null)
       .executeJobQuietly(jobName);
 
     assertThat(result.getLogs())
       .contains(
         "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation" + File.separator + "Scanner_for_MSBuild_3.0.0.629" + File.separator
-          + "MSBuild.SonarQube.Runner.exe begin /k:" + projectKey + " \"/n:Abacus with space\" /v:1.0 /d:sonar.host.url="
+          + "MSBuild.SonarQube.Runner.exe begin /k:" + projectKey + " \"/n:JS with space\" /v:1.0 /d:sonar.host.url="
           + orchestrator.getServer().getUrl());
 
     assertThat(toolPath).isDirectory();
@@ -157,18 +158,19 @@ public class JenkinsWithoutMaven {
 
   @Test
   public void testFreestyleJobWithScannerForMsBuild_2_3_2() {
+    assumeTrue(SystemUtils.IS_OS_WINDOWS);
     File toolPath = new File(jenkins.getServer().getHome().getAbsolutePath() + File.separator + "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation");
-    String jobName = "abacus-msbuild-sq-runner-2_3_2";
-    String projectKey = "abacus-msbuild-sq-runner-2_3_2";
+    String jobName = "msbuild-sq-runner-2_3_2";
+    String projectKey = "msbuild-sq-runner-2_3_2";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "abacus"), projectKey, "Abacus with space", "1.0", "2.3.2.573", null)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "js"), projectKey, "JS with space", "1.0", "2.3.2.573", null)
       .executeJobQuietly(jobName);
 
     assertThat(result.getLogs())
       .contains(
         "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation" + File.separator + "Scanner_for_MSBuild_2.3.2.573" + File.separator
-          + "MSBuild.SonarQube.Runner.exe begin /k:" + projectKey + " \"/n:Abacus with space\" /v:1.0 /d:sonar.host.url="
+          + "MSBuild.SonarQube.Runner.exe begin /k:" + projectKey + " \"/n:JS with space\" /v:1.0 /d:sonar.host.url="
           + orchestrator.getServer().getUrl());
 
     assertThat(toolPath).isDirectory();
