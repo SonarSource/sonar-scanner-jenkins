@@ -27,7 +27,6 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
-import org.sonarqube.ws.WsComponents;
 import org.sonarqube.ws.WsComponents.Component;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.HttpException;
@@ -41,9 +40,10 @@ public class JenkinsTestSuite {
 
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    // TODO Java projects should be replaced by Xoo projects
     .setOrchestratorProperty("javaVersion", "LATEST_RELEASE")
     .addPlugin("java")
+    .setOrchestratorProperty("javascriptVersion", "LATEST_RELEASE")
+    .addPlugin("javascript")
     // Needed by Scanner for MSBuild
     .setOrchestratorProperty("csharpVersion", "LATEST_RELEASE")
     .addPlugin("csharp")

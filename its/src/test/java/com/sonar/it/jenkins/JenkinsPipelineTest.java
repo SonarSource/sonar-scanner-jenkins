@@ -144,22 +144,22 @@ public class JenkinsPipelineTest {
     script.append("node {\n");
     script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
     if (SystemUtils.IS_OS_WINDOWS) {
-      script.append("  bat 'xcopy " + Paths.get("projects/abacus").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
+      script.append("  bat 'xcopy " + Paths.get("projects/js").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
     } else {
-      script.append("  sh 'cp -rf " + Paths.get("projects/abacus").toAbsolutePath().toString() + "/. .'\n");
+      script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath().toString() + "/. .'\n");
     }
     script.append("  def scannerHome = tool 'SonarQube Scanner 2.8'\n");
     if (SystemUtils.IS_OS_WINDOWS) {
-      script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat -Dsonar.projectKey=abacus -Dsonar.sources=src/main/java\"\n");
+      script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat\"\n");
     } else {
-      script.append("  sh \"${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=abacus -Dsonar.sources=src/main/java\"\n");
+      script.append("  sh \"${scannerHome}/bin/sonar-scanner\"\n");
     }
     script.append("}\n");
     script.append("def qg = waitForQualityGate()\n");
     script.append("if (qg.status != 'OK') { error 'Quality gate failure'}\n");
     script.append("}");
-    createPipelineJobFromScript("abacus-pipeline", script.toString());
-    BuildResult buildResult = jenkins.executeJob("abacus-pipeline");
+    createPipelineJobFromScript("js-pipeline", script.toString());
+    BuildResult buildResult = jenkins.executeJob("js-pipeline");
     assertThat(buildResult.getLastStatus()).isEqualTo(0);
   }
 
@@ -176,22 +176,22 @@ public class JenkinsPipelineTest {
       script.append("node {\n");
       script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
       if (SystemUtils.IS_OS_WINDOWS) {
-        script.append("  bat 'xcopy " + Paths.get("projects/abacus").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
+        script.append("  bat 'xcopy " + Paths.get("projects/js").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
       } else {
-        script.append("  sh 'cp -rf " + Paths.get("projects/abacus").toAbsolutePath().toString() + "/. .'\n");
+        script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath().toString() + "/. .'\n");
       }
       script.append("  def scannerHome = tool 'SonarQube Scanner 2.8'\n");
       if (SystemUtils.IS_OS_WINDOWS) {
-        script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat -Dsonar.projectKey=abacus -Dsonar.sources=src/main/java\"\n");
+        script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat\"\n");
       } else {
-        script.append("  sh \"${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=abacus -Dsonar.sources=src/main/java\"\n");
+        script.append("  sh \"${scannerHome}/bin/sonar-scanner\"\n");
       }
       script.append("}\n");
       script.append("def qg = waitForQualityGate()\n");
       script.append("if (qg.status != 'OK') { error 'Quality gate failure'}\n");
       script.append("}");
-      createPipelineJobFromScript("abacus-pipeline-ko", script.toString());
-      BuildResult buildResult = jenkins.executeJobQuietly("abacus-pipeline-ko");
+      createPipelineJobFromScript("js-pipeline-ko", script.toString());
+      BuildResult buildResult = jenkins.executeJobQuietly("js-pipeline-ko");
 
       assertThat(buildResult.getLastStatus()).isNotEqualTo(0);
 
