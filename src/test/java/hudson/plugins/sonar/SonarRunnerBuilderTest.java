@@ -114,7 +114,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X");
     args.clear();
     builder.addAdditionalArguments(args, inst);
-    assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X -e");
+    assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X");
 
   }
 
