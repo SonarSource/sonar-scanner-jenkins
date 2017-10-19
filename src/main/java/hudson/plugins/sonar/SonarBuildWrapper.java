@@ -111,6 +111,12 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
   }
 
   @VisibleForTesting
+  @Deprecated
+  static Map<String, String> createVars(SonarInstallation inst) {
+	  return createVars(inst, null);
+  }
+  
+  @VisibleForTesting
   static Map<String, String> createVars(SonarInstallation inst, FilePath reportDir) {
     Map<String, String> map = new HashMap<>();
 
@@ -146,7 +152,9 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     if (!password.isEmpty()) {
       sb.append(", \"sonar.password\" : \"").append(StringEscapeUtils.escapeJson(password)).append("\"");
     }
-    sb.append(", \"sonar.working.directory\" : \"").append(reportDir.getRemote() + "\"");
+    if (reportDir!=null) {
+    	sb.append(", \"sonar.working.directory\" : \"").append(reportDir.getRemote() + "\"");
+    }
     sb.append("}");
 
     map.put("SONARQUBE_SCANNER_PARAMS", sb.toString());
