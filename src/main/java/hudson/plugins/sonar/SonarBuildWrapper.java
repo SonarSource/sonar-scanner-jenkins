@@ -33,7 +33,28 @@
  */
 package hudson.plugins.sonar;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.annotation.Nullable;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import com.google.common.annotations.VisibleForTesting;
+
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -42,28 +63,17 @@ import hudson.console.ConsoleLogFilter;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
 import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.plugins.sonar.utils.SonarUtils;
+import hudson.slaves.WorkspaceList;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.util.ArgumentListBuilder;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildWrapper;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SonarBuildWrapper extends SimpleBuildWrapper {
   private static final String DEFAULT_SONAR = "sonar";
@@ -85,15 +95,23 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     Logger.LOG.info(msg);
     listener.getLogger().println(msg);
 
-    context.getEnv().putAll(createVars(installation));
+    
+    // Setup temporary report dir
+    //
+    String now = new SimpleDateFormat("yyyyMMdd-HHmmss-S").format(new Date());
+    FilePath reportDir = WorkspaceList.tempDir(workspace).child("sonar-" + now);
+    reportDir.mkdirs();
+    
+    
+    context.getEnv().putAll(createVars(installation, reportDir));
 
-    context.setDisposer(new AddBuildInfo(installation));
+    context.setDisposer(new AddBuildInfo(installation, reportDir));
 
     build.addAction(new SonarMarkerAction());
   }
 
   @VisibleForTesting
-  static Map<String, String> createVars(SonarInstallation inst) {
+  static Map<String, String> createVars(SonarInstallation inst, FilePath reportDir) {
     Map<String, String> map = new HashMap<>();
 
     map.put("SONAR_CONFIG_NAME", inst.getName());
@@ -128,6 +146,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     if (!password.isEmpty()) {
       sb.append(", \"sonar.password\" : \"").append(StringEscapeUtils.escapeJson(password)).append("\"");
     }
+    sb.append(", \"sonar.working.directory\" : \"").append(reportDir.getRemote() + "\"");
     sb.append("}");
 
     map.put("SONARQUBE_SCANNER_PARAMS", sb.toString());
@@ -180,15 +199,43 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     private static final long serialVersionUID = 1L;
 
     private final SonarInstallation installation;
-
-    public AddBuildInfo(SonarInstallation installation) {
+    private final FilePath reportDir;
+    
+    public AddBuildInfo(SonarInstallation installation, FilePath reportDir) {
       this.installation = installation;
+      this.reportDir = reportDir;
     }
 
     @Override
     public void tearDown(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
       // null result means success so far. If no logs are found, it's probably because it was simply skipped
-      SonarUtils.addBuildInfoTo(build, workspace, installation.getName(), build.getResult() == null);
+      //SonarUtils.addBuildInfoTo(build, workspace, installation.getName(), build.getResult() == null);
+    	
+    	// Read the report file
+    	//
+    	Properties reportProperties = new Properties();
+    	if (reportDir.exists()) {
+	    	FilePath reportFile = reportDir.child(SonarUtils.REPORT_TASK_FILE_NAME);
+	    	if( reportFile.exists() ) {
+	    	    try(InputStream in=reportFile.read()) {
+	    	    	reportProperties.load(in);
+	    	    }
+	    	}
+    	}
+    	
+    	// Create the SonaryAnalysisAction and add it to the build
+    	//
+        SonarAnalysisAction buildInfo = new SonarAnalysisAction(installation.getName());
+        buildInfo.setUrl(     reportProperties.getProperty(SonarUtils.DASHBOARD_URL_KEY));
+        buildInfo.setCeTaskId(reportProperties.getProperty(SonarUtils.CE_TASK_ID_KEY));
+        build.addAction(buildInfo);
+
+        
+        // Dispose the reportDir
+        //
+        if (reportDir.exists()) {
+        	reportDir.deleteRecursive();
+        }
     }
   }
 
