@@ -144,6 +144,9 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     map.put("SONAR_EXTRA_PROPS", getOrDefault(getAdditionalProps(inst), ""));
 
+    String workingDir = reportDir.getRemote();
+    map.put("SONAR_WORKING_DIRECTORY", workingDir);
+    
     StringBuilder sb = new StringBuilder();
     sb.append("{ \"sonar.host.url\" : \"").append(StringEscapeUtils.escapeJson(hostUrl)).append("\"");
     if (!login.isEmpty() || !token.isEmpty()) {
@@ -153,7 +156,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
       sb.append(", \"sonar.password\" : \"").append(StringEscapeUtils.escapeJson(password)).append("\"");
     }
     if (reportDir!=null) {
-    	sb.append(", \"sonar.working.directory\" : \"").append(reportDir.getRemote() + "\"");
+    	sb.append(", \"sonar.working.directory\" : \"").append(StringEscapeUtils.escapeJson(workingDir)).append("\"");
     }
     sb.append("}");
 
