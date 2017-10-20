@@ -362,10 +362,6 @@ public class SonarRunnerBuilder extends Builder {
     args.addTokenized(inst.getAdditionalProperties());
     args.add(inst.getAdditionalAnalysisPropertiesUnix());
     args.addTokenized(additionalArguments);
-
-    if (!args.toList().contains("-e")) {
-      args.add("-e");
-    }
   }
 
   private void addTaskArgument(ArgumentListBuilder args) {
