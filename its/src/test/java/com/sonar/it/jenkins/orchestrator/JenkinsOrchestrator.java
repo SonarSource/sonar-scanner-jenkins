@@ -58,6 +58,7 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -125,11 +126,11 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     jenkinsWrapper.start();
 
     FirefoxProfile profile = new FirefoxProfile();
-    // Disable native events on all OS to avoid strange characters when using sendKeys
-    profile.setEnableNativeEvents(false);
     // force language to be English
     profile.setPreference("intl.accept_languages", "en");
-    driver = new FirefoxDriver(profile);
+    FirefoxOptions options = new FirefoxOptions()
+      .setProfile(profile);
+    driver = new FirefoxDriver(options);
 
     driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
     driver.get(server.getUrl());
@@ -211,7 +212,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   private void configureScm(File projectPath) {
     findElement(labelByText("File System")).click();
-    setTextValue(findElement(By.name("fs_scm.path")), projectPath.getAbsolutePath());
+    setTextValue(findElement(By.name("_.path")), projectPath.getAbsolutePath());
   }
 
   private void newFreestyleJobConfig(String jobName, File projectPath) {
