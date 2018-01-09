@@ -14,4 +14,4 @@ mv sonar-$CURRENT_VERSION.hpi sonar.hpi
 cd ..
 
 cd its
-mvn -B -e -Djenkins.runtimeVersion="$JENKINS_VERSION" -Dsonar.runtimeVersion="$SQ_VERSION" -Dmaven.test.redirectTestOutputToFile=false clean verify 
+mvn -B -e -Djenkins.runtimeVersion="$JENKINS_VERSION" -Dsonar.runtimeVersion="$SQ_VERSION" -Dmaven.test.redirectTestOutputToFile=false clean verify -Dwebdriver.firefox.marionette=false
