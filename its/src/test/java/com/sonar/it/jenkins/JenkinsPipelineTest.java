@@ -167,6 +167,7 @@ public class JenkinsPipelineTest {
   public void qualitygate_pipeline_ko() {
     assumeTrue(orchestrator.getServer().version().isGreaterThan("6.2"));
 
+    Long previousDefault = qgClient().list().defaultGate().id();
     QualityGate simple = qgClient().create("AlwaysFail");
     qgClient().setDefault(simple.id());
     qgClient().createCondition(NewCondition.create(simple.id()).metricKey("lines").operator("GT").errorThreshold("0"));
@@ -196,7 +197,7 @@ public class JenkinsPipelineTest {
       assertThat(buildResult.getLastStatus()).isNotEqualTo(0);
 
     } finally {
-      qgClient().unsetDefault();
+      qgClient().setDefault(previousDefault);
       qgClient().destroy(simple.id());
     }
   }
