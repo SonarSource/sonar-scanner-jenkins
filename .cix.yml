@@ -8,14 +8,14 @@ SQ_VERSION:
 
 JENKINS_VERSION:
   - 1.651.3
-  - 2.7.4
+  - 2.89.2
 
 SLAVE:
   - linux
 
 exclude:
   - SQ_VERSION: LTS
-    JENKINS_VERSION: 2.7.4
+    JENKINS_VERSION: 2.89.2
 
   - SQ_VERSION: DEV
     JENKINS_VERSION: 1.651.3
