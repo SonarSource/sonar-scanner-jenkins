@@ -1,0 +1,37 @@
+<div>
+    <p>
+    该步骤会阻塞流水线的执行，并等待之前提交给SonarQube的分析，完成后返回质量门的状态。
+    </p>
+    <p>
+    注意：该步骤不需要执行节点。
+    </p>
+    <p>
+    所需条件:
+      <ul>
+        <li>SonarQube server 6.2+</li>
+        <li>在你的SonarQube服务中<a href="https://redirect.sonarsource.com/doc/webhooks.html">配置webhook</a> 指向<code>&lt;your Jenkins instance&gt;/sonarqube-webhook/</code>. <strong>结尾的斜线是必需的！</strong></li>
+        <li>使用步骤 <code>withSonarQubeEnv</code> 需要在获取分析步骤之前执行</li>
+      </ul>
+    </p>
+    <p>
+      示例:<br/>
+      <code><pre>
+      stage("build & SonarQube analysis") {
+          node {
+              withSonarQubeEnv('My SonarQube Server') {
+                 sh 'mvn clean package sonar:sonar'
+              }    
+          }
+      }
+      
+      stage("Quality Gate"){
+          timeout(time: 1, unit: 'HOURS') {
+              def qg = waitForQualityGate()
+              if (qg.status != 'OK') {
+                  error "Pipeline aborted due to quality gate failure: ${qg.status}"
+              }
+          }
+      }        
+      </pre></code>
+    </p>
+</div>
