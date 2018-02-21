@@ -52,7 +52,7 @@ public class SonarInstallation implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  public static final String DEFAULT_SERVER_URL = "http://locahost:9000";
+  public static final String DEFAULT_SERVER_URL = "http://localhost:9000";
 
   private final String name;
   private final String serverUrl;
