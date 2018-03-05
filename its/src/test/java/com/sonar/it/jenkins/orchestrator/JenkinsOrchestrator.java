@@ -114,7 +114,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
     int port = config.getInt("jenkins.container.port", 0);
     if (port <= 0) {
-      port = NetworkUtils.getNextAvailablePort();
+      port = NetworkUtils.getNextAvailablePort(NetworkUtils.getLocalhost());
     }
     distribution.setPort(port);
     FileSystem fileSystem = config.fileSystem();

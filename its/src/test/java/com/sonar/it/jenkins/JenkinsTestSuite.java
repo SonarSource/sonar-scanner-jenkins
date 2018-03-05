@@ -27,12 +27,12 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
-import org.sonarqube.ws.WsComponents.Component;
+import org.sonarqube.ws.Components.Component;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.HttpException;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
-import org.sonarqube.ws.client.component.ShowWsRequest;
+import org.sonarqube.ws.client.components.ShowRequest;
 
 @RunWith(Suite.class)
 @SuiteClasses({JenkinsTest.class, JenkinsWithoutMaven.class, JenkinsPipelineTest.class})
@@ -57,7 +57,7 @@ public class JenkinsTestSuite {
   @CheckForNull
   static Component getProject(String componentKey) {
     try {
-      return newWsClient().components().show(new ShowWsRequest().setKey(componentKey)).getComponent();
+      return newWsClient().components().show(new ShowRequest().setComponent(componentKey)).getComponent();
     } catch (HttpException e) {
       if (e.code() == 404) {
         return null;
