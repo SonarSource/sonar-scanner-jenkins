@@ -12,11 +12,17 @@ JENKINS_VERSION:
 
 SLAVE:
   - linux
+  - windows
 
 exclude:
   - SQ_VERSION: LTS
     JENKINS_VERSION: 2.89.2
-
+  - SQ_VERSION: LTS
+    JENKINS_VERSION: 1.651.3
+    SLAVE: linux
   - SQ_VERSION: DEV
     JENKINS_VERSION: 1.651.3
+  - SQ_VERSION: DEV
+    JENKINS_VERSION: 2.89.2
+    SLAVE: windows
   
