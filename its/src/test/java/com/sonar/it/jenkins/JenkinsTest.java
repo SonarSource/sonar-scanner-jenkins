@@ -65,7 +65,7 @@ public class JenkinsTest {
       .installPlugin(sqJenkinsPluginLocation)
       .configureMavenInstallation()
       // Single installation
-      .configureSQScannerInstallation("2.4", 0)
+      .configureSQScannerInstallation("2.8", 0)
       .configureMsBuildSQScanner_installation("3.0.0.629", 0)
       .configureSonarInstallation(orchestrator);
     jenkins.checkSavedSonarInstallation(orchestrator);
@@ -182,9 +182,9 @@ public class JenkinsTest {
     assertSonarUrlOnJob(jobName, projectKey);
     jenkins.assertQGOnProjectPage(jobName);
     if (JenkinsTestSuite.isWindows()) {
-      assertThat(result.getLogs()).contains("sonar-runner.bat -X -Duseless=Y -e");
+      assertThat(result.getLogs()).contains("sonar-scanner.bat -X -Duseless=Y -e");
     } else {
-      assertThat(result.getLogs()).contains("sonar-runner -X -Duseless=Y -e");
+      assertThat(result.getLogs()).contains("sonar-scanner -X -Duseless=Y -e");
     }
   }
 

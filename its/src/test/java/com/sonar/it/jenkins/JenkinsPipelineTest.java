@@ -22,6 +22,7 @@ package com.sonar.it.jenkins;
 import com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import hudson.cli.CLI;
@@ -31,6 +32,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import org.apache.commons.io.output.NullOutputStream;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,6 +44,12 @@ import org.sonar.wsclient.qualitygate.QualityGate;
 import org.sonar.wsclient.qualitygate.QualityGateClient;
 import org.sonar.wsclient.services.PropertyDeleteQuery;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.webhooks.CreateRequest;
+import org.sonarqube.ws.client.webhooks.DeleteRequest;
+import org.sonarqube.ws.client.webhooks.ListRequest;
 
 import static com.sonar.it.jenkins.orchestrator.JenkinsOrchestrator.DEFAULT_SONARQUBE_INSTALLATION;
 import static java.util.regex.Matcher.quoteReplacement;
@@ -60,6 +68,7 @@ public class JenkinsPipelineTest {
   public static JenkinsOrchestrator jenkins = JenkinsOrchestrator.builderEnv().build();
 
   private static CLI cli;
+  private static WsClient wsClient;
 
   @BeforeClass
   public static void setUpJenkins() throws MalformedURLException {
@@ -79,8 +88,12 @@ public class JenkinsPipelineTest {
     }
     cli = jenkins.getCli();
     // Set up webhook
-    enableWebhook();
     DEFAULT_QUALITY_GATE = qgClient().list().defaultGate().id();
+    wsClient = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
+      .url(orchestrator.getServer().getUrl())
+      .credentials(Server.ADMIN_LOGIN, Server.ADMIN_PASSWORD)
+      .build());
+    enableWebhook();
   }
 
   @AfterClass
@@ -203,9 +216,16 @@ public class JenkinsPipelineTest {
   }
 
   private static void enableWebhook() {
-    setProperty(GLOBAL_WEBHOOK_PROPERTY + ".1.name", "Jenkins");
-    setProperty(GLOBAL_WEBHOOK_PROPERTY + ".1.url", jenkins.getServer().getUrl() + "/sonarqube-webhook/");
-    setProperty(GLOBAL_WEBHOOK_PROPERTY, "1");
+    if (orchestrator.getServer().version().isGreaterThanOrEquals("7.1")) {
+      // SONAR-9058
+      wsClient.webhooks().create(new CreateRequest()
+        .setName("Jenkins")
+        .setUrl(jenkins.getServer().getUrl() + "/sonarqube-webhook/"));
+    } else {
+      setProperty(GLOBAL_WEBHOOK_PROPERTY + ".1.name", "Jenkins");
+      setProperty(GLOBAL_WEBHOOK_PROPERTY + ".1.url", jenkins.getServer().getUrl() + "/sonarqube-webhook/");
+      setProperty(GLOBAL_WEBHOOK_PROPERTY, "1");
+    }
   }
 
   private static QualityGateClient qgClient() {
@@ -217,7 +237,12 @@ public class JenkinsPipelineTest {
   }
 
   private static void disableGlobalWebhooks() {
-    orchestrator.getServer().getAdminWsClient().delete(new PropertyDeleteQuery(GLOBAL_WEBHOOK_PROPERTY));
+    if (orchestrator.getServer().version().isGreaterThanOrEquals("7.1")) {
+      // SONAR-9058
+      wsClient.webhooks().list(new ListRequest()).getWebhooksList().forEach(p -> wsClient.webhooks().delete(new DeleteRequest().setWebhook(p.getKey())));
+    } else {
+      orchestrator.getServer().getAdminWsClient().delete(new PropertyDeleteQuery(GLOBAL_WEBHOOK_PROPERTY));
+    }
   }
 
   private void runAndVerifyEnvVarsExist(String jobName, String script) {
@@ -235,7 +260,7 @@ public class JenkinsPipelineTest {
     assertThat(logs).contains("SONAR_CONFIG_NAME=" + DEFAULT_SONARQUBE_INSTALLATION);
     assertThat(logs).contains("SONAR_HOST_URL=");
     assertThat(logs).contains("SONAR_MAVEN_GOAL=sonar:sonar");
-    assertThat(logs).contains("SONARQUBE_SCANNER_PARAMS={ \"sonar.host.url\" : \"http:\\/\\/localhost:");
+    assertThat(logs).contains("SONARQUBE_SCANNER_PARAMS={ \"sonar.host.url\" : \"" + StringEscapeUtils.escapeJson(orchestrator.getServer().getUrl()) + "");
   }
 
   private static void createPipelineJobFromScript(String jobName, String script) {

@@ -62,8 +62,7 @@ public class JenkinsWithoutMaven {
       .installPlugin("jquery")
       .installPlugin("msbuild")
       .installPlugin(sqJenkinsPluginLocation)
-      .configureSQScannerInstallation("2.4", 0)
-      .configureSQScannerInstallation("2.8", 1)
+      .configureSQScannerInstallation("2.8", 0)
       .configureMsBuildSQScanner_installation("2.3.2.573", 0)
       .configureMsBuildSQScanner_installation("3.0.0.629", 1)
       .configureSonarInstallation(orchestrator);
@@ -80,33 +79,12 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
-  public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_4() throws Exception {
-    String jobName = "js-runner-sq-2.4";
-    String projectKey = "js-runner-2.4";
-    assertThat(getProject(projectKey)).isNull();
-    BuildResult result = jenkins
-      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "js"), "2.4",
-        "sonar.projectKey", projectKey,
-        "sonar.projectVersion", "1.0",
-        "sonar.projectName", "Abacus",
-        "sonar.sources", "src")
-      .executeJob(jobName);
-
-    if (JenkinsTestSuite.isWindows()) {
-      assertThat(result.getLogs()).contains("sonar-runner.bat");
-    } else {
-      assertThat(result.getLogs()).contains("sonar-runner");
-    }
-    assertThat(result.getLogs()).contains("SonarQube Runner 2.4");
-  }
-
-  @Test
   public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_8() throws Exception {
     String jobName = "js-runner-sq-2.8";
     String projectKey = "js-runner-2.8";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "js"), "2.8",
+      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "js"), null,
         "sonar.projectKey", projectKey,
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
