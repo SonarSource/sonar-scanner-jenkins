@@ -1,13 +1,14 @@
 /*
- * Jenkins Plugin for SonarQube, open source software quality management tool.
- * mailto:contact AT sonarsource DOT com
+ * SonarQube Scanner for Jenkins
+ * Copyright (C) 2007-2018 SonarSource SA
+ * mailto:info AT sonarsource DOT com
  *
- * Jenkins Plugin for SonarQube is free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 3 of the License, or (at your option) any later version.
  *
- * Jenkins Plugin for SonarQube is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
@@ -29,6 +30,7 @@ import hudson.plugins.sonar.client.WsClient;
 import hudson.plugins.sonar.client.WsClient.ProjectQualityGate;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,6 +95,8 @@ public class WaitForQualityGateStep extends Step implements Serializable {
 
   private static class Execution extends StepExecution implements SonarQubeWebHook.Listener {
 
+    private static final String PLEASE_USE_THE_WITH_SONAR_QUBE_ENV_WRAPPER_TO_RUN_YOUR_ANALYSIS = "Please use the 'withSonarQubeEnv' wrapper to run your analysis.";
+
     private static final long serialVersionUID = 1L;
 
     private WaitForQualityGateStep step;
@@ -115,7 +119,12 @@ public class WaitForQualityGateStep extends Step implements Serializable {
 
     private void processStepParameters() throws IOException, InterruptedException {
       // Try to read from the Action that may have been previously defined by the SonarBuildWrapper
-      for (SonarAnalysisAction a : getContext().get(Run.class).getActions(SonarAnalysisAction.class)) {
+      List<SonarAnalysisAction> actions = getContext().get(Run.class).getActions(SonarAnalysisAction.class);
+      if (actions.isEmpty()) {
+        throw new IllegalStateException(
+          "No previous SonarQube analysis found on this pipeline execution. " + PLEASE_USE_THE_WITH_SONAR_QUBE_ENV_WRAPPER_TO_RUN_YOUR_ANALYSIS);
+      }
+      for (SonarAnalysisAction a : actions) {
         if (a.getCeTaskId() != null) {
           step.setTaskId(a.getCeTaskId());
           step.setInstallationName(a.getInstallationName());
@@ -124,7 +133,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       if (step.getTaskId() == null || step.getInstallationName() == null) {
         throw new IllegalStateException(
           "Unable to get SonarQube task id and/or server name. "
-            + "Please use the 'withSonarQubeEnv' wrapper to run your analysis.");
+            + PLEASE_USE_THE_WITH_SONAR_QUBE_ENV_WRAPPER_TO_RUN_YOUR_ANALYSIS);
       }
     }
 

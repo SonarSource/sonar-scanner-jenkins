@@ -1,13 +1,14 @@
 /*
- * Jenkins Plugin for SonarQube, open source software quality management tool.
- * mailto:contact AT sonarsource DOT com
+ * SonarQube Scanner for Jenkins
+ * Copyright (C) 2007-2018 SonarSource SA
+ * mailto:info AT sonarsource DOT com
  *
- * Jenkins Plugin for SonarQube is free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 3 of the License, or (at your option) any later version.
  *
- * Jenkins Plugin for SonarQube is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
@@ -16,21 +17,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-/*
- * Sonar is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * Sonar is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with Sonar; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
- */
 package hudson.plugins.sonar.configurationslicing;
 
 import configurationslicing.UnorderedStringSlicer.UnorderedStringSlicerSpec;
@@ -38,12 +24,11 @@ import hudson.model.AbstractProject;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.tasks.Publisher;
-import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 
 public abstract class AbstractSonarPublisherSlicerSpec extends UnorderedStringSlicerSpec<AbstractProject<?, ?>> {
 
@@ -51,7 +36,7 @@ public abstract class AbstractSonarPublisherSlicerSpec extends UnorderedStringSl
 
   @Override
   public List<AbstractProject<?, ?>> getWorkDomain() {
-    final List<AbstractProject<?, ?>> workDomain = new ArrayList<AbstractProject<?, ?>>();
+    final List<AbstractProject<?, ?>> workDomain = new ArrayList<>();
     for (final AbstractProject item : Jenkins.getInstance().getItems(AbstractProject.class)) {
       if (getSonarPublisher(item) != null) {
         workDomain.add(item);
@@ -81,7 +66,7 @@ public abstract class AbstractSonarPublisherSlicerSpec extends UnorderedStringSl
 
   @Override
   public final List<String> getValues(AbstractProject<?, ?> project) {
-    final List<String> values = new ArrayList<String>();
+    final List<String> values = new ArrayList<>();
     values.add(doGetValue(getSonarPublisher(project)));
     return values;
   }
