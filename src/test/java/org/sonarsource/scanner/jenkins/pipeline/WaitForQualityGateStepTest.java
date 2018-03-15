@@ -1,13 +1,14 @@
 /*
- * Jenkins Plugin for SonarQube, open source software quality management tool.
- * mailto:contact AT sonarsource DOT com
+ * SonarQube Scanner for Jenkins
+ * Copyright (C) 2007-2018 SonarSource SA
+ * mailto:info AT sonarsource DOT com
  *
- * Jenkins Plugin for SonarQube is free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 3 of the License, or (at your option) any later version.
  *
- * Jenkins Plugin for SonarQube is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
@@ -31,6 +32,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -84,9 +86,8 @@ public class WaitForQualityGateStepTest {
         SonarQubeWebHook.get().listeners.clear();
         WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
         p.setDefinition(new CpsFlowDefinition("waitForQualityGate()", true));
-        WorkflowRun r = story.j.waitForCompletion(p.scheduleBuild2(0).waitForStart());
-        story.j.assertBuildStatus(Result.FAILURE, r);
-        story.j.assertLogContains("Unable to get SonarQube task id and/or server name.", r);
+        WorkflowRun r = story.j.assertBuildStatus(Result.FAILURE, p.scheduleBuild2(0));
+        story.j.assertLogContains("No previous SonarQube analysis found on this pipeline execution.", r);
       }
     });
   }
@@ -127,7 +128,7 @@ public class WaitForQualityGateStepTest {
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
         WorkflowRun b = submitPipeline();
-        waitForStepToWait();
+        waitForStepToWait(b);
         b.doStop();
         story.j.assertBuildStatus(Result.ABORTED, story.j.waitForCompletion(b));
         assertThat(SonarQubeWebHook.get().listeners).isEmpty();
@@ -142,7 +143,7 @@ public class WaitForQualityGateStepTest {
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
         WorkflowRun b = submitPipeline();
-        waitForStepToWait();
+        waitForStepToWait(b);
 
         submitWebHook(FAKE_TASK_ID, "FAILED", null, b);
         WorkflowRun r = story.j.waitForCompletion(b);
@@ -202,8 +203,8 @@ public class WaitForQualityGateStepTest {
       @Override
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
-        submitPipeline();
-        waitForStepToWait();
+        WorkflowRun b = submitPipeline();
+        waitForStepToWait(b);
       }
     });
     story.addStep(new Statement() {
@@ -223,8 +224,8 @@ public class WaitForQualityGateStepTest {
       @Override
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
-        submitPipeline();
-        waitForStepToWait();
+        WorkflowRun b = submitPipeline();
+        waitForStepToWait(b);
       }
     });
     story.addStep(new Statement() {
@@ -246,7 +247,7 @@ public class WaitForQualityGateStepTest {
   }
 
   private void submitWebHook(String taskId, String endTaskStatus, String qgStatus, WorkflowRun b) throws InterruptedException, IOException, SAXException {
-    waitForStepToWait();
+    waitForStepToWait(b);
 
     story.j.postJSON("sonarqube-webhook/", "{\n" +
       "\"taskId\":\"" + taskId + "\",\n" +
@@ -255,9 +256,9 @@ public class WaitForQualityGateStepTest {
       "}");
   }
 
-  private void waitForStepToWait() throws InterruptedException {
+  private void waitForStepToWait(WorkflowRun b) throws InterruptedException {
     // Wait for the step to register to the webhook listener
-    while (SonarQubeWebHook.get().listeners.isEmpty()) {
+    while (SonarQubeWebHook.get().listeners.isEmpty() && b.isBuilding()) {
       Thread.sleep(500);
     }
   }
@@ -274,8 +275,8 @@ public class WaitForQualityGateStepTest {
     p.setDefinition(new CpsFlowDefinition(
       "node {\n" +
         "  withSonarQubeEnv {\n" +
-        "    echo 'Working dir: " + fakeWorkDir.getAbsolutePath() + "'\n" +
-        "    sh 'mvn -version'\n" +
+        "    echo 'Working dir: " + fakeWorkDir.getAbsolutePath().replaceAll("\\\\", "\\\\\\\\") + "'\n" +
+        "    " + (SystemUtils.IS_OS_WINDOWS ? "bat" : "sh") + " 'mvn -version'\n" +
         "  }\n" +
         "}\n" +
         "def qg = waitForQualityGate();\n" +
