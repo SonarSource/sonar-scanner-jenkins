@@ -65,25 +65,19 @@ public class SonarCacheAction extends InvisibleAction {
   @VisibleForTesting
   ProjectInformation get(SQProjectResolver resolver, long lastBuildTime, SonarAnalysisAction analysis) {
     String taskId = analysis.getCeTaskId();
-    ProjectInformation cached;
 
-    if (taskId != null) {
-      cached = infoByTaskId.get(taskId);
-    } else {
-      cached = infoByUrl.get(analysis.getUrl());
+    if (taskId == null) {
+      return null;
     }
 
+    ProjectInformation cached = infoByTaskId.get(taskId);
     if (isEntryValid(cached, lastBuildTime)) {
       return cached;
     }
 
-    ProjectInformation proj = resolver.resolve(analysis.getServerUrl(), analysis.getProjectKey(), analysis.getUrl(), analysis.getCeTaskId(), analysis.getInstallationName());
+    ProjectInformation proj = resolver.resolve(analysis.getServerUrl(), analysis.getUrl(), taskId, analysis.getInstallationName());
     if (proj != null) {
-      if (taskId != null) {
-        infoByTaskId.put(analysis.getCeTaskId(), proj);
-      } else {
-        infoByUrl.put(analysis.getUrl(), proj);
-      }
+      infoByTaskId.put(taskId, proj);
     }
 
     return proj;

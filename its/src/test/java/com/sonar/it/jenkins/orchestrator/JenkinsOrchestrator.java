@@ -29,7 +29,6 @@ import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SonarScannerInstaller;
 import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
-import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.NetworkUtils;
@@ -493,8 +492,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public JenkinsOrchestrator configureSonarInstallation(Orchestrator orchestrator) {
-    Version serverVersion = orchestrator.getServer().version();
-
     driver.get(getSystemConfigUrl());
     findElement(buttonByText("Add SonarQube")).click();
 
@@ -502,36 +499,8 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     setTextValue(findElement(By.name("sonar.serverUrl")), orchestrator.getServer().getUrl());
     findElement(buttonByTextAfterElementByXpath("Advanced...", "//.[@name='sonar.name']")).click();
 
-    if (serverVersion.isGreaterThanOrEquals("5.3")) {
-      String token = generateToken(orchestrator);
-      select(findElement(By.className("sonar-server-version")), "5.3");
-      setTextValue(findElement(By.name("sonar.serverAuthenticationToken")), token);
-
-      assertThat(findElement(By.name("sonar.sonarLogin")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.sonarPassword")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databaseUrl")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databaseLogin")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databasePassword")).isEnabled()).isFalse();
-
-    } else if (serverVersion.isGreaterThan("5.2")) {
-      select(findElement(By.className("sonar-server-version")), "5.2");
-      setTextValue(findElement(By.name("sonar.sonarLogin")), Server.ADMIN_LOGIN);
-      setTextValue(findElement(By.name("sonar.sonarPassword")), Server.ADMIN_PASSWORD);
-
-      assertThat(findElement(By.name("sonar.serverAuthenticationToken")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databaseUrl")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databaseLogin")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databasePassword")).isEnabled()).isFalse();
-    } else {
-      select(findElement(By.className("sonar-server-version")), "5.1");
-      setTextValue(findElement(By.name("sonar.sonarLogin")), Server.ADMIN_LOGIN);
-      setTextValue(findElement(By.name("sonar.sonarPassword")), Server.ADMIN_PASSWORD);
-      setTextValue(findElement(By.name("sonar.databaseUrl")), orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.url"));
-      setTextValue(findElement(By.name("sonar.databaseLogin")), orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.username"));
-      setTextValue(findElement(By.name("sonar.databasePassword")), orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.password"));
-
-      assertThat(findElement(By.name("sonar.serverAuthenticationToken")).isEnabled()).isFalse();
-    }
+    String token = generateToken(orchestrator);
+    setTextValue(findElement(By.name("sonar.serverAuthenticationToken")), token);
 
     findElement(buttonByText("Save")).click();
 
@@ -548,8 +517,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public void checkSavedSonarInstallation(Orchestrator orchestrator) {
-    Version serverVersion = orchestrator.getServer().version();
-
     driver.get(getSystemConfigUrl());
     try {
       Thread.sleep(2000);
@@ -561,29 +528,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     assertThat(findElement(By.name("sonar.serverUrl")).getAttribute("value")).isEqualTo(orchestrator.getServer().getUrl());
     findElement(buttonByTextAfterElementByXpath("Advanced...", "//.[@name='sonar.name']")).click();
 
-    if (serverVersion.isGreaterThanOrEquals("5.3")) {
-      assertThat(findElement(By.name("sonar.serverAuthenticationToken")).getAttribute("value")).isNotEmpty();
-      assertThat(findElement(By.name("sonar.sonarLogin")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.sonarPassword")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databaseUrl")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databaseLogin")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databasePassword")).isEnabled()).isFalse();
-
-    } else if (serverVersion.isGreaterThan("5.2")) {
-      assertThat(findElement(By.name("sonar.sonarLogin")).getAttribute("value")).isEqualTo(Server.ADMIN_LOGIN);
-      assertThat(findElement(By.name("sonar.sonarPassword")).getAttribute("value")).isEqualTo(Server.ADMIN_PASSWORD);
-      assertThat(findElement(By.name("sonar.serverAuthenticationToken")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databaseUrl")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databaseLogin")).isEnabled()).isFalse();
-      assertThat(findElement(By.name("sonar.databasePassword")).isEnabled()).isFalse();
-    } else {
-      assertThat(findElement(By.name("sonar.sonarLogin")).getAttribute("value")).isEqualTo(Server.ADMIN_LOGIN);
-      assertThat(findElement(By.name("sonar.sonarPassword")).getAttribute("value")).isEqualTo(Server.ADMIN_PASSWORD);
-      assertThat(findElement(By.name("sonar.databaseUrl")).getAttribute("value")).isEqualTo(orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.url"));
-      assertThat(findElement(By.name("sonar.databaseLogin")).getAttribute("value")).isEqualTo(orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.username"));
-      assertThat(findElement(By.name("sonar.databasePassword")).getAttribute("value")).isEqualTo(orchestrator.getDatabase().getSonarProperties().get("sonar.jdbc.password"));
-      assertThat(findElement(By.name("sonar.serverAuthenticationToken")).isEnabled()).isFalse();
-    }
+    assertThat(findElement(By.name("sonar.serverAuthenticationToken")).getAttribute("value")).isNotEmpty();
   }
 
   public String generateToken(Orchestrator orchestrator) {

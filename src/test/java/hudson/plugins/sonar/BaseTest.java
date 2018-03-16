@@ -100,7 +100,7 @@ public class BaseTest extends SonarTestCase {
   }
 
   /**
-   * SONARPLUGINS-48: Hide the user/password from the standard output
+   * SONARPLUGINS-48: Hide the token from the standard output
    *
    * @throws Exception if something wrong
    */
@@ -112,18 +112,13 @@ public class BaseTest extends SonarTestCase {
     Run<?, ?> build = build(project);
 
     assertLogContains("sonar-runner", build);
-    assertLogDoesntContains("sonar.jdbc.username", build);
-    assertLogDoesntContains("sonar.jdbc.password", build);
+    assertLogDoesntContains("sonar.login", build);
   }
 
   private void configureSecuredSonar() {
     configureSonar(new SonarInstallation(
       SONAR_INSTALLATION_NAME,
       SONAR_HOST,
-      "version",
-      "token",
-      "jdbc:mysql://dbhost:dbport/sonar?useUnicode=true&characterEncoding=utf8",
-      "dbuser", "dbpassword",
-      null, null, null, null, null, null));
+      "token", null, null, null, null));
   }
 }

@@ -40,7 +40,6 @@ import javax.annotation.Nullable;
 
 public final class SonarUtils {
 
-  public static final String PROJECT_KEY_KEY = "projectKey";
   public static final String SERVER_URL_KEY = "serverUrl";
   public static final String DASHBOARD_URL_KEY = "dashboardUrl";
   public static final String CE_TASK_ID_KEY = "ceTaskId";
@@ -114,7 +113,6 @@ public final class SonarUtils {
     if (reportTask != null) {
       buildInfo.setServerUrl(reportTask.getProperty(SERVER_URL_KEY));
       buildInfo.setUrl(reportTask.getProperty(DASHBOARD_URL_KEY));
-      buildInfo.setProjectKey(reportTask.getProperty(PROJECT_KEY_KEY));
       buildInfo.setCeTaskId(reportTask.getProperty(CE_TASK_ID_KEY));
     } else {
       return addBuildInfoFromLastBuildTo(build, installationName, skippedIfNoBuild);

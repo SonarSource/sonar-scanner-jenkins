@@ -20,33 +20,28 @@
 package hudson.plugins.sonar.client;
 
 import hudson.plugins.sonar.client.WsClient.CETask;
-import hudson.plugins.sonar.client.WsClient.ProjectQualityGate;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class WsClientTest {
   private final static String SERVER_URL = "http://myserver.org";
-  private final static String PROJECT_KEY = "org.sonarsource.sonarlint:sonarlint-cli";
-  private final static String PASS = "mypass";
-  private final static String USER = "user";
+  private final static String TOKEN = "token";
   private final static String TASK_ID = "AVL5i1TZIrFAZSZNbMcg";
 
   private HttpClient client = mock(HttpClient.class);
@@ -57,7 +52,7 @@ public class WsClientTest {
 
   @Before
   public void setUp() {
-    wsClient = new WsClient(client, SERVER_URL, USER, PASS);
+    wsClient = new WsClient(client, SERVER_URL, TOKEN);
   }
 
   @Test
@@ -75,93 +70,31 @@ public class WsClientTest {
   }
 
   @Test
-  public void testQG54() throws Exception {
-    String ws = WsClient.API_PROJECT_STATUS + URLEncoder.encode(PROJECT_KEY, "UTF-8");
-    String json = getFile("projectStatus.json");
-    mockWs(ws, json);
-
-    ProjectQualityGate qg = wsClient.getQualityGate54(PROJECT_KEY);
-
-    assertThat(qg.getProjectName()).isNull();
-    assertThat(qg.getStatus()).isEqualTo("OK");
-    verifyWs(ws);
-  }
-
-  @Test
-  public void testMetrics() throws Exception {
-    String ws = WsClient.API_MEASURES + URLEncoder.encode(PROJECT_KEY, "UTF-8");
-    String json = getFile("metrics.json");
-    mockWs(ws, json);
-
-    ProjectQualityGate qg = wsClient.getQualityGateMeasures(PROJECT_KEY);
-
-    assertThat(qg.getProjectName()).isEqualTo("SonarLint CLI");
-    assertThat(qg.getStatus()).isEqualTo("OK");
-    verifyWs(ws);
-  }
-
-  @Test
-  public void testProjectName() throws Exception {
-    String ws = WsClient.API_PROJECT_NAME + URLEncoder.encode(PROJECT_KEY, "UTF-8");
-    String json = getFile("projectIndex.json");
-    mockWs(ws, json);
-
-    String name = wsClient.getProjectName(PROJECT_KEY);
-
-    assertThat(name).isEqualTo("SonarLint CLI");
-    verifyWs(ws);
-  }
-
-  @Test
-  public void testMeasuresError() throws Exception {
-    String ws = WsClient.API_MEASURES + URLEncoder.encode(PROJECT_KEY, "UTF-8");
-    String json = getFile("error.json");
-    mockWs(ws, json);
-
-    exception.expect(MessageException.class);
-    wsClient.getQualityGateMeasures(PROJECT_KEY);
-  }
-
-  @Test
-  public void testQGBefore54() throws Exception {
-    String ws = WsClient.API_RESOURCES + URLEncoder.encode(PROJECT_KEY, "UTF-8");
-    String json = getFile("resources.json");
-    mockWs(ws, json);
-
-    ProjectQualityGate qg = wsClient.getQualityGateBefore54(PROJECT_KEY);
-
-    assertThat(qg.getProjectName()).isEqualTo("SonarLint CLI");
-    assertThat(qg.getStatus()).isEqualTo("WARN");
-
-    verifyWs(ws);
-  }
-
-  @Test
   public void testGetVersion() throws Exception {
     setSQVersion(5.1f);
 
     assertThat(wsClient.getServerVersion()).isEqualTo("5.1");
-    verify(client).getHttp(SERVER_URL + "/api/server/version", null, null);
+    verify(client).getHttp(SERVER_URL + "/api/server/version", null);
   }
 
   @Test
   public void testConnectionError() throws Exception {
-    when(client.getHttp(anyString(), anyString(), anyString())).thenThrow(Exception.class);
+    when(client.getHttp(anyString(), anyString())).thenThrow(Exception.class);
 
     exception.expect(Exception.class);
-    wsClient.getQualityGate54(PROJECT_KEY);
+    wsClient.getCETask(TASK_ID);
   }
 
   private void setSQVersion(float version) throws Exception {
-    when(client.getHttp(SERVER_URL + "/api/server/version", null, null)).thenReturn(Float.toString(version));
+    when(client.getHttp(SERVER_URL + "/api/server/version", null)).thenReturn(Float.toString(version));
   }
 
   private void verifyWs(String ws) throws Exception {
-    verify(client).getHttp(SERVER_URL + ws, USER, PASS);
+    verify(client).getHttp(SERVER_URL + ws, TOKEN);
   }
 
   private void mockWs(String ws, String response) throws Exception {
-    when(client.getHttp(eq(SERVER_URL + ws), anyString(), anyString())).thenReturn(response);
+    when(client.getHttp(eq(SERVER_URL + ws), anyString())).thenReturn(response);
   }
 
   private String getFile(String name) throws IOException, URISyntaxException {

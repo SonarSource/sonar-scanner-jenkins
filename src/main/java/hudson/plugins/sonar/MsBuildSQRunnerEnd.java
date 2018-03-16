@@ -86,9 +86,8 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
 
     for (Map.Entry<String, String> e : props.entrySet()) {
       if (!StringUtils.isEmpty(e.getValue())) {
-        // expand macros using environment variables and hide passwords/tokens
-        boolean hide = e.getKey().contains("password") ||
-          (!StringUtils.isEmpty(sonarInstallation.getServerAuthenticationToken()) && e.getKey().contains("login"));
+        // expand macros using environment variables and hide token
+        boolean hide = e.getKey().contains("sonar.login");
         args.addKeyValuePair("/d:", e.getKey(), env.expand(e.getValue()), hide);
       }
     }
@@ -101,13 +100,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
 
     if (!StringUtils.isBlank(inst.getServerAuthenticationToken())) {
       map.put("sonar.login", inst.getServerAuthenticationToken());
-    } else {
-      map.put("sonar.login", inst.getSonarLogin());
-      map.put("sonar.password", inst.getSonarPassword());
     }
-
-    map.put("sonar.jdbc.username", inst.getDatabaseLogin());
-    map.put("sonar.jdbc.password", inst.getDatabasePassword());
 
     return map;
   }

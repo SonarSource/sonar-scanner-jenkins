@@ -24,31 +24,15 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.sonar.MsBuildSQRunnerEnd.DescriptorImpl;
-import hudson.plugins.sonar.utils.SQServerVersions;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
-  @Test
-  public void testNormalExec() throws Exception {
-    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", SQServerVersions.SQ_5_1_OR_LOWER, null, "http://dbhost.org", "dbLogin", "dbPass", null, null, null,
-      "login", "mypass", null));
-    configureMsBuildScanner(false);
-
-    FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));
-    proj.getBuildersList().add(new MsBuildSQRunnerEnd());
-    Run<?, ?> r = build(proj, Result.SUCCESS);
-    assertLogContains("end /d:sonar.login=login ******** /d:sonar.jdbc.username=dbLogin ********", r);
-    assertLogContains("This is a fake MS Build Scanner", r);
-
-    assertLogDoesntContains("dbPass", r);
-    assertLogDoesntContains("mypass", r);
-  }
 
   @Test
   public void testToken() throws Exception {
-    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", SQServerVersions.SQ_5_3_OR_HIGHER, "token", null, null, null, null, null, null, null, null, null));
+    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "token", null, null, null, null));
     configureMsBuildScanner(false);
 
     FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));

@@ -32,7 +32,6 @@ import hudson.model.Run.RunnerAbortedException;
 import hudson.plugins.sonar.SonarBuildWrapper.DescriptorImpl;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.model.TriggersConfig;
-import hudson.plugins.sonar.utils.SQServerVersions;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -52,6 +51,7 @@ import static org.mockito.Mockito.when;
 
 public class SonarBuildWrapperTest extends SonarTestCase {
 
+  private static final String MYTOKEN = "mytoken";
   private SonarBuildWrapper wrapper;
   private SonarInstallation installation;
   private PrintStream stream;
@@ -101,21 +101,10 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void dontMaskDefaultPassword() throws IOException, InterruptedException {
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    configureSonar(new SonarInstallation("local", "http://localhost:9001", null, null, null, null, null,
-      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", null, null));
-
-    OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
-    IOUtils.write("test sonar\ntest something\n", os);
-    assertThat(new String(bos.toByteArray())).isEqualTo("test sonar\ntest something\n");
-  }
-
-  @Test
   public void maskAuthToken() throws IOException, InterruptedException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    configureSonar(new SonarInstallation("local", "http://localhost:9001", SQServerVersions.SQ_5_3_OR_HIGHER, "mytoken", null, null, null,
-      null, null, new TriggersConfig(), "$SONAR_CONFIG_NAME", null, null));
+    configureSonar(new SonarInstallation("local", "http://localhost:9001", MYTOKEN, null, null,
+      new TriggersConfig(), null));
 
     OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
     IOUtils.write("test sonar\ntest mytoken\n", os);
@@ -123,65 +112,24 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void testEnvironment52() {
-    Map<String, String> map = SonarBuildWrapper.createVars(installation);
-
-    assertThat(map).containsEntry("SONAR_HOST_URL", "http://localhost:9001");
-    assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
-    // variable in the value should be resolved
-    assertThat(map).containsEntry("SONAR_AUTH_TOKEN", "");
-    assertThat(map).containsEntry("SONAR_LOGIN", "local");
-    assertThat(map).containsEntry("SONAR_PASSWORD", "password");
-    assertThat(map).containsEntry("SONAR_JDBC_URL", "");
-    assertThat(map).containsEntry("SONAR_JDBC_USERNAME", "");
-    assertThat(map).containsEntry("SONAR_JDBC_PASSWORD", "");
-    assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "sonar:sonar");
-    assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
-  }
-
-  @Test
-  public void testEnvironment53() {
-    installation = createTestInstallation(SQServerVersions.SQ_5_3_OR_HIGHER);
+  public void testEnvironment() {
+    installation = createTestInstallation();
 
     Map<String, String> map = SonarBuildWrapper.createVars(installation);
 
     assertThat(map).containsEntry("SONAR_HOST_URL", "http://localhost:9001");
     assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
     // variable in the value should be resolved
-    assertThat(map).containsEntry("SONAR_AUTH_TOKEN", "local");
-    assertThat(map).containsEntry("SONAR_LOGIN", "");
-    assertThat(map).containsEntry("SONAR_PASSWORD", "");
-    assertThat(map).containsEntry("SONAR_JDBC_URL", "");
-    assertThat(map).containsEntry("SONAR_JDBC_USERNAME", "");
-    assertThat(map).containsEntry("SONAR_JDBC_PASSWORD", "");
+    assertThat(map).containsEntry("SONAR_AUTH_TOKEN", MYTOKEN);
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "sonar:sonar");
     assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
 
-    assertThat(map).containsEntry("SONARQUBE_SCANNER_PARAMS", "{ \"sonar.host.url\" : \"http:\\/\\/localhost:9001\", \"sonar.login\" : \"local\"}");
-  }
-
-  @Test
-  public void testEnvironment51() {
-    installation = createTestInstallation(SQServerVersions.SQ_5_1_OR_LOWER);
-
-    Map<String, String> map = SonarBuildWrapper.createVars(installation);
-
-    assertThat(map).containsEntry("SONAR_HOST_URL", "http://localhost:9001");
-    assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
-    // variable in the value should be resolved
-    assertThat(map).containsEntry("SONAR_AUTH_TOKEN", "");
-    assertThat(map).containsEntry("SONAR_LOGIN", "local");
-    assertThat(map).containsEntry("SONAR_PASSWORD", "password");
-    assertThat(map).containsEntry("SONAR_JDBC_URL", "");
-    assertThat(map).containsEntry("SONAR_JDBC_USERNAME", "sonar");
-    assertThat(map).containsEntry("SONAR_JDBC_PASSWORD", "sonar");
-    assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "sonar:sonar");
-    assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
+    assertThat(map).containsEntry("SONARQUBE_SCANNER_PARAMS", "{ \"sonar.host.url\" : \"http:\\/\\/localhost:9001\", \"sonar.login\" : \"" + MYTOKEN + "\"}");
   }
 
   @Test
   public void testEnvironmentMojoVersion() {
-    installation = new SonarInstallation(null, null, null, null, null, null, null, "2.0", null, null, null, null, null);
+    installation = new SonarInstallation(null, null, null, "2.0", null, null, null);
 
     Map<String, String> map = SonarBuildWrapper.createVars(installation);
 
@@ -237,12 +185,11 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
     // ensure that vars were injected to the job
     assertThat(b.vars).containsEntry("SONAR_HOST_URL", "http://localhost:9001");
-    assertThat(b.vars).containsEntry("SONAR_LOGIN", "local");
-    assertThat(b.vars).containsEntry("SONAR_PASSWORD", "password");
+    assertThat(b.vars).containsEntry("SONAR_AUTH_TOKEN", MYTOKEN);
     assertThat(b.vars).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
 
     // job's log should have passwords masked
-    assertThat(build.getLog(1000)).contains("the pass is: ******");
+    assertThat(build.getLog(1000)).contains("the token is: ******");
     assertThat(build.getActions(SonarAnalysisAction.class)).hasSize(1);
   }
 
@@ -257,7 +204,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
     assertThat(build.getResult()).isEqualTo(Result.FAILURE);
 
-    assertThat(build.getLog(1000)).contains("the pass is: ******");
+    assertThat(build.getLog(1000)).contains("the token is: ******");
     assertThat(build.getActions(SonarAnalysisAction.class)).hasSize(1);
   }
 
@@ -276,8 +223,8 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
       EnvVars env = build.getEnvironment(listener);
-      vars = new HashMap<String, String>(env);
-      listener.getLogger().println("the pass is: password");
+      vars = new HashMap<>(env);
+      listener.getLogger().println("the token is: " + MYTOKEN);
       if (fail) {
         throw new AbortException("asd");
       }
@@ -290,12 +237,8 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   private static SonarInstallation createTestInstallation() {
-    return new SonarInstallation("local", "http://localhost:9001", SQServerVersions.SQ_5_2, null, null, null, null,
-      null, "-X", new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", "key=value");
+    return new SonarInstallation("local", "http://localhost:9001", MYTOKEN, null,
+      "-X", new TriggersConfig(), "key=value");
   }
 
-  private static SonarInstallation createTestInstallation(String version) {
-    return new SonarInstallation("local", "http://localhost:9001", version, "$SONAR_CONFIG_NAME", null, null, null,
-      null, "-X", new TriggersConfig(), "$SONAR_CONFIG_NAME", "password", "key=value");
-  }
 }

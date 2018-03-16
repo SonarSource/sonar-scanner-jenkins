@@ -20,21 +20,9 @@
           <f:entry title="${%ServerUrl}" description="${%ServerUrlDescr}">
             <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}"/>
           </f:entry>
-          
-          <f:entry field="serverVersion" name="sonar.serverVersion" title="${%ServerVersion}" description="${%ServerVersionDescr}">
-			<f:select clazz="sonar-server-version" default="5.3" value="${inst.getServerVersion()}" />
-          </f:entry>
-          
+                    
           <f:entry title="${%ServerToken}" description="${%ServerTokenDescr}">
-            <f:password clazz="sonar-53" name="sonar.serverAuthenticationToken" value="${inst.getServerAuthenticationToken()}"/>
-          </f:entry>
-
-          <f:entry title="${%ServerLogin}" description="${%ServerLoginDescr}">
-            <f:textbox clazz="sonar-51 sonar-52" name="sonar.sonarLogin" value="${inst.getSonarLogin()}"/>
-          </f:entry>
-
-          <f:entry title="${%ServerPass}" description="${%ServerPassDescr}">
-            <f:password clazz="sonar-51 sonar-52" name="sonar.sonarPassword" value="${inst.getSonarPassword()}"/>
+            <f:password name="sonar.serverAuthenticationToken" value="${inst.getServerAuthenticationToken()}"/>
           </f:entry>
 
           <f:advanced>
@@ -50,18 +38,6 @@
               <f:textbox name="sonar.additionalAnalysisProperties" value="${inst.getAdditionalAnalysisProperties()}"/>
             </f:entry>
             
-            <f:entry title="${%DbUrl}" description="${%DbUrlDescr}" help="/plugin/sonar/help-global-dburl.html">
-              <f:textbox clazz="sonar-51" name="sonar.databaseUrl" value="${inst.getDatabaseUrl()}"/>
-            </f:entry>
-
-            <f:entry title="${%DbLogin}" description="${%DbLoginDescr}">
-              <f:textbox clazz="sonar-51" name="sonar.databaseLogin" value="${inst.getDatabaseLogin()}"/>
-            </f:entry>
-
-            <f:entry title="${%DbPass}" description="${%DbPassDescr}">
-              <f:password clazz="sonar-51" name="sonar.databasePassword" value="${inst.getDatabasePassword()}"/>
-            </f:entry>
-
             <f:section title="${%TriggerExclusions}" name="triggers">
               <st:include class="${instance.clazz}" page="triggers.jelly" it="${inst.getTriggers()}"/>
             </f:section>

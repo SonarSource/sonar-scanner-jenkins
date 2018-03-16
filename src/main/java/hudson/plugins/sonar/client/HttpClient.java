@@ -19,19 +19,20 @@
  */
 package hudson.plugins.sonar.client;
 
+import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.sonarqube.ws.client.GetRequest;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsResponse;
 
 public class HttpClient {
-  public String getHttp(String url, String usernameOrToken, String password) {
+  public String getHttp(String url, @Nullable String token) {
     String baseUrl = StringUtils.substringBeforeLast(url, "/");
     String path = StringUtils.substringAfterLast(url, "/");
     HttpConnector httpConnector = HttpConnector.newBuilder()
       .userAgent("Scanner for Jenkins")
       .url(baseUrl)
-      .credentials(usernameOrToken, password)
+      .credentials(token, null)
       .build();
     WsResponse response = httpConnector.call(new GetRequest(path));
     response.failIfNotSuccessful();

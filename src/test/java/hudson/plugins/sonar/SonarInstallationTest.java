@@ -21,12 +21,10 @@ package hudson.plugins.sonar;
 
 import hudson.Util;
 import hudson.plugins.sonar.model.TriggersConfig;
-import hudson.plugins.sonar.utils.SQServerVersions;
-import jenkins.model.Jenkins;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
+import jenkins.model.Jenkins;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,100 +34,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SonarInstallationTest extends SonarTestCase {
 
   @Test
-  public void testRoundtrip51() throws IOException {
-    TriggersConfig triggers = new TriggersConfig();
-    SonarGlobalConfiguration config = new SonarGlobalConfiguration();
-    config.setInstallations(new SonarInstallation(
-      "Name",
-      "server.url",
-      SQServerVersions.SQ_5_1_OR_LOWER,
-      "token",
-      "db:url",
-      "dbLogin",
-      "dbPasswd",
-      "mojoVersion",
-      "props",
-      triggers,
-      "sonarLogin",
-      "sonarPasswd",
-      "key=value"));
-    config.save();
-
-    SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
-    String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), config.getId() + ".xml"));
-
-    assertThat(i.getName()).isEqualTo("Name");
-    assertThat(i.getServerUrl()).isEqualTo("server.url");
-    assertThat(i.getServerAuthenticationToken()).isNullOrEmpty();
-    assertThat(i.getDatabaseUrl()).isEqualTo("db:url");
-    assertThat(i.getDatabaseLogin()).isEqualTo("dbLogin");
-    assertThat(i.getDatabasePassword()).isEqualTo("dbPasswd");
-    assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
-    assertThat(i.getAdditionalProperties()).isEqualTo("props");
-    assertThat(i.getSonarLogin()).isEqualTo("sonarLogin");
-    assertThat(i.getSonarPassword()).isEqualTo("sonarPasswd");
-    assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");
-
-    assertThat(storedConfig).doesNotContain("dbPasswd");
-    assertThat(storedConfig).doesNotContain("sonarPasswd");
-  }
-
-  @Test
-  public void testRoundtrip52() throws IOException {
-    TriggersConfig triggers = new TriggersConfig();
-    SonarGlobalConfiguration d = new SonarGlobalConfiguration();
-    d.setInstallations(new SonarInstallation(
-      "Name",
-      "server.url",
-      SQServerVersions.SQ_5_2,
-      "token",
-      "db:url",
-      "dbLogin",
-      "dbPasswd",
-      "mojoVersion",
-      "props",
-      triggers,
-      "sonarLogin",
-      "sonarPasswd",
-      "key=value"));
-    d.save();
-
-    SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
-    String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), d.getId() + ".xml"));
-
-    assertThat(i.getName()).isEqualTo("Name");
-    assertThat(i.getServerUrl()).isEqualTo("server.url");
-    assertThat(i.getServerAuthenticationToken()).isNullOrEmpty();
-    assertThat(i.getDatabaseUrl()).isNullOrEmpty();
-    assertThat(i.getDatabaseLogin()).isNullOrEmpty();
-    assertThat(i.getDatabasePassword()).isNullOrEmpty();
-    assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
-    assertThat(i.getAdditionalProperties()).isEqualTo("props");
-    assertThat(i.getSonarLogin()).isEqualTo("sonarLogin");
-    assertThat(i.getSonarPassword()).isEqualTo("sonarPasswd");
-    assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");
-
-    assertThat(storedConfig).doesNotContain("dbPasswd");
-    assertThat(storedConfig).doesNotContain("sonarPasswd");
-  }
-
-  @Test
   public void testRoundtrip53() throws IOException {
     TriggersConfig triggers = new TriggersConfig();
     SonarGlobalConfiguration d = new SonarGlobalConfiguration();
     d.setInstallations(new SonarInstallation(
       "Name",
       "server.url",
-      SQServerVersions.SQ_5_3_OR_HIGHER,
       "token",
-      "db:url",
-      "dbLogin",
-      "dbPasswd",
       "mojoVersion",
       "props",
       triggers,
-      "sonarLogin",
-      "sonarPasswd",
       "key=value"));
     d.save();
 
@@ -139,13 +53,8 @@ public class SonarInstallationTest extends SonarTestCase {
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
     assertThat(i.getServerAuthenticationToken()).isEqualTo("token");
-    assertThat(i.getDatabaseUrl()).isNullOrEmpty();
-    assertThat(i.getDatabaseLogin()).isNullOrEmpty();
-    assertThat(i.getDatabasePassword()).isNullOrEmpty();
     assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
     assertThat(i.getAdditionalProperties()).isEqualTo("props");
-    assertThat(i.getSonarLogin()).isNullOrEmpty();
-    assertThat(i.getSonarPassword()).isNullOrEmpty();
     assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");
 
     assertThat(storedConfig).doesNotContain("dbPasswd");
@@ -171,12 +80,12 @@ public class SonarInstallationTest extends SonarTestCase {
   }
 
   private void assertAnalysisPropsWindows(String input, String... expectedEntries) {
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, null, null, null, null, null, input);
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, input);
     assertThat(inst.getAdditionalAnalysisPropertiesWindows()).isEqualTo(expectedEntries);
   }
 
   private void assertAnalysisPropsUnix(String input, String... expectedEntries) {
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, null, null, null, null, null, input);
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, input);
     assertThat(inst.getAdditionalAnalysisPropertiesUnix()).isEqualTo(expectedEntries);
   }
 }

@@ -21,7 +21,6 @@ package hudson.plugins.sonar.client;
 
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.client.WsClient.CETask;
-import hudson.plugins.sonar.client.WsClient.ProjectQualityGate;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.Version;
 import java.net.URI;
@@ -45,7 +44,7 @@ public class SQProjectResolver {
    * Errors that should be displayed are included in {@link ProjectInformation#getErrors()}.
    */
   @CheckForNull
-  public ProjectInformation resolve(@Nullable String serverUrl, @Nullable String projectKey, @Nullable String projectUrl, @Nullable String ceTaskId, String installationName) {
+  public ProjectInformation resolve(@Nullable String serverUrl, @Nullable String projectDashboardUrl, String ceTaskId, String installationName) {
     SonarInstallation inst = SonarInstallation.get(installationName);
     if (inst == null) {
       Logger.LOG.info(() -> "Invalid installation name: " + installationName);
@@ -53,27 +52,26 @@ public class SQProjectResolver {
     }
 
     try {
-      if (!checkServerUrl(serverUrl, projectKey, inst)) {
+      if (!checkServerUrl(serverUrl, inst)) {
         return null;
       }
 
       WsClient wsClient = WsClient.create(client, inst);
       Version version = new Version(wsClient.getServerVersion());
 
-      ProjectInformation projectInfo = new ProjectInformation(projectKey);
-      projectInfo.setUrl(projectUrl);
-
-      getQualityGate(wsClient, projectInfo, projectKey, version);
-      if (projectInfo.getStatus() == null) {
-        // if QG is not available for the project, without errors, projectInfo will be empty
-        return projectInfo;
+      if (version.compareTo(new Version("5.6")) < 0) {
+        Logger.LOG.info(() -> "SQ < 5.6 is not supported");
+        return null;
       }
 
-      getCETask(wsClient, projectInfo, ceTaskId);
+      ProjectInformation projectInfo = new ProjectInformation();
+      projectInfo.setUrl(projectDashboardUrl);
+      String analysisId = requestCETaskDetails(wsClient, projectInfo, ceTaskId);
 
-      if (projectInfo.getProjectName() == null) {
-        projectInfo.setName(wsClient.getProjectName(projectKey));
+      if (analysisId != null) {
+        projectInfo.setStatus(wsClient.requestQualityGateStatus(analysisId));
       }
+
       return projectInfo;
 
     } catch (Exception e) {
@@ -82,43 +80,18 @@ public class SQProjectResolver {
     }
   }
 
-  private static void getCETask(WsClient wsClient, ProjectInformation projectInfo, @Nullable String ceTaskId) {
-    if (ceTaskId == null) {
-      return;
-    }
-
+  @CheckForNull
+  private static String requestCETaskDetails(WsClient wsClient, ProjectInformation projectInfo, String ceTaskId) {
     CETask ceTask = wsClient.getCETask(ceTaskId);
     projectInfo.setCeStatus(ceTask.getStatus());
     projectInfo.setCeUrl(ceTask.getUrl());
-
-    if (ceTask.getComponentName() != null) {
-      projectInfo.setName(ceTask.getComponentName());
-    }
+    projectInfo.setName(ceTask.getComponentName());
+    return ceTask.getAnalysisId();
   }
 
-  private static void getQualityGate(WsClient client, ProjectInformation proj, String projectKey, Version version) throws Exception {
-    ProjectQualityGate qg;
-    if (version.compareTo(new Version("5.4")) < 0) {
-      qg = client.getQualityGateBefore54(projectKey);
-    } else {
-      qg = client.getQualityGate54(projectKey);
-    }
-
-    // happens in LTS if project is not assigned to a QG and there is no default QG
-    if (qg == null) {
-      return;
-    }
-
-    proj.setStatus(qg.getStatus());
-
-    if (qg.getProjectName() != null) {
-      proj.setName(qg.getProjectName());
-    }
-  }
-
-  private static boolean checkServerUrl(@Nullable String serverUrl, @Nullable String projectKey, SonarInstallation inst) {
-    if (serverUrl == null || projectKey == null) {
-      Logger.LOG.info(() -> String.format(Locale.US, "Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
+  private static boolean checkServerUrl(@Nullable String serverUrl, SonarInstallation inst) {
+    if (serverUrl == null) {
+      Logger.LOG.info(() -> String.format(Locale.US, "Invalid server url. ServerUrl='%s'", serverUrl));
       return false;
     }
     String installationUrl = StringUtils.isEmpty(inst.getServerUrl()) ? SonarInstallation.DEFAULT_SERVER_URL : inst.getServerUrl();

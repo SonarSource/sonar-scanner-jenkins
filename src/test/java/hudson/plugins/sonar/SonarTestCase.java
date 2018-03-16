@@ -19,30 +19,29 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.action.SonarBuildBadgeAction;
-import hudson.plugins.sonar.action.SonarProjectIconAction;
-import hudson.tasks.Builder;
 import hudson.Functions;
 import hudson.maven.MavenModuleSet;
-import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
+import hudson.model.Result;
 import hudson.model.Run;
+import hudson.plugins.sonar.action.SonarBuildBadgeAction;
+import hudson.plugins.sonar.action.SonarProjectIconAction;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
+import hudson.tasks.Builder;
 import hudson.tasks.Maven;
 import hudson.util.jna.GNUCLibrary;
+import java.io.File;
+import java.io.IOException;
 import jenkins.triggers.SCMTriggerItem;
 import org.junit.Rule;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.SingleFileSCM;
-
-import java.io.File;
-import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -82,11 +81,7 @@ public abstract class SonarTestCase {
   }
 
   protected SonarInstallation configureDefaultSonar() {
-    return configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, null, null, null, null, null, null, null, null, null, null, null, null));
-  }
-  
-  protected SonarInstallation configureDefaultSonar(String version) {
-    return configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, null, version, null, null, null, null, null, null, null, null, null, null));
+    return configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, null, null, null, null, null, null));
   }
 
   protected SonarInstallation configureSonar(SonarInstallation sonarInstallation) {

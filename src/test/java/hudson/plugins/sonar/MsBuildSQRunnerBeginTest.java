@@ -73,8 +73,8 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
   @Test
   public void additionalArgs() throws Exception {
-    SonarInstallation inst = new SonarInstallation("default", null, null, null, null, null, null,
-      null, "/x:a=b", null, null, null, "key=value");
+    SonarInstallation inst = new SonarInstallation("default", null,
+      null, null, "/x:a=b", null, "key=value");
     configureSonar(inst);
     configureMsBuildScanner(true);
 
@@ -87,15 +87,15 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testSonarProps() throws Exception {
-    SonarInstallation inst = new SonarInstallation("default", "http://dummy-server:9090", null, null, null, null, null,
-      null, null, null, "login", "mypass", null);
+    SonarInstallation inst = new SonarInstallation("default", "http://dummy-server:9090", "token",
+      null, null, null, null);
     configureSonar(inst);
     configureMsBuildScanner(false);
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
     assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0"
-      + " /d:sonar.host.url=http://dummy-server:9090 /d:sonar.login=login ********", r);
+      + " /d:sonar.host.url=http://dummy-server:9090 ********", r);
     assertLogContains("This is a fake MS Build Scanner", r);
     assertLogDoesntContains("mypass", r);
   }
