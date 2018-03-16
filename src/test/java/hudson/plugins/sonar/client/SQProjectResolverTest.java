@@ -21,12 +21,7 @@ package hudson.plugins.sonar.client;
 
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarTestCase;
-import hudson.plugins.sonar.client.SQProjectResolver;
 import hudson.plugins.sonar.utils.SQServerVersions;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -34,11 +29,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
-import static org.mockito.Matchers.startsWith;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -66,7 +64,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   @Test
   public void testSQ54() throws Exception {
     mockSQServer54();
-    ProjectInformation proj = resolver.resolve(PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNotNull();
     assertThat(proj.getCeStatus()).isEqualTo("success");
     assertThat(proj.getStatus()).isEqualTo("OK");
@@ -85,13 +83,13 @@ public class SQProjectResolverTest extends SonarTestCase {
   public void testInvalidServerVersion() throws Exception {
     super.configureDefaultSonar(SQServerVersions.SQ_5_3_OR_HIGHER);
     when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null, null)).thenReturn("55");
-    ProjectInformation proj = resolver.resolve(PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNull();
   }
 
   @Test
-  public void testInvalidProjectUrl() {
-    ProjectInformation proj = resolver.resolve("invalid", CE_TASK_ID, SONAR_INSTALLATION_NAME);
+  public void testInvalidServerUrl() {
+    ProjectInformation proj = resolver.resolve("invalid", PROJECT_KEY, PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNull();
   }
 
@@ -100,7 +98,7 @@ public class SQProjectResolverTest extends SonarTestCase {
     mockSQServer54();
     when(client.getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_NAME), eq(TOKEN), isNull(String.class))).thenReturn(getFile("projectIndex.json"));
 
-    ProjectInformation proj = resolver.resolve(PROJECT_URL, null, SONAR_INSTALLATION_NAME);
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, null, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNotNull();
     assertThat(proj.getCeStatus()).isNull();
     assertThat(proj.getStatus()).isEqualTo("OK");
@@ -118,7 +116,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   public void testSQ51_no_QG() throws Exception {
     mockSQServer51();
     when(client.getHttp(startsWith(SERVER_URL + WsClient.API_RESOURCES), eq(USER), eq(PASS))).thenReturn("[]");
-    ProjectInformation proj = resolver.resolve(PROJECT_URL, null, SONAR_INSTALLATION_NAME);
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, null, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNotNull();
     assertThat(proj.getCeStatus()).isNull();
     assertThat(proj.getStatus()).isNull();
@@ -135,7 +133,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   public void testSQ51() throws Exception {
     super.configureDefaultSonar(SQServerVersions.SQ_5_1_OR_LOWER);
     mockSQServer51();
-    ProjectInformation proj = resolver.resolve(PROJECT_URL, null, SONAR_INSTALLATION_NAME);
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, null, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNotNull();
     assertThat(proj.getCeStatus()).isNull();
     assertThat(proj.getStatus()).isEqualTo("WARN");
@@ -151,14 +149,14 @@ public class SQProjectResolverTest extends SonarTestCase {
   @Test
   public void testWsError() throws Exception {
     mockSQServer(new NullPointerException());
-    ProjectInformation proj = resolver.resolve(PROJECT_URL, null, SONAR_INSTALLATION_NAME);
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, null, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNull();
   }
 
   @Test
   public void testInvalidInstallation() {
     super.configureDefaultSonar();
-    ProjectInformation proj = resolver.resolve(PROJECT_URL, null, "INVALID");
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, null, "INVALID");
     assertThat(proj).isNull();
   }
 

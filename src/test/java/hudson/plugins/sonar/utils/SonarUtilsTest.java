@@ -19,16 +19,12 @@
  */
 package hudson.plugins.sonar.utils;
 
-import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
-import java.util.Properties;
-import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -44,34 +40,6 @@ public class SonarUtilsTest {
 
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
-
-  @Test
-  public void shouldParseUrlInLogs() throws Exception {
-    assertThat(SonarUtils.extractSonarProjectURLFromLogs(mockedBuild(""))).isNull();
-    String log = "foo\n" +
-      "[INFO] [16:36:31.386] ANALYSIS SUCCESSFUL, you can browse http://sonar:9000/dashboard/index/myproject:onbranch\n"
-      + "bar";
-    assertThat(SonarUtils.extractSonarProjectURLFromLogs(mockedBuild(log))).isEqualTo("http://sonar:9000/dashboard/index/myproject:onbranch");
-  }
-
-  @Test
-  public void testExtractReport() throws Exception {
-    File report = new File(temp.getRoot(), "report-task.txt");
-    FileUtils.write(report, "key1=value1");
-
-    assertThat(SonarUtils.extractReportTask(mockedBuild(""), new FilePath(temp.getRoot()))).isNull();
-    String log1 = "foo\n" +
-      "[INFO] [16:36:31.386] Working dir: /tmp/not_existing_dir\n"
-      + "bar";
-    String log2 = "foo\n" +
-      "[INFO] [16:36:31.386] Working dir: " + temp.getRoot().getAbsolutePath() + "\n"
-      + "bar";
-
-    Properties props = new Properties();
-    props.put("key1", "value1");
-    assertThat(SonarUtils.extractReportTask(mockedBuild(log1), new FilePath(temp.getRoot()))).isNull();
-    assertThat(SonarUtils.extractReportTask(mockedBuild(log2), new FilePath(temp.getRoot()))).isEqualTo(props);
-  }
 
   @Test
   public void testMajorMinor() {

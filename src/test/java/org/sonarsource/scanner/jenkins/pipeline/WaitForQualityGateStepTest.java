@@ -26,12 +26,10 @@ import hudson.model.Result;
 import hudson.plugins.sonar.SonarGlobalConfiguration;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.utils.SonarUtils;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -266,16 +264,16 @@ public class WaitForQualityGateStepTest {
   private WorkflowRun submitPipeline() throws IOException, InterruptedException, ExecutionException {
     SonarQubeWebHook.get().listeners.clear();
     String serverUrl = "http://localhost:" + port + "/sonarqube";
-    File fakeWorkDir = temp.newFolder();
-    FileUtils.write(new File(fakeWorkDir, SonarUtils.REPORT_TASK_FILE_NAME), "dashboardUrl=" + serverUrl + "/dashboard\nceTaskId=" + FAKE_TASK_ID);
     story.j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class)
       .setInstallations(
         new SonarInstallation(SONAR_INSTALLATION_NAME, serverUrl, null, null, null, null, null, null, null, null, null, null, null));
     WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
+    String reportTaskContent = "dashboardUrl=" + serverUrl + "/dashboard\\n"
+      + "ceTaskId=" + FAKE_TASK_ID + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
     p.setDefinition(new CpsFlowDefinition(
       "node {\n" +
         "  withSonarQubeEnv {\n" +
-        "    echo 'Working dir: " + fakeWorkDir.getAbsolutePath().replaceAll("\\\\", "\\\\\\\\") + "'\n" +
+        "    writeFile file: 'foo/" + SonarUtils.REPORT_TASK_FILE_NAME + "', text: '" + reportTaskContent + "', encoding: 'utf-8'\n" +
         "    " + (SystemUtils.IS_OS_WINDOWS ? "bat" : "sh") + " 'mvn -version'\n" +
         "  }\n" +
         "}\n" +
