@@ -23,6 +23,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import hudson.model.Result;
+import hudson.model.queue.QueueTaskFuture;
 import hudson.plugins.sonar.SonarGlobalConfiguration;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.utils.SonarUtils;
@@ -96,11 +97,12 @@ public class WaitForQualityGateStepTest {
       @Override
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
-        WorkflowRun b = submitPipeline();
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline();
+        WorkflowRun b = pipeline.waitForStart();
 
         submitWebHook("another task", "FAILURE", "KO", b);
         submitWebHook(FAKE_TASK_ID, "SUCCESS", "OK", b);
-        story.j.assertBuildStatusSuccess(story.j.waitForCompletion(b));
+        story.j.assertBuildStatusSuccess(pipeline);
       }
     });
   }
@@ -111,10 +113,11 @@ public class WaitForQualityGateStepTest {
       @Override
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
-        WorkflowRun b = submitPipeline();
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline();
+        WorkflowRun b = pipeline.waitForStart();
 
         submitWebHook(FAKE_TASK_ID, "SUCCESS", "KO", b);
-        story.j.assertBuildStatus(Result.FAILURE, story.j.waitForCompletion(b));
+        story.j.assertBuildStatus(Result.FAILURE, pipeline);
       }
     });
   }
@@ -125,10 +128,11 @@ public class WaitForQualityGateStepTest {
       @Override
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
-        WorkflowRun b = submitPipeline();
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline();
+        WorkflowRun b = pipeline.waitForStart();
         waitForStepToWait(b);
         b.doStop();
-        story.j.assertBuildStatus(Result.ABORTED, story.j.waitForCompletion(b));
+        story.j.assertBuildStatus(Result.ABORTED, pipeline);
         assertThat(SonarQubeWebHook.get().listeners).isEmpty();
       }
     });
@@ -140,12 +144,12 @@ public class WaitForQualityGateStepTest {
       @Override
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
-        WorkflowRun b = submitPipeline();
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline();
+        WorkflowRun b = pipeline.waitForStart();
         waitForStepToWait(b);
 
         submitWebHook(FAKE_TASK_ID, "FAILED", null, b);
-        WorkflowRun r = story.j.waitForCompletion(b);
-        story.j.assertBuildStatus(Result.FAILURE, r);
+        WorkflowRun r = story.j.assertBuildStatus(Result.FAILURE, pipeline);
         story.j.assertLogContains("SonarQube analysis '" + FAKE_TASK_ID + "' failed: FAILED", r);
       }
     });
@@ -159,9 +163,8 @@ public class WaitForQualityGateStepTest {
         handler.status = "SUCCESS";
         handler.analysisId = FAKE_ANALYSIS_ID;
         handler.qgStatus = "OK";
-        WorkflowRun b = submitPipeline();
-
-        story.j.assertBuildStatusSuccess(story.j.waitForCompletion(b));
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline();
+        story.j.assertBuildStatusSuccess(pipeline);
       }
     });
   }
@@ -174,9 +177,8 @@ public class WaitForQualityGateStepTest {
         handler.status = "SUCCESS";
         handler.analysisId = FAKE_ANALYSIS_ID;
         handler.qgStatus = "KO";
-        WorkflowRun b = submitPipeline();
-
-        story.j.assertBuildStatus(Result.FAILURE, story.j.waitForCompletion(b));
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline();
+        story.j.assertBuildStatus(Result.FAILURE, pipeline);
       }
     });
   }
@@ -187,10 +189,10 @@ public class WaitForQualityGateStepTest {
       @Override
       public void evaluate() throws Throwable {
         handler.status = "FAILED";
-        WorkflowRun r = submitPipeline();
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline();
 
-        story.j.assertBuildStatus(Result.FAILURE, story.j.waitForCompletion(r));
-        story.j.assertLogContains("SonarQube task '" + FAKE_TASK_ID + "' status is 'FAILED'", r);
+        WorkflowRun run = story.j.assertBuildStatus(Result.FAILURE, pipeline);
+        story.j.assertLogContains("SonarQube task '" + FAKE_TASK_ID + "' status is 'FAILED'", run);
       }
     });
   }
@@ -201,7 +203,8 @@ public class WaitForQualityGateStepTest {
       @Override
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
-        WorkflowRun b = submitPipeline();
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline();
+        WorkflowRun b = pipeline.waitForStart();
         waitForStepToWait(b);
       }
     });
@@ -222,7 +225,8 @@ public class WaitForQualityGateStepTest {
       @Override
       public void evaluate() throws Throwable {
         handler.status = "PENDING";
-        WorkflowRun b = submitPipeline();
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline();
+        WorkflowRun b = pipeline.waitForStart();
         waitForStepToWait(b);
       }
     });
@@ -261,7 +265,7 @@ public class WaitForQualityGateStepTest {
     }
   }
 
-  private WorkflowRun submitPipeline() throws IOException, InterruptedException, ExecutionException {
+  private QueueTaskFuture<WorkflowRun> submitPipeline() throws IOException, InterruptedException, ExecutionException {
     SonarQubeWebHook.get().listeners.clear();
     String serverUrl = "http://localhost:" + port + "/sonarqube";
     story.j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class)
@@ -282,7 +286,7 @@ public class WaitForQualityGateStepTest {
         "  error 'QG failure'\n" +
         "}",
       true));
-    return p.scheduleBuild2(0).waitForStart();
+    return p.scheduleBuild2(0);
   }
 
   static class MyHandler implements HttpHandler {
