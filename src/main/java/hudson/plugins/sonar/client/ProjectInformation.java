@@ -66,11 +66,12 @@ public class ProjectInformation extends InvisibleAction {
     this.name = name;
   }
 
+  @CheckForNull
   public String getUrl() {
     return url;
   }
 
-  public void setUrl(String url) {
+  public void setUrl(@Nullable String url) {
     this.url = url;
   }
 

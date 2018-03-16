@@ -51,7 +51,6 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SonarBuildWrapper extends SimpleBuildWrapper {
-  private static final String DEFAULT_SONAR = "sonar";
   private String installationName = null;
 
   @DataBoundConstructor
