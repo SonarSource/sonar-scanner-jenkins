@@ -19,7 +19,6 @@
  */
 package hudson.plugins.sonar.client;
 
-import hudson.plugins.sonar.SonarInstallation;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import javax.annotation.CheckForNull;
@@ -27,7 +26,6 @@ import javax.annotation.Nullable;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
-import org.apache.commons.lang.StringUtils;
 
 public class WsClient {
   private static final String STATUS_ATTR = "status";
@@ -46,11 +44,6 @@ public class WsClient {
     this.client = client;
     this.serverUrl = serverUrl;
     this.token = token;
-  }
-
-  public static WsClient create(HttpClient client, SonarInstallation inst) {
-    String serverUrl = StringUtils.isEmpty(inst.getServerUrl()) ? SonarInstallation.DEFAULT_SERVER_URL : inst.getServerUrl();
-    return new WsClient(client, serverUrl, inst.getServerAuthenticationToken());
   }
 
   public CETask getCETask(String taskId) {

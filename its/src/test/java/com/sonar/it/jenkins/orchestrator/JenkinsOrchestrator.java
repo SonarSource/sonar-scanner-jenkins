@@ -492,11 +492,15 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public JenkinsOrchestrator configureSonarInstallation(Orchestrator orchestrator) {
+    return configureSonarInstallation(orchestrator, orchestrator.getServer().getUrl());
+  }
+
+  public JenkinsOrchestrator configureSonarInstallation(Orchestrator orchestrator, String serverUrl) {
     driver.get(getSystemConfigUrl());
     findElement(buttonByText("Add SonarQube")).click();
 
     setTextValue(findElement(By.name("sonar.name")), DEFAULT_SONARQUBE_INSTALLATION);
-    setTextValue(findElement(By.name("sonar.serverUrl")), orchestrator.getServer().getUrl());
+    setTextValue(findElement(By.name("sonar.serverUrl")), serverUrl);
     findElement(buttonByTextAfterElementByXpath("Advanced...", "//.[@name='sonar.name']")).click();
 
     String token = generateToken(orchestrator);

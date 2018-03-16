@@ -65,6 +65,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
 
   private String taskId;
   private String installationName;
+  private String serverUrl;
 
   @DataBoundConstructor
   public WaitForQualityGateStep() {
@@ -79,12 +80,20 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     this.installationName = installationName;
   }
 
+  public void setServerUrl(String serverUrl) {
+    this.serverUrl = serverUrl;
+  }
+
   public String getTaskId() {
     return taskId;
   }
 
   public String getInstallationName() {
     return installationName;
+  }
+
+  public String getServerUrl() {
+    return serverUrl;
   }
 
   @Override
@@ -126,6 +135,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       for (SonarAnalysisAction a : actions) {
         if (a.getCeTaskId() != null) {
           step.setTaskId(a.getCeTaskId());
+          step.setServerUrl(a.getServerUrl());
           step.setInstallationName(a.getInstallationName());
         }
       }
@@ -150,7 +160,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
 
       log("Checking status of SonarQube task '%s' on server '%s'", step.taskId, step.getInstallationName());
 
-      WsClient wsClient = WsClient.create(new HttpClient(), inst);
+      WsClient wsClient = new WsClient(new HttpClient(), step.getServerUrl(), inst.getServerAuthenticationToken());
       WsClient.CETask ceTask = wsClient.getCETask(step.getTaskId());
       log("SonarQube task '%s' status is '%s'", step.taskId, ceTask.getStatus());
       switch (ceTask.getStatus()) {

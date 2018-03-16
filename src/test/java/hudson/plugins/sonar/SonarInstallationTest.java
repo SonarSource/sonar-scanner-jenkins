@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SonarInstallationTest extends SonarTestCase {
 
   @Test
-  public void testRoundtrip53() throws IOException {
+  public void testRoundtrip() throws IOException {
     TriggersConfig triggers = new TriggersConfig();
     SonarGlobalConfiguration d = new SonarGlobalConfiguration();
     d.setInstallations(new SonarInstallation(
