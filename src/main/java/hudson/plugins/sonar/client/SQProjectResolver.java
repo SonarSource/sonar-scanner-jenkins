@@ -23,13 +23,10 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.Version;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.logging.Level;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
-import org.apache.commons.lang.StringUtils;
 
 public class SQProjectResolver {
   private final HttpClient client;
@@ -50,13 +47,14 @@ public class SQProjectResolver {
       Logger.LOG.info(() -> "Invalid installation name: " + installationName);
       return null;
     }
+    if (serverUrl == null) {
+      Logger.LOG.info(() -> String.format(Locale.US, "No server url."));
+      return null;
+    }
 
     try {
-      if (!checkServerUrl(serverUrl, inst)) {
-        return null;
-      }
 
-      WsClient wsClient = WsClient.create(client, inst);
+      WsClient wsClient = new WsClient(client, serverUrl, inst.getServerAuthenticationToken());
       Version version = new Version(wsClient.getServerVersion());
 
       if (version.compareTo(new Version("5.6")) < 0) {
@@ -88,28 +86,4 @@ public class SQProjectResolver {
     projectInfo.setName(ceTask.getComponentName());
     return ceTask.getAnalysisId();
   }
-
-  private static boolean checkServerUrl(@Nullable String serverUrl, SonarInstallation inst) {
-    if (serverUrl == null) {
-      Logger.LOG.info(() -> String.format(Locale.US, "Invalid server url. ServerUrl='%s'", serverUrl));
-      return false;
-    }
-    String installationUrl = StringUtils.isEmpty(inst.getServerUrl()) ? SonarInstallation.DEFAULT_SERVER_URL : inst.getServerUrl();
-
-    try {
-      URI installationURI = new URI(installationUrl);
-      URI serverURI = new URI(serverUrl);
-
-      if (!installationURI.equals(serverURI)) {
-        Logger.LOG.warning(() -> String.format(Locale.US, "Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, installationUrl));
-        return false;
-      }
-    } catch (URISyntaxException e) {
-      Logger.LOG.warning(() -> String.format(Locale.US, "Invalid URL: '%s' parsed, '%s' configured: %s", serverUrl, installationUrl, e.getMessage()));
-      return false;
-    }
-
-    return true;
-  }
-
 }

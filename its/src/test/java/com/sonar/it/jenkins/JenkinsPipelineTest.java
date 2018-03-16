@@ -82,7 +82,7 @@ public class JenkinsPipelineTest {
       .installPlugin(sqJenkinsPluginLocation)
       .configureSQScannerInstallation("2.8", 0)
       .configureMsBuildSQScanner_installation("3.0.0.629", 0)
-      .configureSonarInstallation(orchestrator);
+      .configureSonarInstallation(orchestrator, "$MY_SONAR_URL");
     if (SystemUtils.IS_OS_WINDOWS) {
       jenkins.configureMSBuildInstallation();
     }
@@ -108,7 +108,7 @@ public class JenkinsPipelineTest {
 
   @Test
   public void no_sq_vars_without_env_wrapper() throws JenkinsOrchestrator.FailedExecutionException {
-    String logs = runAndGetLogs("no-withSonarQubeEnv", "node {" + DUMP_ENV_VARS_PIPELINE_CMD + "}");
+    String logs = runAndGetLogs("no-withSonarQubeEnv", DUMP_ENV_VARS_PIPELINE_CMD);
     try {
       verifyEnvVarsExist(logs);
     } catch (AssertionError e) {
@@ -119,33 +119,31 @@ public class JenkinsPipelineTest {
 
   @Test
   public void env_wrapper_without_params_should_inject_sq_vars() {
-    String script = "node { withSonarQubeEnv { " + DUMP_ENV_VARS_PIPELINE_CMD + " }}";
+    String script = "withSonarQubeEnv { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-parameterless", script);
   }
 
   @Test
   public void env_wrapper_with_specific_sq_should_inject_sq_vars() {
-    String script = "node {withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }}";
+    String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-SonarQube", script);
   }
 
   @Test(expected = JenkinsOrchestrator.FailedExecutionException.class)
   public void env_wrapper_with_nonexistent_sq_should_fail() {
-    String script = "node {withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }}";
+    String script = "withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-nonexistent", script);
   }
 
   @Test
   public void msbuild_pipeline() {
     assumeTrue(SystemUtils.IS_OS_WINDOWS);
-    String script = "node {\n"
-      + "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n"
+    String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n"
       + "  bat 'xcopy " + Paths.get("projects/csharp").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n"
       + "  def sqScannerMsBuildHome = tool 'Scanner for MSBuild 3.0.0.629'\n"
       + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe begin /k:csharp /n:CSharp /v:1.0\"\n"
       + "  bat '\\\"%MSBUILD_PATH%\\\" /t:Rebuild'\n"
       + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe end\"\n"
-      + "}\n"
       + "}";
     assertThat(runAndGetLogs("csharp-pipeline", script)).contains("ANALYSIS SUCCESSFUL, you can browse");
   }
@@ -154,7 +152,6 @@ public class JenkinsPipelineTest {
   public void qualitygate_pipeline_ok() {
     assumeTrue(orchestrator.getServer().version().isGreaterThan("6.2"));
     StringBuilder script = new StringBuilder();
-    script.append("node {\n");
     script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
     if (SystemUtils.IS_OS_WINDOWS) {
       script.append("  bat 'xcopy " + Paths.get("projects/js").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
@@ -170,7 +167,6 @@ public class JenkinsPipelineTest {
     script.append("}\n");
     script.append("def qg = waitForQualityGate()\n");
     script.append("if (qg.status != 'OK') { error 'Quality gate failure'}\n");
-    script.append("}");
     createPipelineJobFromScript("js-pipeline", script.toString());
     BuildResult buildResult = jenkins.executeJob("js-pipeline");
     assertThat(buildResult.getLastStatus()).isEqualTo(0);
@@ -187,7 +183,6 @@ public class JenkinsPipelineTest {
 
     try {
       StringBuilder script = new StringBuilder();
-      script.append("node {\n");
       script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
       if (SystemUtils.IS_OS_WINDOWS) {
         script.append("  bat 'xcopy " + Paths.get("projects/js").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
@@ -203,7 +198,6 @@ public class JenkinsPipelineTest {
       script.append("}\n");
       script.append("def qg = waitForQualityGate()\n");
       script.append("if (qg.status != 'OK') { error 'Quality gate failure'}\n");
-      script.append("}");
       createPipelineJobFromScript("js-pipeline-ko", script.toString());
       BuildResult buildResult = jenkins.executeJobQuietly("js-pipeline-ko");
 
@@ -258,7 +252,7 @@ public class JenkinsPipelineTest {
   private void verifyEnvVarsExist(String logs) {
     assertThat(logs).contains("SONAR_AUTH_TOKEN=");
     assertThat(logs).contains("SONAR_CONFIG_NAME=" + DEFAULT_SONARQUBE_INSTALLATION);
-    assertThat(logs).contains("SONAR_HOST_URL=");
+    assertThat(logs).contains("SONAR_HOST_URL=" + orchestrator.getServer().getUrl());
     assertThat(logs).contains("SONAR_MAVEN_GOAL=sonar:sonar");
     assertThat(logs).contains("SONARQUBE_SCANNER_PARAMS={ \"sonar.host.url\" : \"" + StringEscapeUtils.escapeJson(orchestrator.getServer().getUrl()) + "");
   }
@@ -283,7 +277,7 @@ public class JenkinsPipelineTest {
       + "    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>\n"
       + "  </properties>\n"
       + "  <definition class=\"org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition\" plugin=\"workflow-cps@2.13\">\n"
-      + "    <script>" + script + "</script>\n"
+      + "    <script>node { withEnv(['MY_SONAR_URL=" + orchestrator.getServer().getUrl() + "']) {" + script + "}}</script>\n"
       + "    <sandbox>true</sandbox>\n"
       + "  </definition>\n"
       + "  <triggers/>\n"
