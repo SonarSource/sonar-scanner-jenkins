@@ -27,7 +27,6 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.WsClient;
-import hudson.plugins.sonar.client.WsClient.ProjectQualityGate;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
@@ -156,9 +155,9 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       log("SonarQube task '%s' status is '%s'", step.taskId, ceTask.getStatus());
       switch (ceTask.getStatus()) {
         case WsClient.CETask.STATUS_SUCCESS:
-          ProjectQualityGate qualityGate = wsClient.getQualityGateWithAnalysisId(ceTask.getAnalysisId());
-          log("SonarQube task '%s' completed. Quality gate is '%s'", step.taskId, qualityGate.getStatus());
-          getContext().onSuccess(new QGStatus(qualityGate.getStatus()));
+          String status = wsClient.requestQualityGateStatus(ceTask.getAnalysisId());
+          log("SonarQube task '%s' completed. Quality gate is '%s'", step.taskId, status);
+          getContext().onSuccess(new QGStatus(status));
           return true;
         case WsClient.CETask.STATUS_FAILURE:
         case WsClient.CETask.STATUS_CANCELED:

@@ -25,10 +25,7 @@ import hudson.init.InitMilestone;
 import hudson.init.Initializer;
 import hudson.plugins.sonar.SonarPublisher.DescriptorImpl;
 import hudson.plugins.sonar.utils.Logger;
-import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
-import hudson.util.ListBoxModel.Option;
 import java.util.List;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
@@ -123,12 +120,4 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
     return StringUtils.isBlank(value) ? FormValidation.error(Messages.SonarGlobalConfiguration_MandatoryProperty()) : FormValidation.ok();
   }
 
-  public ListBoxModel doFillServerVersionItems() {
-    ListBoxModel items = new ListBoxModel();
-
-    items.add(new Option("5.1 or lower", SQServerVersions.SQ_5_1_OR_LOWER));
-    items.add(new Option("5.2", SQServerVersions.SQ_5_2));
-    items.add(new Option("5.3 or higher", SQServerVersions.SQ_5_3_OR_HIGHER));
-    return items;
-  }
 }

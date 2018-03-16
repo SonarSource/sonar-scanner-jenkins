@@ -360,15 +360,9 @@ public class SonarRunnerBuilder extends Builder {
   void populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
     TaskListener listener, EnvVars env, @Nullable SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
-      args.append("sonar.jdbc.url", si.getDatabaseUrl());
-      args.appendMasked("sonar.jdbc.username", si.getDatabaseLogin());
-      args.appendMasked("sonar.jdbc.password", si.getDatabasePassword());
       args.append("sonar.host.url", si.getServerUrl());
       if (StringUtils.isNotBlank(si.getServerAuthenticationToken())) {
         args.appendMasked("sonar.login", si.getServerAuthenticationToken());
-      } else if (StringUtils.isNotBlank(si.getSonarLogin())) {
-        args.appendMasked("sonar.login", si.getSonarLogin());
-        args.appendMasked("sonar.password", si.getSonarPassword());
       }
     }
 

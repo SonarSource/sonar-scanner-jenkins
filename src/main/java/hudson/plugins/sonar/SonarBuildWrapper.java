@@ -31,7 +31,6 @@ import hudson.model.TaskListener;
 import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
-import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.util.ArgumentListBuilder;
@@ -85,18 +84,8 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     map.put("SONAR_CONFIG_NAME", inst.getName());
     String hostUrl = getOrDefault(inst.getServerUrl(), "http://localhost:9000");
     map.put("SONAR_HOST_URL", hostUrl);
-    String login = getOrDefault(inst.getSonarLogin(), "");
-    map.put("SONAR_LOGIN", login);
-    String password = getOrDefault(inst.getSonarPassword(), "");
-    map.put("SONAR_PASSWORD", password);
     String token = getOrDefault(inst.getServerAuthenticationToken(), "");
     map.put("SONAR_AUTH_TOKEN", token);
-
-    map.put("SONAR_JDBC_URL", getOrDefault(inst.getDatabaseUrl(), ""));
-
-    String jdbcDefault = SQServerVersions.SQ_5_1_OR_LOWER.equals(inst.getServerVersion()) ? DEFAULT_SONAR : "";
-    map.put("SONAR_JDBC_USERNAME", getOrDefault(inst.getDatabaseLogin(), jdbcDefault));
-    map.put("SONAR_JDBC_PASSWORD", getOrDefault(inst.getDatabasePassword(), jdbcDefault));
 
     if (StringUtils.isEmpty(inst.getMojoVersion())) {
       map.put("SONAR_MAVEN_GOAL", "sonar:sonar");
@@ -108,11 +97,8 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     StringBuilder sb = new StringBuilder();
     sb.append("{ \"sonar.host.url\" : \"").append(StringEscapeUtils.escapeJson(hostUrl)).append("\"");
-    if (!login.isEmpty() || !token.isEmpty()) {
-      sb.append(", \"sonar.login\" : \"").append(StringEscapeUtils.escapeJson(token.isEmpty() ? login : token)).append("\"");
-    }
-    if (!password.isEmpty()) {
-      sb.append(", \"sonar.password\" : \"").append(StringEscapeUtils.escapeJson(password)).append("\"");
+    if (!token.isEmpty()) {
+      sb.append(", \"sonar.login\" : \"").append(StringEscapeUtils.escapeJson(token)).append("\"");
     }
     sb.append("}");
 
@@ -148,12 +134,6 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     List<String> passwords = new ArrayList<>();
 
-    if (!StringUtils.isBlank(inst.getDatabasePassword())) {
-      passwords.add(inst.getDatabasePassword());
-    }
-    if (!StringUtils.isBlank(inst.getSonarPassword())) {
-      passwords.add(inst.getSonarPassword());
-    }
     if (!StringUtils.isBlank(inst.getServerAuthenticationToken())) {
       passwords.add(inst.getServerAuthenticationToken());
     }

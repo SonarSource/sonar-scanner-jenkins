@@ -27,15 +27,13 @@ import javax.annotation.Nullable;
 public class ProjectInformation extends InvisibleAction {
   private long created;
   private String[] errors;
-  private String key;
   private String name;
   private String url;
   private String status;
   private String ceStatus;
   private String ceUrl;
 
-  public ProjectInformation(String projectKey) {
-    this.key = projectKey;
+  public ProjectInformation() {
     this.created = System.currentTimeMillis();
   }
 
@@ -76,10 +74,6 @@ public class ProjectInformation extends InvisibleAction {
     this.url = url;
   }
 
-  public String getProjectKey() {
-    return key;
-  }
-
   public String getProjectName() {
     return name;
   }
@@ -99,4 +93,5 @@ public class ProjectInformation extends InvisibleAction {
   public void setStatus(String status) {
     this.status = status;
   }
+
 }

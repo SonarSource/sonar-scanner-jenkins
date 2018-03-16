@@ -21,16 +21,15 @@ package hudson.plugins.sonar.utils;
 
 import hudson.Launcher;
 import hudson.maven.local_repo.DefaultLocalRepositoryLocator;
-import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.util.ArgumentListBuilder;
+import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -46,11 +45,7 @@ public class SonarMavenTest {
     SonarPublisher publisher = mock(SonarPublisher.class);
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
-    when(installation.getDatabaseUrl()).thenReturn("databaseUrl");
-    when(installation.getDatabaseLogin()).thenReturn("login");
-    when(installation.getDatabasePassword()).thenReturn("password");
-    when(installation.getSonarLogin()).thenReturn("sonarlogin");
-    when(installation.getSonarPassword()).thenReturn("sonarpassword");
+    when(installation.getServerAuthenticationToken()).thenReturn("xyz");
     when(publisher.getInstallation()).thenReturn(installation);
     when(publisher.getBranch()).thenReturn("branch");
 
@@ -61,13 +56,9 @@ public class SonarMavenTest {
 
     List<String> result = args.toList();
     assertThat(result).contains("-Dprop=value");
-    assertThat(result).contains("-Dsonar.jdbc.url=databaseUrl");
-    assertThat(result).contains("-Dsonar.jdbc.username=login");
-    assertThat(result).contains("-Dsonar.jdbc.password=password");
     assertThat(result).contains("-Dsonar.host.url=hostUrl");
     assertThat(result).contains("-Dsonar.branch=branch");
-    assertThat(result).contains("-Dsonar.login=sonarlogin");
-    assertThat(result).contains("-Dsonar.password=sonarpassword");
+    assertThat(result).contains("-Dsonar.login=xyz");
   }
 
   @Test

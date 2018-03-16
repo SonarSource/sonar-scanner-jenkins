@@ -21,7 +21,6 @@ package hudson.plugins.sonar.client;
 
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarTestCase;
-import hudson.plugins.sonar.utils.SQServerVersions;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -62,123 +61,61 @@ public class SQProjectResolverTest extends SonarTestCase {
   }
 
   @Test
-  public void testSQ54() throws Exception {
-    mockSQServer54();
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
+  public void testSQ56() throws Exception {
+    mockSQServer56();
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNotNull();
     assertThat(proj.getCeStatus()).isEqualTo("success");
     assertThat(proj.getStatus()).isEqualTo("OK");
     assertThat(proj.getProjectName()).isEqualTo("SonarLint CLI");
-    assertThat(proj.getProjectKey()).isEqualTo("org.sonarsource.sonarlint:sonarlint-cli");
     assertThat(proj.getErrors()).isNullOrEmpty();
 
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS), eq(TOKEN), isNull(String.class));
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN), isNull(String.class));
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_VERSION), isNull(String.class), isNull(String.class));
+    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS_WITH_ANALYSISID), eq(TOKEN));
+    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN));
+    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_VERSION), isNull());
 
     verifyNoMoreInteractions(client);
   }
 
   @Test
   public void testInvalidServerVersion() throws Exception {
-    super.configureDefaultSonar(SQServerVersions.SQ_5_3_OR_HIGHER);
-    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null, null)).thenReturn("55");
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
+    super.configureDefaultSonar();
+    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null)).thenReturn("5.5");
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNull();
   }
 
   @Test
   public void testInvalidServerUrl() {
-    ProjectInformation proj = resolver.resolve("invalid", PROJECT_KEY, PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
+    ProjectInformation proj = resolver.resolve("invalid", PROJECT_URL, CE_TASK_ID, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNull();
-  }
-
-  @Test
-  public void testSQ54NoCETask() throws Exception {
-    mockSQServer54();
-    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_NAME), eq(TOKEN), isNull(String.class))).thenReturn(getFile("projectIndex.json"));
-
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, null, SONAR_INSTALLATION_NAME);
-    assertThat(proj).isNotNull();
-    assertThat(proj.getCeStatus()).isNull();
-    assertThat(proj.getStatus()).isEqualTo("OK");
-    assertThat(proj.getProjectName()).isEqualTo("SonarLint CLI");
-    assertThat(proj.getProjectKey()).isEqualTo("org.sonarsource.sonarlint:sonarlint-cli");
-    assertThat(proj.getErrors()).isNullOrEmpty();
-
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS), eq(TOKEN), isNull(String.class));
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_NAME), eq(TOKEN), isNull(String.class));
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_VERSION), isNull(String.class), isNull(String.class));
-    verifyNoMoreInteractions(client);
-  }
-
-  @Test
-  public void testSQ51_no_QG() throws Exception {
-    mockSQServer51();
-    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_RESOURCES), eq(USER), eq(PASS))).thenReturn("[]");
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, null, SONAR_INSTALLATION_NAME);
-    assertThat(proj).isNotNull();
-    assertThat(proj.getCeStatus()).isNull();
-    assertThat(proj.getStatus()).isNull();
-    assertThat(proj.getProjectName()).isNull();
-    assertThat(proj.getProjectKey()).isEqualTo("org.sonarsource.sonarlint:sonarlint-cli");
-    assertThat(proj.getErrors()).isNullOrEmpty();
-
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_RESOURCES), eq(USER), eq(PASS));
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_VERSION), isNull(String.class), isNull(String.class));
-    verifyNoMoreInteractions(client);
-  }
-
-  @Test
-  public void testSQ51() throws Exception {
-    super.configureDefaultSonar(SQServerVersions.SQ_5_1_OR_LOWER);
-    mockSQServer51();
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, null, SONAR_INSTALLATION_NAME);
-    assertThat(proj).isNotNull();
-    assertThat(proj.getCeStatus()).isNull();
-    assertThat(proj.getStatus()).isEqualTo("WARN");
-    assertThat(proj.getProjectName()).isEqualTo("SonarLint CLI");
-    assertThat(proj.getProjectKey()).isEqualTo("org.sonarsource.sonarlint:sonarlint-cli");
-    assertThat(proj.getErrors()).isNullOrEmpty();
-
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_RESOURCES), eq(USER), eq(PASS));
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_VERSION), isNull(String.class), isNull(String.class));
-    verifyNoMoreInteractions(client);
   }
 
   @Test
   public void testWsError() throws Exception {
     mockSQServer(new NullPointerException());
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, null, SONAR_INSTALLATION_NAME);
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, SONAR_INSTALLATION_NAME);
     assertThat(proj).isNull();
   }
 
   @Test
   public void testInvalidInstallation() {
     super.configureDefaultSonar();
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_KEY, PROJECT_URL, null, "INVALID");
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, "INVALID");
     assertThat(proj).isNull();
   }
 
   private void mockSQServer(Exception toThrow) throws Exception {
-    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null, null)).thenThrow(toThrow);
+    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null)).thenThrow(toThrow);
   }
 
-  private void mockSQServer54() throws Exception {
-    super.configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, SERVER_URL, SQServerVersions.SQ_5_3_OR_HIGHER, TOKEN,
-      null, null, null, null, null, null, null, null, null));
+  private void mockSQServer56() throws Exception {
+    super.configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, SERVER_URL, TOKEN,
+      null, null, null, null));
 
-    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null, null)).thenReturn("5.4");
-    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS), eq(TOKEN), isNull(String.class))).thenReturn(getFile("projectStatus.json"));
-    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN), isNull(String.class))).thenReturn(getFile("ce_task.json"));
-  }
-
-  private void mockSQServer51() throws Exception {
-    super.configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, SERVER_URL, SQServerVersions.SQ_5_1_OR_LOWER,
-      null, null, null, null, null, null, null, USER, PASS, null));
-
-    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null, null)).thenReturn("5.1");
-    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_RESOURCES), eq(USER), eq(PASS))).thenReturn(getFile("resources.json"));
+    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null)).thenReturn("5.6");
+    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS_WITH_ANALYSISID), eq(TOKEN))).thenReturn(getFile("projectStatus.json"));
+    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN))).thenReturn(getFile("ce_task.json"));
   }
 
   private String getFile(String name) throws IOException, URISyntaxException {

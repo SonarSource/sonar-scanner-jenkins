@@ -19,13 +19,10 @@
  */
 package hudson.plugins.sonar;
 
-import hudson.plugins.sonar.utils.SQServerVersions;
 import hudson.util.FormValidation.Kind;
 import jenkins.model.Jenkins;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,7 +46,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   private static SonarInstallation createInstallation(String name) {
-    return new SonarInstallation(name, null, null, null, null, null, null, null, null, null, null, null, null);
+    return new SonarInstallation(name, null, null, null, null, null, null);
   }
 
   @Test
@@ -68,7 +65,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
     globalConfiguration.setBuildWrapperEnabled(false);
 
     globalConfiguration.migrate();
-    
+
     assertThat(globalConfiguration.isBuildWrapperEnabled()).isFalse();
     assertThat(globalConfiguration.getInstallations()).containsOnly(existing);
     assertThat(publisher.getDeprecatedInstallations()).isNull();
@@ -82,11 +79,4 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
     assertThat(globalConfiguration.doCheckMandatory("asd").kind).isEqualTo(Kind.OK);
   }
 
-  @Test
-  public void testOptions() {
-    String[] versions = {SQServerVersions.SQ_5_1_OR_LOWER,
-      SQServerVersions.SQ_5_2,
-      SQServerVersions.SQ_5_3_OR_HIGHER};
-    assertThat(globalConfiguration.doFillServerVersionItems()).extracting("value").containsAll(Arrays.asList(versions));
-  }
 }

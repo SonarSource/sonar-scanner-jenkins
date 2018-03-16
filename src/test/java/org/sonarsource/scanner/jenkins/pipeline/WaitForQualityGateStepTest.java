@@ -266,7 +266,7 @@ public class WaitForQualityGateStepTest {
     String serverUrl = "http://localhost:" + port + "/sonarqube";
     story.j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class)
       .setInstallations(
-        new SonarInstallation(SONAR_INSTALLATION_NAME, serverUrl, null, null, null, null, null, null, null, null, null, null, null));
+        new SonarInstallation(SONAR_INSTALLATION_NAME, serverUrl, null, null, null, null, null));
     WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
     String reportTaskContent = "dashboardUrl=" + serverUrl + "/dashboard\\n"
       + "ceTaskId=" + FAKE_TASK_ID + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";

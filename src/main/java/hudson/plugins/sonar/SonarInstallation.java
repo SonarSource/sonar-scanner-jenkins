@@ -20,19 +20,12 @@
 package hudson.plugins.sonar;
 
 import hudson.AbortException;
-import hudson.Util;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.model.TriggersConfig;
-import hudson.util.Scrambler;
-import hudson.util.Secret;
 import java.io.Serializable;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import static hudson.plugins.sonar.utils.SQServerVersions.SQ_5_1_OR_LOWER;
-import static hudson.plugins.sonar.utils.SQServerVersions.SQ_5_2;
-import static hudson.plugins.sonar.utils.SQServerVersions.SQ_5_3_OR_HIGHER;
 
 public class SonarInstallation implements Serializable {
 
@@ -46,11 +39,6 @@ public class SonarInstallation implements Serializable {
   /**
    * @since 2.4
    */
-  private String serverVersion;
-
-  /**
-   * @since 2.4
-   */
   private String serverAuthenticationToken;
 
   /**
@@ -58,14 +46,6 @@ public class SonarInstallation implements Serializable {
    */
   private String mojoVersion;
 
-  private final String databaseUrl;
-  private final String databaseLogin;
-
-  /**
-   * @deprecated since 2.2
-   */
-  @Deprecated
-  private transient String databasePassword;
   // command line arguments
   private final String additionalProperties;
   // key/value pairs
@@ -73,54 +53,16 @@ public class SonarInstallation implements Serializable {
 
   private TriggersConfig triggers;
 
-  /**
-   * @since 2.0.1
-   */
-  private String sonarLogin;
-
-  /**
-   * @deprecated since 2.2
-   */
-  @Deprecated
-  private transient String sonarPassword;
-
-  /**
-   * @since 2.2
-   */
-  private Secret databaseSecret;
-  private Secret sonarSecret;
   private String[] split;
 
   @DataBoundConstructor
   public SonarInstallation(String name,
-    String serverUrl, String serverVersion, String serverAuthenticationToken,
-    String databaseUrl, String databaseLogin, String databasePassword,
+    String serverUrl, String serverAuthenticationToken,
     String mojoVersion, String additionalProperties, TriggersConfig triggers,
-    String sonarLogin, String sonarPassword, String additionalAnalysisProperties) {
+    String additionalAnalysisProperties) {
     this.name = name;
     this.serverUrl = serverUrl;
-    this.serverVersion = serverVersion;
-
-    if (SQ_5_3_OR_HIGHER.equals(serverVersion)) {
-      this.serverAuthenticationToken = serverAuthenticationToken;
-      this.sonarLogin = "";
-      setSonarPassword("");
-    } else {
-      this.serverAuthenticationToken = "";
-      this.sonarLogin = sonarLogin;
-      setSonarPassword(sonarPassword);
-    }
-
-    if (SQ_5_1_OR_LOWER.equals(serverVersion)) {
-      this.databaseUrl = databaseUrl;
-      this.databaseLogin = databaseLogin;
-      setDatabasePassword(databasePassword);
-    } else {
-      this.databaseUrl = "";
-      this.databaseLogin = "";
-      setDatabasePassword("");
-    }
-
+    this.serverAuthenticationToken = serverAuthenticationToken;
     this.additionalAnalysisProperties = additionalAnalysisProperties;
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
@@ -206,47 +148,11 @@ public class SonarInstallation implements Serializable {
   }
 
   /**
-   * serverVersion might be null when upgrading to 2.4.
-   * Automatically figures out a value in that case.
-   */
-  public String getServerVersion() {
-    return serverVersion;
-  }
-
-  /**
    * @return version of sonar-maven-plugin to use
    * @since 1.5
    */
   public String getMojoVersion() {
     return mojoVersion;
-  }
-
-  public String getDatabaseUrl() {
-    return databaseUrl;
-  }
-
-  public String getDatabaseLogin() {
-    return databaseLogin;
-  }
-
-  public String getDatabasePassword() {
-    return Secret.toString(databaseSecret);
-  }
-
-  /**
-   * @since 1.7
-   */
-  private final void setDatabasePassword(String password) {
-    databaseSecret = Secret.fromString(Util.fixEmptyAndTrim(password));
-  }
-
-  /**
-   * For internal use only. Allows to perform migration.
-   *
-   * @since 1.7
-   */
-  public String getScrambledDatabasePassword() {
-    return databaseSecret.getEncryptedValue();
   }
 
   public String getAdditionalProperties() {
@@ -288,53 +194,4 @@ public class SonarInstallation implements Serializable {
     return triggers;
   }
 
-  /**
-   * @since 2.0.1
-   */
-  public String getSonarLogin() {
-    return sonarLogin;
-  }
-
-  /**
-   * @since 2.0.1
-   */
-  public String getSonarPassword() {
-    return Secret.toString(sonarSecret);
-  }
-
-  private final void setSonarPassword(String sonarPassword) {
-    sonarSecret = Secret.fromString(Util.fixEmptyAndTrim(sonarPassword));
-  }
-
-  protected Object readResolve() {
-    // Perform password migration to Secret (SONARJNKNS-201)
-    // Data will be persisted when SonarGlobalConfiguration is saved.
-    if (databasePassword != null) {
-      setDatabasePassword(Scrambler.descramble(databasePassword));
-      databasePassword = null;
-    }
-
-    if (sonarPassword != null) {
-      setSonarPassword(Scrambler.descramble(sonarPassword));
-      sonarPassword = null;
-    }
-
-    /*
-     * serverVersion might be null when upgrading to 2.5.
-     * Automatically migrate in that case
-     */
-    if (serverVersion == null) {
-      if (!StringUtils.isEmpty(databaseUrl) || !StringUtils.isEmpty(databaseLogin)) {
-        serverVersion = SQ_5_1_OR_LOWER;
-      } else if (!StringUtils.isEmpty(getSonarPassword())) {
-        serverVersion = SQ_5_2;
-      } else {
-        serverAuthenticationToken = sonarLogin;
-        sonarLogin = null;
-        serverVersion = SQ_5_3_OR_HIGHER;
-      }
-    }
-
-    return this;
-  }
 }
