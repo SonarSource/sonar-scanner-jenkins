@@ -39,7 +39,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runners.model.Statement;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.RestartableJenkinsRule;
@@ -59,9 +58,6 @@ public class WaitForQualityGateStepTest {
   public static BuildWatcher buildWatcher = new BuildWatcher();
   @Rule
   public RestartableJenkinsRule story = new RestartableJenkinsRule();
-
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
 
   private static int port;
 

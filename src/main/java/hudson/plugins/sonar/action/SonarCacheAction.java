@@ -33,13 +33,11 @@ import javax.annotation.Nullable;
 
 public class SonarCacheAction extends InvisibleAction {
   private Map<String, ProjectInformation> infoByTaskId;
-  private Map<String, ProjectInformation> infoByUrl;
   private Long lastRequest;
   private List<ProjectInformation> lastProjInfo;
 
   public SonarCacheAction() {
     this.infoByTaskId = new HashMap<>();
-    this.infoByUrl = new HashMap<>();
   }
 
   public List<ProjectInformation> get(SQProjectResolver resolver, long lastBuildTime, List<SonarAnalysisAction> analysis) {

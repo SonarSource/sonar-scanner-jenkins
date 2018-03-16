@@ -28,7 +28,6 @@ import java.util.Arrays;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -37,9 +36,6 @@ import static org.mockito.Mockito.when;
 public class SonarUtilsTest {
   @Rule
   public ExpectedException exception = ExpectedException.none();
-
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
 
   @Test
   public void testMajorMinor() {
