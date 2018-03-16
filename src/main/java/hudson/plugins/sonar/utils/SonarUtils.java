@@ -23,29 +23,25 @@ import hudson.FilePath;
 import hudson.model.Action;
 import hudson.model.Actionable;
 import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
-/**
- * @author Julien HENRY
- * @since 1.2
- */
 public final class SonarUtils {
 
-  /**
-   * Pattern for Sonar project URL in logs
-   */
-  public static final String URL_PATTERN_IN_LOGS = ".*" + Pattern.quote("ANALYSIS SUCCESSFUL, you can browse ") + "(.*)";
-  public static final String WORKING_DIR_PATTERN_IN_LOGS = ".*" + Pattern.quote("Working dir: ") + "(.*)";
+  public static final String PROJECT_KEY_KEY = "projectKey";
+  public static final String SERVER_URL_KEY = "serverUrl";
   public static final String DASHBOARD_URL_KEY = "dashboardUrl";
   public static final String CE_TASK_ID_KEY = "ceTaskId";
   public static final String REPORT_TASK_FILE_NAME = "report-task.txt";
@@ -54,13 +50,6 @@ public final class SonarUtils {
    * Hide utility-class constructor.
    */
   private SonarUtils() {
-  }
-
-  /**
-   * Read logs of the build to find URL of the project dashboard in Sonar
-   */
-  public static String extractSonarProjectURLFromLogs(Run<?, ?> build) throws IOException {
-    return extractPatternFromLogs(URL_PATTERN_IN_LOGS, build);
   }
 
   public static <T extends Action> List<T> getPersistentActions(Actionable actionable, Class<T> type) {
@@ -92,39 +81,24 @@ public final class SonarUtils {
     return null;
   }
 
-  public static Properties extractReportTask(Run<?, ?> build, FilePath workspace) throws IOException, InterruptedException {
-    String workDirPath = extractPatternFromLogs(WORKING_DIR_PATTERN_IN_LOGS, build);
-    if (workDirPath == null) {
+  public static Properties extractReportTask(TaskListener listener, FilePath workspace) throws IOException, InterruptedException {
+    FilePath[] candidates = workspace.list("**/" + REPORT_TASK_FILE_NAME);
+    if (candidates.length == 0) {
+      listener.getLogger().println("WARN: Unable to locate '" + REPORT_TASK_FILE_NAME + "' in the workspace. Did the SonarScanner succedeed?");
       return null;
-    }
-
-    FilePath workDir = workspace.child(workDirPath);
-
-    FilePath reportTaskFile = workDir.child(REPORT_TASK_FILE_NAME);
-    if (!reportTaskFile.exists()) {
-      return null;
-    }
-
-    String content = reportTaskFile.readToString();
-    Properties p = new Properties();
-    p.load(new StringReader(content));
-    return p;
-
-  }
-
-  private static String extractPatternFromLogs(String pattern, Run<?, ?> build) throws IOException {
-    String url = null;
-    try (BufferedReader br = new BufferedReader(build.getLogReader())) {
-      String strLine;
-      Pattern p = Pattern.compile(pattern);
-      while ((strLine = br.readLine()) != null) {
-        Matcher match = p.matcher(strLine);
-        if (match.matches()) {
-          url = match.group(1);
-        }
+    } else {
+      if (candidates.length > 1) {
+        listener.getLogger().println("WARN: Found multiple '" + REPORT_TASK_FILE_NAME + "' in the workspace. Taking the first one.");
+        Stream.of(candidates).forEach(p -> listener.getLogger().println(p));
+      }
+      FilePath reportTaskFile = candidates[0];
+      try (InputStream in = reportTaskFile.read()) {
+        Properties p = new Properties();
+        p.load(new InputStreamReader(in, StandardCharsets.UTF_8));
+        return p;
       }
     }
-    return url;
+
   }
 
   @Nullable
@@ -132,28 +106,26 @@ public final class SonarUtils {
    * Collects as much information as it finds from the sonar analysis in the build and adds it as an action to the build.
    * Even if no information is found, the action is added, marking in the build that a sonar analysis ran. 
    */
-  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, FilePath workspace, String installationName, boolean skippedIfNoBuild)
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, boolean skippedIfNoBuild)
     throws IOException, InterruptedException {
     SonarAnalysisAction buildInfo = new SonarAnalysisAction(installationName);
-    Properties reportTask = extractReportTask(build, workspace);
+    Properties reportTask = extractReportTask(listener, workspace);
 
     if (reportTask != null) {
+      buildInfo.setServerUrl(reportTask.getProperty(SERVER_URL_KEY));
       buildInfo.setUrl(reportTask.getProperty(DASHBOARD_URL_KEY));
+      buildInfo.setProjectKey(reportTask.getProperty(PROJECT_KEY_KEY));
       buildInfo.setCeTaskId(reportTask.getProperty(CE_TASK_ID_KEY));
     } else {
-      String sonarUrl = extractSonarProjectURLFromLogs(build);
-      if (sonarUrl == null) {
-        return addBuildInfoFromLastBuildTo(build, installationName, skippedIfNoBuild);
-      }
-      buildInfo.setUrl(sonarUrl);
+      return addBuildInfoFromLastBuildTo(build, installationName, skippedIfNoBuild);
     }
 
     build.addAction(buildInfo);
     return buildInfo;
   }
 
-  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, FilePath workspace, String installationName) throws IOException, InterruptedException {
-    return addBuildInfoTo(build, workspace, installationName, false);
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName) throws IOException, InterruptedException {
+    return addBuildInfoTo(build, listener, workspace, installationName, false);
   }
 
   public static SonarAnalysisAction addBuildInfoFromLastBuildTo(Run<?, ?> build, String installationName, boolean isSkipped) {

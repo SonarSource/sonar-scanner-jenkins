@@ -24,6 +24,8 @@ import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.client.WsClient.ProjectQualityGate;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.Version;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.logging.Level;
 import javax.annotation.CheckForNull;
@@ -43,7 +45,7 @@ public class SQProjectResolver {
    * Errors that should be displayed are included in {@link ProjectInformation#getErrors()}.
    */
   @CheckForNull
-  public ProjectInformation resolve(@Nullable String projectUrl, @Nullable String ceTaskId, String installationName) {
+  public ProjectInformation resolve(@Nullable String serverUrl, @Nullable String projectKey, @Nullable String projectUrl, @Nullable String ceTaskId, String installationName) {
     SonarInstallation inst = SonarInstallation.get(installationName);
     if (inst == null) {
       Logger.LOG.info(() -> "Invalid installation name: " + installationName);
@@ -51,9 +53,6 @@ public class SQProjectResolver {
     }
 
     try {
-      String projectKey = extractProjectKey(projectUrl);
-      String serverUrl = extractServerUrl(projectUrl);
-
       if (!checkServerUrl(serverUrl, projectKey, inst)) {
         return null;
       }
@@ -122,23 +121,22 @@ public class SQProjectResolver {
       Logger.LOG.info(() -> String.format(Locale.US, "Invalid project url. ServerUrl='%s', projectKey='%s'", serverUrl, projectKey));
       return false;
     }
-    String configUrl = StringUtils.isEmpty(inst.getServerUrl()) ? SonarInstallation.DEFAULT_SERVER_URL : inst.getServerUrl();
+    String installationUrl = StringUtils.isEmpty(inst.getServerUrl()) ? SonarInstallation.DEFAULT_SERVER_URL : inst.getServerUrl();
 
-    if (!configUrl.equals(serverUrl)) {
-      Logger.LOG.warning(() -> String.format(Locale.US, "Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, configUrl));
+    try {
+      URI installationURI = new URI(installationUrl);
+      URI serverURI = new URI(serverUrl);
+
+      if (!installationURI.equals(serverURI)) {
+        Logger.LOG.warning(() -> String.format(Locale.US, "Inconsistent server URL: '%s' parsed, '%s' configured", serverUrl, installationUrl));
+        return false;
+      }
+    } catch (URISyntaxException e) {
+      Logger.LOG.warning(() -> String.format(Locale.US, "Invalid URL: '%s' parsed, '%s' configured: %s", serverUrl, installationUrl, e.getMessage()));
       return false;
     }
 
     return true;
   }
 
-  @CheckForNull
-  static String extractServerUrl(@Nullable String url) {
-    return StringUtils.substringBefore(url, "/dashboard");
-  }
-
-  @CheckForNull
-  static String extractProjectKey(@Nullable String url) {
-    return StringUtils.substringAfterLast(url, "/dashboard/index/");
-  }
 }

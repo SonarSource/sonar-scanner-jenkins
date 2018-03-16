@@ -21,11 +21,10 @@ package hudson.plugins.sonar.action;
 
 import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.Collections;
 import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -67,31 +66,34 @@ public class SonarCacheActionTest {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst");
     analysis.setCeTaskId("taskId");
     analysis.setUrl("projUrl");
+    analysis.setProjectKey("projKey");
+    analysis.setServerUrl("serverUrl");
+    analysis.setUrl("projUrl");
 
     cache.get(resolver, 0, Collections.singletonList(analysis));
-    verify(resolver).resolve("projUrl", "taskId", "inst");
+    verify(resolver).resolve("serverUrl", "projKey", "projUrl", "taskId", "inst");
   }
 
   @Test
   public void testResponseCached() {
     ProjectInformation mocked = createProj(now(), "success");
-    SonarAnalysisAction analysis = createAnalysis("projUrl", "taskId");
+    SonarAnalysisAction analysis = createAnalysis("serverUrl", "projectKey", "projUrl", "taskId");
 
-    when(resolver.resolve("projUrl", "taskId", "inst")).thenReturn(mocked);
+    when(resolver.resolve("serverUrl", "projectKey", "projUrl", "taskId", "inst")).thenReturn(mocked);
     List<ProjectInformation> projs = cache.get(resolver, 0, Collections.singletonList(analysis));
     List<ProjectInformation> projs2 = cache.get(resolver, 0, Collections.singletonList(analysis));
 
     assertThat(projs).isEqualTo(projs2);
     assertThat(projs).hasSize(1);
     assertThat(projs.get(0).getCeStatus()).isEqualTo("success");
-    verify(resolver, times(1)).resolve("projUrl", "taskId", "inst");
+    verify(resolver, times(1)).resolve("serverUrl", "projectKey", "projUrl", "taskId", "inst");
   }
 
   @Test
   public void testCacheWithCE() {
     ProjectInformation proj = createProj(now(), "success");
-    SonarAnalysisAction analysis = createAnalysis("projUrl1", "taskId");
-    when(resolver.resolve("projUrl1", "taskId", "inst")).thenReturn(proj);
+    SonarAnalysisAction analysis = createAnalysis("serverUrl", "projectKey", "projUrl1", "taskId");
+    when(resolver.resolve("serverUrl", "projectKey", "projUrl1", "taskId", "inst")).thenReturn(proj);
 
     ProjectInformation info1 = cache.get(resolver, 0, analysis);
     assertThat(info1).isNotNull();
@@ -101,14 +103,14 @@ public class SonarCacheActionTest {
     ProjectInformation info2 = cache.get(resolver, 0, analysis);
 
     assertThat(info1).isEqualTo(info2);
-    verify(resolver, times(1)).resolve("projUrl1", "taskId", "inst");
+    verify(resolver, times(1)).resolve("serverUrl", "projectKey", "projUrl1", "taskId", "inst");
   }
 
   @Test
   public void testCacheWithoutCE() {
     ProjectInformation proj = createProj(now(), null);
-    SonarAnalysisAction analysis = createAnalysis("projUrl2", null);
-    when(resolver.resolve("projUrl2", null, "inst")).thenReturn(proj);
+    SonarAnalysisAction analysis = createAnalysis("serverUrl", "projectKey", "projUrl2", null);
+    when(resolver.resolve("serverUrl", "projectKey", "projUrl2", null, "inst")).thenReturn(proj);
 
     ProjectInformation info1 = cache.get(resolver, 0, analysis);
     assertThat(info1).isNotNull();
@@ -122,11 +124,13 @@ public class SonarCacheActionTest {
     ProjectInformation info3 = cache.get(resolver, now(), analysis);
     assertThat(info1).isEqualTo(info3);
 
-    verify(resolver, times(2)).resolve("projUrl2", null, "inst");
+    verify(resolver, times(2)).resolve("serverUrl", "projectKey", "projUrl2", null, "inst");
   }
 
-  private SonarAnalysisAction createAnalysis(String url, String taskId) {
+  private SonarAnalysisAction createAnalysis(String serverUrl, String projectKey, String url, String taskId) {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst");
+    analysis.setServerUrl(serverUrl);
+    analysis.setProjectKey(projectKey);
     analysis.setCeTaskId(taskId);
     analysis.setUrl(url);
     return analysis;

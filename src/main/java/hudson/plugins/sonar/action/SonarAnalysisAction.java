@@ -31,7 +31,10 @@ import org.kohsuke.stapler.export.ExportedBean;
 public class SonarAnalysisAction extends InvisibleAction {
   private String installationName;
   private String ceTaskId;
+  // Dashboard URL
   private String url;
+  private String serverUrl;
+  private String projectKey;
   private boolean isNew;
   private boolean isSkipped;
 
@@ -41,14 +44,18 @@ public class SonarAnalysisAction extends InvisibleAction {
     this.ceTaskId = null;
     this.isNew = true;
     this.isSkipped = false;
+    this.projectKey = null;
+    this.serverUrl = null;
   }
 
   public SonarAnalysisAction(SonarAnalysisAction copy) {
     this.installationName = copy.installationName;
     this.url = copy.url;
+    this.serverUrl = copy.serverUrl;
     this.ceTaskId = null;
     this.isNew = false;
     this.isSkipped = false;
+    this.projectKey = copy.projectKey;
   }
 
   public void setNew(boolean isNew) {
@@ -63,6 +70,26 @@ public class SonarAnalysisAction extends InvisibleAction {
 
   public void setCeTaskId(String ceTaskId) {
     this.ceTaskId = ceTaskId;
+  }
+
+  @CheckForNull
+  @Exported
+  public String getProjectKey() {
+    return projectKey;
+  }
+
+  public void setProjectKey(String projectKey) {
+    this.projectKey = projectKey;
+  }
+
+  @CheckForNull
+  @Exported
+  public String getServerUrl() {
+    return serverUrl;
+  }
+
+  public void setServerUrl(String serverUrl) {
+    this.serverUrl = serverUrl;
   }
 
   @Exported
