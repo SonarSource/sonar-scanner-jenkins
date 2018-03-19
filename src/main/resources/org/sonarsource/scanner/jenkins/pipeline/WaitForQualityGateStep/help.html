@@ -1,7 +1,7 @@
 <div>
     <p>
-    This step pauses Pipeline execution and wait for previously submitted SonarQube analysis to complete and returns
-    quality gate status.
+    This step pauses Pipeline execution and wait for previously submitted SonarQube analysis to be completed and returns
+    quality gate status. Setting the parameter <code>abortPipeline</code> to true will abort the pipeline if quality gate status is not green.
     </p>
     <p>
     Note: This step doesn't require an executor.
@@ -15,7 +15,32 @@
       </ul>
     </p>
     <p>
-      Example:<br/>
+      Example using declarative pipeline:<br/>
+      <code><pre>
+      pipeline {
+        agent none
+        stages {
+          stage("build & SonarQube analysis") {
+            agent any
+            steps {
+              withSonarQubeEnv('My SonarQube Server') {
+                sh 'mvn clean package sonar:sonar'
+              }
+            }
+          }
+          stage("Quality Gate") {
+            steps {
+              timeout(time: 1, unit: 'HOURS') {
+                waitForQualityGate abortPipeline: true
+              }
+            }
+          }
+        }
+      }
+      </pre></code>
+    </p>
+    <p>
+      Example using scripted pipeline:<br/>
       <code><pre>
       stage("build & SonarQube analysis") {
           node {
