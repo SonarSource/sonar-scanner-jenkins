@@ -314,7 +314,7 @@ public class WaitForQualityGateStepTest {
       pipeline.append("    }\n");
       pipeline.append("    stage(\"Quality Gate\") {\n");
       pipeline.append("      steps {\n");
-      pipeline.append("        waitForQualityGate enforceGreen: true\n");
+      pipeline.append("        waitForQualityGate abortPipeline: true\n");
       pipeline.append("      }\n");
       pipeline.append("    }\n");
       pipeline.append("  }\n");
