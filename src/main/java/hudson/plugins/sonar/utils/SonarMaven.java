@@ -72,10 +72,11 @@ public final class SonarMaven extends Maven {
    * Visibility of a method has been relaxed for tests.
    */
   static String getTarget(SonarInstallation installation) {
-    if (StringUtils.isBlank(installation.getMojoVersion())) {
+    String mojoVersion = installation.getMojoVersion();
+    if (StringUtils.isBlank(mojoVersion)) {
       return TARGET + " sonar:sonar";
     } else {
-      return TARGET + " " + SonarUtils.getMavenGoal(installation.getMojoVersion());
+      return TARGET + " " + SonarUtils.getMavenGoal(mojoVersion);
     }
   }
 
