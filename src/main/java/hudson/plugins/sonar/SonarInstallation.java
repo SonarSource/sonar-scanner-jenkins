@@ -23,6 +23,7 @@ import hudson.AbortException;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.model.TriggersConfig;
 import java.io.Serializable;
+import javax.annotation.CheckForNull;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -151,14 +152,17 @@ public class SonarInstallation implements Serializable {
    * @return version of sonar-maven-plugin to use
    * @since 1.5
    */
+  @CheckForNull
   public String getMojoVersion() {
     return mojoVersion;
   }
 
+  @CheckForNull
   public String getAdditionalProperties() {
     return additionalProperties;
   }
 
+  @CheckForNull
   public String getAdditionalAnalysisProperties() {
     return additionalAnalysisProperties;
   }

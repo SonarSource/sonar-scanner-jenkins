@@ -46,9 +46,10 @@ import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildWrapper;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 
 public class SonarBuildWrapper extends SimpleBuildWrapper {
   private String installationName = null;
@@ -69,7 +70,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     Logger.LOG.info(msg);
     listener.getLogger().println(msg);
 
-    context.getEnv().putAll(createVars(installation));
+    context.getEnv().putAll(createVars(installation, initialEnvironment));
 
     context.setDisposer(new AddBuildInfo(installation));
 
@@ -77,13 +78,13 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
   }
 
   @VisibleForTesting
-  static Map<String, String> createVars(SonarInstallation inst) {
+  static Map<String, String> createVars(SonarInstallation inst, EnvVars initialEnvironment) {
     Map<String, String> map = new HashMap<>();
 
     map.put("SONAR_CONFIG_NAME", inst.getName());
-    String hostUrl = getOrDefault(inst.getServerUrl(), "http://localhost:9000");
+    String hostUrl = getOrDefault(initialEnvironment.expand(inst.getServerUrl()), "http://localhost:9000");
     map.put("SONAR_HOST_URL", hostUrl);
-    String token = getOrDefault(inst.getServerAuthenticationToken(), "");
+    String token = getOrDefault(initialEnvironment.expand(inst.getServerAuthenticationToken()), "");
     map.put("SONAR_AUTH_TOKEN", token);
 
     if (StringUtils.isEmpty(inst.getMojoVersion())) {
@@ -92,19 +93,28 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
       map.put("SONAR_MAVEN_GOAL", SonarUtils.getMavenGoal(inst.getMojoVersion()));
     }
 
-    map.put("SONAR_EXTRA_PROPS", getOrDefault(getAdditionalProps(inst), ""));
+    map.put("SONAR_EXTRA_PROPS", getOrDefault(initialEnvironment.expand(getAdditionalProps(inst)), ""));
+
+    // resolve variables against each other
+    EnvVars.resolve(map);
 
     StringBuilder sb = new StringBuilder();
-    sb.append("{ \"sonar.host.url\" : \"").append(StringEscapeUtils.escapeJson(hostUrl)).append("\"");
+    sb.append("{ \"sonar.host.url\" : \"").append(escapeJson(hostUrl)).append("\"");
     if (!token.isEmpty()) {
-      sb.append(", \"sonar.login\" : \"").append(StringEscapeUtils.escapeJson(token)).append("\"");
+      sb.append(", \"sonar.login\" : \"").append(escapeJson(token)).append("\"");
+    }
+    String additionalAnalysisProperties = inst.getAdditionalAnalysisProperties();
+    if (additionalAnalysisProperties != null) {
+      for (String pair : StringUtils.split(additionalAnalysisProperties)) {
+        String[] keyValue = StringUtils.split(pair, "=");
+        if (keyValue.length == 2) {
+          sb.append(", \"").append(escapeJson(keyValue[0])).append("\" : \"").append(escapeJson(initialEnvironment.expand(keyValue[1]))).append("\"");
+        }
+      }
     }
     sb.append("}");
 
     map.put("SONARQUBE_SCANNER_PARAMS", sb.toString());
-
-    // resolve variables against each other
-    EnvVars.resolve(map);
 
     return map;
   }
