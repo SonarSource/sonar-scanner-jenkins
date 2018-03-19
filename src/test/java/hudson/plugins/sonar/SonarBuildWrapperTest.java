@@ -113,25 +113,30 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
   @Test
   public void testEnvironment() {
-    installation = createTestInstallation();
+    installation = createTestInstallationForEnv();
 
-    Map<String, String> map = SonarBuildWrapper.createVars(installation);
+    EnvVars initialEnvironment = new EnvVars();
+    initialEnvironment.put("MY_SERVER", "myserver");
+    initialEnvironment.put("MY_PORT", "10000");
+    initialEnvironment.put("MY_VALUE", "myValue");
+    Map<String, String> map = SonarBuildWrapper.createVars(installation, initialEnvironment);
 
-    assertThat(map).containsEntry("SONAR_HOST_URL", "http://localhost:9001");
+    assertThat(map).containsEntry("SONAR_HOST_URL", "http://myserver:10000");
     assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
     // variable in the value should be resolved
     assertThat(map).containsEntry("SONAR_AUTH_TOKEN", MYTOKEN);
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "sonar:sonar");
-    assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
+    assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=myValue -X");
 
-    assertThat(map).containsEntry("SONARQUBE_SCANNER_PARAMS", "{ \"sonar.host.url\" : \"http:\\/\\/localhost:9001\", \"sonar.login\" : \"" + MYTOKEN + "\"}");
+    assertThat(map).containsEntry("SONARQUBE_SCANNER_PARAMS",
+      "{ \"sonar.host.url\" : \"http:\\/\\/myserver:10000\", \"sonar.login\" : \"" + MYTOKEN + "\", \"key\" : \"myValue\"}");
   }
 
   @Test
   public void testEnvironmentMojoVersion() {
     installation = new SonarInstallation(null, null, null, "2.0", null, null, null);
 
-    Map<String, String> map = SonarBuildWrapper.createVars(installation);
+    Map<String, String> map = SonarBuildWrapper.createVars(installation, new EnvVars());
 
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "org.codehaus.mojo:sonar-maven-plugin:2.0:sonar");
   }
@@ -239,6 +244,11 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   private static SonarInstallation createTestInstallation() {
     return new SonarInstallation("local", "http://localhost:9001", MYTOKEN, null,
       "-X", new TriggersConfig(), "key=value");
+  }
+
+  private static SonarInstallation createTestInstallationForEnv() {
+    return new SonarInstallation("local", "http://$MY_SERVER:$MY_PORT", MYTOKEN, null,
+      "-X", new TriggersConfig(), "key=$MY_VALUE");
   }
 
 }
