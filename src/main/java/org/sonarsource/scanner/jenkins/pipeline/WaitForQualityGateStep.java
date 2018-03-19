@@ -20,6 +20,7 @@
 package org.sonarsource.scanner.jenkins.pipeline;
 
 import com.google.common.collect.ImmutableSet;
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -66,13 +67,19 @@ public class WaitForQualityGateStep extends Step implements Serializable {
   private String taskId;
   private String installationName;
   private String serverUrl;
+  private boolean enforceGreen;
 
   @DataBoundConstructor
-  public WaitForQualityGateStep() {
+  public WaitForQualityGateStep(boolean enforceGreen) {
     super();
+    this.enforceGreen = enforceGreen;
   }
 
-  public void setTaskId(@Nullable String taskId) {
+  public boolean isEnforceGreen() {
+    return enforceGreen;
+  }
+
+  public void setTaskId(String taskId) {
     this.taskId = taskId;
   }
 
@@ -132,18 +139,25 @@ public class WaitForQualityGateStep extends Step implements Serializable {
         throw new IllegalStateException(
           "No previous SonarQube analysis found on this pipeline execution. " + PLEASE_USE_THE_WITH_SONAR_QUBE_ENV_WRAPPER_TO_RUN_YOUR_ANALYSIS);
       }
+      String ceTaskId = null;
+      String serverUrl = null;
+      String installationName = null;
       for (SonarAnalysisAction a : actions) {
-        if (a.getCeTaskId() != null) {
-          step.setTaskId(a.getCeTaskId());
-          step.setServerUrl(a.getServerUrl());
-          step.setInstallationName(a.getInstallationName());
+        ceTaskId = a.getCeTaskId();
+        if (ceTaskId != null) {
+          serverUrl = a.getServerUrl();
+          installationName = a.getInstallationName();
+          break;
         }
       }
-      if (step.getTaskId() == null || step.getInstallationName() == null) {
+      if (ceTaskId == null || serverUrl == null || installationName == null) {
         throw new IllegalStateException(
-          "Unable to get SonarQube task id and/or server name. "
+          "Unable to guess SonarQube task id and/or SQ server details. "
             + PLEASE_USE_THE_WITH_SONAR_QUBE_ENV_WRAPPER_TO_RUN_YOUR_ANALYSIS);
       }
+      step.setTaskId(ceTaskId);
+      step.setServerUrl(serverUrl);
+      step.setInstallationName(installationName);
     }
 
     private void log(String msg, Object... args) throws IOException, InterruptedException {
@@ -167,13 +181,21 @@ public class WaitForQualityGateStep extends Step implements Serializable {
         case WsClient.CETask.STATUS_SUCCESS:
           String status = wsClient.requestQualityGateStatus(ceTask.getAnalysisId());
           log("SonarQube task '%s' completed. Quality gate is '%s'", step.taskId, status);
-          getContext().onSuccess(new QGStatus(status));
+          handleQGStatus(status);
           return true;
         case WsClient.CETask.STATUS_FAILURE:
         case WsClient.CETask.STATUS_CANCELED:
           throw new IllegalStateException("SonarQube analysis '" + step.getTaskId() + "' failed: " + ceTask.getStatus());
         default:
           return false;
+      }
+    }
+
+    private void handleQGStatus(String status) {
+      if (step.isEnforceGreen() && !"OK".equals(status)) {
+        getContext().onFailure(new AbortException("Pipeline aborted due to quality gate failure: " + status));
+      } else {
+        getContext().onSuccess(new QGStatus(status));
       }
     }
 
@@ -199,20 +221,22 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       if (taskId.equals(step.taskId)) {
         try {
           PauseAction.endCurrentPause(getContext().get(FlowNode.class));
+          SonarQubeWebHook.get().removeListener(this);
+          log("SonarQube task '%s' status is '%s'", step.taskId, taskStatus);
+          switch (taskStatus) {
+            case WsClient.CETask.STATUS_SUCCESS:
+              log("SonarQube task '%s' completed. Quality gate is '%s'", step.taskId, qgStatus);
+              handleQGStatus(qgStatus);
+              break;
+            case WsClient.CETask.STATUS_FAILURE:
+            case WsClient.CETask.STATUS_CANCELED:
+              getContext().onFailure(new IllegalStateException("SonarQube analysis '" + step.getTaskId() + "' failed: " + taskStatus));
+              break;
+            default:
+              throw new IllegalStateException("Unexpected task status: " + taskStatus);
+          }
         } catch (IOException | InterruptedException e) {
-          LOGGER.log(Level.WARNING, "failed to end PauseAction", e);
-        }
-        SonarQubeWebHook.get().removeListener(this);
-        switch (taskStatus) {
-          case WsClient.CETask.STATUS_SUCCESS:
-            getContext().onSuccess(new QGStatus(qgStatus));
-            break;
-          case WsClient.CETask.STATUS_FAILURE:
-          case WsClient.CETask.STATUS_CANCELED:
-            getContext().onFailure(new IllegalStateException("SonarQube analysis '" + step.getTaskId() + "' failed: " + taskStatus));
-            break;
-          default:
-            throw new IllegalStateException("Unexpected task status: " + taskStatus);
+          LOGGER.log(Level.WARNING, "Error during WaitForQualityGateStep", e);
         }
       }
     }
