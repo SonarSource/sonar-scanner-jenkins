@@ -87,10 +87,11 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     String token = getOrDefault(initialEnvironment.expand(inst.getServerAuthenticationToken()), "");
     map.put("SONAR_AUTH_TOKEN", token);
 
-    if (StringUtils.isEmpty(inst.getMojoVersion())) {
+    String mojoVersion = inst.getMojoVersion();
+    if (StringUtils.isEmpty(mojoVersion)) {
       map.put("SONAR_MAVEN_GOAL", "sonar:sonar");
     } else {
-      map.put("SONAR_MAVEN_GOAL", SonarUtils.getMavenGoal(inst.getMojoVersion()));
+      map.put("SONAR_MAVEN_GOAL", SonarUtils.getMavenGoal(mojoVersion));
     }
 
     map.put("SONAR_EXTRA_PROPS", getOrDefault(initialEnvironment.expand(getAdditionalProps(inst)), ""));
