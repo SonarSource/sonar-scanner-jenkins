@@ -67,16 +67,16 @@ public class WaitForQualityGateStep extends Step implements Serializable {
   private String taskId;
   private String installationName;
   private String serverUrl;
-  private boolean enforceGreen;
+  private boolean abortPipeline;
 
   @DataBoundConstructor
-  public WaitForQualityGateStep(boolean enforceGreen) {
+  public WaitForQualityGateStep(boolean abortPipeline) {
     super();
-    this.enforceGreen = enforceGreen;
+    this.abortPipeline = abortPipeline;
   }
 
-  public boolean isEnforceGreen() {
-    return enforceGreen;
+  public boolean isAbortPipeline() {
+    return abortPipeline;
   }
 
   public void setTaskId(String taskId) {
@@ -192,7 +192,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     }
 
     private void handleQGStatus(String status) {
-      if (step.isEnforceGreen() && !"OK".equals(status)) {
+      if (step.isAbortPipeline() && !"OK".equals(status)) {
         getContext().onFailure(new AbortException("Pipeline aborted due to quality gate failure: " + status));
       } else {
         getContext().onSuccess(new QGStatus(status));
