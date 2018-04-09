@@ -35,6 +35,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   public void setUp() throws ClassNotFoundException {
     testInstallation = createInstallation("testInst");
     globalConfiguration = new SonarGlobalConfiguration();
+    globalConfiguration.dataMigrated = false;
     publisher = getPublisherDescr(true, testInstallation);
   }
 
@@ -51,7 +52,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
 
   @Test
   public void testMigration() {
-    globalConfiguration.migrate();
+    globalConfiguration.migrateData();
     assertThat(globalConfiguration.isBuildWrapperEnabled()).isTrue();
     assertThat(globalConfiguration.getInstallations()).containsOnly(testInstallation);
 
@@ -64,7 +65,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
     globalConfiguration.setInstallations(existing);
     globalConfiguration.setBuildWrapperEnabled(false);
 
-    globalConfiguration.migrate();
+    globalConfiguration.migrateData();
 
     assertThat(globalConfiguration.isBuildWrapperEnabled()).isFalse();
     assertThat(globalConfiguration.getInstallations()).containsOnly(existing);

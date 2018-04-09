@@ -24,7 +24,6 @@ import hudson.model.TaskListener;
 import hudson.plugins.sonar.model.TriggersConfig;
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
-import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -75,13 +74,7 @@ public class SonarInstallation implements Serializable {
    * @since 1.7
    */
   public static final SonarInstallation[] all() {
-    Jenkins jenkins = Jenkins.getInstance();
-    if (jenkins == null) {
-      // for unit test
-      return new SonarInstallation[0];
-    }
-    SonarGlobalConfiguration sonarDescriptor = jenkins.getDescriptorByType(SonarGlobalConfiguration.class);
-    return sonarDescriptor.getInstallations();
+    return SonarGlobalConfiguration.get().getInstallations();
   }
 
   public static boolean isValid(String sonarInstallationName, TaskListener listener) {
