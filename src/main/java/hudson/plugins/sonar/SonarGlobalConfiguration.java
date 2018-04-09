@@ -21,14 +21,15 @@ package hudson.plugins.sonar;
 
 import hudson.CopyOnWrite;
 import hudson.Extension;
+import hudson.ExtensionList;
 import hudson.init.InitMilestone;
 import hudson.init.Initializer;
 import hudson.plugins.sonar.SonarPublisher.DescriptorImpl;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.util.FormValidation;
 import java.util.List;
+import java.util.Optional;
 import jenkins.model.GlobalConfiguration;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -44,7 +45,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
   @CopyOnWrite
   private volatile SonarInstallation[] installations = new SonarInstallation[0];
   private volatile boolean buildWrapperEnabled = false;
-  private transient boolean migrated = false;
+  boolean dataMigrated = false;
 
   public SonarGlobalConfiguration() {
     load();
@@ -72,25 +73,20 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
   }
 
   /**
-   * Attempts to migrated data from SonarPublished, which was previously holding the global configuration.
-   * It is thread safe and will refuse to migrate if a SonarQube installation already exists in this class.
+   * Attempts to migrate data from SonarPublished, which was previously holding the global configuration.
+   * It will refuse to migrate if a SonarQube installation already exists in this class.
    * Migration will only be attempted once. 
    */
-  @Initializer(after = InitMilestone.PLUGINS_PREPARED)
-  public void migrate() {
-    if (migrated) {
+  @SuppressWarnings("deprecation")
+  @Initializer(after = InitMilestone.JOB_LOADED)
+  public void migrateData() {
+    if (dataMigrated) {
       return;
     }
-
-    synchronized (this) {
-      if (migrated) {
-        return;
-      }
-      // SonarPublisher might be null if Maven plugin is disabled or not installed
-      Jenkins j = Jenkins.getInstance();
-      DescriptorImpl publisher = j.getDescriptorByType(SonarPublisher.DescriptorImpl.class);
-      if (publisher != null && publisher.getDeprecatedInstallations() != null && publisher.getDeprecatedInstallations().length > 0) {
-
+    Optional<DescriptorImpl> publisherOpt = ExtensionList.lookup(SonarPublisher.DescriptorImpl.class).stream().findFirst();
+    // SonarPublisher might be missing if Maven plugin is disabled or not installed
+    publisherOpt.ifPresent(publisher -> {
+      if (publisher.getDeprecatedInstallations() != null && publisher.getDeprecatedInstallations().length > 0) {
         if (ArrayUtils.isEmpty(this.installations)) {
           this.installations = publisher.getDeprecatedInstallations();
           this.buildWrapperEnabled = publisher.isDeprecatedBuildWrapperEnabled();
@@ -101,9 +97,9 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
 
         publisher.deleteGlobalConfiguration();
       }
-
-      migrated = true;
-    }
+    });
+    dataMigrated = true;
+    save();
   }
 
   @Override
@@ -118,6 +114,10 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
 
   public FormValidation doCheckMandatory(@QueryParameter String value) {
     return StringUtils.isBlank(value) ? FormValidation.error(Messages.SonarGlobalConfiguration_MandatoryProperty()) : FormValidation.ok();
+  }
+
+  public static SonarGlobalConfiguration get() {
+    return GlobalConfiguration.all().get(SonarGlobalConfiguration.class);
   }
 
 }

@@ -238,7 +238,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   private void enableBuildWrapper(boolean enable) {
-    j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class).setBuildWrapperEnabled(enable);
+    SonarGlobalConfiguration.get().setBuildWrapperEnabled(enable);
   }
 
   private static SonarInstallation createTestInstallation() {

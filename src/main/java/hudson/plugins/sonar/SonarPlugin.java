@@ -22,4 +22,5 @@ package hudson.plugins.sonar;
 import hudson.Plugin;
 
 public class SonarPlugin extends Plugin {
+
 }
