@@ -68,6 +68,8 @@
     <license.title>${project.name}</license.title>
     <license.years>${project.inceptionYear}-2018</license.years>
     <license.mailto>mailto:info AT sonarsource DOT com</license.mailto>
+    
+    <artifactsToPublish>${project.groupId}:${project.artifactId}:hpi</artifactsToPublish>
   </properties>
 
   <repositories>
