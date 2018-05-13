@@ -40,7 +40,7 @@ public class SonarInstallationTest extends SonarTestCase {
     d.setInstallations(new SonarInstallation(
       "Name",
       "server.url",
-      "token",
+      " tokenWithSpace ",
       "mojoVersion",
       "props",
       triggers,
@@ -52,7 +52,7 @@ public class SonarInstallationTest extends SonarTestCase {
 
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
-    assertThat(i.getServerAuthenticationToken()).isEqualTo("token");
+    assertThat(i.getServerAuthenticationToken()).isEqualTo("tokenWithSpace");
     assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
     assertThat(i.getAdditionalProperties()).isEqualTo("props");
     assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");
