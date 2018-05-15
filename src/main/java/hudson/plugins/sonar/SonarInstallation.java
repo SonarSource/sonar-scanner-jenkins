@@ -138,7 +138,7 @@ public class SonarInstallation implements Serializable {
    * @since 2.4
    */
   public String getServerAuthenticationToken() {
-    return serverAuthenticationToken;
+    return StringUtils.trimToNull(serverAuthenticationToken);
   }
 
   /**
