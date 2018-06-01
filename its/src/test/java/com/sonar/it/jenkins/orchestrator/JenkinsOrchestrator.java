@@ -313,7 +313,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
-    findElement(By.linkText("SonarQube Scanner for MSBuild - Begin Analysis")).click();
+    findElement(By.linkText("SonarScanner for MSBuild - Begin Analysis")).click();
 
     setTextValue(findElement(By.name("_.projectKey")), projectKey);
     setTextValue(findElement(By.name("_.projectName")), projectName);
@@ -335,7 +335,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     }
 
     findElement(buttonByText("Add build step")).click();
-    findElement(By.linkText("SonarQube Scanner for MSBuild - End Analysis")).click();
+    findElement(By.linkText("SonarScanner for MSBuild - End Analysis")).click();
 
     findElement(buttonByText("Save")).click();
     return this;
@@ -461,7 +461,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   public JenkinsOrchestrator configureMsBuildSQScanner_installation(String version, int index) {
     openConfigureToolsPage();
 
-    String toolName = "SonarQube Scanner for MSBuild";
+    String toolName = "SonarScanner for MSBuild";
 
     if (index > 0) {
       findElement(buttonByText(toolName + " installations...")).click();
