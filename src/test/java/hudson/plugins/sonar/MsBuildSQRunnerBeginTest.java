@@ -107,7 +107,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "non-existing");
     Run<?, ?> r = build(proj, Result.FAILURE);
-    assertLogContains("No SonarQube Scanner for MSBuild installation found", r);
+    assertLogContains("No SonarScanner for MSBuild installation found", r);
   }
 
   private void addEnvVar(String key, String value) {
