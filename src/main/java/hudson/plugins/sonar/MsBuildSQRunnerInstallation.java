@@ -43,7 +43,7 @@ import org.kohsuke.stapler.StaplerRequest;
 
 public class MsBuildSQRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<MsBuildSQRunnerInstallation>, NodeSpecific<MsBuildSQRunnerInstallation> {
   private static final long serialVersionUID = 1L;
-  private static String exeName = "MSBuild.SonarQube.Runner.exe";
+  private static String exeName = "SonarScanner.MSBuild.exe";
 
   @DataBoundConstructor
   public MsBuildSQRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
