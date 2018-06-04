@@ -33,7 +33,7 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>7.1.1.10609</version>
+      <version>7.1</version>
     </dependency>
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
