@@ -43,7 +43,10 @@ import org.kohsuke.stapler.StaplerRequest;
 
 public class MsBuildSQRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<MsBuildSQRunnerInstallation>, NodeSpecific<MsBuildSQRunnerInstallation> {
   private static final long serialVersionUID = 1L;
-  private static String exeName = "SonarScanner.MSBuild.exe";
+  private static final String SCANNER_EXE_NAME = "SonarScanner.MSBuild.exe";
+  private static final String SCANNER_DLL_NAME = "SonarScanner.MSBuild.dll";
+  private static final String OLD_SCANNER_EXE_NAME = "MSBuild.SonarQube.Runner.exe";
+  private static String testExeName = null;
 
   @DataBoundConstructor
   public MsBuildSQRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
@@ -51,8 +54,8 @@ public class MsBuildSQRunnerInstallation extends ToolInstallation implements Env
   }
 
   @VisibleForTesting
-  static void setExeName(String exe) {
-    MsBuildSQRunnerInstallation.exeName = exe;
+  static void setTestExeName(String exe) {
+    testExeName = exe;
   }
 
   @Override
@@ -95,17 +98,42 @@ public class MsBuildSQRunnerInstallation extends ToolInstallation implements Env
     }
   }
 
-  public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
+  public static String getScannerName() {
+    if (testExeName != null) {
+      return testExeName;
+    } else {
+      return SCANNER_EXE_NAME;
+    }
+  }
+
+  public String getToolPath(Launcher launcher) throws IOException, InterruptedException {
     return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
       private static final long serialVersionUID = 1L;
 
       @Override
       public String call() throws IOException {
         String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars);
-        File exe = new File(home, exeName);
-        if (exe.exists()) {
-          return exe.getPath();
+
+        if (testExeName != null) {
+          File testScanner = new File(home, testExeName);
+          return testScanner.getPath();
         }
+
+        File scannerNet46 = new File(home, SCANNER_EXE_NAME);
+        if (scannerNet46.exists()) {
+          return scannerNet46.getPath();
+        }
+
+        File scannerNetCore = new File(home, SCANNER_DLL_NAME);
+        if (scannerNetCore.exists()) {
+          return scannerNetCore.getPath();
+        }
+
+        File oldScanner = new File(home, OLD_SCANNER_EXE_NAME);
+        if (oldScanner.exists()) {
+          return oldScanner.getPath();
+        }
+
         return null;
       }
     });

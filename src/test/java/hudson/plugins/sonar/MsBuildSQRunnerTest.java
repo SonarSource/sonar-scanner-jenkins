@@ -26,11 +26,11 @@ import java.io.File;
 import java.net.URISyntaxException;
 
 public abstract class MsBuildSQRunnerTest extends SonarTestCase {
-  protected String getExeName() {
+  protected String getTestExeName() {
     if (isWindows()) {
-      return "MSBuild.SonarQube.Runner.bat";
+      return "FakeWindowsMSBuildScanner.bat";
     } else {
-      return "MSBuild.SonarQube.Runner.exe";
+      return "FakeUnixMSBuildScanner.sh";
     }
   }
 
@@ -44,13 +44,13 @@ public abstract class MsBuildSQRunnerTest extends SonarTestCase {
       res += "-broken";
     }
     File home = new File(getClass().getResource(res).toURI().getPath());
-    String exeName = getExeName();
+    String testExeName = getTestExeName();
 
     if (!isWindows()) {
-      GNUCLibrary.LIBC.chmod(new File(home, exeName).getAbsolutePath(), 0755);
+      GNUCLibrary.LIBC.chmod(new File(home, testExeName).getAbsolutePath(), 0755);
     }
     MsBuildSQRunnerInstallation inst = new MsBuildSQRunnerInstallation("default", home.getAbsolutePath(), null);
-    MsBuildSQRunnerInstallation.setExeName(exeName);
+    MsBuildSQRunnerInstallation.setTestExeName(testExeName);
     j.jenkins.getDescriptorByType(MsBuildSQRunnerInstallation.DescriptorImpl.class).setInstallations(inst);
 
     return inst;

@@ -46,6 +46,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
@@ -309,7 +310,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public JenkinsOrchestrator newFreestyleJobWithScannerForMsBuild(String jobName, @Nullable String additionalArgs, File projectPath, String projectKey, String projectName,
-    String projectVersion, @Nullable String msbuildScannerVersion, @Nullable String solutionFile) {
+    String projectVersion, @Nullable String msbuildScannerVersion, @Nullable String solutionFile, Boolean isDotNetCore) {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
@@ -329,9 +330,18 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
     if (solutionFile != null) {
       findElement(buttonByText("Add build step")).click();
-      findElement(By.linkText("Build a Visual Studio project or solution using MSBuild")).click();
-      select(findElement(By.name("msBuildBuilder.msBuildName")), "MSBuild");
-      setTextValue(findElement(By.name("msBuildBuilder.msBuildFile")), solutionFile);
+      if (isDotNetCore) {
+        if (SystemUtils.IS_OS_WINDOWS) {
+          findElement(By.linkText("Execute Windows batch command")).click();
+          setTextValue(findElement(By.name("command")), "dotnet build " + solutionFile);
+        } else {
+          findElement(By.linkText("Execute shell")).click();
+        }
+      } else {
+        findElement(By.linkText("Build a Visual Studio project or solution using MSBuild")).click();
+        select(findElement(By.name("msBuildBuilder.msBuildName")), "MSBuild");
+        setTextValue(findElement(By.name("msBuildBuilder.msBuildFile")), solutionFile);
+      }
     }
 
     findElement(buttonByText("Add build step")).click();

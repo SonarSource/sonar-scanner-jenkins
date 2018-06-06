@@ -33,6 +33,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
 
@@ -46,6 +47,11 @@ public class JenkinsWithoutMaven {
 
   @ClassRule
   public static JenkinsOrchestrator jenkins = JenkinsOrchestrator.builderEnv().build();
+
+  private final File csharpFolder = new File("projects", "csharp");
+  private final File consoleApp1Folder = new File(csharpFolder, "ConsoleApplication1");
+  private final File consoleNetCoreFolder = new File(csharpFolder, "NetCoreConsoleApp");
+  private final File jsFolder = new File("projects", "js");
 
   @BeforeClass
   public static void setUpSonar() throws MalformedURLException {
@@ -84,7 +90,7 @@ public class JenkinsWithoutMaven {
     String projectKey = "js-runner-2.8";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithSQScanner(jobName, "-v", new File("projects", "js"), null,
+      .newFreestyleJobWithSQScanner(jobName, "-v", jsFolder, null,
         "sonar.projectKey", projectKey,
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
@@ -106,7 +112,21 @@ public class JenkinsWithoutMaven {
     String projectKey = "csharp";
     assertThat(getProject(projectKey)).isNull();
     jenkins
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "csharp"), projectKey, "CSharp", "1.0", "3.0.0.629", "ConsoleApplication1.sln")
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleApp1Folder, projectKey, "CSharp", "1.0", "3.0.0.629", "ConsoleApplication1.sln", false)
+      .executeJob(jobName);
+
+    waitForComputationOnSQServer();
+    assertThat(getProject(projectKey)).isNotNull();
+    assertSonarUrlOnJob(jobName, projectKey);
+  }
+
+  @Test
+  public void testFreestyleJobWithScannerForMsBuild_NetCore() {
+    String jobName = "csharp-core";
+    String projectKey = "csharp-core";
+    assertThat(getProject(projectKey)).isNull();
+    jenkins
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", "4.1.0.1148", "NetCoreConsoleApp.sln", true)
       .executeJob(jobName);
 
     waitForComputationOnSQServer();
@@ -122,7 +142,7 @@ public class JenkinsWithoutMaven {
     String projectKey = "msbuild-sq-runner-3_0";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "js"), projectKey, "JS with space", "1.0", "3.0.0.629", null)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, jsFolder, projectKey, "JS with space", "1.0", "3.0.0.629", null, false)
       .executeJobQuietly(jobName);
 
     assertThat(result.getLogs())
@@ -142,7 +162,7 @@ public class JenkinsWithoutMaven {
     String projectKey = "msbuild-sq-runner-2_3_2";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, new File("projects", "js"), projectKey, "JS with space", "1.0", "2.3.2.573", null)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, jsFolder, projectKey, "JS with space", "1.0", "2.3.2.573", null, false)
       .executeJobQuietly(jobName);
 
     assertThat(result.getLogs())

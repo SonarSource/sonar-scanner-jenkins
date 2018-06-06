@@ -89,7 +89,11 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     MsBuildSQRunnerInstallation msBuildScanner = getDescriptor().getMsBuildScannerInstallation(msBuildScannerInstallationName);
     run.addAction(new SonarQubeScannerMsBuildParams(msBuildScannerInstallationName, getSonarInstallationName()));
 
-    args.add(getExeName(msBuildScanner, env, launcher, listener, workspace));
+    String scannerPath = getScannerPath(msBuildScanner, env, launcher, listener, workspace);
+    if (isDotNetCoreTool(scannerPath)) {
+      addDotNetCommand(args);
+    }
+    args.add(scannerPath);
     Map<String, String> props = getSonarProps(sonarInstallation);
     addArgsTo(args, sonarInstallation, env, props);
 
