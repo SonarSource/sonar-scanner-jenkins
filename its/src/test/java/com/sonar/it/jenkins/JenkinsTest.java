@@ -204,7 +204,7 @@ public class JenkinsTest {
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
     assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
     if (jenkins.getServer().getVersion().isGreaterThanOrEquals("2")) {
-      assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(URLEncoder.encode(projectKey, StandardCharsets.UTF_8));
+      assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(URLEncoder.encode(projectKey));
     } else {
       assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
     }
