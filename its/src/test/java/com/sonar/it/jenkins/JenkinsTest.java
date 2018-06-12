@@ -27,6 +27,8 @@ import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -191,8 +193,6 @@ public class JenkinsTest {
   // SONARJNKNS-214
   @Test
   public void testFreestyleJobWithTask() throws Exception {
-    // Task concept was removed in 5.2
-    assumeFalse(orchestrator.getServer().version().isGreaterThanOrEquals("5.2"));
     String jobName = "refresh-views";
     BuildResult result = jenkins
       .newFreestyleJobWithSQScanner(jobName, null, new File("projects", "js"), null, "sonar.task", "views")
@@ -203,7 +203,11 @@ public class JenkinsTest {
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
     assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
-    assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
+    if (jenkins.getServer().getVersion().isGreaterThanOrEquals("2")) {
+      assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(URLEncoder.encode(projectKey, StandardCharsets.UTF_8));
+    } else {
+      assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
+    }
   }
 
   private static void waitForComputationOnSQServer() {
