@@ -190,17 +190,6 @@ public class JenkinsTest {
     }
   }
 
-  // SONARJNKNS-214
-  @Test
-  public void testFreestyleJobWithTask() throws Exception {
-    String jobName = "refresh-views";
-    BuildResult result = jenkins
-      .newFreestyleJobWithSQScanner(jobName, null, new File("projects", "js"), null, "sonar.task", "views")
-      .executeJobQuietly(jobName);
-    // Since views is not installed
-    assertThat(result.getLogs()).contains("Task views does not exist");
-  }
-
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
     assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
     if (jenkins.getServer().getVersion().isGreaterThanOrEquals("2")) {
