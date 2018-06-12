@@ -20,6 +20,7 @@
 package hudson.plugins.sonar;
 
 import hudson.EnvVars;
+import hudson.Util;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
@@ -27,6 +28,7 @@ import hudson.plugins.sonar.AbstractMsBuildSQRunner.SonarQubeScannerMsBuildParam
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import javax.annotation.Nullable;
 import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,7 +42,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
 
-    assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0", r);
+    assertLogContains(getTestExeName() + " begin /k:key /n:name /v:1.0", r);
     assertLogContains("This is a fake MS Build Scanner", r);
     assertThat(r.getAction(SonarQubeScannerMsBuildParams.class)).isNotNull();
   }
@@ -54,7 +56,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default", "$CUSTOM_KEY", null);
     Run<?, ?> r = build(proj, Result.SUCCESS);
 
-    assertLogContains(getExeName() + " begin /k:customKey /n:name /v:1.0", r);
+    assertLogContains(getTestExeName() + " begin /k:customKey /n:name /v:1.0", r);
     assertLogContains("This is a fake MS Build Scanner", r);
     assertThat(r.getAction(SonarQubeScannerMsBuildParams.class)).isNotNull();
   }
@@ -67,7 +69,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.FAILURE);
 
-    assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0", r);
+    assertLogContains(getTestExeName() + " begin /k:key /n:name /v:1.0", r);
     assertLogContains("This is a fake MS Build Scanner", r);
   }
 
@@ -81,7 +83,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default", "key", "/y");
     Run<?, ?> r = build(proj, Result.FAILURE);
 
-    assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0 /d:key=value /x:a=b /y", r);
+    assertLogContains(getTestExeName() + " begin /k:key /n:name /v:1.0 /d:key=value /x:a=b /y", r);
     assertLogContains("This is a fake MS Build Scanner", r);
   }
 
@@ -94,7 +96,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
-    assertLogContains(getExeName() + " begin /k:key /n:name /v:1.0"
+    assertLogContains(getTestExeName() + " begin /k:key /n:name /v:1.0"
       + " /d:sonar.host.url=http://dummy-server:9090 ********", r);
     assertLogContains("This is a fake MS Build Scanner", r);
     assertLogDoesntContains("mypass", r);
@@ -108,6 +110,19 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "non-existing");
     Run<?, ?> r = build(proj, Result.FAILURE);
     assertLogContains("No SonarScanner for MSBuild installation found", r);
+  }
+
+  @Test
+  public void testDotNetCoreScanner() throws Exception {
+    configureDefaultSonar();
+    configureMsBuildScanner(false);
+
+    FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
+    MsBuildSQRunnerInstallation.setTestExeName("Foo.dll");
+    Run<?, ?> r = build(proj, Result.FAILURE);
+
+    String log = JenkinsRule.getLog(r);
+    assertThat(log).containsPattern("dotnet .*Foo.dll begin /k:key /n:name /v:1.0");
   }
 
   private void addEnvVar(String key, String value) {

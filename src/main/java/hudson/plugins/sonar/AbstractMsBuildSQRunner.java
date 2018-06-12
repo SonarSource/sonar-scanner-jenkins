@@ -31,11 +31,12 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.tasks.Builder;
+import hudson.util.ArgumentListBuilder;
+
 import java.io.IOException;
 import javax.annotation.Nullable;
 
 public abstract class AbstractMsBuildSQRunner extends Builder {
-  protected static final String EXE = "MSBuild.SonarQube.Runner.exe";
   static final String INST_NAME_KEY = "msBuildScannerInstallationName";
   static final String SONAR_INST_NAME_KEY = "sonarInstanceName";
 
@@ -58,22 +59,31 @@ public abstract class AbstractMsBuildSQRunner extends Builder {
 
   protected abstract void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException;
 
-  protected String getExeName(MsBuildSQRunnerInstallation msBuildScanner, EnvVars env, Launcher launcher, TaskListener listener, FilePath workspace)
+  protected String getScannerPath(MsBuildSQRunnerInstallation msBuildScanner, EnvVars env, Launcher launcher, TaskListener listener, FilePath workspace)
     throws IOException, InterruptedException {
     MsBuildSQRunnerInstallation inst = BuilderUtils.getBuildTool(msBuildScanner, env, listener, workspace);
 
     String exe;
     if (inst != null) {
-      exe = inst.getExecutable(launcher);
+      exe = inst.getToolPath(launcher);
       if (exe == null) {
         throw new AbortException(Messages.MsBuildScanner_ExecutableNotFound(inst.getName()));
       }
     } else {
       listener.getLogger().println(Messages.MsBuildScanner_NoInstallation());
-      exe = EXE;
+      exe = MsBuildSQRunnerInstallation.getScannerName();
     }
 
     return exe;
+  }
+
+  protected void addDotNetCommand(ArgumentListBuilder args) {
+    // TODO: we should not assume that the command is in the path
+    args.add("dotnet");
+  }
+
+  protected Boolean isDotNetCoreTool(String scannerPath) {
+    return scannerPath.endsWith(".dll");
   }
 
   static class SonarQubeScannerMsBuildParams extends InvisibleAction {

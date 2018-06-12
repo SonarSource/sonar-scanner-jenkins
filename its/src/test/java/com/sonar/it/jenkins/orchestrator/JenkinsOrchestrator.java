@@ -33,9 +33,11 @@ import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.version.Version;
+
 import hudson.cli.CLI;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -46,6 +48,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
@@ -120,6 +123,14 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     ServerInstaller serverInstaller = new ServerInstaller(fileSystem);
     server = serverInstaller.install(distribution);
     server.setUrl(String.format("http://localhost:%d", port));
+
+    // Copy from resources the specific version of the jenkins crawler result file
+    InputStream stream = this.getClass().getResourceAsStream("/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller");
+    try {
+      FileUtils.copyInputStreamToFile(stream, new File (server.getHome(), "updates/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller"));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
 
     jenkinsWrapper = new JenkinsWrapper(server, config, fileSystem.javaHome(), port);
     jenkinsWrapper.start();
@@ -309,7 +320,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public JenkinsOrchestrator newFreestyleJobWithScannerForMsBuild(String jobName, @Nullable String additionalArgs, File projectPath, String projectKey, String projectName,
-    String projectVersion, @Nullable String msbuildScannerVersion, @Nullable String solutionFile) {
+    String projectVersion, @Nullable String msbuildScannerVersion, @Nullable String solutionFile, Boolean isDotNetCore) {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
@@ -320,7 +331,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     setTextValue(findElement(By.name("_.projectVersion")), projectVersion);
 
     if (msbuildScannerVersion != null) {
-      select(findElement(By.name("msBuildScannerInstallationName")), getScannerMSBuildInstallName(msbuildScannerVersion));
+      select(findElement(By.name("msBuildScannerInstallationName")), getScannerMSBuildInstallName(msbuildScannerVersion, isDotNetCore));
     }
 
     if (additionalArgs != null) {
@@ -329,9 +340,18 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
     if (solutionFile != null) {
       findElement(buttonByText("Add build step")).click();
-      findElement(By.linkText("Build a Visual Studio project or solution using MSBuild")).click();
-      select(findElement(By.name("msBuildBuilder.msBuildName")), "MSBuild");
-      setTextValue(findElement(By.name("msBuildBuilder.msBuildFile")), solutionFile);
+      if (isDotNetCore) {
+        if (SystemUtils.IS_OS_WINDOWS) {
+          findElement(By.linkText("Execute Windows batch command")).click();
+        } else {
+          findElement(By.linkText("Execute shell")).click();
+        }
+        setTextValue(findElement(By.name("command")), "dotnet build " + solutionFile);
+      } else {
+        findElement(By.linkText("Build a Visual Studio project or solution using MSBuild")).click();
+        select(findElement(By.name("msBuildBuilder.msBuildName")), "MSBuild");
+        setTextValue(findElement(By.name("msBuildBuilder.msBuildFile")), solutionFile);
+      }
     }
 
     findElement(buttonByText("Add build step")).click();
@@ -458,7 +478,11 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     return "SonarQube Scanner " + version;
   }
 
-  public JenkinsOrchestrator configureMsBuildSQScanner_installation(String version, int index) {
+  public JenkinsOrchestrator configureMsBuildSQScanner_installation(String version, Boolean isDotNetCore, int index) {
+    if (isDotNetCore && !Version.create(version).isGreaterThanOrEquals("4.1.0.1148")) {
+     throw new IllegalStateException(".Net Core scanner for msbuild is only available from version 4.1.0.1148");
+    }
+
     openConfigureToolsPage();
 
     String toolName = "SonarScanner for MSBuild";
@@ -469,15 +493,25 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
     findElement(buttonByText("Add " + toolName)).click();
     WebElement toolArea = findElement(driver, By.xpath("(//div[@name='tool'][.//div[normalize-space(.) = '" + toolName + "']])[" + (index + 1) + "]"));
-    setTextValue(findElement(toolArea, By.name("_.name")), getScannerMSBuildInstallName(version));
-    select(findElement(toolArea, By.name("_.id")), version);
+    setTextValue(findElement(toolArea, By.name("_.name")), getScannerMSBuildInstallName(version, isDotNetCore));
+    if (isDotNetCore) {
+      select(findElement(toolArea, By.name("_.id")), version + "-netcore");
+    } else {
+      select(findElement(toolArea, By.name("_.id")), version);
+    }
     findElement(buttonByText("Save")).click();
 
     return this;
   }
 
-  private String getScannerMSBuildInstallName(String version) {
-    return "Scanner for MSBuild " + version;
+  private String getScannerMSBuildInstallName(String version, Boolean isDotNetCore) {
+    String scannerName = "Scanner for MSBuild " + version;
+
+    if (isDotNetCore) {
+      scannerName += " NetCore";
+    }
+
+    return scannerName;
   }
 
   public JenkinsOrchestrator enableInjectionVars(boolean enable) {

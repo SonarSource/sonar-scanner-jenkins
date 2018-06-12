@@ -81,7 +81,7 @@ public class JenkinsPipelineTest {
       .installPlugin("workflow-aggregator")
       .installPlugin(sqJenkinsPluginLocation)
       .configureSQScannerInstallation("2.8", 0)
-      .configureMsBuildSQScanner_installation("3.0.0.629", 0)
+      .configureMsBuildSQScanner_installation("3.0.0.629", false, 0)
       .configureSonarInstallation(orchestrator, "$MY_SONAR_URL");
     if (SystemUtils.IS_OS_WINDOWS) {
       jenkins.configureMSBuildInstallation();
