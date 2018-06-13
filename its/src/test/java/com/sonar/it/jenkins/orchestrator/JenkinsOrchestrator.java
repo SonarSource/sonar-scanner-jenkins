@@ -119,8 +119,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
       port = NetworkUtils.getNextAvailablePort(NetworkUtils.getLocalhost());
     }
     distribution.setPort(port);
-    FileSystem fileSystem = config.fileSystem();
-    ServerInstaller serverInstaller = new ServerInstaller(fileSystem);
+    ServerInstaller serverInstaller = new ServerInstaller(config);
     server = serverInstaller.install(distribution);
     server.setUrl(String.format("http://localhost:%d", port));
 
@@ -132,7 +131,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
       throw new IllegalStateException(e);
     }
 
-    jenkinsWrapper = new JenkinsWrapper(server, config, fileSystem.javaHome(), port);
+    jenkinsWrapper = new JenkinsWrapper(server, config, config.fileSystem().javaHome(), port);
     jenkinsWrapper.start();
 
     FirefoxProfile profile = new FirefoxProfile();
@@ -235,7 +234,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     WebElement jobNameInput = findElement(By.id("name"));
     setTextValue(jobNameInput, jobName);
     WebElement jobTypeElt = findElement(By.xpath("//input[@type='radio' and @name='mode' and @value='" + type + "']"));
-    if (server.getVersion().isGreaterThan("2")) {
+    if (server.getVersion().isGreaterThan(2, 0)) {
       // Input is not visible, should click on parent
       jobTypeElt.findElement(By.xpath("..")).click();
     } else {
@@ -418,7 +417,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   private void openConfigureToolsPage() {
-    if (server.getVersion().isGreaterThan("2")) {
+    if (server.getVersion().isGreaterThan(2, 0)) {
       driver.get(getGlobalToolConfigUrl());
     } else {
       driver.get(getSystemConfigUrl());
@@ -454,7 +453,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   public JenkinsOrchestrator configureSQScannerInstallation(String version, int index) {
     openConfigureToolsPage();
 
-    SonarScannerInstaller installer = new SonarScannerInstaller(config.fileSystem());
+    SonarScannerInstaller installer = new SonarScannerInstaller(config.locators());
     File runnerScript = installer.install(Version.create(version), config.fileSystem().workspace(), true);
 
     String toolName = "SonarQube Scanner";
@@ -479,7 +478,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public JenkinsOrchestrator configureMsBuildSQScanner_installation(String version, Boolean isDotNetCore, int index) {
-    if (isDotNetCore && !Version.create(version).isGreaterThanOrEquals("4.1.0.1148")) {
+    if (isDotNetCore && !Version.create(version).isGreaterThanOrEquals(4, 1)) {
      throw new IllegalStateException(".Net Core scanner for msbuild is only available from version 4.1.0.1148");
     }
 
@@ -576,7 +575,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   }
 
   public JenkinsOrchestrator installPlugin(Location hpi) {
-    File hpiFile = config.fileSystem().copyToDirectory(hpi, server.getHome().getParentFile());
+    File hpiFile = config.locators().copyToDirectory(hpi, server.getHome().getParentFile());
     if (hpiFile == null || !hpiFile.exists()) {
       throw new IllegalStateException("Can not find the plugin " + hpi);
     }
@@ -608,7 +607,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
   private String getMavenParams(Orchestrator orchestrator) {
     Version serverVersion = orchestrator.getServer().version();
 
-    if (serverVersion.isGreaterThanOrEquals("5.3")) {
+    if (serverVersion.isGreaterThanOrEquals(5, 3)) {
       return "$SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_AUTH_TOKEN";
     } else {
       return "$SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.password=$SONAR_PASSWORD"

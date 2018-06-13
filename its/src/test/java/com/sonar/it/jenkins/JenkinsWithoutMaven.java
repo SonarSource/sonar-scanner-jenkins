@@ -27,13 +27,10 @@ import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
 
@@ -54,13 +51,13 @@ public class JenkinsWithoutMaven {
   private final File jsFolder = new File("projects", "js");
 
   @BeforeClass
-  public static void setUpSonar() throws MalformedURLException {
+  public static void setUpSonar() {
     // Workaround for SONAR-4257
     orchestrator.getServer().getAdminWsClient().update(new PropertyUpdateQuery("sonar.core.serverBaseURL", orchestrator.getServer().getUrl()));
   }
 
   @BeforeClass
-  public static void setUpJenkins() throws IOException {
+  public static void setUpJenkins() {
     orchestrator.resetData();
     Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
@@ -81,12 +78,12 @@ public class JenkinsWithoutMaven {
   }
 
   @Before
-  public void resetData() throws Exception {
+  public void resetData() {
     orchestrator.resetData();
   }
 
   @Test
-  public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_8() throws Exception {
+  public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_8() {
     String jobName = "js-runner-sq-2.8";
     String projectKey = "js-runner-2.8";
     assertThat(getProject(projectKey)).isNull();
@@ -178,7 +175,7 @@ public class JenkinsWithoutMaven {
   @Test
   public void testNoSonarPublisher() {
     // Maven plugin no more installed by default in version 2
-    assumeTrue(jenkins.getServer().getVersion().isGreaterThanOrEquals("2"));
+    assumeTrue(jenkins.getServer().getVersion().isGreaterThanOrEquals(2, 0));
     String jobName = "no Sonar Publisher";
     jenkins.assertNoSonarPublisher(jobName, new File("projects", "noPublisher"));
   }

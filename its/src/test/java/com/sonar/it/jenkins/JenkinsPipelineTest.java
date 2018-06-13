@@ -28,7 +28,6 @@ import com.sonar.orchestrator.locator.Location;
 import hudson.cli.CLI;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import org.apache.commons.io.output.NullOutputStream;
@@ -71,8 +70,8 @@ public class JenkinsPipelineTest {
   private static WsClient wsClient;
 
   @BeforeClass
-  public static void setUpJenkins() throws MalformedURLException {
-    assumeTrue(jenkins.getServer().getVersion().isGreaterThanOrEquals("2"));
+  public static void setUpJenkins() {
+    assumeTrue(jenkins.getServer().getVersion().isGreaterThanOrEquals(2, 0));
     Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
       .installPlugin("jquery")
@@ -150,7 +149,7 @@ public class JenkinsPipelineTest {
 
   @Test
   public void qualitygate_pipeline_ok() {
-    assumeTrue(orchestrator.getServer().version().isGreaterThan("6.2"));
+    assumeTrue(orchestrator.getServer().version().isGreaterThan(6, 2));
     StringBuilder script = new StringBuilder();
     script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
     if (SystemUtils.IS_OS_WINDOWS) {
@@ -174,7 +173,7 @@ public class JenkinsPipelineTest {
 
   @Test
   public void qualitygate_pipeline_ko() {
-    assumeTrue(orchestrator.getServer().version().isGreaterThan("6.2"));
+    assumeTrue(orchestrator.getServer().version().isGreaterThan(6, 2));
 
     Long previousDefault = qgClient().list().defaultGate().id();
     QualityGate simple = qgClient().create("AlwaysFail");
@@ -210,7 +209,7 @@ public class JenkinsPipelineTest {
   }
 
   private static void enableWebhook() {
-    if (orchestrator.getServer().version().isGreaterThanOrEquals("7.1")) {
+    if (orchestrator.getServer().version().isGreaterThanOrEquals(7, 1)) {
       // SONAR-9058
       wsClient.webhooks().create(new CreateRequest()
         .setName("Jenkins")
@@ -231,7 +230,7 @@ public class JenkinsPipelineTest {
   }
 
   private static void disableGlobalWebhooks() {
-    if (orchestrator.getServer().version().isGreaterThanOrEquals("7.1")) {
+    if (orchestrator.getServer().version().isGreaterThanOrEquals(7, 1)) {
       // SONAR-9058
       wsClient.webhooks().list(new ListRequest()).getWebhooksList().forEach(p -> wsClient.webhooks().delete(new DeleteRequest().setWebhook(p.getKey())));
     } else {

@@ -42,7 +42,7 @@ class Zips {
 
     if (distrib.isRelease()) {
       // releases are kept in user cache
-      return new File(fileSystem.sonarInstallsDir(), filename);
+      return new File(fileSystem.getCacheDir(), filename);
     }
     File snapshotWar = new File(fileSystem.workspace(), filename);
     if (snapshotWar.exists() && !isUpToDate(snapshotWar)) {

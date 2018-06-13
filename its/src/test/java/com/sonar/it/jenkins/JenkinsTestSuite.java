@@ -21,6 +21,7 @@ package com.sonar.it.jenkins;
 
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 import javax.annotation.CheckForNull;
 import org.junit.ClassRule;
@@ -34,19 +35,19 @@ import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.components.ShowRequest;
 
+import static java.util.Objects.requireNonNull;
+
 @RunWith(Suite.class)
 @SuiteClasses({JenkinsTest.class, JenkinsWithoutMaven.class, JenkinsPipelineTest.class})
 public class JenkinsTestSuite {
 
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setOrchestratorProperty("javaVersion", "LATEST_RELEASE")
-    .addPlugin("java")
-    .setOrchestratorProperty("javascriptVersion", "LATEST_RELEASE")
-    .addPlugin("javascript")
+    .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
+    .addPlugin(MavenLocation.of("org.sonarsource.java","sonar-java-plugin", "LATEST_RELEASE"))
+    .addPlugin(MavenLocation.of("org.sonarsource.javascript","sonar-javascript-plugin", "LATEST_RELEASE"))
     // Needed by Scanner for MSBuild
-    .setOrchestratorProperty("csharpVersion", "LATEST_RELEASE")
-    .addPlugin("csharp")
+    .addPlugin(MavenLocation.of("org.sonarsource.dotnet","sonar-csharp-plugin", "LATEST_RELEASE"))
     .restoreProfileAtStartup(FileLocation.ofClasspath("/com/sonar/it/jenkins/JenkinsTest/sonar-way-it-profile_java.xml"))
     .build();
 

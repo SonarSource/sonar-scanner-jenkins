@@ -21,7 +21,7 @@ package com.sonar.it.jenkins.orchestrator.container;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import com.sonar.orchestrator.config.FileSystem;
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
@@ -38,19 +38,19 @@ public class JenkinsDownloader {
   private static final Logger LOG = LoggerFactory.getLogger(JenkinsDownloader.class);
 
   private static final AtomicInteger sharedDirId = new AtomicInteger(0);
-  private final FileSystem fileSystem;
+  private final Configuration config;
   private final Zips zips;
 
-  public JenkinsDownloader(FileSystem fileSystem) {
-    this.fileSystem = fileSystem;
-    this.zips = new Zips(fileSystem);
+  public JenkinsDownloader(Configuration config) {
+    this.config = config;
+    this.zips = new Zips(config.fileSystem());
   }
 
   public synchronized File download(JenkinsDistribution distrib) {
     LOG.info("Downloading Jenkins-" + distrib.getVersion());
 
     // Add a "j" prefix to not conflict with SonarQube
-    File toDir = new File(fileSystem.workspace(), "j" + String.valueOf(sharedDirId.addAndGet(1)));
+    File toDir = new File(config.fileSystem().workspace(), "j" + String.valueOf(sharedDirId.addAndGet(1)));
     if (toDir.exists()) {
       try {
         FileUtils.cleanDirectory(toDir);
@@ -98,7 +98,7 @@ public class JenkinsDownloader {
     LOG.info("Searching for Jenkins in Maven repositories");
     // search for zip in maven repositories
     Location location = getMavenLocation(distribution);
-    File result = fileSystem.copyToFile(location, toFile);
+    File result = config.locators().copyToFile(location, toFile);
     if (result != null && result.exists()) {
       LOG.info("Found Jenkins in Maven repositories");
     }
