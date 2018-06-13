@@ -19,6 +19,7 @@
  */
 package com.sonar.it.jenkins.orchestrator.container;
 
+import com.sonar.orchestrator.config.Configuration;
 import com.sonar.orchestrator.config.FileSystem;
 import java.io.File;
 
@@ -28,8 +29,8 @@ import java.io.File;
 public final class ServerInstaller {
   private final JenkinsDownloader downloader;
 
-  public ServerInstaller(FileSystem fileSystem) {
-    this.downloader = new JenkinsDownloader(fileSystem);
+  public ServerInstaller(Configuration config) {
+    this.downloader = new JenkinsDownloader(config);
   }
 
   public JenkinsServer install(JenkinsDistribution distribution) {

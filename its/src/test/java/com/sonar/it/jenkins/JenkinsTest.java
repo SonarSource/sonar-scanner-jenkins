@@ -26,9 +26,7 @@ import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.Location;
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -37,7 +35,6 @@ import org.sonar.wsclient.services.PropertyUpdateQuery;
 
 import static com.sonar.it.jenkins.JenkinsTestSuite.getProject;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.junit.Assume.assumeFalse;
 
 public class JenkinsTest {
 
@@ -48,14 +45,14 @@ public class JenkinsTest {
   public static JenkinsOrchestrator jenkins = JenkinsOrchestrator.builderEnv().build();
 
   @BeforeClass
-  public static void setUpSonar() throws MalformedURLException {
+  public static void setUpSonar() {
     // Workaround for SONAR-4257
     orchestrator.getServer().getAdminWsClient().update(new PropertyUpdateQuery("sonar.core.serverBaseURL", orchestrator.getServer().getUrl()));
   }
 
   @BeforeClass
-  public static void setUpJenkins() throws MalformedURLException {
-    if (jenkins.getServer().getVersion().isGreaterThanOrEquals("2")) {
+  public static void setUpJenkins() {
+    if (jenkins.getServer().getVersion().isGreaterThanOrEquals(2, 0)) {
       // Maven plugin no more installed by default
       jenkins.installPlugin("maven-plugin");
     }
@@ -75,12 +72,12 @@ public class JenkinsTest {
   }
 
   @Before
-  public void resetData() throws Exception {
+  public void resetData() {
     orchestrator.resetData();
   }
 
   @Test
-  public void testMavenJob() throws Exception {
+  public void testMavenJob() {
     String jobName = "abacus-maven";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
     assertThat(getProject(projectKey)).isNull();
@@ -93,7 +90,7 @@ public class JenkinsTest {
   }
 
   @Test
-  public void testMavenJobWithBranch() throws Exception {
+  public void testMavenJobWithBranch() {
     String jobName = "abacus-maven-branch";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin:branch";
     assertThat(getProject(projectKey)).isNull();
@@ -121,7 +118,7 @@ public class JenkinsTest {
   }
 
   @Test
-  public void testFreestyleJobWithSonarMaven() throws Exception {
+  public void testFreestyleJobWithSonarMaven() {
     String jobName = "abacus-freestyle";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
     assertThat(getProject(projectKey)).isNull();
@@ -135,7 +132,7 @@ public class JenkinsTest {
   }
 
   @Test
-  public void testFreestyleJobWithSonarMavenAndBranch() throws Exception {
+  public void testFreestyleJobWithSonarMavenAndBranch() {
     String jobName = "abacus-freestyle-branch";
     String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin:branch";
     assertThat(getProject(projectKey)).isNull();
@@ -149,7 +146,7 @@ public class JenkinsTest {
   }
 
   @Test
-  public void testFreestyleJobWithSonarQubeScanner() throws Exception {
+  public void testFreestyleJobWithSonarQubeScanner() {
     String jobName = "js-runner";
     String projectKey = "js-runner";
     assertThat(getProject(projectKey)).isNull();
@@ -167,7 +164,7 @@ public class JenkinsTest {
   }
 
   @Test
-  public void testFreestyleJobWithSonarQubeScannerAndBranch() throws Exception {
+  public void testFreestyleJobWithSonarQubeScannerAndBranch() {
     String jobName = "js-runner-branch";
     String projectKey = "js-runner:branch";
     assertThat(getProject(projectKey)).isNull();
@@ -192,7 +189,7 @@ public class JenkinsTest {
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
     assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
-    if (jenkins.getServer().getVersion().isGreaterThanOrEquals("2")) {
+    if (jenkins.getServer().getVersion().isGreaterThanOrEquals(2, 0)) {
       assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(URLEncoder.encode(projectKey));
     } else {
       assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
