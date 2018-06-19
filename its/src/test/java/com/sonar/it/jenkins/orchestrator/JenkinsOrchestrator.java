@@ -28,12 +28,10 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.build.SonarScannerInstaller;
 import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.config.FileSystem;
 import com.sonar.orchestrator.junit.SingleStartExternalResource;
 import com.sonar.orchestrator.locator.Location;
 import com.sonar.orchestrator.util.NetworkUtils;
 import com.sonar.orchestrator.version.Version;
-
 import hudson.cli.CLI;
 import java.io.File;
 import java.io.IOException;
@@ -126,7 +124,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     // Copy from resources the specific version of the jenkins crawler result file
     InputStream stream = this.getClass().getResourceAsStream("/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller");
     try {
-      FileUtils.copyInputStreamToFile(stream, new File (server.getHome(), "updates/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller"));
+      FileUtils.copyInputStreamToFile(stream, new File(server.getHome(), "updates/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller"));
     } catch (IOException e) {
       throw new IllegalStateException(e);
     }
@@ -345,7 +343,10 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
         } else {
           findElement(By.linkText("Execute shell")).click();
         }
-        setTextValue(findElement(By.name("command")), "dotnet build " + solutionFile);
+        // https://github.com/jenkinsci/acceptance-test-harness/blob/47ae4d5cd6e1c17308c1dc2e28ee6b3b11bc3a0d/src/main/java/org/jenkinsci/test/acceptance/po/CodeMirror.java#L49
+        // can't use find() because it wants a visible element
+        driver.findElement(By.xpath("//*[@path='/builder[1]/command']")); // wait until the element in question appears in DOM
+        ((JavascriptExecutor) driver).executeScript(codeMirrorScript, String.format("//*[@path='/builder[1]/command']/following-sibling::div"), "dotnet build " + solutionFile);
       } else {
         findElement(By.linkText("Build a Visual Studio project or solution using MSBuild")).click();
         select(findElement(By.name("msBuildBuilder.msBuildName")), "MSBuild");
@@ -359,6 +360,16 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     findElement(buttonByText("Save")).click();
     return this;
   }
+
+  private static final String codeMirrorScript = "cmElem = document.evaluate(" +
+    "        arguments[0], document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null" +
+    ").singleNodeValue;" +
+    "codemirror = cmElem.CodeMirror;" +
+    "if (codemirror == null) {" +
+    "    console.log('CodeMirror object not found!');" +
+    "}" +
+    "codemirror.setValue(arguments[1]);" +
+    "codemirror.save();";
 
   private void activateSonarPostBuildMaven(String branch) {
     WebElement addPostBuildButton = findElement(buttonByText("Add post-build action"));
@@ -479,7 +490,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
 
   public JenkinsOrchestrator configureMsBuildSQScanner_installation(String version, Boolean isDotNetCore, int index) {
     if (isDotNetCore && !Version.create(version).isGreaterThanOrEquals(4, 1)) {
-     throw new IllegalStateException(".Net Core scanner for msbuild is only available from version 4.1.0.1148");
+      throw new IllegalStateException(".Net Core scanner for msbuild is only available from version 4.1.0.1148");
     }
 
     openConfigureToolsPage();

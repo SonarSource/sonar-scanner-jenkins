@@ -62,6 +62,7 @@ public class JenkinsWithoutMaven {
     Location sqJenkinsPluginLocation = FileLocation.of("../target/sonar.hpi");
     jenkins
       .installPlugin("filesystem_scm")
+      .installPlugin("form-element-path")
       .installPlugin("jquery")
       .installPlugin("msbuild")
       .installPlugin(sqJenkinsPluginLocation)
