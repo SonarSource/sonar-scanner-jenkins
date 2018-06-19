@@ -10,10 +10,6 @@ JENKINS_VERSION:
   - 1.651.3
   - 2.89.4
 
-SLAVE:
-  - linux
-  - windows
-
 exclude:
   - SQ_VERSION: LATEST_RELEASE[6.7]
     JENKINS_VERSION: 2.89.4
