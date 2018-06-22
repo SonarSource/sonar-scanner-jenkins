@@ -61,6 +61,7 @@ public class JenkinsTest {
     jenkins
       .installPlugin("filesystem_scm")
       .installPlugin("jquery")
+      .installPlugin("short-workspace-path")
       .installPlugin(sqJenkinsPluginLocation)
       .configureMavenInstallation()
       // Single installation
