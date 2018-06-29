@@ -348,7 +348,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
         try {
           // https://github.com/jenkinsci/acceptance-test-harness/blob/92a8ad674454f65ee105d1bbd9685be1d084e893/src/main/java/org/jenkinsci/test/acceptance/po/ShellBuildStep.java#L18
           setTextValue(findElement(By.name("command")), command);
-        } catch (NoSuchElementException notfound) {
+        } catch (Exception notfound) {
           driver.findElement(By.xpath("//*[@path='/builder[1]/command']")); // wait until the element in question appears in DOM
           try {
             ((JavascriptExecutor) driver).executeScript(codeMirrorScript, String.format("//*[@path='/builder[1]/command']/following-sibling::div"), command);
