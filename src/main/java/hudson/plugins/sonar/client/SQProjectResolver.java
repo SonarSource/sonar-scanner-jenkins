@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar.client;
 
+import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.utils.Logger;
@@ -40,7 +41,7 @@ public class SQProjectResolver {
    * Errors that should be displayed are included in {@link ProjectInformation#getErrors()}.
    */
   @CheckForNull
-  public ProjectInformation resolve(@Nullable String serverUrl, @Nullable String projectDashboardUrl, String ceTaskId, String installationName) {
+  public ProjectInformation resolve(@Nullable String serverUrl, @Nullable String projectDashboardUrl, String ceTaskId, String installationName, Run<?, ?> build) {
     SonarInstallation inst = SonarInstallation.get(installationName);
     if (inst == null) {
       Logger.LOG.info(() -> "Invalid installation name: " + installationName);
@@ -53,7 +54,7 @@ public class SQProjectResolver {
 
     try {
 
-      WsClient wsClient = new WsClient(client, serverUrl, inst.getServerAuthenticationToken());
+      WsClient wsClient = new WsClient(client, serverUrl, inst.getServerAuthenticationToken(build));
       Version version = new Version(wsClient.getServerVersion());
 
       if (version.compareTo(new Version("5.6")) < 0) {

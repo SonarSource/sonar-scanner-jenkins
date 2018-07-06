@@ -174,7 +174,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
 
       log("Checking status of SonarQube task '%s' on server '%s'", step.taskId, step.getInstallationName());
 
-      WsClient wsClient = new WsClient(new HttpClient(), step.getServerUrl(), inst.getServerAuthenticationToken());
+      WsClient wsClient = new WsClient(new HttpClient(), step.getServerUrl(), inst.getServerAuthenticationToken(getContext().get(Run.class)));
       WsClient.CETask ceTask = wsClient.getCETask(step.getTaskId());
       log("SonarQube task '%s' status is '%s'", step.taskId, ceTask.getStatus());
       switch (ceTask.getStatus()) {

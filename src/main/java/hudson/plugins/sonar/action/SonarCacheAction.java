@@ -21,6 +21,7 @@ package hudson.plugins.sonar.action;
 
 import com.google.common.annotations.VisibleForTesting;
 import hudson.model.InvisibleAction;
+import hudson.model.Run;
 import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class SonarCacheAction extends InvisibleAction {
     this.infoByTaskId = new HashMap<>();
   }
 
-  public List<ProjectInformation> get(SQProjectResolver resolver, long lastBuildTime, List<SonarAnalysisAction> analysis) {
+  public List<ProjectInformation> get(SQProjectResolver resolver, long lastBuildTime, List<SonarAnalysisAction> analysis, Run<?, ?> run) {
     if (lastRequest != null && age(lastRequest) < TimeUnit.SECONDS.toMillis(10)) {
       return lastProjInfo;
     }
@@ -48,7 +49,7 @@ public class SonarCacheAction extends InvisibleAction {
     List<ProjectInformation> list = new ArrayList<>(analysis.size());
 
     for (SonarAnalysisAction a : analysis) {
-      ProjectInformation proj = get(resolver, lastBuildTime, a);
+      ProjectInformation proj = get(resolver, lastBuildTime, a, run);
       if (proj != null) {
         list.add(proj);
       }
@@ -61,7 +62,7 @@ public class SonarCacheAction extends InvisibleAction {
 
   @CheckForNull
   @VisibleForTesting
-  ProjectInformation get(SQProjectResolver resolver, long lastBuildTime, SonarAnalysisAction analysis) {
+  ProjectInformation get(SQProjectResolver resolver, long lastBuildTime, SonarAnalysisAction analysis, Run<?, ?> run) {
     String taskId = analysis.getCeTaskId();
 
     if (taskId == null) {
@@ -73,7 +74,7 @@ public class SonarCacheAction extends InvisibleAction {
       return cached;
     }
 
-    ProjectInformation proj = resolver.resolve(analysis.getServerUrl(), analysis.getUrl(), taskId, analysis.getInstallationName());
+    ProjectInformation proj = resolver.resolve(analysis.getServerUrl(), analysis.getUrl(), taskId, analysis.getInstallationName(), run);
     if (proj != null) {
       infoByTaskId.put(taskId, proj);
     }
