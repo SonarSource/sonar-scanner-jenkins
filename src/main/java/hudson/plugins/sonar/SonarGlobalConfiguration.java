@@ -19,6 +19,8 @@
  */
 package hudson.plugins.sonar;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.common.*;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -26,10 +28,14 @@ import hudson.init.InitMilestone;
 import hudson.init.Initializer;
 import hudson.plugins.sonar.SonarPublisher.DescriptorImpl;
 import hudson.plugins.sonar.utils.Logger;
+import hudson.security.ACL;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -118,6 +124,23 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
 
   public static SonarGlobalConfiguration get() {
     return GlobalConfiguration.all().get(SonarGlobalConfiguration.class);
+  }
+
+  @SuppressWarnings("unused")
+  public ListBoxModel doFillCredentialsIdItems(@QueryParameter String credentialsId) {
+    if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+      return new StandardListBoxModel().includeCurrentValue(credentialsId);
+    }
+
+    return new StandardListBoxModel()
+      .includeEmptyValue()
+      .includeMatchingAs(
+        ACL.SYSTEM,
+        Jenkins.getInstance(),
+        StandardCredentials.class,
+        Collections.emptyList(),
+        CredentialsMatchers.always()
+      );
   }
 
 }
