@@ -32,6 +32,10 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
@@ -90,8 +94,9 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testSonarProps() throws Exception {
-    SonarInstallation inst = new SonarInstallation("default", "http://dummy-server:9090", "token",
-      null, null, null, null);
+    SonarInstallation inst = spy(new SonarInstallation("default", "http://dummy-server:9090", "credentialsId",
+      null, null, null, null));
+    when(inst.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
     configureSonar(inst);
     configureMsBuildScanner(false);
 

@@ -49,8 +49,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
-
-import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -363,10 +361,9 @@ public class SonarRunnerBuilder extends Builder {
     TaskListener listener, EnvVars env, @Nullable SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.host.url", si.getServerUrl());
-      Secret token = si.getServerAuthenticationToken();
-      String tokenPlainText = token.getPlainText();
-      if (StringUtils.isNotBlank(tokenPlainText)) {
-        args.appendMasked("sonar.login", tokenPlainText);
+      String token = si.getServerAuthenticationToken(build);
+      if (StringUtils.isNotBlank(token)) {
+        args.appendMasked("sonar.login", token);
       }
     }
 

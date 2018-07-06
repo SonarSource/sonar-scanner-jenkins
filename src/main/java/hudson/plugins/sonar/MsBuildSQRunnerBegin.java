@@ -38,8 +38,6 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
-
-import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -96,7 +94,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
       addDotNetCommand(args);
     }
     args.add(scannerPath);
-    Map<String, String> props = getSonarProps(sonarInstallation);
+    Map<String, String> props = getSonarProps(sonarInstallation, run);
     addArgsTo(args, sonarInstallation, env, props);
 
     int result = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(run, workspace)).join();
@@ -106,15 +104,13 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     }
   }
 
-  private static Map<String, String> getSonarProps(SonarInstallation inst) {
+  private static Map<String, String> getSonarProps(SonarInstallation inst, Run<?, ?> run) {
     Map<String, String> map = new LinkedHashMap<>();
 
     map.put("sonar.host.url", inst.getServerUrl());
-  
-    Secret token = inst.getServerAuthenticationToken();
-    String tokenPlainText = token.getPlainText();
-    if (!StringUtils.isBlank(tokenPlainText)) {
-      map.put("sonar.login", tokenPlainText);
+    String token = inst.getServerAuthenticationToken(run);
+    if (!StringUtils.isBlank(token)) {
+      map.put("sonar.login", token);
     }
 
     return map;

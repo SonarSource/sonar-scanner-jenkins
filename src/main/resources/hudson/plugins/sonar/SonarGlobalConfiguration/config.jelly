@@ -1,6 +1,6 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
          
   <script type="text/javascript" src="${rootURL}/plugin/sonar/js/global_config.js" />
   
@@ -20,9 +20,9 @@
           <f:entry title="${%ServerUrl}" description="${%ServerUrlDescr}">
             <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}"/>
           </f:entry>
-                    
-          <f:entry title="${%ServerToken}" description="${%ServerTokenDescr}">
-            <f:password name="sonar.serverAuthenticationToken" value="${inst.getServerAuthenticationToken()}"/>
+
+          <f:entry title="${%ServerToken}" field="credentialsId">
+            <c:select value="${inst.getCredentialsId()}"/>
           </f:entry>
 
           <f:advanced>

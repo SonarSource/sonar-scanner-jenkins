@@ -19,12 +19,11 @@
  */
 package hudson.plugins.sonar.client;
 
+import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.Version;
-import org.apache.commons.lang.StringUtils;
-
 import java.util.logging.Level;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
@@ -42,7 +41,7 @@ public class SQProjectResolver {
    * Errors that should be displayed are included in {@link ProjectInformation#getErrors()}.
    */
   @CheckForNull
-  public ProjectInformation resolve(@Nullable String serverUrl, @Nullable String projectDashboardUrl, String ceTaskId, String installationName) {
+  public ProjectInformation resolve(@Nullable String serverUrl, @Nullable String projectDashboardUrl, String ceTaskId, String installationName, Run<?, ?> build) {
     SonarInstallation inst = SonarInstallation.get(installationName);
     if (inst == null) {
       Logger.LOG.info(() -> "Invalid installation name: " + installationName);
@@ -54,9 +53,7 @@ public class SQProjectResolver {
     }
 
     try {
-      String tokenPlainText = inst.getServerAuthenticationToken().getPlainText();
-      String tokenToPass = StringUtils.isBlank(tokenPlainText) ? null : tokenPlainText;
-      WsClient wsClient = new WsClient(client, serverUrl, tokenToPass);
+      WsClient wsClient = new WsClient(client, serverUrl, inst.getServerAuthenticationToken(build));
       Version version = new Version(wsClient.getServerVersion());
 
       if (version.compareTo(new Version("5.6")) < 0) {

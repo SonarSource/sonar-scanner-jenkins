@@ -19,13 +19,15 @@
  */
 package hudson.plugins.sonar;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.PasswordCredentials;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import hudson.AbortException;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.model.TriggersConfig;
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
-
-import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -39,9 +41,9 @@ public class SonarInstallation implements Serializable {
   private final String serverUrl;
 
   /**
-   * @since 2.4
+   * @since 2.9
    */
-  private Secret serverAuthenticationToken;
+  private String credentialsId;
 
   /**
    * @since 1.5
@@ -59,12 +61,12 @@ public class SonarInstallation implements Serializable {
 
   @DataBoundConstructor
   public SonarInstallation(String name,
-    String serverUrl, String serverAuthenticationToken,
+    String serverUrl, String credentialsId,
     String mojoVersion, String additionalProperties, TriggersConfig triggers,
     String additionalAnalysisProperties) {
     this.name = name;
     this.serverUrl = serverUrl;
-    this.serverAuthenticationToken = Secret.fromString(StringUtils.trimToNull(serverAuthenticationToken));
+    this.credentialsId = credentialsId;
     this.additionalAnalysisProperties = additionalAnalysisProperties;
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
@@ -137,10 +139,29 @@ public class SonarInstallation implements Serializable {
   }
 
   /**
-   * @since 2.4
+   * @since 2.9
    */
-  public Secret getServerAuthenticationToken() {
-    return serverAuthenticationToken;
+  public String getServerAuthenticationToken(Run<?, ?> build) {
+    if (credentialsId == null || build == null) {
+      return null;
+    }
+    StandardCredentials cred = this.getCredentials(build);
+    if (cred == null) {
+      return null;
+    }
+    return ((PasswordCredentials) cred).getPassword().getPlainText();
+  }
+
+  public StandardCredentials getCredentials(Run<?, ?> build) {
+    return CredentialsProvider.findCredentialById(credentialsId, StandardCredentials.class, build);
+  }
+
+  /**
+   * @since 2.9
+   */
+  @SuppressWarnings("unused")
+  public String getCredentialsId() {
+    return credentialsId;
   }
 
   /**
