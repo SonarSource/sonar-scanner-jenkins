@@ -23,6 +23,7 @@ import hudson.Launcher;
 import hudson.maven.local_repo.DefaultLocalRepositoryLocator;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.util.ArgumentListBuilder;
@@ -32,6 +33,7 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,7 +47,7 @@ public class SonarMavenTest {
     SonarPublisher publisher = mock(SonarPublisher.class);
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
-    when(installation.getServerAuthenticationToken()).thenReturn("xyz");
+    when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("xyz");
     when(publisher.getInstallation()).thenReturn(installation);
     when(publisher.getBranch()).thenReturn("branch");
 

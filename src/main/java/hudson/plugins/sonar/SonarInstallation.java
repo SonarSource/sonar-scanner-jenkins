@@ -142,10 +142,14 @@ public class SonarInstallation implements Serializable {
    * @since X
    */
   public String getServerAuthenticationToken(Run<?, ?> build) {
-    if (credentialsId == null) { return null; }
-    StandardCredentials cred = CredentialsProvider.findCredentialById(credentialsId, StandardCredentials.class, build);
+    if (credentialsId == null || build == null) { return null; }
+    StandardCredentials cred = this.getCredentials(build);
     if (cred == null) { return null; }
     return ((PasswordCredentials) cred).getPassword().getPlainText();
+  }
+
+  public StandardCredentials getCredentials(Run<?, ?> build) {
+    return CredentialsProvider.findCredentialById(credentialsId, StandardCredentials.class, build);
   }
 
   /**
