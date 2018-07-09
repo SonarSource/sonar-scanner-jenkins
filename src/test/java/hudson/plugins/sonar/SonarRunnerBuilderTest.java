@@ -26,6 +26,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.Node;
+import hudson.model.Run;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.scm.SCM;
 import hudson.util.ArgumentListBuilder;
@@ -130,7 +131,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   public void shouldPopulateSonarToken() throws IOException, InterruptedException {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
-    when(installation.getServerAuthenticationToken()).thenReturn("token");
+    when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
 
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation);

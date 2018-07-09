@@ -19,7 +19,10 @@
  */
 package hudson.plugins.sonar;
 
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.Util;
+import hudson.model.Run;
 import hudson.plugins.sonar.model.TriggersConfig;
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +30,8 @@ import jenkins.model.Jenkins;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Evgeny Mandrikov
@@ -37,14 +42,45 @@ public class SonarInstallationTest extends SonarTestCase {
   public void testRoundtrip() throws IOException {
     TriggersConfig triggers = new TriggersConfig();
     SonarGlobalConfiguration d = new SonarGlobalConfiguration();
-    d.setInstallations(new SonarInstallation(
-      "Name",
-      "server.url",
-      " tokenWithSpace ",
-      "mojoVersion",
-      "props",
-      triggers,
-      "key=value"));
+    SonarInstallation inst = spy(new SonarInstallation(
+        "Name",
+        "server.url",
+        "credentialsId",
+        "mojoVersion",
+        "props",
+        triggers,
+        "key=value"));
+    StandardCredentials cred = new UsernamePasswordCredentialsImpl(null, null, null, null, "token");
+    doReturn(cred).when(inst).getCredentials(any(Run.class));
+    d.setInstallations(inst);
+
+    SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
+    String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), d.getId() + ".xml"));
+
+    assertThat(i.getName()).isEqualTo("Name");
+    assertThat(i.getServerUrl()).isEqualTo("server.url");
+    assertThat(i.getServerAuthenticationToken(mock(Run.class))).isEqualTo("token");
+    assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
+    assertThat(i.getAdditionalProperties()).isEqualTo("props");
+    assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");
+
+    assertThat(storedConfig).doesNotContain("dbPasswd");
+    assertThat(storedConfig).doesNotContain("sonarPasswd");
+  }
+
+  @Test
+  public void testRoundtripWithoutToken() throws IOException {
+    TriggersConfig triggers = new TriggersConfig();
+    SonarInstallation inst = new SonarInstallation(
+        "Name",
+        "server.url",
+        null,
+        "mojoVersion",
+        "props",
+        triggers,
+        "key=value");
+    SonarGlobalConfiguration d = new SonarGlobalConfiguration();
+    d.setInstallations(inst);
     d.save();
 
     SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
@@ -52,7 +88,7 @@ public class SonarInstallationTest extends SonarTestCase {
 
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
-    assertThat(i.getServerAuthenticationToken()).isEqualTo("tokenWithSpace");
+    assertThat(i.getServerAuthenticationToken(any())).isEqualTo(null);
     assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
     assertThat(i.getAdditionalProperties()).isEqualTo("props");
     assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");

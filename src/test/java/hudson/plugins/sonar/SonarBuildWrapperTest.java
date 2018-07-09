@@ -45,13 +45,16 @@ import org.jvnet.hudson.test.TestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class SonarBuildWrapperTest extends SonarTestCase {
 
   private static final String MYTOKEN = "mytoken";
+  private static final String CREDENTIALSID = "mycredentialsid";
   private SonarBuildWrapper wrapper;
   private SonarInstallation installation;
   private PrintStream stream;
@@ -59,7 +62,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   @Before
   public void setUp() {
     wrapper = new SonarBuildWrapper("local");
-    installation = createTestInstallation();
+    installation = spy(createTestInstallation());
     stream = mock(PrintStream.class);
   }
 
@@ -103,8 +106,10 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   @Test
   public void maskAuthToken() throws IOException, InterruptedException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    configureSonar(new SonarInstallation("local", "http://localhost:9001", MYTOKEN, null, null,
-      new TriggersConfig(), null));
+    SonarInstallation inst = spy(new SonarInstallation("local", "http://localhost:9001", CREDENTIALSID, null, null,
+        new TriggersConfig(), null));
+    when(inst.getServerAuthenticationToken(any(Run.class))).thenReturn(MYTOKEN);
+    configureSonar(inst);
 
     OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
     IOUtils.write("test sonar\ntest mytoken\n", os);
@@ -113,13 +118,14 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
   @Test
   public void testEnvironment() {
-    installation = createTestInstallationForEnv();
+    installation = spy(createTestInstallationForEnv());
+    when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn(MYTOKEN);
 
     EnvVars initialEnvironment = new EnvVars();
     initialEnvironment.put("MY_SERVER", "myserver");
     initialEnvironment.put("MY_PORT", "10000");
     initialEnvironment.put("MY_VALUE", "myValue");
-    Map<String, String> map = SonarBuildWrapper.createVars(installation, initialEnvironment);
+    Map<String, String> map = SonarBuildWrapper.createVars(installation, initialEnvironment, mock(Run.class));
 
     assertThat(map).containsEntry("SONAR_HOST_URL", "http://myserver:10000");
     assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
@@ -136,7 +142,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   public void testEnvironmentMojoVersion() {
     installation = new SonarInstallation(null, null, null, "2.0", null, null, null);
 
-    Map<String, String> map = SonarBuildWrapper.createVars(installation, new EnvVars());
+    Map<String, String> map = SonarBuildWrapper.createVars(installation, new EnvVars(), mock(Run.class));
 
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "org.codehaus.mojo:sonar-maven-plugin:2.0:sonar");
   }
@@ -180,6 +186,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   @Test
   public void testBuild() throws Exception {
     // set up a free style project with our wrapper that will execute CaptureVarsBuilder
+    when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn(MYTOKEN);
     configureSonar(installation);
     CaptureVarsBuilder b = new CaptureVarsBuilder();
     FreeStyleProject project = setupFreeStyleProject(b);
@@ -201,6 +208,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   @Test
   public void testFailedBuild() throws Exception {
     // set up a free style project with our wrapper that will execute CaptureVarsBuilder
+    when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn(MYTOKEN);
     configureSonar(installation);
     CaptureVarsBuilder b = new CaptureVarsBuilder(true);
     FreeStyleProject project = setupFreeStyleProject(b);
@@ -242,12 +250,12 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   private static SonarInstallation createTestInstallation() {
-    return new SonarInstallation("local", "http://localhost:9001", MYTOKEN, null,
+    return new SonarInstallation("local", "http://localhost:9001", CREDENTIALSID, null,
       "-X", new TriggersConfig(), "key=value");
   }
 
   private static SonarInstallation createTestInstallationForEnv() {
-    return new SonarInstallation("local", "http://$MY_SERVER:$MY_PORT", MYTOKEN, null,
+    return new SonarInstallation("local", "http://$MY_SERVER:$MY_PORT", CREDENTIALSID, null,
       "-X", new TriggersConfig(), "key=$MY_VALUE");
   }
 
