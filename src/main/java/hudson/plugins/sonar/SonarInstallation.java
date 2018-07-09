@@ -153,6 +153,12 @@ public class SonarInstallation implements Serializable {
   }
 
   /**
+   * @since X
+   */
+  @SuppressWarnings("unused")
+  public String getCredentialsId() { return credentialsId; }
+
+  /**
    * @return version of sonar-maven-plugin to use
    * @since 1.5
    */
