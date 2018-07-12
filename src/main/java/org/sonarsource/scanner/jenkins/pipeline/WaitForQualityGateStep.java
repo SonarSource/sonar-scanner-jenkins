@@ -30,6 +30,8 @@ import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.WsClient;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -142,7 +144,10 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       String ceTaskId = null;
       String serverUrl = null;
       String installationName = null;
-      for (SonarAnalysisAction a : actions) {
+      // Consider last analysis first
+      List<SonarAnalysisAction> reversedActions = new ArrayList<>(actions);
+      Collections.reverse(reversedActions);
+      for (SonarAnalysisAction a : reversedActions) {
         ceTaskId = a.getCeTaskId();
         if (ceTaskId != null) {
           serverUrl = a.getServerUrl();
