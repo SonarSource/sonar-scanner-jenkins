@@ -68,8 +68,10 @@ public class WaitForQualityGateStepTest {
   }
 
   private static final String JOB_NAME = "p";
-  private static final String FAKE_TASK_ID = "fakeTaskId";
-  private static final String FAKE_ANALYSIS_ID = "123456";
+  private static final String FAKE_TASK_ID_1 = "fakeTaskId1";
+  private static final String FAKE_ANALYSIS_ID_1 = "123456";
+  private static final String FAKE_TASK_ID_2 = "fakeTaskId2";
+  private static final String FAKE_ANALYSIS_ID_2 = "7891011";
 
   public static final String SONAR_INSTALLATION_NAME = "default";
 
@@ -111,12 +113,12 @@ public class WaitForQualityGateStepTest {
     story.addStep(new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        handler.status = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true);
+        handler.status1 = "PENDING";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, false);
         WorkflowRun b = pipeline.waitForStart();
 
         submitWebHook("another task", "FAILURE", "KO", b);
-        submitWebHook(FAKE_TASK_ID, "SUCCESS", "OK", b);
+        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b);
         story.j.assertBuildStatusSuccess(pipeline);
       }
     });
@@ -127,12 +129,29 @@ public class WaitForQualityGateStepTest {
     story.addStep(new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        handler.status = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false);
+        handler.status1 = "PENDING";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
         WorkflowRun b = pipeline.waitForStart();
 
-        submitWebHook(FAKE_TASK_ID, "SUCCESS", "KO", b);
+        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "KO", b);
         story.j.assertBuildStatus(Result.FAILURE, pipeline);
+      }
+    });
+  }
+
+  @Test
+  public void waitForQualityGate_TwoAnalysis() {
+    story.addStep(new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        handler.status1 = "PENDING";
+        handler.status2 = "PENDING";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, true);
+        WorkflowRun b = pipeline.waitForStart();
+
+        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b);
+        submitWebHook(FAKE_TASK_ID_2, "SUCCESS", "OK", b);
+        story.j.assertBuildStatusSuccess(pipeline);
       }
     });
   }
@@ -142,8 +161,8 @@ public class WaitForQualityGateStepTest {
     story.addStep(new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        handler.status = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false);
+        handler.status1 = "PENDING";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
         WorkflowRun b = pipeline.waitForStart();
         waitForStepToWait(b);
         b.doStop();
@@ -158,14 +177,14 @@ public class WaitForQualityGateStepTest {
     story.addStep(new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        handler.status = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false);
+        handler.status1 = "PENDING";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
         WorkflowRun b = pipeline.waitForStart();
         waitForStepToWait(b);
 
-        submitWebHook(FAKE_TASK_ID, "FAILED", null, b);
+        submitWebHook(FAKE_TASK_ID_1, "FAILED", null, b);
         WorkflowRun r = story.j.assertBuildStatus(Result.FAILURE, pipeline);
-        story.j.assertLogContains("SonarQube analysis '" + FAKE_TASK_ID + "' failed: FAILED", r);
+        story.j.assertLogContains("SonarQube analysis '" + FAKE_TASK_ID_1 + "' failed: FAILED", r);
       }
     });
   }
@@ -175,10 +194,10 @@ public class WaitForQualityGateStepTest {
     story.addStep(new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        handler.status = "SUCCESS";
-        handler.analysisId = FAKE_ANALYSIS_ID;
-        handler.qgStatus = "OK";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false);
+        handler.status1 = "SUCCESS";
+        handler.analysisId1 = FAKE_ANALYSIS_ID_1;
+        handler.qgStatus1 = "OK";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
         story.j.assertBuildStatusSuccess(pipeline);
       }
     });
@@ -189,10 +208,10 @@ public class WaitForQualityGateStepTest {
     story.addStep(new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        handler.status = "SUCCESS";
-        handler.analysisId = FAKE_ANALYSIS_ID;
-        handler.qgStatus = "KO";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false);
+        handler.status1 = "SUCCESS";
+        handler.analysisId1 = FAKE_ANALYSIS_ID_1;
+        handler.qgStatus1 = "KO";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
         story.j.assertBuildStatus(Result.FAILURE, pipeline);
       }
     });
@@ -203,11 +222,11 @@ public class WaitForQualityGateStepTest {
     story.addStep(new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        handler.status = "FAILED";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false);
+        handler.status1 = "FAILED";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
 
         WorkflowRun run = story.j.assertBuildStatus(Result.FAILURE, pipeline);
-        story.j.assertLogContains("SonarQube task '" + FAKE_TASK_ID + "' status is 'FAILED'", run);
+        story.j.assertLogContains("SonarQube task '" + FAKE_TASK_ID_1 + "' status is 'FAILED'", run);
       }
     });
   }
@@ -217,8 +236,8 @@ public class WaitForQualityGateStepTest {
     story.addStep(new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        handler.status = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false);
+        handler.status1 = "PENDING";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
         WorkflowRun b = pipeline.waitForStart();
         waitForStepToWait(b);
       }
@@ -228,7 +247,7 @@ public class WaitForQualityGateStepTest {
       public void evaluate() throws Throwable {
         WorkflowJob p = story.j.jenkins.getItemByFullName(JOB_NAME, WorkflowJob.class);
         WorkflowRun b = p.getLastBuild();
-        submitWebHook(FAKE_TASK_ID, "SUCCESS", "OK", b);
+        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b);
         story.j.assertBuildStatusSuccess(story.j.waitForCompletion(b));
       }
     });
@@ -239,14 +258,14 @@ public class WaitForQualityGateStepTest {
     story.addStep(new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        handler.status = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false);
+        handler.status1 = "PENDING";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
         WorkflowRun b = pipeline.waitForStart();
         waitForStepToWait(b);
 
-        handler.status = "SUCCESS";
-        handler.analysisId = FAKE_ANALYSIS_ID;
-        handler.qgStatus = "OK";
+        handler.status1 = "SUCCESS";
+        handler.analysisId1 = FAKE_ANALYSIS_ID_1;
+        handler.qgStatus1 = "OK";
       }
     });
     story.addStep(new Statement() {
@@ -276,96 +295,138 @@ public class WaitForQualityGateStepTest {
     }
   }
 
-  private QueueTaskFuture<WorkflowRun> submitPipeline(boolean specifyServer) throws IOException, InterruptedException, ExecutionException {
+  private QueueTaskFuture<WorkflowRun> submitPipeline(boolean specifyServer, boolean twoProjects) throws IOException, InterruptedException, ExecutionException {
     SonarQubeWebHook.get().listeners.clear();
     String serverUrl = "http://localhost:" + port + "/sonarqube";
     story.j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class)
       .setInstallations(
         new SonarInstallation(SONAR_INSTALLATION_NAME, serverUrl, null, null, null, null, null));
     WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
-    String reportTaskContent = "dashboardUrl=" + serverUrl + "/dashboard\\n"
-      + "ceTaskId=" + FAKE_TASK_ID + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
+    String reportTaskContent1 = "dashboardUrl=" + serverUrl + "/dashboard\\n"
+      + "ceTaskId=" + FAKE_TASK_ID_1 + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
+    String reportTaskContent2 = "dashboardUrl=" + serverUrl + "/dashboard\\n"
+      + "ceTaskId=" + FAKE_TASK_ID_2 + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
     p.setDefinition(new CpsFlowDefinition(
-      script(reportTaskContent, specifyServer),
+      script(reportTaskContent1, reportTaskContent2, specifyServer, twoProjects),
       true));
     return p.scheduleBuild2(0);
   }
 
-  private String script(String reportTaskContent, boolean specifyServer) {
+  private String script(String reportTaskContent1, String reportTaskContent2, boolean specifyServer, boolean twoProjects) {
     if (this.declarative) {
       StringBuilder pipeline = new StringBuilder();
       pipeline.append("pipeline {\n");
       pipeline.append("  agent none\n");
       pipeline.append("  stages {\n");
-      pipeline.append("    stage(\"Scan\") {\n");
-      pipeline.append("      agent any\n");
-      pipeline.append("      steps {\n");
-      pipeline.append("        withSonarQubeEnv('" + SONAR_INSTALLATION_NAME + "') {\n");
-      pipeline.append("          writeFile file: 'foo/");
-      pipeline.append(SonarUtils.REPORT_TASK_FILE_NAME);
-      pipeline.append("', text: '");
-      pipeline.append(reportTaskContent);
-      pipeline.append("', encoding: 'utf-8'\n");
-      pipeline.append("          ");
-      pipeline.append((SystemUtils.IS_OS_WINDOWS ? "bat" : "sh"));
-      pipeline.append(" 'mvn -version'\n");
-      pipeline.append("        }\n");
-      pipeline.append("      }\n");
-      pipeline.append("    }\n");
-      pipeline.append("    stage(\"Quality Gate\") {\n");
-      pipeline.append("      steps {\n");
-      pipeline.append("        waitForQualityGate abortPipeline: true\n");
-      pipeline.append("      }\n");
-      pipeline.append("    }\n");
+      declarativePipelineOneProject(1, reportTaskContent1, pipeline);
+      if (twoProjects) {
+        declarativePipelineOneProject(2, reportTaskContent2, pipeline);
+      }
       pipeline.append("  }\n");
       pipeline.append("}");
       return pipeline.toString();
     } else {
       StringBuilder pipeline = new StringBuilder();
-      pipeline.append("node {\n");
-      if (specifyServer) {
-        pipeline.append("  withSonarQubeEnv('" + SONAR_INSTALLATION_NAME + "') {\n");
-      } else {
-        pipeline.append("  withSonarQubeEnv {\n");
+      scriptedPipelineOneProject(1, reportTaskContent1, specifyServer, pipeline);
+      if (twoProjects) {
+        scriptedPipelineOneProject(2, reportTaskContent2, specifyServer, pipeline);
       }
-      pipeline.append("    writeFile file: 'foo/");
-      pipeline.append(SonarUtils.REPORT_TASK_FILE_NAME);
-      pipeline.append("', text: '");
-      pipeline.append(reportTaskContent);
-      pipeline.append("', encoding: 'utf-8'\n");
-      pipeline.append("    ");
-      pipeline.append((SystemUtils.IS_OS_WINDOWS ? "bat" : "sh"));
-      pipeline.append(" 'mvn -version'\n");
-      pipeline.append("  }\n");
-      pipeline.append("}\n");
-      pipeline.append("def qg = waitForQualityGate();\n");
-      pipeline.append("if (qg.status != 'OK') {\n");
-      pipeline.append("  error 'QG failure'\n");
-      pipeline.append("}");
       return pipeline.toString();
     }
   }
 
+  private void declarativePipelineOneProject(int id, String reportTaskContent, StringBuilder pipeline) {
+    pipeline.append("    stage(\"Scan " + id + "\") {\n");
+    pipeline.append("      agent any\n");
+    pipeline.append("      steps {\n");
+    pipeline.append("        dir(path: 'project" + id + "') {\n");
+    pipeline.append("          withSonarQubeEnv('" + SONAR_INSTALLATION_NAME + "') {\n");
+    pipeline.append("            writeFile file: 'foo/");
+    pipeline.append(SonarUtils.REPORT_TASK_FILE_NAME);
+    pipeline.append("', text: '");
+    pipeline.append(reportTaskContent);
+    pipeline.append("', encoding: 'utf-8'\n");
+    pipeline.append("            ");
+    pipeline.append((SystemUtils.IS_OS_WINDOWS ? "bat" : "sh"));
+    pipeline.append(" 'mvn -version'\n");
+    pipeline.append("          }\n");
+    pipeline.append("        }\n");
+    pipeline.append("      }\n");
+    pipeline.append("    }\n");
+    pipeline.append("    stage(\"Quality Gate " + id + "\") {\n");
+    pipeline.append("      steps {\n");
+    pipeline.append("        waitForQualityGate abortPipeline: true\n");
+    pipeline.append("      }\n");
+    pipeline.append("    }\n");
+  }
+
+  private void scriptedPipelineOneProject(int id, String reportTaskContent, boolean specifyServer, StringBuilder pipeline) {
+    pipeline.append("node {\n");
+    pipeline.append("  dir(path: 'project" + id + "') {\n");
+    if (specifyServer) {
+      pipeline.append("    withSonarQubeEnv('" + SONAR_INSTALLATION_NAME + "') {\n");
+    } else {
+      pipeline.append("    withSonarQubeEnv {\n");
+    }
+    pipeline.append("      writeFile file: 'foo/");
+    pipeline.append(SonarUtils.REPORT_TASK_FILE_NAME);
+    pipeline.append("', text: '");
+    pipeline.append(reportTaskContent);
+    pipeline.append("', encoding: 'utf-8'\n");
+    pipeline.append("      ");
+    pipeline.append((SystemUtils.IS_OS_WINDOWS ? "bat" : "sh"));
+    pipeline.append(" 'mvn -version'\n");
+    pipeline.append("    }\n");
+    pipeline.append("  }\n");
+    pipeline.append("}\n");
+    pipeline.append("def qg" + id + " = waitForQualityGate();\n");
+    pipeline.append("if (qg" + id + ".status != 'OK') {\n");
+    pipeline.append("  error 'QG" + id + " failure'\n");
+    pipeline.append("}\n");
+  }
+
   static class MyHandler implements HttpHandler {
 
-    String status = "PENDING";
-    String analysisId = null;
-    String qgStatus = null;
+    String status1 = "PENDING";
+    String analysisId1 = null;
+    String qgStatus1 = null;
+    String status2 = "PENDING";
+    String analysisId2 = null;
+    String qgStatus2 = null;
 
     @Override
     public void handle(HttpExchange t) throws IOException {
       if (t.getRequestURI().getPath().equals("/sonarqube/api/server/version")) {
         response(t, 200, "6.7");
-      } else if (t.getRequestURI().getPath().equals("/sonarqube/api/ce/task") && t.getRequestURI().getQuery().equals("id=" + FAKE_TASK_ID)) {
-        response(t, 200, "{ task: {\"componentKey\": \"project_1\","
-          + "\"componentName\": \"Project One\","
-          + (analysisId != null ? ("\"analysisId\": \"" + analysisId + "\",") : "")
-          + "\"status\": \"" + status + "\"}}");
-      } else if (t.getRequestURI().getPath().equals("/sonarqube/api/qualitygates/project_status") && t.getRequestURI().getQuery().equals("analysisId=" + FAKE_ANALYSIS_ID)) {
-        response(t, 200, "{ projectStatus: {\"status\": \"" + qgStatus + "\"}}");
-      } else {
-        response(t, 404, "not found");
+        return;
       }
+      if (t.getRequestURI().getPath().equals("/sonarqube/api/ce/task")) {
+        if (t.getRequestURI().getQuery().equals("id=" + FAKE_TASK_ID_1)) {
+          response(t, 200, "{ task: {\"componentKey\": \"project_1\","
+            + "\"componentName\": \"Project One\","
+            + (analysisId1 != null ? ("\"analysisId\": \"" + analysisId1 + "\",") : "")
+            + "\"status\": \"" + status1 + "\"}}");
+          return;
+        }
+        if (t.getRequestURI().getQuery().equals("id=" + FAKE_TASK_ID_2)) {
+          response(t, 200, "{ task: {\"componentKey\": \"project_2\","
+            + "\"componentName\": \"Project Two\","
+            + (analysisId2 != null ? ("\"analysisId\": \"" + analysisId2 + "\",") : "")
+            + "\"status\": \"" + status2 + "\"}}");
+          return;
+        }
+      }
+      if (t.getRequestURI().getPath().equals("/sonarqube/api/qualitygates/project_status")) {
+        if (t.getRequestURI().getQuery().equals("analysisId=" + FAKE_ANALYSIS_ID_1)) {
+          response(t, 200, "{ projectStatus: {\"status\": \"" + qgStatus1 + "\"}}");
+          return;
+        }
+        if (t.getRequestURI().getQuery().equals("analysisId=" + FAKE_ANALYSIS_ID_2)) {
+          response(t, 200, "{ projectStatus: {\"status\": \"" + qgStatus2 + "\"}}");
+          return;
+        }
+      }
+      response(t, 404, "not found");
     }
 
     private void response(HttpExchange t, int code, String body) throws IOException {
