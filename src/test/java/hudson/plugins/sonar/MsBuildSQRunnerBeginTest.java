@@ -20,7 +20,6 @@
 package hudson.plugins.sonar;
 
 import hudson.EnvVars;
-import hudson.Util;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
