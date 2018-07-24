@@ -23,11 +23,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 
 public class MsBuildSonarQubeRunnerInstallerTest extends SonarTestCase {
-  private MsBuildSonarQubeRunnerInstaller installer;
-  
+
   @Test
   public void test() {
-    installer = new MsBuildSonarQubeRunnerInstaller("2.0");
+    MsBuildSonarQubeRunnerInstaller installer = new MsBuildSonarQubeRunnerInstaller("2.0");
     assertThat(installer.getDescriptor().isApplicable(MsBuildSQRunnerInstallation.class)).isTrue();
   }
 }
