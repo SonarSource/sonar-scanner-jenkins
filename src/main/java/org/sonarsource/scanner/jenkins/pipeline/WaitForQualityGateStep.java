@@ -197,7 +197,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     }
 
     private void handleQGStatus(String status) {
-      if (step.isAbortPipeline() && !"OK".equals(status)) {
+      if (step.isAbortPipeline() && !"OK".equals(status) && !"WARN".equals(status)) {
         getContext().onFailure(new AbortException("Pipeline aborted due to quality gate failure: " + status));
       } else {
         getContext().onSuccess(new QGStatus(status));
