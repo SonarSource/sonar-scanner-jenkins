@@ -35,7 +35,6 @@ import com.sonar.orchestrator.version.Version;
 import hudson.cli.CLI;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -121,14 +120,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     ServerInstaller serverInstaller = new ServerInstaller(config);
     server = serverInstaller.install(distribution);
     server.setUrl(String.format("http://localhost:%d", port));
-
-    // Copy from resources the specific version of the jenkins crawler result file
-    InputStream stream = this.getClass().getResourceAsStream("/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller");
-    try {
-      FileUtils.copyInputStreamToFile(stream, new File(server.getHome(), "updates/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller"));
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
 
     jenkinsWrapper = new JenkinsWrapper(server, config, config.fileSystem().javaHome(), port);
     jenkinsWrapper.start();
