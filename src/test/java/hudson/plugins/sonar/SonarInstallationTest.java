@@ -23,6 +23,8 @@ import hudson.Util;
 import hudson.plugins.sonar.model.TriggersConfig;
 import java.io.File;
 import java.io.IOException;
+
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.junit.Test;
 
@@ -40,7 +42,7 @@ public class SonarInstallationTest extends SonarTestCase {
     d.setInstallations(new SonarInstallation(
       "Name",
       "server.url",
-      " tokenWithSpace ",
+      "token",
       "mojoVersion",
       "props",
       triggers,
@@ -52,7 +54,7 @@ public class SonarInstallationTest extends SonarTestCase {
 
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
-    assertThat(i.getServerAuthenticationToken()).isEqualTo("tokenWithSpace");
+    assertThat(i.getServerAuthenticationToken().getPlainText()).isEqualTo("token");
     assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
     assertThat(i.getAdditionalProperties()).isEqualTo("props");
     assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");

@@ -31,6 +31,8 @@ import hudson.scm.SCM;
 import hudson.util.ArgumentListBuilder;
 import java.io.File;
 import java.io.IOException;
+
+import hudson.util.Secret;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -130,7 +132,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   public void shouldPopulateSonarToken() throws IOException, InterruptedException {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
-    when(installation.getServerAuthenticationToken()).thenReturn("token");
+    when(installation.getServerAuthenticationToken()).thenReturn(Secret.fromString("token"));
 
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation);

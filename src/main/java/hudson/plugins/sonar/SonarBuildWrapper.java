@@ -43,6 +43,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+
+import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
@@ -83,7 +85,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     map.put("SONAR_CONFIG_NAME", inst.getName());
     String hostUrl = getOrDefault(initialEnvironment.expand(inst.getServerUrl()), "http://localhost:9000");
     map.put("SONAR_HOST_URL", hostUrl);
-    String token = getOrDefault(initialEnvironment.expand(inst.getServerAuthenticationToken()), "");
+    String token = getOrDefault(initialEnvironment.expand(inst.getServerAuthenticationToken().getPlainText()), "");
     map.put("SONAR_AUTH_TOKEN", token);
 
     String mojoVersion = inst.getMojoVersion();
@@ -143,8 +145,10 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     List<String> passwords = new ArrayList<>();
 
-    if (!StringUtils.isBlank(inst.getServerAuthenticationToken())) {
-      passwords.add(inst.getServerAuthenticationToken());
+    Secret token = inst.getServerAuthenticationToken();
+    String tokenPlainText = token.getPlainText();
+    if (!StringUtils.isBlank(tokenPlainText)) {
+      passwords.add(tokenPlainText);
     }
 
     return new SonarQubePasswordLogFilter(passwords, build.getCharset().name());

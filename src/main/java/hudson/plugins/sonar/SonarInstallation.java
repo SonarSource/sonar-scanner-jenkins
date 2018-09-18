@@ -24,6 +24,8 @@ import hudson.model.TaskListener;
 import hudson.plugins.sonar.model.TriggersConfig;
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
+
+import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -39,7 +41,7 @@ public class SonarInstallation implements Serializable {
   /**
    * @since 2.4
    */
-  private String serverAuthenticationToken;
+  private Secret serverAuthenticationToken;
 
   /**
    * @since 1.5
@@ -62,7 +64,7 @@ public class SonarInstallation implements Serializable {
     String additionalAnalysisProperties) {
     this.name = name;
     this.serverUrl = serverUrl;
-    this.serverAuthenticationToken = serverAuthenticationToken;
+    this.serverAuthenticationToken = Secret.fromString(StringUtils.trimToNull(serverAuthenticationToken));
     this.additionalAnalysisProperties = additionalAnalysisProperties;
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
@@ -137,8 +139,8 @@ public class SonarInstallation implements Serializable {
   /**
    * @since 2.4
    */
-  public String getServerAuthenticationToken() {
-    return StringUtils.trimToNull(serverAuthenticationToken);
+  public Secret getServerAuthenticationToken() {
+    return serverAuthenticationToken;
   }
 
   /**

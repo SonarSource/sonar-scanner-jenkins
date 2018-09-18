@@ -27,6 +27,8 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.util.ArgumentListBuilder;
 import java.util.List;
+
+import hudson.util.Secret;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -45,7 +47,7 @@ public class SonarMavenTest {
     SonarPublisher publisher = mock(SonarPublisher.class);
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
-    when(installation.getServerAuthenticationToken()).thenReturn("xyz");
+    when(installation.getServerAuthenticationToken()).thenReturn(Secret.fromString("xyz"));
     when(publisher.getInstallation()).thenReturn(installation);
     when(publisher.getBranch()).thenReturn("branch");
 

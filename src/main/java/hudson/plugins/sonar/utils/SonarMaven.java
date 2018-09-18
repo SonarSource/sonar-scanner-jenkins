@@ -36,6 +36,8 @@ import hudson.plugins.sonar.SonarPublisher;
 import hudson.tasks.Maven;
 import hudson.util.ArgumentListBuilder;
 import java.io.IOException;
+
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import jenkins.mvn.GlobalSettingsProvider;
 import jenkins.mvn.SettingsProvider;
@@ -95,8 +97,10 @@ public final class SonarMaven extends Maven {
 
     argsBuilder.append("sonar.branch", publisher.getBranch());
 
-    if (StringUtils.isNotBlank(getInstallation().getServerAuthenticationToken())) {
-      argsBuilder.appendMasked("sonar.login", getInstallation().getServerAuthenticationToken());
+    Secret token = getInstallation().getServerAuthenticationToken();
+    String tokenPlainText = token.getPlainText();
+    if (StringUtils.isNotBlank(tokenPlainText)) {
+      argsBuilder.appendMasked("sonar.login", tokenPlainText);
     }
 
     if (build instanceof MavenModuleSetBuild) {

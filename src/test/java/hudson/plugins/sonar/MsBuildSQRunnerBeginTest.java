@@ -26,6 +26,8 @@ import hudson.model.Run;
 import hudson.plugins.sonar.AbstractMsBuildSQRunner.SonarQubeScannerMsBuildParams;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import javax.annotation.Nullable;
+
+import hudson.util.Secret;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
