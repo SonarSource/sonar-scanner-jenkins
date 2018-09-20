@@ -73,7 +73,7 @@ public class SonarCacheAction extends InvisibleAction {
       return cached;
     }
 
-    ProjectInformation proj = resolver.resolve(analysis.getServerUrl(), analysis.getUrl(), taskId, analysis.getInstallationName());
+    ProjectInformation proj = resolver.resolve(analysis.getUsableServerUrl(), analysis.getUrl(), taskId, analysis.getInstallationName());
     if (proj != null) {
       infoByTaskId.put(taskId, proj);
     }

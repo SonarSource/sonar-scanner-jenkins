@@ -20,6 +20,9 @@
 package hudson.plugins.sonar.action;
 
 import hudson.model.InvisibleAction;
+import hudson.plugins.sonar.SonarInstallation;
+import jenkins.model.Jenkins;
+import java.beans.Transient;
 import javax.annotation.CheckForNull;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
@@ -30,6 +33,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 @ExportedBean(defaultVisibility = 2)
 public class SonarAnalysisAction extends InvisibleAction {
   private String installationName;
+  private String installationServerUrl;
   private String ceTaskId;
   // Dashboard URL
   private String url;
@@ -38,7 +42,21 @@ public class SonarAnalysisAction extends InvisibleAction {
   private boolean isSkipped;
 
   public SonarAnalysisAction(String installationName) {
+    this(installationName, null);
+  }
+
+  public SonarAnalysisAction(String installationName, @CheckForNull String installationServerUrl) {
     this.installationName = installationName;
+    if (installationServerUrl != null) {
+      this.installationServerUrl = installationServerUrl;
+    } else if (Jenkins.getInstanceOrNull() != null) { // ignore this in JUnit tests without a JenkinsRule
+      SonarInstallation installation = SonarInstallation.get(installationName);
+      if (installation != null) {
+        this.installationServerUrl = installation.getServerUrl();
+      }
+    } else {
+      this.installationServerUrl = null;
+    }
     this.url = null;
     this.ceTaskId = null;
     this.isNew = true;
@@ -48,6 +66,7 @@ public class SonarAnalysisAction extends InvisibleAction {
 
   public SonarAnalysisAction(SonarAnalysisAction copy) {
     this.installationName = copy.installationName;
+    this.installationServerUrl = copy.installationServerUrl;
     this.url = copy.url;
     this.serverUrl = copy.serverUrl;
     this.ceTaskId = null;
@@ -67,6 +86,16 @@ public class SonarAnalysisAction extends InvisibleAction {
 
   public void setCeTaskId(String ceTaskId) {
     this.ceTaskId = ceTaskId;
+  }
+
+  @CheckForNull
+  @Exported
+  public String getInstallationServerUrl() {
+    return installationServerUrl;
+  }
+
+  public void setInstallationServerUrl(String installationServerUrl) {
+    this.installationServerUrl = installationServerUrl;
   }
 
   @CheckForNull
@@ -106,5 +135,12 @@ public class SonarAnalysisAction extends InvisibleAction {
   @Exported
   public String getInstallationName() {
     return installationName;
+  }
+
+  @CheckForNull
+  @Transient
+  public String getUsableServerUrl() {
+    return (installationServerUrl != null  && !installationServerUrl.contains("$"))
+        ? installationServerUrl : serverUrl;
   }
 }

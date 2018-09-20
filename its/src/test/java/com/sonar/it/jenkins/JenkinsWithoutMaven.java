@@ -39,6 +39,10 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 public class JenkinsWithoutMaven {
+
+  // Jenkins should only talk to the URL actually configured in a SonarInstallation
+  final static String SONAR_PUBLIC_BASE_URL = "http://sonar_public_domain/";
+
   @ClassRule
   public static Orchestrator orchestrator = JenkinsTestSuite.ORCHESTRATOR;
 
@@ -53,7 +57,7 @@ public class JenkinsWithoutMaven {
   @BeforeClass
   public static void setUpSonar() {
     // Workaround for SONAR-4257
-    orchestrator.getServer().getAdminWsClient().update(new PropertyUpdateQuery("sonar.core.serverBaseURL", orchestrator.getServer().getUrl()));
+    orchestrator.getServer().getAdminWsClient().update(new PropertyUpdateQuery("sonar.core.serverBaseURL", SONAR_PUBLIC_BASE_URL));
   }
 
   @BeforeClass
@@ -182,7 +186,7 @@ public class JenkinsWithoutMaven {
   }
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
-    assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
+    assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(SONAR_PUBLIC_BASE_URL);
     assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
   }
 

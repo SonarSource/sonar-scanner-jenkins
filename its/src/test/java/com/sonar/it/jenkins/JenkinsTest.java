@@ -38,6 +38,9 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public class JenkinsTest {
 
+  // Jenkins should only talk to the URL actually configured in a SonarInstallation
+  final static String SONAR_PUBLIC_BASE_URL = "http://sonar_public_domain/";
+
   @ClassRule
   public static Orchestrator orchestrator = JenkinsTestSuite.ORCHESTRATOR;
 
@@ -47,7 +50,7 @@ public class JenkinsTest {
   @BeforeClass
   public static void setUpSonar() {
     // Workaround for SONAR-4257
-    orchestrator.getServer().getAdminWsClient().update(new PropertyUpdateQuery("sonar.core.serverBaseURL", orchestrator.getServer().getUrl()));
+    orchestrator.getServer().getAdminWsClient().update(new PropertyUpdateQuery("sonar.core.serverBaseURL", SONAR_PUBLIC_BASE_URL));
   }
 
   @BeforeClass
@@ -87,6 +90,7 @@ public class JenkinsTest {
     waitForComputationOnSQServer();
     assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
+    jenkins.assertQGOnProjectPage(jobName);
   }
 
   @Test
@@ -100,6 +104,7 @@ public class JenkinsTest {
     waitForComputationOnSQServer();
     assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
+    jenkins.assertQGOnProjectPage(jobName);
   }
 
   @Test
@@ -188,12 +193,12 @@ public class JenkinsTest {
   }
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
-    assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(orchestrator.getServer().getUrl());
     if (jenkins.getServer().getVersion().isGreaterThanOrEquals(2, 0)) {
       assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(URLEncoder.encode(projectKey));
     } else {
       assertThat(jenkins.getSonarUrlOnJob(jobName)).endsWith(projectKey);
     }
+    assertThat(jenkins.getSonarUrlOnJob(jobName)).startsWith(SONAR_PUBLIC_BASE_URL);
   }
 
   private static void waitForComputationOnSQServer() {

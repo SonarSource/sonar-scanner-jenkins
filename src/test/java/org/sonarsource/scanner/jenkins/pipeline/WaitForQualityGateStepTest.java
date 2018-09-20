@@ -302,10 +302,10 @@ public class WaitForQualityGateStepTest {
       .setInstallations(
         new SonarInstallation(SONAR_INSTALLATION_NAME, serverUrl, null, null, null, null, null));
     WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
-    String reportTaskContent1 = "dashboardUrl=" + serverUrl + "/dashboard\\n"
-      + "ceTaskId=" + FAKE_TASK_ID_1 + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
-    String reportTaskContent2 = "dashboardUrl=" + serverUrl + "/dashboard\\n"
-      + "ceTaskId=" + FAKE_TASK_ID_2 + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
+    String reportTaskContent1 = "dashboardUrl=http://whatever/sonarqube/dashboard\\n"
+        + "ceTaskId=" + FAKE_TASK_ID_1 + "\\nserverUrl=http://whatever/sonarqube\\nprojectKey=foo";
+    String reportTaskContent2 = "dashboardUrl=http://whatever/sonarqube/dashboard\\n"
+        + "ceTaskId=" + FAKE_TASK_ID_2 + "\\nserverUrl=http://whatever/sonarqube\\nprojectKey=foo";
     p.setDefinition(new CpsFlowDefinition(
       script(reportTaskContent1, reportTaskContent2, specifyServer, twoProjects),
       true));

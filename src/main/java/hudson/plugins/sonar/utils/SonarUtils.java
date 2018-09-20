@@ -100,14 +100,13 @@ public final class SonarUtils {
 
   }
 
-  @Nullable
   /** 
    * Collects as much information as it finds from the sonar analysis in the build and adds it as an action to the build.
    * Even if no information is found, the action is added, marking in the build that a sonar analysis ran. 
    */
-  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, boolean skippedIfNoBuild)
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, @Nullable String sonarHostUrl, boolean skippedIfNoBuild)
     throws IOException, InterruptedException {
-    SonarAnalysisAction buildInfo = new SonarAnalysisAction(installationName);
+    SonarAnalysisAction buildInfo = new SonarAnalysisAction(installationName, sonarHostUrl);
     Properties reportTask = extractReportTask(listener, workspace);
 
     if (reportTask != null) {
@@ -122,8 +121,13 @@ public final class SonarUtils {
     return buildInfo;
   }
 
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, @Nullable String sonarHostUrl)
+      throws IOException, InterruptedException {
+    return addBuildInfoTo(build, listener, workspace, installationName, sonarHostUrl, false);
+  }
+
   public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName) throws IOException, InterruptedException {
-    return addBuildInfoTo(build, listener, workspace, installationName, false);
+    return addBuildInfoTo(build, listener, workspace, installationName, null);
   }
 
   public static SonarAnalysisAction addBuildInfoFromLastBuildTo(Run<?, ?> build, String installationName, boolean isSkipped) {
