@@ -32,16 +32,17 @@ import hudson.model.Run.RunnerAbortedException;
 import hudson.plugins.sonar.SonarBuildWrapper.DescriptorImpl;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.model.TriggersConfig;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.jvnet.hudson.test.TestBuilder;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.jvnet.hudson.test.TestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -211,6 +212,42 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
     assertThat(build.getLog(1000)).contains("the token is: ******");
     assertThat(build.getActions(SonarAnalysisAction.class)).hasSize(1);
+  }
+
+  @Test
+  public void prVariablesAreSetForGitHub() {
+    installation = createTestInstallationForEnv();
+
+    EnvVars initialEnvironment = new EnvVars();
+    initialEnvironment.put("MY_SERVER", "myserver");
+    initialEnvironment.put("MY_PORT", "10000");
+    initialEnvironment.put("MY_VALUE", "myValue");
+    initialEnvironment.put("CHANGE_ID", "5");
+    initialEnvironment.put("CHANGE_BRANCH", "feature/winning");
+    initialEnvironment.put("CHANGE_URL", "https://github.com/jenkinsci/sonarqube-plugin/pull/123");
+    initialEnvironment.put("GITHUB_AUTH", "123");
+
+    Map<String, String> map = SonarBuildWrapper.createVars(installation, initialEnvironment);
+
+    assertThat(map).containsEntry("SONARQUBE_SCANNER_PARAMS",
+            "{ \"sonar.host.url\" : \"http:\\/\\/myserver:10000\", \"sonar.login\" : \"" + MYTOKEN + "\", \"sonar.pullrequest.branch\" : \"feature\\/winning\", \"sonar.pullrequest.key\" : \"5\", \"sonar.pullrequest.provider\" : \"github\", \"sonar.pullrequest.github.repository\" : \"jenkinsci\\/sonarqube-plugin\", \"key\" : \"myValue\"}");
+  }
+
+  @Test
+  public void prVariablesAreSetForNonGithubSetups() {
+    installation = createTestInstallationForEnv();
+
+    EnvVars initialEnvironment = new EnvVars();
+    initialEnvironment.put("MY_SERVER", "myserver");
+    initialEnvironment.put("MY_PORT", "10000");
+    initialEnvironment.put("MY_VALUE", "myValue");
+    initialEnvironment.put("CHANGE_ID", "5");
+    initialEnvironment.put("CHANGE_BRANCH", "feature/winning");
+
+    Map<String, String> map = SonarBuildWrapper.createVars(installation, initialEnvironment);
+
+    assertThat(map).containsEntry("SONARQUBE_SCANNER_PARAMS",
+            "{ \"sonar.host.url\" : \"http:\\/\\/myserver:10000\", \"sonar.login\" : \"" + MYTOKEN + "\", \"sonar.pullrequest.branch\" : \"feature\\/winning\", \"sonar.pullrequest.key\" : \"5\", \"key\" : \"myValue\"}");
   }
 
   private static class CaptureVarsBuilder extends TestBuilder {

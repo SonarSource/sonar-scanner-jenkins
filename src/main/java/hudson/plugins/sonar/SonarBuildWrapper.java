@@ -34,21 +34,22 @@ import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.util.ArgumentListBuilder;
+import hudson.util.Secret;
+import jenkins.tasks.SimpleBuildWrapper;
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
-
-import hudson.util.Secret;
-import jenkins.tasks.SimpleBuildWrapper;
-import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.DataBoundConstructor;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 
@@ -105,6 +106,20 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     if (!token.isEmpty()) {
       sb.append(", \"sonar.login\" : \"").append(escapeJson(token)).append("\"");
     }
+
+    // Add pull request specific variables if we're on a pull request
+    if (initialEnvironment.get("CHANGE_ID") != null) {
+      sb.append(", \"sonar.pullrequest.branch\" : \"").append(escapeJson(initialEnvironment.get("CHANGE_BRANCH"))).append("\"");
+      sb.append(", \"sonar.pullrequest.key\" : \"").append(escapeJson(initialEnvironment.get("CHANGE_ID"))).append("\"");
+
+      if (initialEnvironment.get("GITHUB_AUTH") != null) {
+        sb.append(", \"sonar.pullrequest.provider\" : \"").append(escapeJson("github")).append("\"");
+        URI changeUrl = URI.create(initialEnvironment.get("CHANGE_URL"));
+        String repoSlug = changeUrl.getPath().replaceFirst("/pull/\\d+", "").replaceFirst("/", "");
+        sb.append(", \"sonar.pullrequest.github.repository\" : \"").append(escapeJson(repoSlug)).append("\"");
+      }
+    }
+
     String additionalAnalysisProperties = inst.getAdditionalAnalysisProperties();
     if (additionalAnalysisProperties != null) {
       for (String pair : StringUtils.split(additionalAnalysisProperties)) {
