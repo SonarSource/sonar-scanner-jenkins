@@ -20,13 +20,14 @@
 package hudson.plugins.sonar;
 
 import hudson.EnvVars;
-import hudson.Util;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.sonar.AbstractMsBuildSQRunner.SonarQubeScannerMsBuildParams;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import javax.annotation.Nullable;
+
+import hudson.util.Secret;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 

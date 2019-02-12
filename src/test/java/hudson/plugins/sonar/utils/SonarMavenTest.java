@@ -28,6 +28,8 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.util.ArgumentListBuilder;
 import java.util.List;
+
+import hudson.util.Secret;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;

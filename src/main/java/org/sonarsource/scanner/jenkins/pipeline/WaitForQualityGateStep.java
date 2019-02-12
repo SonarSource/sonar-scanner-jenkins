@@ -30,11 +30,16 @@ import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.WsClient;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -142,7 +147,10 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       String ceTaskId = null;
       String serverUrl = null;
       String installationName = null;
-      for (SonarAnalysisAction a : actions) {
+      // Consider last analysis first
+      List<SonarAnalysisAction> reversedActions = new ArrayList<>(actions);
+      Collections.reverse(reversedActions);
+      for (SonarAnalysisAction a : reversedActions) {
         ceTaskId = a.getCeTaskId();
         if (ceTaskId != null) {
           serverUrl = a.getServerUrl();
@@ -174,7 +182,8 @@ public class WaitForQualityGateStep extends Step implements Serializable {
 
       log("Checking status of SonarQube task '%s' on server '%s'", step.taskId, step.getInstallationName());
 
-      WsClient wsClient = new WsClient(new HttpClient(), step.getServerUrl(), inst.getServerAuthenticationToken(getContext().get(Run.class)));
+      String token = inst.getServerAuthenticationToken(Objects.requireNonNull(getContext().get(Run.class)));
+      WsClient wsClient = new WsClient(new HttpClient(), step.getServerUrl(), token);
       WsClient.CETask ceTask = wsClient.getCETask(step.getTaskId());
       log("SonarQube task '%s' status is '%s'", step.taskId, ceTask.getStatus());
       switch (ceTask.getStatus()) {

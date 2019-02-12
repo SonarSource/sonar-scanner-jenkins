@@ -35,7 +35,6 @@ import com.sonar.orchestrator.version.Version;
 import hudson.cli.CLI;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -49,6 +48,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.JavascriptException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
@@ -120,14 +120,6 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     ServerInstaller serverInstaller = new ServerInstaller(config);
     server = serverInstaller.install(distribution);
     server.setUrl(String.format("http://localhost:%d", port));
-
-    // Copy from resources the specific version of the jenkins crawler result file
-    InputStream stream = this.getClass().getResourceAsStream("/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller");
-    try {
-      FileUtils.copyInputStreamToFile(stream, new File(server.getHome(), "updates/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller"));
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
 
     jenkinsWrapper = new JenkinsWrapper(server, config, config.fileSystem().javaHome(), port);
     jenkinsWrapper.start();
@@ -343,10 +335,20 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
         } else {
           findElement(By.linkText("Execute shell")).click();
         }
-        // https://github.com/jenkinsci/acceptance-test-harness/blob/47ae4d5cd6e1c17308c1dc2e28ee6b3b11bc3a0d/src/main/java/org/jenkinsci/test/acceptance/po/CodeMirror.java#L49
-        // can't use find() because it wants a visible element
-        driver.findElement(By.xpath("//*[@path='/builder[1]/command']")); // wait until the element in question appears in DOM
-        ((JavascriptExecutor) driver).executeScript(codeMirrorScript, String.format("//*[@path='/builder[1]/command']/following-sibling::div"), "dotnet build " + solutionFile);
+        String command = "dotnet build " + solutionFile;
+        try {
+          // https://github.com/jenkinsci/acceptance-test-harness/blob/92a8ad674454f65ee105d1bbd9685be1d084e893/src/main/java/org/jenkinsci/test/acceptance/po/ShellBuildStep.java#L18
+          setTextValue(findElement(By.name("command")), command);
+        } catch (Exception notfound) {
+          driver.findElement(By.xpath("//*[@path='/builder[1]/command']")); // wait until the element in question appears in DOM
+          try {
+            ((JavascriptExecutor) driver).executeScript(codeMirrorScript, String.format("//*[@path='/builder[1]/command']/following-sibling::div"), command);
+          } catch (JavascriptException e) {
+            System.err.println("CodeMirror not found. Save screenshot to: target/codemirror.png");
+            takeScreenshot(new File("target/codemirror.png"));
+            throw e;
+          }
+        }
       } else {
         findElement(By.linkText("Build a Visual Studio project or solution using MSBuild")).click();
         select(findElement(By.name("msBuildBuilder.msBuildName")), "MSBuild");

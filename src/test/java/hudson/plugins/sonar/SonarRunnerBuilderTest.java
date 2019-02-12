@@ -32,6 +32,8 @@ import hudson.scm.SCM;
 import hudson.util.ArgumentListBuilder;
 import java.io.File;
 import java.io.IOException;
+
+import hudson.util.Secret;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;

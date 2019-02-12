@@ -37,6 +37,8 @@ import hudson.util.ArgumentListBuilder;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -102,9 +104,9 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
   private static Map<String, String> getSonarProps(SonarInstallation inst, Run<?, ?> run) {
     Map<String, String> map = new LinkedHashMap<>();
 
-    String token  = inst.getServerAuthenticationToken(run);
-    if (!StringUtils.isBlank(token)) {
-      map.put("sonar.login", token);
+    String tokenPlainText = inst.getServerAuthenticationToken(run);
+    if (!StringUtils.isBlank(tokenPlainText)) {
+      map.put("sonar.login", tokenPlainText);
     }
 
     return map;

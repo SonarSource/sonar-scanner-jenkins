@@ -28,6 +28,9 @@ import hudson.model.TaskListener;
 import hudson.plugins.sonar.model.TriggersConfig;
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+
+import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -44,6 +47,8 @@ public class SonarInstallation implements Serializable {
    * @since X
    */
   private String credentialsId;
+  @Deprecated
+  private Secret serverAuthenticationToken;
 
   /**
    * @since 1.5
@@ -59,17 +64,34 @@ public class SonarInstallation implements Serializable {
 
   private String[] split;
 
-  @DataBoundConstructor
+  /* Maintained to retain compatibility */
+  @Deprecated
   public SonarInstallation(String name,
-    String serverUrl, String credentialsId,
+    String serverUrl, String serverAuthenticationToken,
     String mojoVersion, String additionalProperties, TriggersConfig triggers,
     String additionalAnalysisProperties) {
+    this(name, serverUrl, null, Secret.fromString(StringUtils.trimToNull(serverAuthenticationToken))
+    , mojoVersion, additionalProperties, additionalAnalysisProperties, triggers);
+  }
+
+  @DataBoundConstructor
+  public SonarInstallation(
+          String name,
+          String serverUrl,
+          @Nullable String credentialsId,
+          @Nullable Secret serverAuthenticationToken,
+          String mojoVersion,
+          String additionalProperties,
+          String additionalAnalysisProperties,
+          TriggersConfig triggers
+  ) {
     this.name = name;
     this.serverUrl = serverUrl;
     this.credentialsId = credentialsId;
-    this.additionalAnalysisProperties = additionalAnalysisProperties;
+    this.serverAuthenticationToken = serverAuthenticationToken; // TODO add migration logic
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
+    this.additionalAnalysisProperties = additionalAnalysisProperties;
     this.triggers = triggers;
   }
 
@@ -142,11 +164,16 @@ public class SonarInstallation implements Serializable {
    * @since X
    */
   public String getServerAuthenticationToken(Run<?, ?> build) {
-    if (credentialsId == null || build == null) { return null; }
+    if (credentialsId == null) {
+      return null;
+    }
     StandardCredentials cred = this.getCredentials(build);
-    if (cred == null) { return null; }
+    if (cred == null) {
+      return null;
+    }
     return ((PasswordCredentials) cred).getPassword().getPlainText();
   }
+
 
   public StandardCredentials getCredentials(Run<?, ?> build) {
     return CredentialsProvider.findCredentialById(credentialsId, StandardCredentials.class, build);

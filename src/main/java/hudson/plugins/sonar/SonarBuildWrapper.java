@@ -43,6 +43,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+
+import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;

@@ -24,6 +24,8 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.Version;
+import org.apache.commons.lang.StringUtils;
+
 import java.util.logging.Level;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
@@ -53,7 +55,6 @@ public class SQProjectResolver {
     }
 
     try {
-
       WsClient wsClient = new WsClient(client, serverUrl, inst.getServerAuthenticationToken(build));
       Version version = new Version(wsClient.getServerVersion());
 

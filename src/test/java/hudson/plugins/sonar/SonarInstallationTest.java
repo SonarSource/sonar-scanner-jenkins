@@ -26,6 +26,8 @@ import hudson.model.Run;
 import hudson.plugins.sonar.model.TriggersConfig;
 import java.io.File;
 import java.io.IOException;
+
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.junit.Test;
 
@@ -46,10 +48,12 @@ public class SonarInstallationTest extends SonarTestCase {
         "Name",
         "server.url",
         "credentialsId",
+        null,
         "mojoVersion",
         "props",
-        triggers,
-        "key=value"));
+        "key=value",
+        triggers)
+    );
     StandardCredentials cred = new UsernamePasswordCredentialsImpl(null, null, null, null, "token");
     doReturn(cred).when(inst).getCredentials(any(Run.class));
     d.setInstallations(inst);
@@ -75,12 +79,25 @@ public class SonarInstallationTest extends SonarTestCase {
         "Name",
         "server.url",
         null,
+        null,
         "mojoVersion",
         "props",
-        triggers,
-        "key=value");
+        "key=value",
+        triggers
+    );
     SonarGlobalConfiguration d = new SonarGlobalConfiguration();
     d.setInstallations(inst);
+    d.setInstallations(new SonarInstallation(
+            "Name",
+            "server.url",
+            null,
+            null,
+            "mojoVersion",
+            "props",
+            "key=value",
+            triggers
+    )
+    );
     d.save();
 
     SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
