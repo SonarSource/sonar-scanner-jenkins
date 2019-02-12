@@ -22,6 +22,10 @@ package hudson.plugins.sonar.client;
 import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarTestCase;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -29,15 +33,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.startsWith;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -52,6 +52,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   private final static String PASS = "mypass";
   private final static String USER = "user";
   private final static String TOKEN = "token";
+  private final static String CREDENTIAL_ID = "cred-id";
 
   private SQProjectResolver resolver;
   private HttpClient client;
@@ -113,9 +114,9 @@ public class SQProjectResolverTest extends SonarTestCase {
   }
 
   private void mockSQServer56() throws Exception {
-    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, SERVER_URL, TOKEN, null, null,
+    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, SERVER_URL, CREDENTIAL_ID, null, null, null,
         null, null));
-    when(inst.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
+    addCredential(CREDENTIAL_ID, TOKEN);
     super.configureSonar(inst);
 
     when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null)).thenReturn("5.6");

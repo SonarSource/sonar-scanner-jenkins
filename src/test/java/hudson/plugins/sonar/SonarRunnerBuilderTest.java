@@ -93,7 +93,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   @Test
   public void additionalArgs() {
     ArgumentListBuilder args = new ArgumentListBuilder();
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, "-Y", null, "key=value");
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, "-Y", "key=value", null);
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X -e");
     builder.addAdditionalArguments(args, inst);
     assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X -e");

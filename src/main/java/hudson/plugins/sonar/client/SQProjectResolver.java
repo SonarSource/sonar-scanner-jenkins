@@ -53,7 +53,8 @@ public class SQProjectResolver {
     }
 
     try {
-      WsClient wsClient = new WsClient(client, serverUrl, inst.getServerAuthenticationToken(build));
+      String serverAuthenticationToken = inst.getServerAuthenticationToken(build);
+      WsClient wsClient = new WsClient(client, serverUrl, serverAuthenticationToken);
       Version version = new Version(wsClient.getServerVersion());
 
       if (version.compareTo(new Version("5.6")) < 0) {

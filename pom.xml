@@ -59,14 +59,14 @@
     <findbugs.skip>true</findbugs.skip>
     <!-- No need to rerun tests, because of HAP-859, artifactory plugin will not upload the artifact -->
     <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
-    
+
     <!-- To configure maven-license-plugin to check license headers -->
     <license.name>GNU LGPL v3</license.name>
     <license.owner>SonarSource SA</license.owner>
     <license.title>${project.name}</license.title>
     <license.years>${project.inceptionYear}-2019</license.years>
     <license.mailto>mailto:info AT sonarsource DOT com</license.mailto>
-    
+
     <artifactsToPublish>${project.groupId}:${project.artifactId}:hpi</artifactsToPublish>
   </properties>
 
@@ -170,6 +170,12 @@
       <artifactId>credentials</artifactId>
       <version>2.1.13</version>
     </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>plain-credentials</artifactId>
+      <version>1.4</version>
+    </dependency>
+
 
     <!-- Test deps -->
     <dependency>
@@ -357,7 +363,7 @@
             </executions>
           </plugin>
           <plugin>
-            <!-- this maven plugin is not deployed in Maven Central. It should be downloaded from JFrog JCenter or from SonarSource 
+            <!-- this maven plugin is not deployed in Maven Central. It should be downloaded from JFrog JCenter or from SonarSource
               repositories -->
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>artifactory-maven-plugin</artifactId>
@@ -410,5 +416,5 @@
         </plugins>
       </build>
     </profile>
-  </profiles>  
+  </profiles>
 </project>

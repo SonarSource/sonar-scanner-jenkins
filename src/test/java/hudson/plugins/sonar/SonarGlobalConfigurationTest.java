@@ -47,7 +47,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   private static SonarInstallation createInstallation(String name) {
-    return new SonarInstallation(name, null, null, null, null, null, null);
+    return new SonarInstallation(name, null, null,null, null, null, null, null);
   }
 
   @Test
