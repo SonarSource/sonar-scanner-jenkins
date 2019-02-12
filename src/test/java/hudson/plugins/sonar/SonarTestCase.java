@@ -19,6 +19,8 @@
  */
 package hudson.plugins.sonar;
 
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
 import hudson.Functions;
 import hudson.maven.MavenModuleSet;
 import hudson.model.AbstractBuild;
@@ -35,13 +37,16 @@ import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
 import hudson.tasks.Builder;
 import hudson.tasks.Maven;
+import hudson.util.Secret;
 import hudson.util.jna.GNUCLibrary;
-import java.io.File;
-import java.io.IOException;
 import jenkins.triggers.SCMTriggerItem;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Rule;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.SingleFileSCM;
+
+import java.io.File;
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -81,7 +86,7 @@ public abstract class SonarTestCase {
   }
 
   protected SonarInstallation configureDefaultSonar() {
-    return configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, null, null, null, null, null, null));
+    return configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, null, null, null, null, null, null, null));
   }
 
   protected SonarInstallation configureSonar(SonarInstallation sonarInstallation) {
@@ -226,5 +231,16 @@ public abstract class SonarTestCase {
   protected void assertLogDoesntContains(String substring, Run<?, ?> run) throws Exception {
     String log = JenkinsRule.getLog(run);
     assertThat(log).doesNotContain(substring);
+  }
+
+  protected void addCredential(String id, String token) {
+    SystemCredentialsProvider instance = SystemCredentialsProvider.getInstance();
+    instance.getCredentials().add(new StringCredentialsImpl(CredentialsScope.GLOBAL, id, "Sonar token", Secret
+            .fromString(token)));
+    try {
+      instance.save();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

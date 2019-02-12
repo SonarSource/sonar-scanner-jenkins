@@ -2,8 +2,6 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
          
-  <script type="text/javascript" src="${rootURL}/plugin/sonar/js/global_config.js" />
-  
   <f:section title="${%Title}">
     <f:entry title="${%InjectVarsTitle}" description="${%InjectVarsDesc}">
       <f:checkbox name="enableBuildWrapper" checked="${instance.isBuildWrapperEnabled()}"/> ${%InjectVars}
@@ -21,7 +19,7 @@
             <f:textbox name="sonar.serverUrl" value="${inst.getServerUrl()}"/>
           </f:entry>
 
-          <f:entry title="${%ServerToken}" field="credentialsId">
+          <f:entry title="${%ServerToken}" field="credentialsId" description="${%ServerTokenDescr}">
             <c:select value="${inst.getCredentialsId()}"/>
           </f:entry>
 

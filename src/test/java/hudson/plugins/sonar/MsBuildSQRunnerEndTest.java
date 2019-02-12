@@ -27,16 +27,14 @@ import hudson.plugins.sonar.MsBuildSQRunnerEnd.DescriptorImpl;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testToken() throws Exception {
-    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "credentialsId", null, null, null, null));
-    when(inst.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
+    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "credentialsId", null,null, null, null, null));
+    addCredential("credentialsId", "token");
     configureSonar(inst);
     configureMsBuildScanner(false);
 

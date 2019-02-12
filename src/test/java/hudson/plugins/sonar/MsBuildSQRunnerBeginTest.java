@@ -25,17 +25,13 @@ import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.sonar.AbstractMsBuildSQRunner.SonarQubeScannerMsBuildParams;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
-import javax.annotation.Nullable;
-
-import hudson.util.Secret;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import javax.annotation.Nullable;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
@@ -81,7 +77,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
   @Test
   public void additionalArgs() throws Exception {
     SonarInstallation inst = new SonarInstallation("default", null,
-      null, null, "/x:a=b", null, "key=value");
+      null, null, null, "/x:a=b", "key=value", null);
     configureSonar(inst);
     configureMsBuildScanner(true);
 
@@ -94,10 +90,10 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testSonarProps() throws Exception {
-    SonarInstallation inst = spy(new SonarInstallation("default", "http://dummy-server:9090", "credentialsId",
+    SonarInstallation inst = spy(new SonarInstallation("default", "http://dummy-server:9090", "credentialsId", null,
       null, null, null, null));
-    when(inst.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
     configureSonar(inst);
+    addCredential("credentialsId", "any-token");
     configureMsBuildScanner(false);
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");

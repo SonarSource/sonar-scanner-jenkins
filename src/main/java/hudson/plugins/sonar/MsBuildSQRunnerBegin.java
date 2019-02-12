@@ -34,17 +34,16 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
 import hudson.util.FormValidation;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import javax.annotation.Nullable;
-
-import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javax.annotation.Nullable;
 
 public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
 
@@ -114,7 +113,8 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     if (!StringUtils.isBlank(tokenPlainText)) {
       map.put("sonar.login", tokenPlainText);
     }
-      return map;
+
+    return map;
   }
 
   private void addArgsTo(ArgumentListBuilder args, SonarInstallation sonarInst, EnvVars env, Map<String, String> props) {

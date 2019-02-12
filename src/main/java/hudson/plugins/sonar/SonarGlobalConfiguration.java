@@ -20,7 +20,7 @@
 package hudson.plugins.sonar;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import com.cloudbees.plugins.credentials.common.*;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -31,16 +31,19 @@ import hudson.plugins.sonar.utils.Logger;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Since 2.4
@@ -52,6 +55,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
   private volatile SonarInstallation[] installations = new SonarInstallation[0];
   private volatile boolean buildWrapperEnabled = false;
   boolean dataMigrated = false;
+  private boolean credentialsMigrated;
 
   public SonarGlobalConfiguration() {
     load();
@@ -104,7 +108,20 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
         publisher.deleteGlobalConfiguration();
       }
     });
+
     dataMigrated = true;
+    save();
+  }
+
+  @Initializer(after = InitMilestone.JOB_LOADED)
+  public void migrateCredentials() {
+    if (credentialsMigrated) {
+      return;
+    }
+
+    Arrays.stream(this.installations).forEach(SonarInstallation::migrateTokenToCredential);
+
+    credentialsMigrated = true;
     save();
   }
 
@@ -137,7 +154,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
       .includeMatchingAs(
         ACL.SYSTEM,
         Jenkins.getInstance(),
-        StandardCredentials.class,
+        StringCredentials.class,
         Collections.emptyList(),
         CredentialsMatchers.always()
       );

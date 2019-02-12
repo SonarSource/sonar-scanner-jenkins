@@ -19,21 +19,24 @@
  */
 package hudson.plugins.sonar;
 
-import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
+import com.cloudbees.plugins.credentials.CredentialsScope;
 import hudson.Util;
 import hudson.model.Run;
 import hudson.plugins.sonar.model.TriggersConfig;
+import hudson.util.Secret;
+import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
+import org.junit.Test;
+
 import java.io.File;
 import java.io.IOException;
 
-import hudson.util.Secret;
-import jenkins.model.Jenkins;
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Evgeny Mandrikov
@@ -54,7 +57,7 @@ public class SonarInstallationTest extends SonarTestCase {
         "key=value",
         triggers)
     );
-    StandardCredentials cred = new UsernamePasswordCredentialsImpl(null, null, null, null, "token");
+    StringCredentials cred = new StringCredentialsImpl(CredentialsScope.GLOBAL, "an-id", null, Secret.fromString("token"));
     doReturn(cred).when(inst).getCredentials(any(Run.class));
     d.setInstallations(inst);
 
@@ -133,12 +136,12 @@ public class SonarInstallationTest extends SonarTestCase {
   }
 
   private void assertAnalysisPropsWindows(String input, String... expectedEntries) {
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, input);
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, input, null);
     assertThat(inst.getAdditionalAnalysisPropertiesWindows()).isEqualTo(expectedEntries);
   }
 
   private void assertAnalysisPropsUnix(String input, String... expectedEntries) {
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, input);
+    SonarInstallation inst = new SonarInstallation(null, null, null,null, null, null, input, null);
     assertThat(inst.getAdditionalAnalysisPropertiesUnix()).isEqualTo(expectedEntries);
   }
 }
