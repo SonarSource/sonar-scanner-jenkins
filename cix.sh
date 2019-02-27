@@ -8,7 +8,7 @@ echo "CURRENT_VERSION=$CURRENT_VERSION"
 rm -rf target
 mkdir -p target
 cd target
-curl --user $ARTIFACTORY_QA_READER_USERNAME:$ARTIFACTORY_QA_READER_PASSWORD -sSLO https://repox.sonarsource.com/sonarsource-public-qa/org/jenkins-ci/plugins/sonar/$CURRENT_VERSION/sonar-$CURRENT_VERSION.hpi
+curl --fail --user $ARTIFACTORY_QA_READER_USERNAME:$ARTIFACTORY_QA_READER_PASSWORD -sSLO https://repox.jfrog.io/repox/sonarsource-public-qa/org/jenkins-ci/plugins/sonar/$CURRENT_VERSION/sonar-$CURRENT_VERSION.hpi
 echo "Downloaded sonar-$CURRENT_VERSION.hpi"
 mv sonar-$CURRENT_VERSION.hpi sonar.hpi
 cd ..
