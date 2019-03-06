@@ -1,6 +1,6 @@
 /*
  * SonarQube Scanner for Jenkins
- * Copyright (C) 2007-2018 SonarSource SA
+ * Copyright (C) 2007-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,8 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import hudson.util.Secret;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -81,7 +79,7 @@ public class WsClientTest {
 
   @Test
   public void testConnectionError() throws Exception {
-    when(client.getHttp(anyString(), anyString())).thenThrow(Exception.class);
+    when(client.getHttp(anyString(), anyString())).thenThrow(RuntimeException.class);
 
     exception.expect(Exception.class);
     wsClient.getCETask(TASK_ID);
