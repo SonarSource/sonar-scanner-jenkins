@@ -33,6 +33,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -180,10 +181,9 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       }
 
       log("Checking status of SonarQube task '%s' on server '%s'", step.taskId, step.getInstallationName());
-  
-      String tokenPlainText = inst.getServerAuthenticationToken().getPlainText();
-      String tokenToPass = StringUtils.isBlank(tokenPlainText) ? null : tokenPlainText;
-      WsClient wsClient = new WsClient(new HttpClient(), step.getServerUrl(), tokenToPass);
+
+      String token = inst.getServerAuthenticationToken(Objects.requireNonNull(getContext().get(Run.class)));
+      WsClient wsClient = new WsClient(new HttpClient(), step.getServerUrl(), token);
       WsClient.CETask ceTask = wsClient.getCETask(step.getTaskId());
       log("SonarQube task '%s' status is '%s'", step.taskId, ceTask.getStatus());
       switch (ceTask.getStatus()) {

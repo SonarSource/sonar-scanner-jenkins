@@ -71,7 +71,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     Logger.LOG.info(msg);
     listener.getLogger().println(msg);
 
-    context.getEnv().putAll(createVars(installation, initialEnvironment));
+    context.getEnv().putAll(createVars(installation, initialEnvironment, build));
 
     context.setDisposer(new AddBuildInfo(installation));
 
@@ -79,13 +79,13 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
   }
 
   @VisibleForTesting
-  static Map<String, String> createVars(SonarInstallation inst, EnvVars initialEnvironment) {
+  static Map<String, String> createVars(SonarInstallation inst, EnvVars initialEnvironment, Run<?, ?> build) {
     Map<String, String> map = new HashMap<>();
 
     map.put("SONAR_CONFIG_NAME", inst.getName());
     String hostUrl = getOrDefault(initialEnvironment.expand(inst.getServerUrl()), "http://localhost:9000");
     map.put("SONAR_HOST_URL", hostUrl);
-    String token = getOrDefault(initialEnvironment.expand(inst.getServerAuthenticationToken().getPlainText()), "");
+    String token = getOrDefault(initialEnvironment.expand(inst.getServerAuthenticationToken(build)), "");
     map.put("SONAR_AUTH_TOKEN", token);
 
     String mojoVersion = inst.getMojoVersion();
@@ -145,10 +145,9 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     List<String> passwords = new ArrayList<>();
 
-    Secret token = inst.getServerAuthenticationToken();
-    String tokenPlainText = token.getPlainText();
-    if (!StringUtils.isBlank(tokenPlainText)) {
-      passwords.add(tokenPlainText);
+    String token = inst.getServerAuthenticationToken(build);
+    if (!StringUtils.isBlank(token)) {
+      passwords.add(token);
     }
 
     return new SonarQubePasswordLogFilter(passwords, build.getCharset().name());

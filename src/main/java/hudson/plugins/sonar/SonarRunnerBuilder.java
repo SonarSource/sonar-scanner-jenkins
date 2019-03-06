@@ -363,8 +363,7 @@ public class SonarRunnerBuilder extends Builder {
     TaskListener listener, EnvVars env, @Nullable SonarInstallation si) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.host.url", si.getServerUrl());
-      Secret token = si.getServerAuthenticationToken();
-      String tokenPlainText = token.getPlainText();
+      String tokenPlainText = si.getServerAuthenticationToken(build);
       if (StringUtils.isNotBlank(tokenPlainText)) {
         args.appendMasked("sonar.login", tokenPlainText);
       }

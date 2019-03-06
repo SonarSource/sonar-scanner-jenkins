@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar.action;
 
+import hudson.model.Run;
 import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
 import java.util.Collections;
@@ -68,41 +69,44 @@ public class SonarCacheActionTest {
     analysis.setUrl("projUrl");
     analysis.setServerUrl("serverUrl");
     analysis.setUrl("projUrl");
+    Run<?, ?> run = mock(Run.class);
 
-    cache.get(resolver, 0, Collections.singletonList(analysis));
-    verify(resolver).resolve("serverUrl", "projUrl", "taskId", "inst");
+    cache.get(resolver, 0, Collections.singletonList(analysis), run);
+    verify(resolver).resolve("serverUrl", "projUrl", "taskId", "inst", run);
   }
 
   @Test
   public void testResponseCached() {
     ProjectInformation mocked = createProj(now(), "success");
     SonarAnalysisAction analysis = createAnalysis("serverUrl", "projUrl", "taskId");
+    Run<?, ?> run = mock(Run.class);
 
-    when(resolver.resolve("serverUrl", "projUrl", "taskId", "inst")).thenReturn(mocked);
-    List<ProjectInformation> projs = cache.get(resolver, 0, Collections.singletonList(analysis));
-    List<ProjectInformation> projs2 = cache.get(resolver, 0, Collections.singletonList(analysis));
+    when(resolver.resolve("serverUrl", "projUrl", "taskId", "inst", run)).thenReturn(mocked);
+    List<ProjectInformation> projs = cache.get(resolver, 0, Collections.singletonList(analysis), run);
+    List<ProjectInformation> projs2 = cache.get(resolver, 0, Collections.singletonList(analysis), run);
 
     assertThat(projs).isEqualTo(projs2);
     assertThat(projs).hasSize(1);
     assertThat(projs.get(0).getCeStatus()).isEqualTo("success");
-    verify(resolver, times(1)).resolve("serverUrl", "projUrl", "taskId", "inst");
+    verify(resolver, times(1)).resolve("serverUrl", "projUrl", "taskId", "inst", run);
   }
 
   @Test
   public void testCacheWithCE() {
     ProjectInformation proj = createProj(now(), "success");
     SonarAnalysisAction analysis = createAnalysis("serverUrl", "projUrl1", "taskId");
-    when(resolver.resolve("serverUrl", "projUrl1", "taskId", "inst")).thenReturn(proj);
+    Run<?, ?> run = mock(Run.class);
+    when(resolver.resolve("serverUrl", "projUrl1", "taskId", "inst", run)).thenReturn(proj);
 
-    ProjectInformation info1 = cache.get(resolver, 0, analysis);
+    ProjectInformation info1 = cache.get(resolver, 0, analysis, run);
     assertThat(info1).isNotNull();
     assertThat(info1.getCeStatus()).isEqualTo("success");
     assertThat(info1.getStatus()).isEqualTo("OK");
 
-    ProjectInformation info2 = cache.get(resolver, 0, analysis);
+    ProjectInformation info2 = cache.get(resolver, 0, analysis, run);
 
     assertThat(info1).isEqualTo(info2);
-    verify(resolver, times(1)).resolve("serverUrl", "projUrl1", "taskId", "inst");
+    verify(resolver, times(1)).resolve("serverUrl", "projUrl1", "taskId", "inst", run);
   }
 
   private SonarAnalysisAction createAnalysis(String serverUrl, String url, String taskId) {
