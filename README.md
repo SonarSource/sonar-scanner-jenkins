@@ -3,9 +3,9 @@ SonarQube Scanner for Jenkins
 
 [![Build Status](https://travis-ci.org/SonarSource/sonar-scanner-jenkins.svg?branch=master)](https://travis-ci.org/SonarSource/sonar-scanner-jenkins) [![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.jenkins-ci.plugins%3Asonar&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.jenkins-ci.plugins%3Asonar)
 
-Documentation: http://redirect.sonarsource.com/plugins/jenkins.html
+[![Quality Gate Status](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.jenkins-ci.plugins%3Asonar&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.jenkins-ci.plugins%3Asonar)
 
-Continuous inspection: https://next.sonarqube.com/sonarqube/dashboard?id=org.jenkins-ci.plugins%3Asonar
+Documentation: http://redirect.sonarsource.com/plugins/jenkins.html
 
 Issue tracking: https://jira.sonarsource.com/browse/SONARJNKNS
 
@@ -33,6 +33,6 @@ thanks to crawlers written in groovy:
 
 ### License
 
-Copyright 2007-2017 SonarSource.
+Copyright 2007-2019 SonarSource.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
