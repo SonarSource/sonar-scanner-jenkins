@@ -10,9 +10,6 @@
     <relativePath />
   </parent>
 
-  <!-- defining groupId otherwise we get a NPE by versions-maven-plugin: https://github.com/mojohaus/versions-maven-plugin/issues/51 -->
-  <!-- waiting for https://github.com/SonarSource/travis-utils/pull/28 -->  
-  <groupId>org.jenkins-ci.plugins</groupId>
   <artifactId>sonar</artifactId>
   <version>2.9-SNAPSHOT</version>
   <packaging>hpi</packaging>
