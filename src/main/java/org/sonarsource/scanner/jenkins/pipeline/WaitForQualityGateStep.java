@@ -246,7 +246,10 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     }
   }
 
-  @Extension
+  /**
+   * Optional: don't log error when pipeline dependencies are not installed
+   */
+  @Extension(optional = true)
   public static final class DescriptorImpl extends StepDescriptor {
 
     @Override

@@ -20,7 +20,7 @@
           </f:entry>
 
           <f:entry title="${%ServerToken}" field="credentialsId" description="${%ServerTokenDescr}">
-            <c:select value="${inst.getCredentialsId()}"/>
+            <c:select name="sonar.credentialsId" value="${inst.getCredentialsId()}"/>
           </f:entry>
 
           <f:advanced>
