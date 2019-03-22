@@ -19,24 +19,41 @@
  */
 package org.sonarsource.scanner.jenkins.pipeline;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
 import com.google.common.collect.ImmutableSet;
 import hudson.AbortException;
 import hudson.Extension;
+import hudson.Util;
+import hudson.model.FreeStyleProject;
+import hudson.model.Item;
+import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.model.queue.Tasks;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.WsClient;
+import hudson.plugins.sonar.utils.SonarUtils;
+import hudson.security.ACL;
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -44,7 +61,10 @@ import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.support.actions.PauseAction;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 
 public class WaitForQualityGateStep extends Step implements Serializable {
 
@@ -70,6 +90,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
   private String installationName;
   private String serverUrl;
   private boolean abortPipeline;
+  private String credentialsId;
 
   @DataBoundConstructor
   public WaitForQualityGateStep(boolean abortPipeline) {
@@ -103,6 +124,15 @@ public class WaitForQualityGateStep extends Step implements Serializable {
 
   public String getServerUrl() {
     return serverUrl;
+  }
+
+  public String getCredentialsId() {
+    return credentialsId;
+  }
+
+  @DataBoundSetter
+  public void setCredentialsId(@Nullable String credentialsId) {
+    this.credentialsId = Util.fixEmpty(credentialsId);
   }
 
   @Override
@@ -144,6 +174,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       String ceTaskId = null;
       String serverUrl = null;
       String installationName = null;
+      String credentialsId = null;
       // Consider last analysis first
       List<SonarAnalysisAction> reversedActions = new ArrayList<>(actions);
       Collections.reverse(reversedActions);
@@ -152,6 +183,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
         if (ceTaskId != null) {
           serverUrl = a.getServerUrl();
           installationName = a.getInstallationName();
+          credentialsId = a.getCredentialsId();
           break;
         }
       }
@@ -163,6 +195,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       step.setTaskId(ceTaskId);
       step.setServerUrl(serverUrl);
       step.setInstallationName(installationName);
+      step.setCredentialsId(credentialsId);
     }
 
     private void log(String msg, Object... args) throws IOException, InterruptedException {
@@ -178,7 +211,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       }
 
       log("Checking status of SonarQube task '%s' on server '%s'", step.taskId, step.getInstallationName());
-      WsClient wsClient = new WsClient(new HttpClient(), step.getServerUrl(), inst.getServerAuthenticationToken(getContext().get(Run.class)));
+      WsClient wsClient = new WsClient(new HttpClient(), step.getServerUrl(), SonarUtils.getAuthenticationToken(getContext().get(Run.class), inst, step.credentialsId));
       WsClient.CETask ceTask = wsClient.getCETask(step.getTaskId());
       log("SonarQube task '%s' status is '%s'", step.taskId, ceTask.getStatus());
       switch (ceTask.getStatus()) {
@@ -255,6 +288,55 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     @Override
     public String getDisplayName() {
       return "Wait for SonarQube analysis to be completed and return quality gate status";
+    }
+
+    public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project,
+      @QueryParameter String credentialsId) {
+      if (project == null && !Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER) ||
+        project != null && !project.hasPermission(Item.EXTENDED_READ)) {
+        return new StandardListBoxModel().includeCurrentValue(credentialsId);
+      }
+      if (project == null) {
+        /* Construct a fake project */
+        project = new FreeStyleProject(Jenkins.getInstance(), "fake-" + UUID.randomUUID().toString());
+      }
+      return new StandardListBoxModel()
+        .includeEmptyValue()
+        .includeMatchingAs(
+          project instanceof Queue.Task
+            ? Tasks.getAuthenticationOf((Queue.Task) project)
+            : ACL.SYSTEM,
+          project,
+          StringCredentials.class,
+          Collections.emptyList(),
+          CredentialsMatchers.always())
+        .includeCurrentValue(credentialsId);
+    }
+
+    public FormValidation doCheckCredentialsId(@AncestorInPath Item project,
+      @QueryParameter String value) {
+      if (project == null && !Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER) ||
+        project != null && !project.hasPermission(Item.EXTENDED_READ)) {
+        return FormValidation.ok();
+      }
+
+      value = Util.fixEmptyAndTrim(value);
+      if (value == null) {
+        return FormValidation.ok();
+      }
+
+      for (ListBoxModel.Option o : CredentialsProvider
+        .listCredentials(StandardUsernameCredentials.class, project, project instanceof Queue.Task
+          ? Tasks.getAuthenticationOf((Queue.Task) project)
+          : ACL.SYSTEM,
+          Collections.emptyList(),
+          CredentialsMatchers.always())) {
+        if (StringUtils.equals(value, o.value)) {
+          return FormValidation.ok();
+        }
+      }
+      // no credentials available, can't check
+      return FormValidation.warning("Cannot find any credentials with id " + value);
     }
 
     @Override

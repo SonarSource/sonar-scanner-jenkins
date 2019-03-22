@@ -307,7 +307,7 @@ public class SonarPublisher extends Notifier {
     SonarInstallation sonarInstallation = getInstallation();
 
     if (isSkip(build, listener, sonarInstallation)) {
-      SonarUtils.addBuildInfoFromLastBuildTo(build, sonarInstallation.getName(), true);
+      SonarUtils.addBuildInfoFromLastBuildTo(build, sonarInstallation.getName(), sonarInstallation.getCredentialsId(), true);
       return true;
     }
 
@@ -317,7 +317,7 @@ public class SonarPublisher extends Notifier {
       // returning false has no effect on the global build status so need to do it manually
       build.setResult(Result.FAILURE);
     }
-    SonarUtils.addBuildInfoTo(build, listener, build.getWorkspace(), sonarInstallation.getName());
+    SonarUtils.addBuildInfoTo(build, listener, build.getWorkspace(), sonarInstallation.getName(), sonarInstallation.getCredentialsId());
     listener.getLogger().println("SonarQube analysis completed: " + build.getResult());
     return sonarSuccess;
   }

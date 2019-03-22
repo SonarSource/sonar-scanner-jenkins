@@ -32,17 +32,16 @@ import hudson.model.Run.RunnerAbortedException;
 import hudson.plugins.sonar.SonarBuildWrapper.DescriptorImpl;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.model.TriggersConfig;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.jvnet.hudson.test.TestBuilder;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.jvnet.hudson.test.TestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -107,7 +106,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   public void maskAuthToken() throws IOException, InterruptedException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     SonarInstallation inst = spy(new SonarInstallation("local", "http://localhost:9001", CREDENTIALSID, null, null, null,
-       null,  new TriggersConfig()));
+      null, new TriggersConfig()));
     addCredential(CREDENTIALSID, MYTOKEN);
     configureSonar(inst);
 
@@ -124,7 +123,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     initialEnvironment.put("MY_SERVER", "myserver");
     initialEnvironment.put("MY_PORT", "10000");
     initialEnvironment.put("MY_VALUE", "myValue");
-    Map<String, String> map = SonarBuildWrapper.createVars(installation, initialEnvironment, mock(Run.class));
+    Map<String, String> map = SonarBuildWrapper.createVars(installation, null, initialEnvironment, mock(Run.class));
 
     assertThat(map).containsEntry("SONAR_HOST_URL", "http://myserver:10000");
     assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
@@ -141,7 +140,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   public void testEnvironmentMojoVersion() {
     installation = new SonarInstallation(null, null, null, null, "2.0", null, null, null);
 
-    Map<String, String> map = SonarBuildWrapper.createVars(installation, new EnvVars(), mock(Run.class));
+    Map<String, String> map = SonarBuildWrapper.createVars(installation, null, new EnvVars(), mock(Run.class));
 
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "org.codehaus.mojo:sonar-maven-plugin:2.0:sonar");
   }

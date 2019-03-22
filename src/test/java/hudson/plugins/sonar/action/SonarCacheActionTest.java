@@ -64,7 +64,7 @@ public class SonarCacheActionTest {
 
   @Test
   public void testResolve() {
-    SonarAnalysisAction analysis = new SonarAnalysisAction("inst");
+    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId");
     analysis.setCeTaskId("taskId");
     analysis.setUrl("projUrl");
     analysis.setServerUrl("serverUrl");
@@ -110,7 +110,7 @@ public class SonarCacheActionTest {
   }
 
   private SonarAnalysisAction createAnalysis(String serverUrl, String url, String taskId) {
-    SonarAnalysisAction analysis = new SonarAnalysisAction("inst");
+    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId");
     analysis.setServerUrl(serverUrl);
     analysis.setCeTaskId(taskId);
     analysis.setUrl(url);

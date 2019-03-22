@@ -57,7 +57,7 @@ public class SonarUtilsTest {
 
   @Test
   public void testAddBuildInfoFromLastBuild() {
-    SonarAnalysisAction a1 = new SonarAnalysisAction("inst");
+    SonarAnalysisAction a1 = new SonarAnalysisAction("inst", "credId");
     a1.setSkipped(true);
     a1.setUrl("url1");
     a1.setCeTaskId("task1");
@@ -65,9 +65,10 @@ public class SonarUtilsTest {
     Run last = mockedRun(null, a1);
     Run r = mockedRun(last);
 
-    SonarAnalysisAction action = SonarUtils.addBuildInfoFromLastBuildTo(r, "inst", false);
+    SonarAnalysisAction action = SonarUtils.addBuildInfoFromLastBuildTo(r, "inst", "credId", false);
 
     assertThat(action.getInstallationName()).isEqualTo("inst");
+    assertThat(action.getCredentialsId()).isEqualTo("credId");
     assertThat(action.isSkipped()).isFalse();
     assertThat(action.getCeTaskId()).isNull();
     assertThat(action.getUrl()).isEqualTo("url1");

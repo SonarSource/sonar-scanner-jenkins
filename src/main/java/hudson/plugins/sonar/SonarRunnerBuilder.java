@@ -298,7 +298,7 @@ public class SonarRunnerBuilder extends Builder {
 
     // with workflows, we don't have realtime access to build logs, so url might be null
     // if the analyis doesn't succeed, it will also be null
-    SonarUtils.addBuildInfoTo(run, listener, workspace, getSonarInstallation().getName());
+    SonarUtils.addBuildInfoTo(run, listener, workspace, sonarInst.getName(), sonarInst.getCredentialsId());
 
     if (exitCode != 0) {
       throw new AbortException("SonarQube scanner exited with non-zero code: " + exitCode);

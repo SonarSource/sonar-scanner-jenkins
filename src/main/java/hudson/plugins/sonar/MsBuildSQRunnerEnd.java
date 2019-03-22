@@ -111,7 +111,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
   }
 
   private static void addBadge(Run<?, ?> run, TaskListener listener, FilePath workspace, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
-    SonarUtils.addBuildInfoTo(run, listener, workspace, sonarInstallation.getName());
+    SonarUtils.addBuildInfoTo(run, listener, workspace, sonarInstallation.getName(), sonarInstallation.getCredentialsId());
   }
 
   @Override
