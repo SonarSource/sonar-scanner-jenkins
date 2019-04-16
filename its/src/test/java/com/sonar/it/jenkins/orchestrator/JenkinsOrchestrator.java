@@ -467,7 +467,7 @@ public class JenkinsOrchestrator extends SingleStartExternalResource {
     openConfigureToolsPage();
 
     SonarScannerInstaller installer = new SonarScannerInstaller(config.locators());
-    File runnerScript = installer.install(Version.create(version), config.fileSystem().workspace(), true);
+    File runnerScript = installer.install(Version.create(version), config.fileSystem().workspace(), false);
 
     String toolName = "SonarQube Scanner";
 
