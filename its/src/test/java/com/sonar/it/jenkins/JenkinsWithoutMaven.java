@@ -66,7 +66,7 @@ public class JenkinsWithoutMaven {
       .installPlugin("jquery")
       .installPlugin("msbuild")
       .installPlugin(sqJenkinsPluginLocation)
-      .configureSQScannerInstallation("2.8", 0)
+      .configureSQScannerInstallation("3.3.0.1492", 0)
       .configureMsBuildSQScanner_installation("2.3.2.573", false, 0)
       .configureMsBuildSQScanner_installation("3.0.0.629", false, 1)
       .configureMsBuildSQScanner_installation("4.1.0.1148", true, 2)
@@ -84,9 +84,9 @@ public class JenkinsWithoutMaven {
   }
 
   @Test
-  public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_2_8() {
-    String jobName = "js-runner-sq-2.8";
-    String projectKey = "js-runner-2.8";
+  public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_3_3() {
+    String jobName = "js-runner-sq-3.3";
+    String projectKey = "js-runner-3.3";
     assertThat(getProject(projectKey)).isNull();
     BuildResult result = jenkins
       .newFreestyleJobWithSQScanner(jobName, "-v", jsFolder, null,
@@ -101,7 +101,7 @@ public class JenkinsWithoutMaven {
     } else {
       assertThat(result.getLogs()).contains("sonar-scanner");
     }
-    assertThat(result.getLogs()).contains("SonarQube Scanner 2.8");
+    assertThat(result.getLogs()).contains("SonarQube Scanner 3.3.0.1492");
   }
 
   @Test

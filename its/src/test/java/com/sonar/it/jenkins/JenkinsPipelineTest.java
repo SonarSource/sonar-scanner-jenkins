@@ -79,7 +79,7 @@ public class JenkinsPipelineTest {
       // the pipeline plugin -> downloads ~28 other plugins...
       .installPlugin("workflow-aggregator")
       .installPlugin(sqJenkinsPluginLocation)
-      .configureSQScannerInstallation("2.8", 0)
+      .configureSQScannerInstallation("3.3.0.1492", 0)
       .configureMsBuildSQScanner_installation("3.0.0.629", false, 0)
       .configureSonarInstallation(orchestrator, "$MY_SONAR_URL");
     if (SystemUtils.IS_OS_WINDOWS) {
@@ -157,7 +157,7 @@ public class JenkinsPipelineTest {
     } else {
       script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath().toString() + "/. .'\n");
     }
-    script.append("  def scannerHome = tool 'SonarQube Scanner 2.8'\n");
+    script.append("  def scannerHome = tool 'SonarQube Scanner 3.3.0.1492'\n");
     if (SystemUtils.IS_OS_WINDOWS) {
       script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat\"\n");
     } else {
@@ -188,7 +188,7 @@ public class JenkinsPipelineTest {
       } else {
         script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath().toString() + "/. .'\n");
       }
-      script.append("  def scannerHome = tool 'SonarQube Scanner 2.8'\n");
+      script.append("  def scannerHome = tool 'SonarQube Scanner 3.3.0.1492'\n");
       if (SystemUtils.IS_OS_WINDOWS) {
         script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat\"\n");
       } else {

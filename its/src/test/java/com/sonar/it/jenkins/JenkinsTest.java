@@ -64,8 +64,8 @@ public class JenkinsTest {
       .installPlugin(sqJenkinsPluginLocation)
       .configureMavenInstallation()
       // Single installation
-      .configureSQScannerInstallation("2.8", 0)
-      .configureMsBuildSQScanner_installation("3.0.0.629", false,0)
+      .configureSQScannerInstallation("3.3.0.1492", 0)
+      .configureMsBuildSQScanner_installation("3.0.0.629", false, 0)
       .configureSonarInstallation(orchestrator);
     jenkins.checkSavedSonarInstallation(orchestrator);
     jenkins.configureDefaultQG(orchestrator);
