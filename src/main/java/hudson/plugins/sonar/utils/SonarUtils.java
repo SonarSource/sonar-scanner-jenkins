@@ -84,8 +84,11 @@ public final class SonarUtils {
   }
 
   public static Properties extractReportTask(TaskListener listener, FilePath workspace) throws IOException, InterruptedException {
-    FilePath[] candidates = workspace.list("**/" + REPORT_TASK_FILE_NAME);
-    if (candidates.length == 0) {
+    FilePath[] candidates = null;
+    if (workspace.exists()) {
+      candidates = workspace.list("**/" + REPORT_TASK_FILE_NAME);
+    }
+    if (candidatest == null || candidates.length == 0) {
       listener.getLogger().println("WARN: Unable to locate '" + REPORT_TASK_FILE_NAME + "' in the workspace. Did the SonarScanner succeeded?");
       return null;
     } else {
