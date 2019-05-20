@@ -84,7 +84,7 @@ public class SonarBuildBadgeActionFactoryTest {
   }
 
   private static SonarAnalysisAction createBuildInfo(String url) {
-    SonarAnalysisAction buildInfo = new SonarAnalysisAction("my sonar");
+    SonarAnalysisAction buildInfo = new SonarAnalysisAction("my sonar", "credId");
     buildInfo.setUrl(url);
     return buildInfo;
   }

@@ -17,26 +17,24 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.jenkins.orchestrator.container;
+package com.sonar.it.jenkins;
 
-import com.sonar.orchestrator.config.Configuration;
-import com.sonar.orchestrator.config.FileSystem;
-import java.io.File;
+import org.jenkinsci.test.acceptance.po.Control;
+import org.jenkinsci.test.acceptance.po.Describable;
+import org.jenkinsci.test.acceptance.po.Job;
+import org.jenkinsci.test.acceptance.po.Scm;
 
-/**
- * generate and configure jenkins home
- */
-public final class ServerInstaller {
-  private final JenkinsDownloader downloader;
+@Describable("File System")
+public class FilesystemScm extends Scm {
 
-  public ServerInstaller(Configuration config) {
-    this.downloader = new JenkinsDownloader(config);
+  private final Control scmPath = control("path");
+
+  public FilesystemScm(Job job, String path) {
+    super(job, path);
   }
 
-  public JenkinsServer install(JenkinsDistribution distribution) {
-    File jenkinsBase = downloader.download(distribution);
-
-    return new JenkinsServer(jenkinsBase, distribution);
+  public FilesystemScm scmPath(String scmPath) {
+    this.scmPath.set(scmPath);
+    return this;
   }
-
 }

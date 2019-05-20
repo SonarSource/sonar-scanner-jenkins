@@ -21,6 +21,7 @@ package hudson.plugins.sonar.action;
 
 import hudson.model.InvisibleAction;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -30,6 +31,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 @ExportedBean(defaultVisibility = 2)
 public class SonarAnalysisAction extends InvisibleAction {
   private String installationName;
+  private String credentialsId;
   private String ceTaskId;
   // Dashboard URL
   private String url;
@@ -37,8 +39,9 @@ public class SonarAnalysisAction extends InvisibleAction {
   private boolean isNew;
   private boolean isSkipped;
 
-  public SonarAnalysisAction(String installationName) {
+  public SonarAnalysisAction(String installationName, @Nullable String credentialId) {
     this.installationName = installationName;
+    this.credentialsId = credentialId;
     this.url = null;
     this.ceTaskId = null;
     this.isNew = true;
@@ -48,6 +51,7 @@ public class SonarAnalysisAction extends InvisibleAction {
 
   public SonarAnalysisAction(SonarAnalysisAction copy) {
     this.installationName = copy.installationName;
+    this.credentialsId = copy.credentialsId;
     this.url = copy.url;
     this.serverUrl = copy.serverUrl;
     this.ceTaskId = null;
@@ -106,5 +110,11 @@ public class SonarAnalysisAction extends InvisibleAction {
   @Exported
   public String getInstallationName() {
     return installationName;
+  }
+
+  @CheckForNull
+  @Exported
+  public String getCredentialsId() {
+    return credentialsId;
   }
 }

@@ -19,11 +19,13 @@
  */
 package hudson.plugins.sonar.utils;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import hudson.FilePath;
 import hudson.model.Action;
 import hudson.model.Actionable;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +39,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 public final class SonarUtils {
 
@@ -105,9 +108,10 @@ public final class SonarUtils {
    * Collects as much information as it finds from the sonar analysis in the build and adds it as an action to the build.
    * Even if no information is found, the action is added, marking in the build that a sonar analysis ran. 
    */
-  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, boolean skippedIfNoBuild)
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, @Nullable String credentialId,
+    boolean skippedIfNoBuild)
     throws IOException, InterruptedException {
-    SonarAnalysisAction buildInfo = new SonarAnalysisAction(installationName);
+    SonarAnalysisAction buildInfo = new SonarAnalysisAction(installationName, credentialId);
     Properties reportTask = extractReportTask(listener, workspace);
 
     if (reportTask != null) {
@@ -115,21 +119,22 @@ public final class SonarUtils {
       buildInfo.setUrl(reportTask.getProperty(DASHBOARD_URL_KEY));
       buildInfo.setCeTaskId(reportTask.getProperty(CE_TASK_ID_KEY));
     } else {
-      return addBuildInfoFromLastBuildTo(build, installationName, skippedIfNoBuild);
+      return addBuildInfoFromLastBuildTo(build, installationName, credentialId, skippedIfNoBuild);
     }
 
     build.addAction(buildInfo);
     return buildInfo;
   }
 
-  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName) throws IOException, InterruptedException {
-    return addBuildInfoTo(build, listener, workspace, installationName, false);
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, @Nullable String credentialId)
+    throws IOException, InterruptedException {
+    return addBuildInfoTo(build, listener, workspace, installationName, credentialId, false);
   }
 
-  public static SonarAnalysisAction addBuildInfoFromLastBuildTo(Run<?, ?> build, String installationName, boolean isSkipped) {
+  public static SonarAnalysisAction addBuildInfoFromLastBuildTo(Run<?, ?> build, String installationName, @Nullable String credentialId, boolean isSkipped) {
     Run<?, ?> previousBuild = build.getPreviousBuild();
     if (previousBuild == null) {
-      return addEmptyBuildInfo(build, installationName, isSkipped);
+      return addEmptyBuildInfo(build, installationName, credentialId, isSkipped);
     }
 
     for (SonarAnalysisAction analysis : previousBuild.getActions(SonarAnalysisAction.class)) {
@@ -140,11 +145,11 @@ public final class SonarUtils {
         return copy;
       }
     }
-    return addEmptyBuildInfo(build, installationName, isSkipped);
+    return addEmptyBuildInfo(build, installationName, credentialId, isSkipped);
   }
 
-  public static SonarAnalysisAction addEmptyBuildInfo(Run<?, ?> build, String installationName, boolean isSkipped) {
-    SonarAnalysisAction analysis = new SonarAnalysisAction(installationName);
+  public static SonarAnalysisAction addEmptyBuildInfo(Run<?, ?> build, String installationName, @Nullable String credentialId, boolean isSkipped) {
+    SonarAnalysisAction analysis = new SonarAnalysisAction(installationName, credentialId);
     analysis.setSkipped(isSkipped);
     build.addAction(analysis);
     return analysis;
@@ -170,5 +175,23 @@ public final class SonarUtils {
     }
 
     return null;
+  }
+
+  @CheckForNull
+  public static String getAuthenticationToken(Run<?, ?> build, SonarInstallation inst, @Nullable String credentialsId) {
+    if (credentialsId == null) {
+      return inst.getServerAuthenticationToken(build);
+    }
+
+    StringCredentials cred = getCredentials(build, credentialsId);
+    if (cred == null) {
+      throw new IllegalStateException("Unable to find credential with id '" + credentialsId + "'");
+    }
+
+    return cred.getSecret().getPlainText();
+  }
+
+  public static StringCredentials getCredentials(Run<?, ?> build, String credentialsId) {
+    return CredentialsProvider.findCredentialById(credentialsId, StringCredentials.class, build);
   }
 }

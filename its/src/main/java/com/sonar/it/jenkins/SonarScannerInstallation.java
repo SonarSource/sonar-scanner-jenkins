@@ -17,41 +17,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.jenkins.orchestrator.container;
+package com.sonar.it.jenkins;
 
-import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.test.acceptance.po.Jenkins;
+import org.jenkinsci.test.acceptance.po.ToolInstallation;
+import org.jenkinsci.test.acceptance.po.ToolInstallationPageObject;
 
-public final class JenkinsDistribution {
+@ToolInstallationPageObject(installer = "hudson.plugins.sonar.SonarRunnerInstaller", name = "SonarQube Scanner")
+public class SonarScannerInstallation extends ToolInstallation {
 
-  private String version;
-  private int port;
-
-  public JenkinsDistribution() {
+  public SonarScannerInstallation(Jenkins jenkins, String path) {
+    super(jenkins, path);
   }
 
-  public JenkinsDistribution(String version) {
-    this.version = version;
+  public static void install(final Jenkins jenkins, final String version) {
+    jenkins.getPluginManager().checkForUpdates();
+    installTool(jenkins, SonarScannerInstallation.class, getInstallName(version), version);
   }
 
-  public JenkinsDistribution setVersion(String s) {
-    this.version = s;
-    return this;
+  public static String getInstallName(final String version) {
+    return "SonarQube Scanner " + version;
   }
 
-  public String getVersion() {
-    return version;
-  }
-
-  public boolean isRelease() {
-    return !StringUtils.endsWith(version, "-SNAPSHOT");
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public JenkinsDistribution setPort(int port) {
-    this.port = port;
-    return this;
-  }
 }

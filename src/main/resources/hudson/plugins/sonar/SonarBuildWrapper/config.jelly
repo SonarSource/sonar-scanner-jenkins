@@ -1,5 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
 
   <!-- SonarQube Installation -->
   <j:set var="sonars" value="${descriptor.getSonarInstallations()}"/>
@@ -19,5 +19,8 @@
       </select>
     </f:entry>
   </j:if>
+  <f:entry title="${%ServerToken}" field="credentialsId" description="${%ServerTokenDescr}">
+    <c:select name="sonar.credentialsId" value="${inst.getCredentialsId()}"/>
+  </f:entry>
   
 </j:jelly>

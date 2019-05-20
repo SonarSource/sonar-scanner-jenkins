@@ -27,7 +27,7 @@ public class SonarAnalysisActionTest {
 
   @Test
   public void testRoundTrips() {
-    SonarAnalysisAction analysis = new SonarAnalysisAction("inst");
+    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId");
     analysis.setUrl("url1");
     analysis.setNew(false);
     analysis.setCeTaskId("task1");
@@ -36,13 +36,14 @@ public class SonarAnalysisActionTest {
     assertThat(analysis.getCeTaskId()).isEqualTo("task1");
     assertThat(analysis.getUrl()).isEqualTo("url1");
     assertThat(analysis.getInstallationName()).isEqualTo("inst");
+    assertThat(analysis.getCredentialsId()).isEqualTo("credId");
     assertThat(analysis.isNew()).isFalse();
     assertThat(analysis.isSkipped()).isFalse();
   }
 
   @Test
   public void testCopyConstructor() {
-    SonarAnalysisAction analysis = new SonarAnalysisAction("inst");
+    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId");
     analysis.setUrl("url1");
     analysis.setNew(true);
     analysis.setSkipped(true);
@@ -51,8 +52,9 @@ public class SonarAnalysisActionTest {
     SonarAnalysisAction analysis2 = new SonarAnalysisAction(analysis);
     assertThat(analysis2.getUrl()).isEqualTo("url1");
     assertThat(analysis2.getInstallationName()).isEqualTo("inst");
-    
-    //don't copy these
+    assertThat(analysis2.getCredentialsId()).isEqualTo("credId");
+
+    // don't copy these
     assertThat(analysis2.getCeTaskId()).isNull();
     assertThat(analysis2.isNew()).isFalse();
     assertThat(analysis2.isSkipped()).isFalse();

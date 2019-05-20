@@ -19,14 +19,18 @@
  */
 package hudson.plugins.sonar;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import hudson.AbortException;
+import hudson.Util;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.model.TriggersConfig;
+import hudson.util.Secret;
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
-
-import hudson.util.Secret;
+import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SonarInstallation implements Serializable {
@@ -39,8 +43,14 @@ public class SonarInstallation implements Serializable {
   private final String serverUrl;
 
   /**
-   * @since 2.4
+   * @since 2.9
    */
+  private String credentialsId;
+
+  /**
+   * @deprecated since 2.9 replaced by {@link #credentialsId}
+   */
+  @Deprecated
   private Secret serverAuthenticationToken;
 
   /**
@@ -57,14 +67,33 @@ public class SonarInstallation implements Serializable {
 
   private String[] split;
 
-  @DataBoundConstructor
+  /**
+   * Maintained to retain compatibility
+   * @deprecated since 2.9
+   */
+  @Deprecated
   public SonarInstallation(String name,
     String serverUrl, String serverAuthenticationToken,
     String mojoVersion, String additionalProperties, TriggersConfig triggers,
     String additionalAnalysisProperties) {
+    this(name, serverUrl, null, Secret.fromString(StringUtils.trimToNull(serverAuthenticationToken)),
+      mojoVersion, additionalProperties, additionalAnalysisProperties, triggers);
+  }
+
+  @DataBoundConstructor
+  public SonarInstallation(
+    String name,
+    String serverUrl,
+    @Nullable String credentialsId,
+    @Nullable Secret serverAuthenticationToken,
+    String mojoVersion,
+    String additionalProperties,
+    String additionalAnalysisProperties,
+    TriggersConfig triggers) {
     this.name = name;
     this.serverUrl = serverUrl;
-    this.serverAuthenticationToken = Secret.fromString(StringUtils.trimToNull(serverAuthenticationToken));
+    this.credentialsId = credentialsId;
+    this.serverAuthenticationToken = serverAuthenticationToken;
     this.additionalAnalysisProperties = additionalAnalysisProperties;
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
@@ -137,10 +166,32 @@ public class SonarInstallation implements Serializable {
   }
 
   /**
-   * @since 2.4
+   * @since 2.9
    */
-  public Secret getServerAuthenticationToken() {
-    return serverAuthenticationToken;
+  @CheckForNull
+  public String getServerAuthenticationToken(Run<?, ?> build) {
+    if (credentialsId == null || build == null) {
+      return null;
+    }
+
+    StringCredentials cred = this.getCredentials(build);
+    if (cred == null) {
+      return null;
+    }
+
+    return cred.getSecret().getPlainText();
+  }
+
+  public StringCredentials getCredentials(Run<?, ?> build) {
+    return CredentialsProvider.findCredentialById(credentialsId, StringCredentials.class, build);
+  }
+
+  /**
+   * @since 2.9
+   */
+  @SuppressWarnings("unused")
+  public String getCredentialsId() {
+    return credentialsId;
   }
 
   /**
@@ -193,4 +244,11 @@ public class SonarInstallation implements Serializable {
     return triggers;
   }
 
+  @SuppressWarnings("deprecation")
+  void migrateTokenToCredential() {
+    if (this.serverAuthenticationToken != null && Util.fixEmpty(this.serverAuthenticationToken.getPlainText()) != null) {
+      this.credentialsId = new GlobalCredentialMigrator().migrate(this.serverAuthenticationToken.getPlainText()).getId();
+      this.serverAuthenticationToken = null;
+    }
+  }
 }
