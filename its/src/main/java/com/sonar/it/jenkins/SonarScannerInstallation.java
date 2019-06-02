@@ -1,6 +1,6 @@
 /*
  * Jenkins :: Integration Tests
- * Copyright (C) 2013-2018 SonarSource SA
+ * Copyright (C) 2013-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,40 +17,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.jenkins.orchestrator.container;
+package com.sonar.it.jenkins;
 
-import com.sonar.orchestrator.version.Version;
-import java.io.File;
+import org.jenkinsci.test.acceptance.po.Jenkins;
+import org.jenkinsci.test.acceptance.po.ToolInstallation;
+import org.jenkinsci.test.acceptance.po.ToolInstallationPageObject;
 
-public class JenkinsServer {
+@ToolInstallationPageObject(installer = "hudson.plugins.sonar.SonarRunnerInstaller", name = "SonarQube Scanner")
+public class SonarScannerInstallation extends ToolInstallation {
 
-  private final File base;
-  private final JenkinsDistribution distribution;
-  private String url;
-
-  public JenkinsServer(File base, JenkinsDistribution distribution) {
-    this.base = base;
-    this.distribution = distribution;
+  public SonarScannerInstallation(Jenkins jenkins, String path) {
+    super(jenkins, path);
   }
 
-  public File getHome() {
-    return new File(base, "work");
+  public static void install(final Jenkins jenkins, final String version) {
+    jenkins.getPluginManager().checkForUpdates();
+    installTool(jenkins, SonarScannerInstallation.class, getInstallName(version), version);
   }
 
-  public String getUrl() {
-    return url;
-  }
-
-  public void setUrl(String url) {
-    this.url = url;
-  }
-
-  public JenkinsDistribution getDistribution() {
-    return distribution;
-  }
-
-  public Version getVersion() {
-    return Version.create(distribution.getVersion());
+  public static String getInstallName(final String version) {
+    return "SonarQube Scanner " + version;
   }
 
 }

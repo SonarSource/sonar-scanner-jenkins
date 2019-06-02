@@ -1,6 +1,6 @@
 /*
  * SonarQube Scanner for Jenkins
- * Copyright (C) 2007-2018 SonarSource SA
+ * Copyright (C) 2007-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,46 +19,75 @@
  */
 package hudson.plugins.sonar;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
 import com.google.common.annotations.VisibleForTesting;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Util;
 import hudson.console.ConsoleLogFilter;
 import hudson.model.AbstractProject;
+import hudson.model.FreeStyleProject;
+import hudson.model.Item;
+import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.model.queue.Tasks;
 import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.MaskPasswordsOutputStream;
 import hudson.plugins.sonar.utils.SonarUtils;
+import hudson.security.ACL;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.util.ArgumentListBuilder;
-import hudson.util.Secret;
-import jenkins.tasks.SimpleBuildWrapper;
-import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.DataBoundConstructor;
-
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import jenkins.model.Jenkins;
+import jenkins.tasks.SimpleBuildWrapper;
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 
 public class SonarBuildWrapper extends SimpleBuildWrapper {
   private String installationName = null;
+  private String credentialsId;
 
   @DataBoundConstructor
   public SonarBuildWrapper(@Nullable String installationName) {
     this.installationName = installationName;
+  }
+
+  @CheckForNull
+  public String getCredentialsId() {
+    return credentialsId;
+  }
+
+  @DataBoundSetter
+  public void setCredentialsId(String credentialsId) {
+    this.credentialsId = Util.fixEmpty(credentialsId);
   }
 
   @Override
@@ -72,21 +101,21 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     Logger.LOG.info(msg);
     listener.getLogger().println(msg);
 
-    context.getEnv().putAll(createVars(installation, initialEnvironment));
+    context.getEnv().putAll(createVars(installation, getCredentialsId(), initialEnvironment, build));
 
-    context.setDisposer(new AddBuildInfo(installation));
+    context.setDisposer(new AddBuildInfo(installation, getCredentialsId()));
 
     build.addAction(new SonarMarkerAction());
   }
 
   @VisibleForTesting
-  static Map<String, String> createVars(SonarInstallation inst, EnvVars initialEnvironment) {
+  static Map<String, String> createVars(SonarInstallation inst, @Nullable String credentialsId, EnvVars initialEnvironment, Run<?, ?> build) {
     Map<String, String> map = new HashMap<>();
 
     map.put("SONAR_CONFIG_NAME", inst.getName());
     String hostUrl = getOrDefault(initialEnvironment.expand(inst.getServerUrl()), "http://localhost:9000");
     map.put("SONAR_HOST_URL", hostUrl);
-    String token = getOrDefault(initialEnvironment.expand(inst.getServerAuthenticationToken().getPlainText()), "");
+    String token = getOrDefault(SonarUtils.getAuthenticationToken(build, inst, credentialsId), "");
     map.put("SONAR_AUTH_TOKEN", token);
 
     String mojoVersion = inst.getMojoVersion();
@@ -145,7 +174,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     return StringUtils.join(builder.toList(), ' ');
   }
 
-  private static String getOrDefault(String value, String defaultValue) {
+  private static String getOrDefault(@Nullable String value, String defaultValue) {
     return !StringUtils.isEmpty(value) ? value : defaultValue;
   }
 
@@ -160,10 +189,9 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     List<String> passwords = new ArrayList<>();
 
-    Secret token = inst.getServerAuthenticationToken();
-    String tokenPlainText = token.getPlainText();
-    if (!StringUtils.isBlank(tokenPlainText)) {
-      passwords.add(tokenPlainText);
+    String token = getOrDefault(SonarUtils.getAuthenticationToken(build, inst, credentialsId), "");
+    if (!StringUtils.isBlank(token)) {
+      passwords.add(token);
     }
 
     return new SonarQubePasswordLogFilter(passwords, build.getCharset().name());
@@ -175,14 +203,17 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     private final SonarInstallation installation;
 
-    public AddBuildInfo(SonarInstallation installation) {
+    private final String credentialsId;
+
+    public AddBuildInfo(SonarInstallation installation, @Nullable String credentialsId) {
       this.installation = installation;
+      this.credentialsId = credentialsId;
     }
 
     @Override
     public void tearDown(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
       // null result means success so far. If no logs are found, it's probably because it was simply skipped
-      SonarUtils.addBuildInfoTo(build, listener, workspace, installation.getName(), build.getResult() == null);
+      SonarUtils.addBuildInfoTo(build, listener, workspace, installation.getName(), credentialsId, build.getResult() == null);
     }
   }
 
@@ -223,6 +254,55 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     @Override
     public String getDisplayName() {
       return Messages.SonarBuildWrapper_DisplayName();
+    }
+
+    public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project,
+      @QueryParameter String credentialsId) {
+      if (project == null && !Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER) ||
+        project != null && !project.hasPermission(Item.EXTENDED_READ)) {
+        return new StandardListBoxModel().includeCurrentValue(credentialsId);
+      }
+      if (project == null) {
+        /* Construct a fake project */
+        project = new FreeStyleProject(Jenkins.getInstance(), "fake-" + UUID.randomUUID().toString());
+      }
+      return new StandardListBoxModel()
+        .includeEmptyValue()
+        .includeMatchingAs(
+          project instanceof Queue.Task
+            ? Tasks.getAuthenticationOf((Queue.Task) project)
+            : ACL.SYSTEM,
+          project,
+          StringCredentials.class,
+          Collections.emptyList(),
+          CredentialsMatchers.always())
+        .includeCurrentValue(credentialsId);
+    }
+
+    public FormValidation doCheckCredentialsId(@AncestorInPath Item project,
+      @QueryParameter String value) {
+      if (project == null && !Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER) ||
+        project != null && !project.hasPermission(Item.EXTENDED_READ)) {
+        return FormValidation.ok();
+      }
+
+      value = Util.fixEmptyAndTrim(value);
+      if (value == null) {
+        return FormValidation.ok();
+      }
+
+      for (ListBoxModel.Option o : CredentialsProvider
+        .listCredentials(StandardUsernameCredentials.class, project, project instanceof Queue.Task
+          ? Tasks.getAuthenticationOf((Queue.Task) project)
+          : ACL.SYSTEM,
+          Collections.emptyList(),
+          CredentialsMatchers.always())) {
+        if (StringUtils.equals(value, o.value)) {
+          return FormValidation.ok();
+        }
+      }
+      // no credentials available, can't check
+      return FormValidation.warning("Cannot find any credentials with id " + value);
     }
 
     @Override

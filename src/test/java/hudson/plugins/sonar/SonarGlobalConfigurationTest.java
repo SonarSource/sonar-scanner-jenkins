@@ -1,6 +1,6 @@
 /*
  * SonarQube Scanner for Jenkins
- * Copyright (C) 2007-2018 SonarSource SA
+ * Copyright (C) 2007-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -47,7 +47,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   private static SonarInstallation createInstallation(String name) {
-    return new SonarInstallation(name, null, null, null, null, null, null);
+    return new SonarInstallation(name, null, null,null, null, null, null, null);
   }
 
   @Test

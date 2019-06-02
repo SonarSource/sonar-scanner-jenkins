@@ -1,6 +1,6 @@
 /*
  * SonarQube Scanner for Jenkins
- * Copyright (C) 2007-2018 SonarSource SA
+ * Copyright (C) 2007-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,13 +26,12 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.Node;
+import hudson.model.Run;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.scm.SCM;
 import hudson.util.ArgumentListBuilder;
 import java.io.File;
 import java.io.IOException;
-
-import hudson.util.Secret;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -94,7 +93,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   @Test
   public void additionalArgs() {
     ArgumentListBuilder args = new ArgumentListBuilder();
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, "-Y", null, "key=value");
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, "-Y", "key=value", null);
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X -e");
     builder.addAdditionalArguments(args, inst);
     assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X -e");
@@ -132,7 +131,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   public void shouldPopulateSonarToken() throws IOException, InterruptedException {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
-    when(installation.getServerAuthenticationToken()).thenReturn(Secret.fromString("token"));
+    when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
 
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation);

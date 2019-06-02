@@ -1,6 +1,6 @@
 /*
  * Jenkins :: Integration Tests
- * Copyright (C) 2013-2018 SonarSource SA
+ * Copyright (C) 2013-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,41 +17,24 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.jenkins.orchestrator.container;
+package com.sonar.it.jenkins;
 
-import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.test.acceptance.po.Control;
+import org.jenkinsci.test.acceptance.po.Describable;
+import org.jenkinsci.test.acceptance.po.Job;
+import org.jenkinsci.test.acceptance.po.Scm;
 
-public final class JenkinsDistribution {
+@Describable("File System")
+public class FilesystemScm extends Scm {
 
-  private String version;
-  private int port;
+  private final Control scmPath = control("path");
 
-  public JenkinsDistribution() {
+  public FilesystemScm(Job job, String path) {
+    super(job, path);
   }
 
-  public JenkinsDistribution(String version) {
-    this.version = version;
-  }
-
-  public JenkinsDistribution setVersion(String s) {
-    this.version = s;
-    return this;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public boolean isRelease() {
-    return !StringUtils.endsWith(version, "-SNAPSHOT");
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public JenkinsDistribution setPort(int port) {
-    this.port = port;
+  public FilesystemScm scmPath(String scmPath) {
+    this.scmPath.set(scmPath);
     return this;
   }
 }

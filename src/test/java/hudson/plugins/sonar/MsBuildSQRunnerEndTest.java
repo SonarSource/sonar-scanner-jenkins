@@ -1,6 +1,6 @@
 /*
  * SonarQube Scanner for Jenkins
- * Copyright (C) 2007-2018 SonarSource SA
+ * Copyright (C) 2007-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,12 +27,15 @@ import hudson.plugins.sonar.MsBuildSQRunnerEnd.DescriptorImpl;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 
 public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testToken() throws Exception {
-    configureSonar(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "token", null, null, null, null));
+    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "credentialsId", null,null, null, null, null));
+    addCredential("credentialsId", "token");
+    configureSonar(inst);
     configureMsBuildScanner(false);
 
     FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));

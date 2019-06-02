@@ -1,6 +1,6 @@
 /*
  * SonarQube Scanner for Jenkins
- * Copyright (C) 2007-2018 SonarSource SA
+ * Copyright (C) 2007-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -115,7 +115,7 @@ public class SonarProjectActionFactory extends TransientActionFactory<Job> {
 
     synchronized (run) {
       SonarCacheAction cache = getOrCreateCache(run);
-      projects = cache.get(resolver, endTime, actions);
+      projects = cache.get(resolver, endTime, actions, run);
     }
 
     if (projects == null || projects.isEmpty()) {

@@ -5,19 +5,22 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>3.6</version>
+    <!-- See https://github.com/jenkinsci/plugin-pom/blob/master/CHANGELOG.md -->
+    <version>3.39</version>
     <relativePath />
   </parent>
 
-  <!-- defining groupId otherwise we get a NPE by versions-maven-plugin: https://github.com/mojohaus/versions-maven-plugin/issues/51 -->
-  <groupId>org.jenkins-ci.plugins</groupId>
   <artifactId>sonar</artifactId>
-  <version>2.9-SNAPSHOT</version>
+  <version>2.10-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <name>SonarQube Scanner for Jenkins</name>
   <url>http://redirect.sonarsource.com/plugins/jenkins.html</url>
   <inceptionYear>2007</inceptionYear>
+  <organization>
+    <name>SonarSource</name>
+    <url>https://sonarsource.com</url>
+  </organization>
   <licenses>
     <license>
       <name>GNU Lesser General Public License (LGPL), v.3</name>
@@ -25,11 +28,6 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-
-  <organization>
-    <name>SonarSource</name>
-    <url>https://sonarsource.com</url>
-  </organization>
 
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/sonarqube-plugin.git</connection>
@@ -61,40 +59,92 @@
     <findbugs.skip>true</findbugs.skip>
     <!-- No need to rerun tests, because of HAP-859, artifactory plugin will not upload the artifact -->
     <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
-    
+
     <!-- To configure maven-license-plugin to check license headers -->
     <license.name>GNU LGPL v3</license.name>
     <license.owner>SonarSource SA</license.owner>
     <license.title>${project.name}</license.title>
-    <license.years>${project.inceptionYear}-2018</license.years>
+    <license.years>${project.inceptionYear}-2019</license.years>
     <license.mailto>mailto:info AT sonarsource DOT com</license.mailto>
-    
+
     <artifactsToPublish>${project.groupId}:${project.artifactId}:hpi</artifactsToPublish>
   </properties>
 
-  <repositories>
-    <repository>
-      <id>repo.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/public/</url>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>repo.jenkins-ci.org</id>
-      <url>http://repo.jenkins-ci.org/public/</url>
-    </pluginRepository>
-  </pluginRepositories>
-
+  <dependencyManagement>
+    <dependencies>
+      <!-- Resolve dependency conflicts of plugins used during tests (workflow) -->
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.ant</groupId>
+        <artifactId>ant</artifactId>
+        <version>1.9.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-embedder</artifactId>
+        <version>3.5.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-classworlds</artifactId>
+        <version>2.5.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-core</artifactId>
+        <version>3.5.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-aether-provider</artifactId>
+        <version>3.3.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-compat</artifactId>
+        <version>3.5.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.5.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpcore</artifactId>
+        <version>4.4.4</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci.plugins.workflow</groupId>
+        <artifactId>workflow-step-api</artifactId>
+        <version>2.14</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>ssh-credentials</artifactId>
+        <version>1.13</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-net</groupId>
+        <artifactId>commons-net</artifactId>
+        <version>3.6</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.5</version>
+      <version>3.7</version>
     </dependency>
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>5.6</version>
+      <version>6.7</version>
     </dependency>
     <dependency>
       <!-- needed for SonarPublisher -->
@@ -115,12 +165,22 @@
       <version>2.18</version>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>credentials</artifactId>
+      <version>2.1.13</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>plain-credentials</artifactId>
+      <version>1.4</version>
+    </dependency>
+
 
     <!-- Test deps -->
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>2.10.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -132,7 +192,7 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>3.8.0</version>
+      <version>3.11.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -178,6 +238,19 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
 
   <build>
     <pluginManagement>
@@ -290,7 +363,7 @@
             </executions>
           </plugin>
           <plugin>
-            <!-- this maven plugin is not deployed in Maven Central. It should be downloaded from JFrog JCenter or from SonarSource 
+            <!-- this maven plugin is not deployed in Maven Central. It should be downloaded from JFrog JCenter or from SonarSource
               repositories -->
             <groupId>org.jfrog.buildinfo</groupId>
             <artifactId>artifactory-maven-plugin</artifactId>
@@ -344,64 +417,4 @@
       </build>
     </profile>
   </profiles>
-  <dependencyManagement>
-    <dependencies>
-      <!-- Resolve dependency conflicts of plugins used during tests (workflow) -->
-      <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-        <version>2.5</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.ant</groupId>
-        <artifactId>ant</artifactId>
-        <version>1.9.2</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.maven</groupId>
-        <artifactId>maven-embedder</artifactId>
-        <version>3.5.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.plexus</groupId>
-        <artifactId>plexus-classworlds</artifactId>
-        <version>2.5.2</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.maven</groupId>
-        <artifactId>maven-core</artifactId>
-        <version>3.5.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.maven</groupId>
-        <artifactId>maven-aether-provider</artifactId>
-        <version>3.3.1</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.maven</groupId>
-        <artifactId>maven-compat</artifactId>
-        <version>3.5.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpclient</artifactId>
-        <version>4.5.2</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpcore</artifactId>
-        <version>4.4.4</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jenkins-ci.plugins.workflow</groupId>
-        <artifactId>workflow-step-api</artifactId>
-        <version>2.14</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>ssh-credentials</artifactId>
-        <version>1.13</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 </project>

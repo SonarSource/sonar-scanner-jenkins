@@ -1,6 +1,6 @@
 /*
  * SonarQube Scanner for Jenkins
- * Copyright (C) 2007-2018 SonarSource SA
+ * Copyright (C) 2007-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,11 @@
  */
 package hudson.plugins.sonar.action;
 
-import hudson.plugins.sonar.SonarTestCase;
-
-import hudson.plugins.sonar.action.SonarProjectIconAction;
 import hudson.model.AbstractProject;
+import hudson.plugins.sonar.SonarTestCase;
 import hudson.util.RunList;
 import org.junit.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -36,7 +35,7 @@ public class SonarProjectIconActionTest extends SonarTestCase {
   @Test
   public void test() throws Exception {
     AbstractProject project = mock(AbstractProject.class);
-    SonarProjectIconAction action = new SonarProjectIconAction(new SonarAnalysisAction("inst"));
+    SonarProjectIconAction action = new SonarProjectIconAction(new SonarAnalysisAction("inst", "credId"));
     when(project.getBuilds()).thenReturn(new RunList());
     assertThat(action.getDisplayName()).isNotNull();
     assertThat(action.getIconFileName()).isNotNull();

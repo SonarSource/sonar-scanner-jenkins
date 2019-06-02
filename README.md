@@ -5,8 +5,6 @@ SonarQube Scanner for Jenkins
 
 Documentation: http://redirect.sonarsource.com/plugins/jenkins.html
 
-Continuous inspection: https://next.sonarqube.com/sonarqube/dashboard?id=org.jenkins-ci.plugins%3Asonar
-
 Issue tracking: https://jira.sonarsource.com/browse/SONARJNKNS
 
 
@@ -33,6 +31,6 @@ thanks to crawlers written in groovy:
 
 ### License
 
-Copyright 2007-2017 SonarSource.
+Copyright 2007-2019 SonarSource.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)

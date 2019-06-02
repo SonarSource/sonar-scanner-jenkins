@@ -1,6 +1,6 @@
 /*
  * SonarQube Scanner for Jenkins
- * Copyright (C) 2007-2018 SonarSource SA
+ * Copyright (C) 2007-2019 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@ import hudson.model.Result;
 import hudson.model.Run;
 import org.junit.Test;
 import org.jvnet.hudson.test.MockBuilder;
+
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Evgeny Mandrikov
@@ -108,17 +110,21 @@ public class BaseTest extends SonarTestCase {
   public void testPassword() throws Exception {
     configureDefaultSonarRunner(false);
     configureSecuredSonar();
+
     FreeStyleProject project = setupFreeStyleProjectWithSonarRunner();
     Run<?, ?> build = build(project);
 
     assertLogContains("sonar-runner", build);
-    assertLogDoesntContains("sonar.login", build);
+    assertLogContains("-Dsonar.host.url=http://example.org:9999/sonar ********", build); // check masked token is in logs
+    assertLogDoesntContains("secret", build);
   }
 
   private void configureSecuredSonar() {
-    configureSonar(new SonarInstallation(
-      SONAR_INSTALLATION_NAME,
-      SONAR_HOST,
-      "token", null, null, null, null));
+    SonarInstallation installation = spy(new SonarInstallation(
+            SONAR_INSTALLATION_NAME,
+            SONAR_HOST,
+            "token", null, null, null, null, null));
+    addCredential("token", "secret");
+    configureSonar(installation);
   }
 }
