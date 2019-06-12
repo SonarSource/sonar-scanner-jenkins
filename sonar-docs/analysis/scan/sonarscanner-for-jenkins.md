@@ -19,13 +19,16 @@ Then you can trigger SonarQube analysis from Jenkins using standard Jenkins Buil
 Once the job is complete, the plugin will detect that a SonarQube analysis was made during the build and display a badge and a widget on the job page with a link to the SonarQube dashboard as well as quality gate status.
 
 ## Installation
+
 1. [Install the SonarScanner for Jenkins via the Jenkins Update Center](https://plugins.jenkins.io/sonar).
 1. Configure your SonarQube server(s)
    * Log into Jenkins as an administrator and go to Manage Jenkins > Configure System: 
    * Scroll down to the SonarQube configuration section, click on Add SonarQube, and add the values you're prompted for.
 
 ## Analyzing a .NET solution
-**Global Configuration**  
+
+### Global Configuration  
+
 This step is mandatory if you want to trigger any of your analyses with the SonarScanner for MSBuild. You can define as many scanner instances as you wish. Then for each Jenkins job, you will be able to choose with which launcher to use to run the SonarQube analysis.
 1. Log into Jenkins as an administrator and go to **Manage Jenkins > Global Tool Configuration**
 1. Click on **Add SonarScanner for MSBuild**
@@ -33,7 +36,8 @@ This step is mandatory if you want to trigger any of your analyses with the Sona
 
 If you do not see any available version under Install from GitHub, first go to Manage Jenkins > Manage Plugins > Advanced and click on Check now
 
-**Job Configuration**  
+### Job Configuration
+
 1. Configure the project, and go to the **Build** section.
 1. Add the SonarQube for MSBuild - Begin Analysis to your build
 1. Configure the SonarQube Project Key, Name and Version in the SonarScanner for MSBuild - Begin Analysis build step
@@ -41,49 +45,52 @@ If you do not see any available version under Install from GitHub, first go to M
 1. Add the SonarQube for MSBuild - End Analysis build steps to your build
 
 ## Analyzing a Java project with Maven or Gradle
-** Global Configuration**  
+
+### Global Configuration
+
 1. Log into Jenkins as an administrator and go to Manage Jenkins > Configure System
 1. Scroll to the SonarQube servers section and check Enable injection of SonarQube server configuration as build environment variables
 
-** Job Configuration**  
+### Job Configuration
+
 1. **Configure** the project, and go to the **Build Environment** section.
 1. Enable **Prepare SonarScanner environment** to allow the injection of SonarQube server values into this particular job. If multiple SonarQube instances are configured, you will be able to choose which one to use.
 Once the environment variables are available, use them in a standard Maven build step (Invoke top-level Maven targets) by setting the Goals to include, or a standard Gradle build step (Invoke Gradle script) by setting the Tasks to execute.
 
 Maven goal:
-```
-$SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL
-```
+    $SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL
+
 Gradle task:
-```
-sonarqube -Dsonar.host.url=$SONAR_HOST_URL
-```
+    sonarqube -Dsonar.host.url=$SONAR_HOST_URL
 
 In both cases, launching your analysis may require authentication. In that case, make sure that the Global Configuration defines a valid SonarQube token, and add it to the Maven goal or Gradle task with the following argument and value: `-Dsonar.login=$SONAR_AUTH_TOKEN`
 
 ## Analyzing other project types
 
-**Global Configuration**  
+### Global Configuration
+
 This step is mandatory if you want to trigger any of your SonarQube analyses with the SonarScanner. You can define as many scanner instances as you wish. Then for each Jenkins job, you will be able to choose with which launcher to use to run the SonarQube analysis.
 
 1. Log into Jenkins as an administrator and go to **Manage Jenkins > Global Tool Configuration**
-1. Scroll down to the SonarScanner configuration section and click on Add SonarScanner. It is based on the typical Jenkins tool auto-installation. You can either choose to point to an already installed version of SonarScanner (uncheck 'Install automatically') or tell Jenkins to grab the installer from a remote location (check 'Install automatically')
+2. Scroll down to the SonarScanner configuration section and click on Add SonarScanner. It is based on the typical Jenkins tool auto-installation. You can either choose to point to an already installed version of SonarScanner (uncheck 'Install automatically') or tell Jenkins to grab the installer from a remote location (check 'Install automatically')
 
 If you don't see a drop down list with all available SonarScanner versions but instead see an empty text field then this is because Jenkins still hasn't downloaded the required update center file (default period is 1 day). You may force this refresh by clicking 'Check Now' button in Manage Plugins > Advanced tab.
 
-**Job Configuration**  
-1. **Configure** the project, and go to the **Build** section. 
-1. Add the SonarScanner build step to your build.
-1. Configure the SonarQube analysis properties. You can either point to an existing sonar-project.properties file or set the analysis properties directly in the **Analysis properties** field
+### Job Configuration
 
+1. **Configure** the project, and go to the **Build** section. 
+2. Add the SonarScanner build step to your build.
+3. Configure the SonarQube analysis properties. You can either point to an existing sonar-project.properties file or set the analysis properties directly in the **Analysis properties** field
 
 
 ## Using a Jenkins pipeline
+
 Since version 2.5 of the SonarScanner for Jenkins, there is official support of Jenkins pipeline. We provide a `withSonarQubeEnv` block that allows you to select the SonarQube server you want to interact with. Connection details you have configured in Jenkins global configuration will be automatically passed to the scanner.
 
 Here are a some examples for every scanner, assuming you run on Unix slaves and you have configured a server named "My SonarQube Server" as well as required tools. If you run on Windows slaves, just replace `sh` with `bat`.
 
 SonarScanner:
+
 ```
 node {
   stage('SCM') {
@@ -98,7 +105,9 @@ node {
   }
 }
 ```
+
 SonarScanner for Gradle:
+
 ```
 node {
   stage('SCM') {
@@ -113,7 +122,9 @@ node {
   }
 }
 ```
+
 SonarScanner for Maven:
+
 ```
 node {
   stage('SCM') {
@@ -127,7 +138,9 @@ node {
   }
 }
 ```
+
 SonarScanner for MSBuild:
+
 ```
 node {
   stage('SCM') {
@@ -148,12 +161,12 @@ node {
 ## Pause pipeline until quality gate is computed
 The `waitForQualityGate` step will pause the pipeline until SonarQube analysis is completed and returns quality gate status.
 
-### Pre-requisites:
+### Pre-requisites
 * Configure a webhook in your SonarQube server pointing to `<your Jenkins instance>/sonarqube-webhook/` 
 * Use `withSonarQubeEnv` step in your pipeline (so that SonarQube taskId is correctly attached to the pipeline context).
 
-
 Scripted pipeline example:
+
 ```
 node {
   stage('SCM') {
@@ -176,9 +189,11 @@ stage("Quality Gate"){
   }
 }
 ```
+
 Thanks to the webhook, the step is implemented in a very lightweight way: no need to occupy a node doing polling, and it doesn't prevent Jenkins to restart (step will be restored after restart). Note that to prevent race conditions, when the step starts (or is restarted) a direct call is made to the server to check if the task is already completed.
 
 Declarative pipeline example:
+
 ```
 pipeline {
     agent any
@@ -213,6 +228,7 @@ pipeline {
 ```
 
 If you want to run multiple analysis in the same pipeline and use waitForQualityGate, it works starting from version 2.8, but you have to do everything in order:
+
 ```
 pipeline {
     agent any
