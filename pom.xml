@@ -50,7 +50,7 @@
     <sonar.exclusions>target/generated-sources/**/*</sonar.exclusions>
     <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
     <version.artifactory.plugin>2.6.1</version.artifactory.plugin>
-    <jenkins.version>2.89.4</jenkins.version>
+    <jenkins.version>2.164</jenkins.version>
     <java.level>8</java.level>
     <findbugs.failOnError>false</findbugs.failOnError>
     <!-- Disable parallel tests on Travis -->
@@ -263,7 +263,7 @@
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.7.6.201602180812</version>
+          <version>0.8.4</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -321,6 +321,14 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <source>8</source>
+          <doclint>none</doclint>
+        </configuration>
       </plugin>
     </plugins>
   </build>
