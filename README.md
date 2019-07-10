@@ -26,8 +26,8 @@ automatically by Jenkins/Hudson from a json file hosted on their respective upda
 
 For Jenkins, the files are automatically updated when a new version of Sonar Scanner or SonarScanner for MSBuild is published,
 thanks to crawlers written in groovy:
-* https://github.com/jenkinsci/backend-crawler/blob/master/sonarrunner.groovy
-* https://github.com/jenkinsci/backend-crawler/blob/master/msbuildsonarquberunner.groovy
+* https://github.com/jenkins-infra/crawler/blob/master/sonarqubescanner.groovy
+* https://github.com/jenkins-infra/crawler/blob/master/sonarqubescannermsbuild.groovy
 
 ### License
 
