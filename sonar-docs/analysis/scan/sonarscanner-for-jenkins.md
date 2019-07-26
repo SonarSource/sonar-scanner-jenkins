@@ -42,11 +42,11 @@ If you do not see any available version under Install from GitHub, first go to M
 1. Add the SonarQube for MSBuild - End Analysis build steps to your build
 
 ## Analyzing a Java project with Maven or Gradle
-** Global Configuration**  
+**Global Configuration**  
 1. Log into Jenkins as an administrator and go to Manage Jenkins > Configure System
 1. Scroll to the SonarQube servers section and check Enable injection of SonarQube server configuration as build environment variables
 
-** Job Configuration**  
+**Job Configuration**  
 1. **Configure** the project, and go to the **Build Environment** section.
 1. Enable **Prepare SonarScanner environment** to allow the injection of SonarQube server values into this particular job. If multiple SonarQube instances are configured, you will be able to choose which one to use.
 Once the environment variables are available, use them in a standard Maven build step (Invoke top-level Maven targets) by setting the Goals to include, or a standard Gradle build step (Invoke Gradle script) by setting the Tasks to execute.
