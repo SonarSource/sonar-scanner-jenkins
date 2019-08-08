@@ -106,32 +106,32 @@ public final class SonarUtils {
 
   }
 
-  @Nullable
   /** 
    * Collects as much information as it finds from the sonar analysis in the build and adds it as an action to the build.
    * Even if no information is found, the action is added, marking in the build that a sonar analysis ran. 
    */
   public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, @Nullable String credentialId,
-    boolean skippedIfNoBuild)
+    @Nullable String sonarHostUrl, boolean skippedIfNoBuild)
     throws IOException, InterruptedException {
-    SonarAnalysisAction buildInfo = new SonarAnalysisAction(installationName, credentialId);
     Properties reportTask = extractReportTask(listener, workspace);
 
-    if (reportTask != null) {
-      buildInfo.setServerUrl(reportTask.getProperty(SERVER_URL_KEY));
-      buildInfo.setUrl(reportTask.getProperty(DASHBOARD_URL_KEY));
-      buildInfo.setCeTaskId(reportTask.getProperty(CE_TASK_ID_KEY));
-    } else {
+    if (reportTask == null) {
       return addBuildInfoFromLastBuildTo(build, installationName, credentialId, skippedIfNoBuild);
     }
+
+    SonarAnalysisAction buildInfo = new SonarAnalysisAction(installationName, credentialId, sonarHostUrl);
+    buildInfo.setServerUrl(reportTask.getProperty(SERVER_URL_KEY));
+    buildInfo.setUrl(reportTask.getProperty(DASHBOARD_URL_KEY));
+    buildInfo.setCeTaskId(reportTask.getProperty(CE_TASK_ID_KEY));
 
     build.addAction(buildInfo);
     return buildInfo;
   }
 
-  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, @Nullable String credentialId)
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, @Nullable String credentialId,
+    @Nullable String sonarHostUrl)
     throws IOException, InterruptedException {
-    return addBuildInfoTo(build, listener, workspace, installationName, credentialId, false);
+    return addBuildInfoTo(build, listener, workspace, installationName, credentialId, sonarHostUrl, false);
   }
 
   public static SonarAnalysisAction addBuildInfoFromLastBuildTo(Run<?, ?> build, String installationName, @Nullable String credentialId, boolean isSkipped) {

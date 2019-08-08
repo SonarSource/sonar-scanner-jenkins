@@ -102,7 +102,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     context.getEnv().putAll(createVars(installation, getCredentialsId(), initialEnvironment, build));
 
-    context.setDisposer(new AddBuildInfo(installation, getCredentialsId()));
+    context.setDisposer(new AddBuildInfo(installation, getCredentialsId(), context.getEnv().get("SONAR_HOST_URL")));
 
     build.addAction(new SonarMarkerAction());
   }
@@ -190,15 +190,18 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     private final String credentialsId;
 
-    public AddBuildInfo(SonarInstallation installation, @Nullable String credentialsId) {
+    private final String sonarHostUrl;
+
+    public AddBuildInfo(SonarInstallation installation, @Nullable String credentialsId, @Nullable String sonarHostUrl) {
       this.installation = installation;
       this.credentialsId = credentialsId;
+      this.sonarHostUrl = sonarHostUrl;
     }
 
     @Override
     public void tearDown(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
       // null result means success so far. If no logs are found, it's probably because it was simply skipped
-      SonarUtils.addBuildInfoTo(build, listener, workspace, installation.getName(), credentialsId, build.getResult() == null);
+      SonarUtils.addBuildInfoTo(build, listener, workspace, installation.getName(), credentialsId, sonarHostUrl, build.getResult() == null);
     }
   }
 

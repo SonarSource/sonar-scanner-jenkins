@@ -71,6 +71,10 @@ public class SonarPluginTest extends AbstractJUnitTest {
   private static final String GLOBAL_WEBHOOK_PROPERTY = "sonar.webhooks.global";
   private static long DEFAULT_QUALITY_GATE;
 
+  // Jenkins should only talk to the URL actually configured in a SonarInstallation
+  private final static String SONAR_PUBLIC_BASE_URL = "http://sonar_public_domain";
+  private final static String SONAR_PUBLIC_BASE_URL_PROPERTY = "sonar.core.serverBaseURL";
+
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
@@ -107,6 +111,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
     jenkinsOrch = new JenkinsUtils(jenkins, driver);
     jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
     jenkins.open();
+    setProperty(SONAR_PUBLIC_BASE_URL_PROPERTY, SONAR_PUBLIC_BASE_URL);
     enableWebhook();
   }
 
@@ -252,6 +257,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
     waitForComputationOnSQServer();
     assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
+    jenkinsOrch.assertQGOnProjectPage(jobName);
   }
 
   @Test
@@ -443,9 +449,9 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
     if (ORCHESTRATOR.getServer().version().isGreaterThan(6, 7)) {
-      assertThat(jenkinsOrch.getSonarUrlOnJob(jobName)).isEqualTo(ORCHESTRATOR.getServer().getUrl() + "/dashboard?id=" + UrlEscapers.urlFormParameterEscaper().escape(projectKey));
+      assertThat(jenkinsOrch.getSonarUrlOnJob(jobName)).isEqualTo(SONAR_PUBLIC_BASE_URL + "/dashboard?id=" + UrlEscapers.urlFormParameterEscaper().escape(projectKey));
     } else {
-      assertThat(jenkinsOrch.getSonarUrlOnJob(jobName)).isEqualTo(ORCHESTRATOR.getServer().getUrl() + "/dashboard/index/" + UrlEscapers.urlPathSegmentEscaper().escape(projectKey));
+      assertThat(jenkinsOrch.getSonarUrlOnJob(jobName)).isEqualTo(SONAR_PUBLIC_BASE_URL + "/dashboard/index/" + UrlEscapers.urlPathSegmentEscaper().escape(projectKey));
     }
   }
 

@@ -76,6 +76,34 @@ public class SonarCacheActionTest {
   }
 
   @Test
+  public void testResolveViaInternalUrl() {
+    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId");
+    analysis.setCeTaskId("taskId");
+    analysis.setUrl("projUrl");
+    analysis.setServerUrl("publicServerUrl");
+    analysis.setInstallationServerUrl("serverUrl");
+    analysis.setUrl("projUrl");
+    Run<?, ?> run = mock(Run.class);
+
+    cache.get(resolver, 0, Collections.singletonList(analysis), run);
+    verify(resolver).resolve("serverUrl", "projUrl", "taskId", "inst", run);
+  }
+
+  @Test
+  public void testResolveViaPublicUrlWhenInternalUrlIsNotExpanded() {
+    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId");
+    analysis.setCeTaskId("taskId");
+    analysis.setUrl("projUrl");
+    analysis.setServerUrl("publicServerUrl");
+    analysis.setInstallationServerUrl("${serverUrl}");
+    analysis.setUrl("projUrl");
+    Run<?, ?> run = mock(Run.class);
+
+    cache.get(resolver, 0, Collections.singletonList(analysis), run);
+    verify(resolver).resolve("publicServerUrl", "projUrl", "taskId", "inst", run);
+  }
+
+  @Test
   public void testResponseCached() {
     ProjectInformation mocked = createProj(now(), "success");
     SonarAnalysisAction analysis = createAnalysis("serverUrl", "projUrl", "taskId");

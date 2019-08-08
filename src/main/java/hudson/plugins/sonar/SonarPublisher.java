@@ -34,6 +34,7 @@ import hudson.model.JDK;
 import hudson.model.Result;
 import hudson.plugins.sonar.action.SonarMarkerAction;
 import hudson.plugins.sonar.model.TriggersConfig;
+import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.SonarMaven;
 import hudson.plugins.sonar.utils.SonarUtils;
@@ -317,7 +318,8 @@ public class SonarPublisher extends Notifier {
       // returning false has no effect on the global build status so need to do it manually
       build.setResult(Result.FAILURE);
     }
-    SonarUtils.addBuildInfoTo(build, listener, build.getWorkspace(), sonarInstallation.getName(), sonarInstallation.getCredentialsId());
+    EnvVars env = BuilderUtils.getEnvAndBuildVars(build, listener);
+    SonarUtils.addBuildInfoTo(build, listener, build.getWorkspace(), sonarInstallation.getName(), sonarInstallation.getCredentialsId(), env.expand(sonarInstallation.getServerUrl()));
     listener.getLogger().println("SonarQube analysis completed: " + build.getResult());
     return sonarSuccess;
   }

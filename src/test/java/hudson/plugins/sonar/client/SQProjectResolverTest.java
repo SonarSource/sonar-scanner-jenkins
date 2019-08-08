@@ -46,8 +46,9 @@ import static org.mockito.Mockito.when;
 
 public class SQProjectResolverTest extends SonarTestCase {
   private final static String SERVER_URL = "http://localhost:9000";
+  private final static String PUBLIC_SERVER_URL = "http://whatever";
   private final static String PROJECT_KEY = "org.sonarsource.sonarlint:sonarlint-cli";
-  private final static String PROJECT_URL = SERVER_URL + "/dashboard/index/" + PROJECT_KEY;
+  private final static String PROJECT_URL = PUBLIC_SERVER_URL + "/dashboard/index/" + PROJECT_KEY;
   private final static String CE_TASK_ID = "task1";
   private final static String PASS = "mypass";
   private final static String USER = "user";

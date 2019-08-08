@@ -73,11 +73,11 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     int result = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(BuilderUtils.getModuleRoot(run, workspace)).join();
 
     if (result != 0) {
-      addBadge(run, listener, workspace, sonarInstallation);
+      addBadge(run, listener, workspace, sonarInstallation, env);
       throw new AbortException(Messages.MSBuildScanner_ExecFailed(result));
     }
 
-    addBadge(run, listener, workspace, sonarInstallation);
+    addBadge(run, listener, workspace, sonarInstallation, env);
   }
 
   private static void addArgs(ArgumentListBuilder args, EnvVars env, SonarInstallation sonarInstallation, Run<?, ?> run) {
@@ -110,8 +110,8 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     return map;
   }
 
-  private static void addBadge(Run<?, ?> run, TaskListener listener, FilePath workspace, SonarInstallation sonarInstallation) throws IOException, InterruptedException {
-    SonarUtils.addBuildInfoTo(run, listener, workspace, sonarInstallation.getName(), sonarInstallation.getCredentialsId());
+  private static void addBadge(Run<?, ?> run, TaskListener listener, FilePath workspace, SonarInstallation sonarInstallation, EnvVars env) throws IOException, InterruptedException {
+    SonarUtils.addBuildInfoTo(run, listener, workspace, sonarInstallation.getName(), sonarInstallation.getCredentialsId(), env.expand(sonarInstallation.getServerUrl()));
   }
 
   @Override
