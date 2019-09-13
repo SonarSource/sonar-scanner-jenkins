@@ -246,8 +246,10 @@ public class SonarInstallation implements Serializable {
 
   @SuppressWarnings("deprecation")
   void migrateTokenToCredential() {
-    if (this.serverAuthenticationToken != null && Util.fixEmpty(this.serverAuthenticationToken.getPlainText()) != null) {
-      this.credentialsId = new GlobalCredentialMigrator().migrate(this.serverAuthenticationToken.getPlainText()).getId();
+    if (this.serverAuthenticationToken != null) {
+      if (Util.fixEmpty(this.serverAuthenticationToken.getPlainText()) != null) {
+        this.credentialsId = new GlobalCredentialMigrator().migrate(this.serverAuthenticationToken.getPlainText()).getId();
+      }
       this.serverAuthenticationToken = null;
     }
   }
