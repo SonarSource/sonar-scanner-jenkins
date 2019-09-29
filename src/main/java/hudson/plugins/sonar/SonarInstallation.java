@@ -84,11 +84,11 @@ public class SonarInstallation implements Serializable {
   public SonarInstallation(
     String name,
     String serverUrl,
-    @Nullable String credentialsId,
-    @Nullable Secret serverAuthenticationToken,
+    @CheckForNull String credentialsId,
+    @CheckForNull Secret serverAuthenticationToken,
     String mojoVersion,
-    String additionalProperties,
-    String additionalAnalysisProperties,
+    @CheckForNull String additionalProperties,
+    @CheckForNull String additionalAnalysisProperties,
     TriggersConfig triggers) {
     this.name = name;
     this.serverUrl = serverUrl;
