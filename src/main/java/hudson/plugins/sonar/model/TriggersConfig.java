@@ -35,6 +35,8 @@ import java.util.Iterator;
 import java.util.List;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import javax.annotation.CheckForNull;
+
 /**
  * @author Evgeny Mandrikov
  * @since 1.2
@@ -59,7 +61,7 @@ public class TriggersConfig implements Serializable {
   }
 
   @DataBoundConstructor
-  public TriggersConfig(boolean skipScmCause, boolean skipUpstreamCause, String envVar) {
+  public TriggersConfig(boolean skipScmCause, boolean skipUpstreamCause, @CheckForNull String envVar) {
     this.skipScmCause = skipScmCause;
     this.skipUpstreamCause = skipUpstreamCause;
     this.envVar = envVar;
