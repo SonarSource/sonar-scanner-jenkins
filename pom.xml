@@ -242,6 +242,14 @@
       <artifactId>configuration-as-code</artifactId>
       <version>1.31</version>
       <scope>test</scope>
+      <!-- RequireUpperBoundDeps of maven-enforcer-plugin requires commons-beanutils:1.8.3
+           through jenkins-core:2.150.3, here we exclude commons-beanutils:1.9.2 -->
+      <exclusions>
+        <exclusion>
+          <groupId>commons-beanutils</groupId>
+          <artifactId>commons-beanutils</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.jenkins</groupId>

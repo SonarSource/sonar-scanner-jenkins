@@ -86,7 +86,7 @@ public class SonarInstallation implements Serializable {
     String serverUrl,
     @CheckForNull String credentialsId,
     @CheckForNull Secret serverAuthenticationToken,
-    String mojoVersion,
+    @CheckForNull String mojoVersion,
     @CheckForNull String additionalProperties,
     @CheckForNull String additionalAnalysisProperties,
     TriggersConfig triggers) {

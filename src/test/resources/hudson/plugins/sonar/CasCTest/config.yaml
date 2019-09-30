@@ -5,9 +5,6 @@ unclassified:
       - name: "TEST"
         credentialsId: "test-id"
         serverUrl: "http://url:9000"
-        mojoVersion: "mojoVersion"
-        additionalAnalysisProperties: "additionalAnalysisProperties"
         triggers:
           skipScmCause: true
           skipUpstreamCause: true
-          envVar: "envVar"
