@@ -17,8 +17,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package hudson.plugins.sonar;
+package hudson.plugins.sonar.casc;
 
+import hudson.plugins.sonar.SonarGlobalConfiguration;
+import hudson.plugins.sonar.SonarInstallation;
 import io.jenkins.plugins.casc.misc.RoundTripAbstractTest;
 import jenkins.model.GlobalConfiguration;
 import org.jvnet.hudson.test.RestartableJenkinsRule;
@@ -26,11 +28,6 @@ import org.jvnet.hudson.test.RestartableJenkinsRule;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CasCTest extends RoundTripAbstractTest {
-
-    @Override
-    protected String configResource() {
-        return "CasCTest/config.yaml";
-    }
 
     @Override
     protected void assertConfiguredAsExpected(RestartableJenkinsRule restartableJenkinsRule, String s) {
