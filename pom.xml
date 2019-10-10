@@ -240,20 +240,13 @@
     <dependency>
       <groupId>io.jenkins</groupId>
       <artifactId>configuration-as-code</artifactId>
-      <version>1.31</version>
+      <version>1.32</version>
       <scope>test</scope>
-      <!-- TODO: remove after configuration-as-code 1.32 is released -->
-      <exclusions>
-        <exclusion>
-          <groupId>commons-beanutils</groupId>
-          <artifactId>commons-beanutils</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.jenkins</groupId>
       <artifactId>configuration-as-code</artifactId>
-      <version>1.31</version>
+      <version>1.32</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
