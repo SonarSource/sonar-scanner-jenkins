@@ -300,13 +300,9 @@ public class JenkinsUtils {
 
   public JenkinsUtils configureSonarInstallation(Orchestrator orchestrator, String serverUrl) {
     CredentialsPage mc = new CredentialsPage(jenkins, ManagedCredentials.DEFAULT_DOMAIN);
-    mc.open();
-    StringCredentials cred = mc.add(StringCredentials.class);
-    cred.scope.select("GLOBAL");
-    cred.secret.set(generateToken(orchestrator));
-    cred.setId("sonarqube-token");
-    mc.create();
-
+    addCredential(mc, "sonarqube-token", generateToken(orchestrator));
+    addCredential(mc, "global_webhook_secret", "very_secret_secret");
+    addCredential(mc, "local_webhook_secret", "super_secret_secret");
     JenkinsConfig config = jenkins.getConfigPage();
     config.open();
 
@@ -322,17 +318,30 @@ public class JenkinsUtils {
     sonarQubeServer.advanced.click();
 
     sonarQubeServer.credentialId.select("sonarqube-token");
+    if (orchestrator.getServer().version().isGreaterThanOrEquals(7, 8)) {
+      sonarQubeServer.webhookSecretId.select("global_webhook_secret");
+    }
 
     config.save();
 
     return this;
   }
 
+  private void addCredential(CredentialsPage mc, String id, String value) {
+    mc.open();
+    StringCredentials cred = mc.add(StringCredentials.class);
+    cred.scope.select("GLOBAL");
+    cred.secret.set(value);
+    cred.setId(id);
+    mc.create();
+  }
+
   public static class SonarQubeServer extends PageAreaImpl {
 
     public final Control name = control("name");
     public final Control serverUrl = control("serverUrl");
-    public Control credentialId = control("credentialsId");
+    public final Control credentialId = control("credentialsId");
+    public final Control webhookSecretId = control("webhookSecretId");
     public final Control advanced = control(by.button("Advanced..."));
 
     public SonarQubeServer(PageObject context, String path) {

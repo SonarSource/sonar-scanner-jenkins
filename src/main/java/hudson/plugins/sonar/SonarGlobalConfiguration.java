@@ -160,4 +160,21 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
       );
   }
 
+  @SuppressWarnings("unused")
+  public ListBoxModel doFillWebhookSecretIdItems(@QueryParameter String webhookSecretId) {
+    if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+      return new StandardListBoxModel().includeCurrentValue(webhookSecretId);
+    }
+
+    return new StandardListBoxModel()
+      .includeEmptyValue()
+      .includeMatchingAs(
+        ACL.SYSTEM,
+        Jenkins.getInstance(),
+        StringCredentials.class,
+        Collections.emptyList(),
+        CredentialsMatchers.always()
+      );
+  }
+
 }

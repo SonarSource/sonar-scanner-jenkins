@@ -28,6 +28,10 @@
               <f:textbox name="sonar.mojoVersion" value="${inst.getMojoVersion()}"/>
             </f:entry>
 
+            <f:entry title="${%WebhookSecret}" field="webhookSecretId">
+              <c:select name="sonar.webhookSecretId" value="${inst.getWebhookSecretId()}"/>
+            </f:entry>
+
             <f:entry title="${%AddProps}" description="${%AddPropsDescr}">
               <f:textbox name="sonar.additionalProperties" value="${inst.getAdditionalProperties()}"/>
             </f:entry>

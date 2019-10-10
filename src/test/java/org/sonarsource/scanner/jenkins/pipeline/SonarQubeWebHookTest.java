@@ -21,7 +21,6 @@ package org.sonarsource.scanner.jenkins.pipeline;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -63,15 +62,15 @@ public class SonarQubeWebHookTest {
     SonarQubeWebHook.get().addListener(new SonarQubeWebHook.Listener() {
 
       @Override
-      public void onTaskCompleted(String taskId, String taskStatus, @Nullable String qgStatus) {
-        eventsPerListener.put("ListenerA", taskId + taskStatus + qgStatus);
+      public void onTaskCompleted(SonarQubeWebHook.Payload payload, String receivedSignature) {
+        eventsPerListener.put("ListenerA", payload.getTaskId() + payload.getTaskStatus() + payload.getQualityGateStatus());
       }
     });
     SonarQubeWebHook.get().addListener(new SonarQubeWebHook.Listener() {
 
       @Override
-      public void onTaskCompleted(String taskId, String taskStatus, @Nullable String qgStatus) {
-        eventsPerListener.put("ListenerB", taskId + taskStatus + qgStatus);
+      public void onTaskCompleted(SonarQubeWebHook.Payload payload, String receivedSignature) {
+        eventsPerListener.put("ListenerB", payload.getTaskId() + payload.getTaskStatus() + payload.getQualityGateStatus());
       }
     });
 
