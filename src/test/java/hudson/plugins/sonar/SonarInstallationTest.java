@@ -51,6 +51,7 @@ public class SonarInstallationTest extends SonarTestCase {
       "server.url",
       "credentialsId",
       null,
+      "secretId",
       "mojoVersion",
       "props",
       "key=value",
@@ -121,12 +122,12 @@ public class SonarInstallationTest extends SonarTestCase {
   }
 
   private void assertAnalysisPropsWindows(String input, String... expectedEntries) {
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, input, null);
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, input, null);
     assertThat(inst.getAdditionalAnalysisPropertiesWindows()).isEqualTo(expectedEntries);
   }
 
   private void assertAnalysisPropsUnix(String input, String... expectedEntries) {
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, input, null);
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, input, null);
     assertThat(inst.getAdditionalAnalysisPropertiesUnix()).isEqualTo(expectedEntries);
   }
 }

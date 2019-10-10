@@ -123,7 +123,7 @@ public class BaseTest extends SonarTestCase {
     SonarInstallation installation = spy(new SonarInstallation(
             SONAR_INSTALLATION_NAME,
             SONAR_HOST,
-            "token", null, null, null, null, null));
+            "token", null, null, null, null, null, null));
     addCredential("token", "secret");
     configureSonar(installation);
   }

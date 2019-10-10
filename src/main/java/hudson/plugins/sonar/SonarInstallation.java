@@ -37,8 +37,6 @@ public class SonarInstallation implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  public static final String DEFAULT_SERVER_URL = "http://localhost:9000";
-
   private final String name;
   private final String serverUrl;
 
@@ -46,6 +44,11 @@ public class SonarInstallation implements Serializable {
    * @since 2.9
    */
   private String credentialsId;
+
+  /**
+   * @since 2.10
+   */
+  private String webhookSecretId;
 
   /**
    * @deprecated since 2.9 replaced by {@link #credentialsId}
@@ -76,7 +79,7 @@ public class SonarInstallation implements Serializable {
     String serverUrl, String serverAuthenticationToken,
     String mojoVersion, String additionalProperties, TriggersConfig triggers,
     String additionalAnalysisProperties) {
-    this(name, serverUrl, null, Secret.fromString(StringUtils.trimToNull(serverAuthenticationToken)),
+    this(name, serverUrl, null, Secret.fromString(StringUtils.trimToNull(serverAuthenticationToken)), null,
       mojoVersion, additionalProperties, additionalAnalysisProperties, triggers);
   }
 
@@ -86,6 +89,7 @@ public class SonarInstallation implements Serializable {
     String serverUrl,
     @Nullable String credentialsId,
     @Nullable Secret serverAuthenticationToken,
+    @Nullable String webhookSecretId,
     String mojoVersion,
     String additionalProperties,
     String additionalAnalysisProperties,
@@ -94,6 +98,7 @@ public class SonarInstallation implements Serializable {
     this.serverUrl = serverUrl;
     this.credentialsId = credentialsId;
     this.serverAuthenticationToken = serverAuthenticationToken;
+    this.webhookSecretId = webhookSecretId;
     this.additionalAnalysisProperties = additionalAnalysisProperties;
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
@@ -192,6 +197,14 @@ public class SonarInstallation implements Serializable {
   @SuppressWarnings("unused")
   public String getCredentialsId() {
     return credentialsId;
+  }
+
+  /**
+   * @since 2.10
+   */
+  @SuppressWarnings("unused")
+  public String getWebhookSecretId() {
+    return webhookSecretId;
   }
 
   /**
