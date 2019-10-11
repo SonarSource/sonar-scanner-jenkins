@@ -42,6 +42,8 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.CheckForNull;
+
 /**
 * Represents a SonarQube Scanner installation in a system.
 */
@@ -49,7 +51,7 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
   private static final long serialVersionUID = 1L;
 
   @DataBoundConstructor
-  public SonarRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
+  public SonarRunnerInstallation(String name, @CheckForNull String home, List<? extends ToolProperty<?>> properties) {
     super(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties);
   }
 
