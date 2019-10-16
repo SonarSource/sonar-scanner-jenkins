@@ -21,6 +21,7 @@ package hudson.plugins.sonar;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.google.common.annotations.VisibleForTesting;
 import hudson.CopyOnWrite;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -31,6 +32,7 @@ import hudson.plugins.sonar.utils.Logger;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import java.util.function.Supplier;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -51,6 +53,9 @@ import java.util.Optional;
  */
 @Extension(ordinal = 100)
 public class SonarGlobalConfiguration extends GlobalConfiguration {
+
+  private final Supplier<Jenkins> jenkinsSupplier;
+
   @CopyOnWrite
   private volatile SonarInstallation[] installations = new SonarInstallation[0];
   private volatile boolean buildWrapperEnabled = false;
@@ -58,7 +63,16 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
   private boolean credentialsMigrated;
 
   public SonarGlobalConfiguration() {
+    this(
+      () -> Optional.ofNullable(Jenkins.getInstanceOrNull())
+              .orElseThrow(() -> new IllegalStateException("Could not get Jenkins instance"))
+    );
+  }
+
+  @VisibleForTesting
+  public SonarGlobalConfiguration(Supplier<Jenkins> supplier) {
     load();
+    this.jenkinsSupplier = supplier;
   }
 
   /**
@@ -145,36 +159,27 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
 
   @SuppressWarnings("unused")
   public ListBoxModel doFillCredentialsIdItems(@QueryParameter String credentialsId) {
-    if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
-      return new StandardListBoxModel().includeCurrentValue(credentialsId);
-    }
-
-    return new StandardListBoxModel()
-      .includeEmptyValue()
-      .includeMatchingAs(
-        ACL.SYSTEM,
-        Jenkins.getInstance(),
-        StringCredentials.class,
-        Collections.emptyList(),
-        CredentialsMatchers.always()
-      );
+    return createListBoxModel(credentialsId);
   }
 
   @SuppressWarnings("unused")
   public ListBoxModel doFillWebhookSecretIdItems(@QueryParameter String webhookSecretId) {
-    if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
-      return new StandardListBoxModel().includeCurrentValue(webhookSecretId);
+    return createListBoxModel(webhookSecretId);
+  }
+
+  private ListBoxModel createListBoxModel(String credentialId) {
+    if (!jenkinsSupplier.get().hasPermission(Jenkins.ADMINISTER)) {
+      return new StandardListBoxModel().includeCurrentValue(credentialId);
     }
 
     return new StandardListBoxModel()
       .includeEmptyValue()
       .includeMatchingAs(
         ACL.SYSTEM,
-        Jenkins.getInstance(),
+        jenkinsSupplier.get(),
         StringCredentials.class,
         Collections.emptyList(),
         CredentialsMatchers.always()
       );
   }
-
 }

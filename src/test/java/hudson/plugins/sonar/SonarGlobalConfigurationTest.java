@@ -19,12 +19,25 @@
  */
 package hudson.plugins.sonar;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.domains.Domain;
 import hudson.util.FormValidation.Kind;
+import hudson.util.ListBoxModel;
+import hudson.util.Secret;
+import java.io.IOException;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SonarGlobalConfigurationTest extends SonarTestCase {
   private SonarGlobalConfiguration globalConfiguration;
@@ -78,6 +91,59 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
     assertThat(globalConfiguration.doCheckMandatory(null).kind).isEqualTo(Kind.ERROR);
     assertThat(globalConfiguration.doCheckMandatory("   ").kind).isEqualTo(Kind.ERROR);
     assertThat(globalConfiguration.doCheckMandatory("asd").kind).isEqualTo(Kind.OK);
+  }
+
+  @Test
+  public void testDoFillWebhookSecretIdItemsAsNonAdminister() throws IOException {
+    mockJenkins(false);
+    addCredential("description");
+    ListBoxModel boxModel = globalConfiguration.doFillWebhookSecretIdItems("secretId");
+    assertThat(boxModel.iterator()).hasSize(1);
+    assertThat(boxModel.get(0).value).isEqualTo("secretId");
+  }
+
+  @Test
+  public void testDoFillWebhookSecretIdItemsAsAdminister() throws IOException {
+    mockJenkins(true);
+    addCredential("description");
+
+    ListBoxModel boxModel = globalConfiguration.doFillWebhookSecretIdItems("secretId");
+    List<String> optionNames = boxModel.stream()
+      .map(option -> option.name)
+      .collect(Collectors.toList());
+    assertThat(optionNames).containsExactlyInAnyOrder("description", "- none -");
+  }
+
+  @Test
+  public void testDoFillCredentialsIdItemsAsNonAdminister() throws IOException {
+    addCredential("description");
+    mockJenkins(false);
+    ListBoxModel boxModel = globalConfiguration.doFillCredentialsIdItems("credentialId");
+    assertThat(boxModel.iterator()).hasSize(1);
+    assertThat(boxModel.get(0).value).isEqualTo("credentialId");
+  }
+
+  @Test
+  public void testDoFillCredentialsIdItemsAsAdminister() throws IOException {
+    mockJenkins(true);
+    addCredential("description");
+
+    ListBoxModel boxModel = globalConfiguration.doFillCredentialsIdItems("credentialId");
+    List<String> optionNames = boxModel.stream()
+      .map(option -> option.name)
+      .collect(Collectors.toList());
+    assertThat(optionNames).containsExactlyInAnyOrder("description", "- none -");
+  }
+
+  private void mockJenkins(boolean administer) {
+    Jenkins jenkins = mock(Jenkins.class);
+    when(jenkins.hasPermission(Jenkins.ADMINISTER)).thenReturn(administer);
+    globalConfiguration = new SonarGlobalConfiguration(() -> jenkins);
+  }
+
+  private void addCredential(String description) throws IOException {
+    StringCredentialsImpl c = new StringCredentialsImpl(CredentialsScope.USER, "id", description, Secret.fromString("value"));
+    CredentialsProvider.lookupStores(j).iterator().next().addCredentials(Domain.global(), c);
   }
 
 }
