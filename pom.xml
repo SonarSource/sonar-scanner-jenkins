@@ -247,7 +247,8 @@
       <groupId>com.squareup.okhttp3</groupId>
       <artifactId>okhttp</artifactId>
       <version>3.7.0</version>
-</dependency>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <repositories>
