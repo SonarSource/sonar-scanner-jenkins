@@ -269,12 +269,8 @@ public class WaitForQualityGateStep extends Step implements Serializable {
         try {
           PauseAction.endCurrentPause(getContextClass(FlowNode.class));
           SonarQubeWebHook.get().removeListener(this);
-          if (step.webhookSecretId != null && !step.webhookSecretId.isEmpty()) {
-            if (validateWebhook(receivedSignature, payload.getPayloadAsString())) {
-              // only execute the checkQualityGate if the webhook is found to be valid (getContext().onFailure() does not interrupt execution)
-              checkQualityGate(payload.getTaskStatus(), payload.getQualityGateStatus());
-            }
-          } else {
+          if (validateWebhook(receivedSignature, payload.getPayloadAsString())) {
+            // only execute the checkQualityGate if the webhook is found to be valid (getContext().onFailure() does not interrupt execution)
             checkQualityGate(payload.getTaskStatus(), payload.getQualityGateStatus());
           }
         } catch (IOException e) {
@@ -301,21 +297,23 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     }
 
     private boolean validateWebhook(String receivedSignature, String payload) {
-      StringCredentials webhookSecret = CredentialsProvider.findCredentialById(step.webhookSecretId, StringCredentials.class, getContextClass(Run.class));
-      CredentialsProvider.track(getContextClass(Run.class), webhookSecret);
-      if (webhookSecret != null) {
-        boolean isValidPayload = isValidSignature(receivedSignature, payload, webhookSecret.getSecret().getPlainText());
-        if (!isValidPayload) {
-          log("The incoming webhook didn't match the configured webhook secret");
-          getContext().onFailure(new AbortException("Pipeline aborted due to failed webhook verification "));
+      if (step.webhookSecretId != null && !step.webhookSecretId.isEmpty()) {
+        StringCredentials webhookSecret = CredentialsProvider.findCredentialById(step.webhookSecretId, StringCredentials.class, getContextClass(Run.class));
+        CredentialsProvider.track(getContextClass(Run.class), webhookSecret);
+        if (webhookSecret != null) {
+          boolean isValidPayload = isValidSignature(receivedSignature, payload, webhookSecret.getSecret().getPlainText());
+          if (!isValidPayload) {
+            log("The incoming webhook didn't match the configured webhook secret");
+            getContext().onFailure(new AbortException("Pipeline aborted due to failed webhook verification "));
+          } else {
+            log("The incoming webhook matched the configured webhook secret");
+          }
+          return isValidPayload;
         } else {
-          log("The incoming webhook matched the configured webhook secret");
+          log("A webhook secret id was configured, but the corresponding credential could not be found");
+          getContext().onFailure(new AbortException("Pipeline aborted due to failed webhook verification"));
+          return false;
         }
-        return isValidPayload;
-      } else if (step.webhookSecretId != null && !step.webhookSecretId.isEmpty()) {
-        log("A webhook secret id was configured, but the corresponding credential could not be found");
-        getContext().onFailure(new AbortException("Pipeline aborted due to failed webhook verification"));
-        return false;
       }
       return true;
     }

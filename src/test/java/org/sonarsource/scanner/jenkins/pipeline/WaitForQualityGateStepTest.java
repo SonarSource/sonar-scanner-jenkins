@@ -155,6 +155,38 @@ public class WaitForQualityGateStepTest {
   }
 
   @Test
+  public void waitForQualityGate_succeeds_when_no_webhook_secret_id_is_set() {
+    story.addStep(new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        handler.status1 = "PENDING";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, false, null);
+        WorkflowRun b = pipeline.waitForStart();
+
+        submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
+        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
+        story.j.assertBuildStatusSuccess(pipeline);
+      }
+    });
+  }
+
+  @Test
+  public void waitForQualityGate_succeeds_when_empty_webhook_secret_id_is_set() {
+    story.addStep(new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        handler.status1 = "PENDING";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, false, "");
+        WorkflowRun b = pipeline.waitForStart();
+
+        submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
+        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
+        story.j.assertBuildStatusSuccess(pipeline);
+      }
+    });
+  }
+
+  @Test
   public void waitForQualityGate_fails_when_webhook_secret_id_is_set_but_the_value_is_not_present() {
     story.addStep(new Statement() {
       @Override
