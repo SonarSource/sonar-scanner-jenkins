@@ -73,7 +73,10 @@
   <f:entry title="${%AdditionalArguments}" field="additionalArguments" help="/plugin/sonar/help-runner-additional-args.html">
     <f:expandableTextbox />
   </f:entry>
-  
+
+  <f:entry title="${%SonarHome}" field="sonarHome" help="/plugin/sonar/help-runner-sonar-home.html">
+    <f:textbox />
+  </f:entry>
 
   <!-- The Java options to be used -->
   <f:entry title="${%JVMOptions}" field="javaOpts" help="/plugin/sonar/help-runner-jvm-opts.html">

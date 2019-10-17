@@ -67,6 +67,7 @@ public class SonarRunnerBuilder extends Builder {
   private String properties;
   private String javaOpts;
   private String additionalArguments;
+  private String sonarHome;
 
   /**
    * Identifies {@link JDK} to be used.
@@ -207,6 +208,15 @@ public class SonarRunnerBuilder extends Builder {
     this.additionalArguments = additionalArguments;
   }
 
+  public String getSonarHome() {
+    return Util.fixNull(sonarHome);
+  }
+
+  @DataBoundSetter
+  public void setSonarHome(String sonarHome) {
+    this.sonarHome = sonarHome;
+  }
+
   public SonarInstallation getSonarInstallation() {
     return SonarInstallation.get(getInstallationName());
   }
@@ -286,6 +296,10 @@ public class SonarRunnerBuilder extends Builder {
     env.put("SONAR_SCANNER_OPTS", getJavaOpts());
     // For backward compatibility with old sonar-runner
     env.put("SONAR_RUNNER_OPTS", getJavaOpts());
+
+    if (!StringUtils.isEmpty(sonarHome)) {
+      env.put("SONAR_USER_HOME", getSonarHome());
+    }
 
     long startTime = System.currentTimeMillis();
     int exitCode;
