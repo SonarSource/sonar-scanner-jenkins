@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletResponse;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONException;
@@ -68,17 +67,11 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
 
     LOGGER.info("Received POST from " + req.getRemoteHost());
     try {
-      JSONObject o = JSONObject.fromObject(payload);
+      validate(payload);
+      LOGGER.fine(() -> "Full details of the POST was " + JSONObject.fromObject(payload).toString());
 
-      LOGGER.fine(() -> "Full details of the POST was " + o.toString());
-      String taskId = o.getString("taskId");
-      String status = o.getString("status");
-      String qgStatus = null;
-      if (CETask.STATUS_SUCCESS.equals(status)) {
-        qgStatus = o.has("qualityGate") ? o.getJSONObject("qualityGate").getString("status") : "NONE";
-      }
       for (Listener listener : listeners) {
-        listener.onTaskCompleted(taskId, status, qgStatus);
+        listener.onTaskCompleted(new Payload(payload), req.getHeader("X-Sonar-Webhook-HMAC-SHA256"));
       }
     } catch (JSONException e) {
       LOGGER.log(Level.WARNING, e, () -> "Invalid payload " + payload);
@@ -87,6 +80,9 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
     rsp.setStatus(HttpServletResponse.SC_OK);
   }
 
+  private static void validate(String payload) {
+    JSONObject.fromObject(payload);
+  }
   public static SonarQubeWebHook get() {
     return Jenkins.getInstance().getExtensionList(RootAction.class).get(SonarQubeWebHook.class);
   }
@@ -102,7 +98,44 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
   @FunctionalInterface
   public static interface Listener {
 
-    void onTaskCompleted(String taskId, String taskStatus, @Nullable String qgStatus);
+    void onTaskCompleted(Payload payload, String receivedSignature);
+
+  }
+
+  static final class Payload {
+
+    private final String payloadAsString;
+    private final String taskId;
+    private final String taskStatus;
+    private final String qualityGateStatus;
+
+    Payload(String payloadAsString) {
+      JSONObject json = JSONObject.fromObject(payloadAsString);
+      this.payloadAsString = payloadAsString;
+      this.taskId = json.getString("taskId");
+      this.taskStatus = json.getString("status");
+      if (CETask.STATUS_SUCCESS.equals(getTaskStatus())) {
+        this.qualityGateStatus = json.has("qualityGate") ? json.getJSONObject("qualityGate").getString("status") : "NONE";
+      } else {
+        this.qualityGateStatus = null;
+      }
+    }
+
+    String getTaskId() {
+      return taskId;
+    }
+
+    String getTaskStatus() {
+      return taskStatus;
+    }
+
+    String getQualityGateStatus() {
+      return qualityGateStatus;
+    }
+
+    String getPayloadAsString() {
+      return payloadAsString;
+    }
 
   }
 

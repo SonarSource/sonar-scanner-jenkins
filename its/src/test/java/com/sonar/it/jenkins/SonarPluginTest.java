@@ -49,6 +49,7 @@ import org.sonar.wsclient.qualitygate.QualityGateClient;
 import org.sonar.wsclient.services.PropertyDeleteQuery;
 import org.sonar.wsclient.services.PropertyUpdateQuery;
 import org.sonarqube.ws.Components.Component;
+import org.sonarqube.ws.Webhooks;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.HttpException;
 import org.sonarqube.ws.client.WsClient;
@@ -57,6 +58,7 @@ import org.sonarqube.ws.client.components.ShowRequest;
 import org.sonarqube.ws.client.webhooks.CreateRequest;
 import org.sonarqube.ws.client.webhooks.DeleteRequest;
 import org.sonarqube.ws.client.webhooks.ListRequest;
+import org.sonarqube.ws.client.webhooks.UpdateRequest;
 
 import static com.sonar.it.jenkins.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
 import static java.util.Objects.requireNonNull;
@@ -69,13 +71,19 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   private static final String DUMP_ENV_VARS_PIPELINE_CMD = SystemUtils.IS_OS_WINDOWS ? "bat 'set'" : "sh 'env | sort'";
   private static final String GLOBAL_WEBHOOK_PROPERTY = "sonar.webhooks.global";
+  private static final String SECRET = "very_secret_secret";
+  private static final String JENKINS_VERSION = "3.3.0.1492";
   private static long DEFAULT_QUALITY_GATE;
 
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
-    .addPlugin(MavenLocation.of("org.sonarsource.java", "sonar-java-plugin", "LATEST_RELEASE"))
-    .addPlugin(MavenLocation.of("org.sonarsource.javascript", "sonar-javascript-plugin", "LATEST_RELEASE"))
+    // The scanner for maven should still be compatible with previous LTS 6.7, and not the 7.9
+    // at the time of writing, so the installed plugins should be compatible with
+    // both 6.7 and 8.x. The latest releases of analysers drop the compatibility with
+    // 6.7, that's why versions are hardcoded here.
+    .addPlugin(MavenLocation.of("org.sonarsource.java", "sonar-java-plugin", "5.14.0.18788"))
+    .addPlugin(MavenLocation.of("org.sonarsource.javascript", "sonar-javascript-plugin", "5.2.1.7778"))
     // Needed by Scanner for MSBuild
     .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-csharp-plugin", "LATEST_RELEASE"))
     .restoreProfileAtStartup(FileLocation.ofClasspath("/com/sonar/it/jenkins/SonarPluginTest/sonar-way-it-profile_java.xml"))
@@ -89,6 +97,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   private final File jsFolder = new File("projects", "js");
 
   private JenkinsUtils jenkinsOrch;
+  private String webhookKey;
 
   @BeforeClass
   public static void setUpJenkins() {
@@ -101,13 +110,13 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     ORCHESTRATOR.resetData();
     qgClient().setDefault(DEFAULT_QUALITY_GATE);
     jenkinsOrch = new JenkinsUtils(jenkins, driver);
     jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
     jenkins.open();
-    enableWebhook();
+    webhookKey = enableWebhook();
   }
 
   @After
@@ -117,7 +126,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Test
   public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_3_3() {
-    SonarScannerInstallation.install(jenkins, "3.3.0.1492");
+    SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String jobName = "js-runner-sq-3.3";
@@ -350,7 +359,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @Test
   @WithPlugins("workflow-aggregator")
   public void qualitygate_pipeline_ok() {
-    SonarScannerInstallation.install(jenkins, "3.3.0.1492");
+    SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     StringBuilder script = new StringBuilder();
@@ -377,7 +386,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @Test
   @WithPlugins("workflow-aggregator")
   public void qualitygate_pipeline_ko() {
-    SonarScannerInstallation.install(jenkins, "3.3.0.1492");
+    SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     Long previousDefault = qgClient().list().defaultGate().id();
@@ -411,6 +420,66 @@ public class SonarPluginTest extends AbstractJUnitTest {
       qgClient().setDefault(previousDefault);
       qgClient().destroy(simple.id());
     }
+  }
+
+  @Test
+  @WithPlugins("workflow-aggregator")
+  public void qualitygate_pipeline_failed_with_unknown_webhook_secret_id() {
+    SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
+
+    StringBuilder script = new StringBuilder();
+    script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
+    if (SystemUtils.IS_OS_WINDOWS) {
+      script.append("  bat 'xcopy " + Paths.get("projects/js").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
+    } else {
+      script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath().toString() + "/. .'\n");
+    }
+    script.append("  def scannerHome = tool 'SonarQube Scanner 3.3.0.1492'\n");
+    if (SystemUtils.IS_OS_WINDOWS) {
+      script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat\"\n");
+    } else {
+      script.append("  sh \"${scannerHome}/bin/sonar-scanner\"\n");
+    }
+    script.append("}\n");
+    script.append("def qg = waitForQualityGate(webhookSecretId: 'unknownSecret')\n");
+    script.append("if (qg.status != 'OK') { error 'Quality gate failure'}\n");
+    createPipelineJobFromScript("js-pipeline-unknown-webhook-secret-id", script.toString());
+    Build buildResult = jenkinsOrch.executeJobQuietly("js-pipeline-unknown-webhook-secret-id");
+    assertThat(buildResult.isSuccess()).isFalse();
+    assertThat(buildResult.getConsole()).contains("A webhook secret id was configured, but the corresponding credential could not be found");
+  }
+
+  @Test
+  @WithPlugins("workflow-aggregator")
+  public void qualitygate_with_wrong_webhook_secret_fails_pipeline() {
+    if (!ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 9)) {
+      return;
+    }
+    SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
+    setWebhookSecret("wrong");
+
+    StringBuilder script = new StringBuilder();
+    script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
+    if (SystemUtils.IS_OS_WINDOWS) {
+      script.append("  bat 'xcopy " + Paths.get("projects/js").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
+    } else {
+      script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath().toString() + "/. .'\n");
+    }
+    script.append("  def scannerHome = tool 'SonarQube Scanner 3.3.0.1492'\n");
+    if (SystemUtils.IS_OS_WINDOWS) {
+      script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat\"\n");
+    } else {
+      script.append("  sh \"${scannerHome}/bin/sonar-scanner\"\n");
+    }
+    script.append("}\n");
+    script.append("def qg = waitForQualityGate(webhookSecretId: 'local_webhook_secret')\n");
+    script.append("if (qg.status != 'OK') { error 'Quality gate failure'}\n");
+    createPipelineJobFromScript("js-pipeline-invalid-webhook-secret", script.toString());
+    Build buildResult = jenkinsOrch.executeJobQuietly("js-pipeline-invalid-webhook-secret");
+    assertThat(buildResult.isSuccess()).isFalse();
+    assertThat(buildResult.getConsole()).contains("The incoming webhook didn't match the configured webhook secret");
   }
 
   private void runAndVerifyEnvVarsExist(String jobName, String script) {
@@ -453,17 +522,38 @@ public class SonarPluginTest extends AbstractJUnitTest {
     new SynchronousAnalyzer(ORCHESTRATOR.getServer()).waitForDone();
   }
 
-  private void enableWebhook() {
+  private String enableWebhook() {
     String url = StringUtils.removeEnd(jenkins.getCurrentUrl(), "/") + "/sonarqube-webhook/";
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 1)) {
       // SONAR-9058
-      wsClient.webhooks().create(new CreateRequest()
+
+      Webhooks.CreateWsResponse response = wsClient.webhooks().create(new CreateRequest()
         .setName("Jenkins")
-        .setUrl(url));
+        .setUrl(url)
+        .setSecret(SECRET)
+      );
+
+      return response.getWebhook().getKey();
     } else {
       setProperty(GLOBAL_WEBHOOK_PROPERTY + ".1.name", "Jenkins");
       setProperty(GLOBAL_WEBHOOK_PROPERTY + ".1.url", url);
       setProperty(GLOBAL_WEBHOOK_PROPERTY, "1");
+      return null;
+    }
+  }
+
+  private void setWebhookSecret(String secret) {
+    String url = StringUtils.removeEnd(jenkins.getCurrentUrl(), "/") + "/sonarqube-webhook/";
+    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 9)) {
+      // SONAR-9058
+      wsClient.webhooks().update(new UpdateRequest()
+        .setName("Jenkins")
+        .setUrl(url)
+        .setWebhook(webhookKey)
+        .setSecret(secret)
+      );
+    } else {
+      throw new IllegalStateException("Setting a webhooksecret can only be done from > 7.8");
     }
   }
 
