@@ -49,6 +49,12 @@
       <version>3.24.0.1993</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>okhttp</artifactId>
+      <version>3.7.0</version>
+      <scope>test</scope>
+    </dependency>
     
   </dependencies>
 
