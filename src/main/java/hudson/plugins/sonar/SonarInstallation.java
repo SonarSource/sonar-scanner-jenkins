@@ -28,7 +28,6 @@ import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Secret;
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -87,12 +86,12 @@ public class SonarInstallation implements Serializable {
   public SonarInstallation(
     String name,
     String serverUrl,
-    @Nullable String credentialsId,
-    @Nullable Secret serverAuthenticationToken,
-    @Nullable String webhookSecretId,
-    String mojoVersion,
-    String additionalProperties,
-    String additionalAnalysisProperties,
+    @CheckForNull String credentialsId,
+    @CheckForNull Secret serverAuthenticationToken,
+    @CheckForNull String webhookSecretId,
+    @CheckForNull String mojoVersion,
+    @CheckForNull String additionalProperties,
+    @CheckForNull String additionalAnalysisProperties,
     TriggersConfig triggers) {
     this.name = name;
     this.serverUrl = serverUrl;

@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -49,7 +50,7 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
   private static final long serialVersionUID = 1L;
 
   @DataBoundConstructor
-  public SonarRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
+  public SonarRunnerInstallation(String name, @CheckForNull String home, List<? extends ToolProperty<?>> properties) {
     super(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties);
   }
 
