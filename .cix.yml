@@ -3,8 +3,8 @@
 # Possible values for SLAVE: "performance" (for perf tests) and "linux" (for linux machines connected to DB services)
 
 SQ_VERSION: 
-  - DEV
-  - LATEST_RELEASE[6.7]
+  - DOGFOOD
+  - LATEST_RELEASE[7.9]
 
 JENKINS_VERSION:
 # Oldest LTS that still have its update center maintained
@@ -13,14 +13,14 @@ JENKINS_VERSION:
   - 2.176.1
 
 exclude:
-  - SQ_VERSION: LATEST_RELEASE[6.7]
+  - SQ_VERSION: LATEST_RELEASE[7.9]
     JENKINS_VERSION: 2.176.1
-  - SQ_VERSION: LATEST_RELEASE[6.7]
+  - SQ_VERSION: LATEST_RELEASE[7.9]
     JENKINS_VERSION: 2.150.3
     SLAVE: windows
-  - SQ_VERSION: DEV
+  - SQ_VERSION: DOGFOOD
     JENKINS_VERSION: 2.150.3
-  - SQ_VERSION: DEV
+  - SQ_VERSION: DOGFOOD
     JENKINS_VERSION: 2.176.1
     SLAVE: windows
   
