@@ -37,12 +37,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
-
-import javax.annotation.CheckForNull;
 
 /**
 * Represents a SonarQube Scanner installation in a system.

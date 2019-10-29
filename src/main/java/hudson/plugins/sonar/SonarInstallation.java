@@ -28,7 +28,6 @@ import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Secret;
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.DataBoundConstructor;

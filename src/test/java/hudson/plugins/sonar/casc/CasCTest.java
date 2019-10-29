@@ -29,16 +29,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CasCTest extends RoundTripAbstractTest {
 
-    @Override
-    protected void assertConfiguredAsExpected(RestartableJenkinsRule restartableJenkinsRule, String s) {
-        SonarInstallation installation = GlobalConfiguration.all()
-                .get(SonarGlobalConfiguration.class)
-                .getInstallations()[0];
-        assertThat(installation).isNotNull();
-    }
+  @Override
+  protected void assertConfiguredAsExpected(RestartableJenkinsRule restartableJenkinsRule, String s) {
+    SonarInstallation installation = GlobalConfiguration.all()
+      .get(SonarGlobalConfiguration.class)
+      .getInstallations()[0];
+    assertThat(installation).isNotNull();
+  }
 
-    @Override
-    protected String stringInLogExpected() {
-        return "credentialsId = test-id";
-    }
+  @Override
+  protected String stringInLogExpected() {
+    return "credentialsId = test-id";
+  }
 }

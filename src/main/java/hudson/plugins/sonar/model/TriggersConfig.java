@@ -33,9 +33,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import javax.annotation.CheckForNull;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author Evgeny Mandrikov
