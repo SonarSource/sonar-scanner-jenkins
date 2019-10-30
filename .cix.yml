@@ -8,19 +8,19 @@ SQ_VERSION:
 
 JENKINS_VERSION:
 # Oldest LTS that still have its update center maintained
-  - 2.107.3
+  - 2.150.3
 # More recent LTS
-  - 2.164.1
+  - 2.176.1
 
 exclude:
   - SQ_VERSION: LATEST_RELEASE[6.7]
-    JENKINS_VERSION: 2.164.1
+    JENKINS_VERSION: 2.176.1
   - SQ_VERSION: LATEST_RELEASE[6.7]
-    JENKINS_VERSION: 2.107.3
+    JENKINS_VERSION: 2.150.3
     SLAVE: windows
   - SQ_VERSION: DEV
-    JENKINS_VERSION: 2.107.3
+    JENKINS_VERSION: 2.150.3
   - SQ_VERSION: DEV
-    JENKINS_VERSION: 2.164.1
+    JENKINS_VERSION: 2.176.1
     SLAVE: windows
   

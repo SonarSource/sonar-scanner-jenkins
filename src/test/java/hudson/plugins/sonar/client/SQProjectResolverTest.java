@@ -115,7 +115,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   }
 
   private void mockSQServer56() throws Exception {
-    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, SERVER_URL, CREDENTIAL_ID, null, null, null,
+    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, SERVER_URL, CREDENTIAL_ID, null, null, null, null,
         null, null));
     addCredential(CREDENTIAL_ID, TOKEN);
     super.configureSonar(inst);

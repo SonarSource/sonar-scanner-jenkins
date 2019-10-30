@@ -1,5 +1,5 @@
 SonarQube Scanner for Jenkins
-====================
+=============================
 
 [![Build Status](https://travis-ci.org/SonarSource/sonar-scanner-jenkins.svg?branch=master)](https://travis-ci.org/SonarSource/sonar-scanner-jenkins) [![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.jenkins-ci.plugins%3Asonar&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.jenkins-ci.plugins%3Asonar)
 
@@ -7,10 +7,7 @@ Documentation: http://redirect.sonarsource.com/plugins/jenkins.html
 
 Issue tracking: https://jira.sonarsource.com/browse/SONARJNKNS
 
-
-If you're wanting to make changes, please clone the git repository at
-
-git://github.com/SonarSource/sonar-scanner-jenkins.git
+If you want to make changes, please clone the [Git repository](https://github.com/SonarSource/sonar-scanner-jenkins).
 
 With this plugin, you can configure SonarQube instances and run a SonarQube Scanner analysis in several ways:
 * By injecting the SonarQube configuration as environment variables and using them in any job step (such as Maven, Ant, Gradle, ...);
@@ -26,10 +23,11 @@ automatically by Jenkins/Hudson from a json file hosted on their respective upda
 
 For Jenkins, the files are automatically updated when a new version of Sonar Scanner or SonarScanner for MSBuild is published,
 thanks to crawlers written in groovy:
-* https://github.com/jenkinsci/backend-crawler/blob/master/sonarrunner.groovy
-* https://github.com/jenkinsci/backend-crawler/blob/master/msbuildsonarquberunner.groovy
+* https://github.com/jenkins-infra/crawler/blob/master/sonarqubescanner.groovy
+* https://github.com/jenkins-infra/crawler/blob/master/sonarqubescannermsbuild.groovy
 
-### License
+License
+-------
 
 Copyright 2007-2019 SonarSource.
 

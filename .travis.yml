@@ -1,12 +1,8 @@
 language: java
 sudo: false
+jdk: openjdk11
 install: true
-
-jdk:
-  - oraclejdk8
-
-script:
-  - ./travis.sh
+script: ./travis.sh
 
 cache:
   directories:
