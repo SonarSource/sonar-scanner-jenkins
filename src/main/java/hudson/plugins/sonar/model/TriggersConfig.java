@@ -33,6 +33,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -59,7 +60,7 @@ public class TriggersConfig implements Serializable {
   }
 
   @DataBoundConstructor
-  public TriggersConfig(boolean skipScmCause, boolean skipUpstreamCause, String envVar) {
+  public TriggersConfig(boolean skipScmCause, boolean skipUpstreamCause, @CheckForNull String envVar) {
     this.skipScmCause = skipScmCause;
     this.skipUpstreamCause = skipUpstreamCause;
     this.envVar = envVar;

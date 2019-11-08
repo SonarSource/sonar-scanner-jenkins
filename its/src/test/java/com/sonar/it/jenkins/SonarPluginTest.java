@@ -89,7 +89,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
     .addPlugin(MavenLocation.of("org.sonarsource.java", "sonar-java-plugin", "5.14.0.18788"))
     .addPlugin(MavenLocation.of("org.sonarsource.javascript", "sonar-javascript-plugin", "5.2.1.7778"))
     // Needed by Scanner for MSBuild
-    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-csharp-plugin", "LATEST_RELEASE"))
+    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-csharp-plugin", "7.17.0.9346"))
     .restoreProfileAtStartup(FileLocation.ofClasspath("/com/sonar/it/jenkins/SonarPluginTest/sonar-way-it-profile_java.xml"))
     .build();
 
