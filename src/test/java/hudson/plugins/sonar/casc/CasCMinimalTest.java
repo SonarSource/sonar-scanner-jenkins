@@ -27,14 +27,30 @@ import org.jvnet.hudson.test.RestartableJenkinsRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CasCTest extends RoundTripAbstractTest {
+public class CasCMinimalTest extends RoundTripAbstractTest {
+
+  @Override
+  protected String configResource() {
+    return "config-minimal.yaml";
+  }
 
   @Override
   protected void assertConfiguredAsExpected(RestartableJenkinsRule restartableJenkinsRule, String s) {
-    SonarInstallation installation = GlobalConfiguration.all()
-      .get(SonarGlobalConfiguration.class)
-      .getInstallations()[0];
+    SonarInstallation installation = getSonarInstallation();
     assertThat(installation).isNotNull();
+    assertThat(installation.getName()).isEqualTo("TEST");
+    assertThat(installation.getServerUrl()).isEqualTo("http://url:9000");
+  }
+
+  SonarInstallation getSonarInstallation() {
+    SonarGlobalConfiguration sonarGlobalConfiguration = GlobalConfiguration.all()
+        .get(SonarGlobalConfiguration.class);
+    assertThat(sonarGlobalConfiguration).isNotNull();
+
+    SonarInstallation[] installations = sonarGlobalConfiguration.getInstallations();
+    assertThat(installations).isNotEmpty();
+
+    return installations[0];
   }
 
   @Override
