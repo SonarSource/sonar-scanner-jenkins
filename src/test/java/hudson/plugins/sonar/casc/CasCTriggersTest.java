@@ -35,6 +35,8 @@ public class CasCTriggersTest extends CasCMinimalTest {
   @Override
   protected void assertConfiguredAsExpected(RestartableJenkinsRule restartableJenkinsRule, String s) {
     SonarInstallation sonarInstallation = getSonarInstallation();
+    assertThat(sonarInstallation).isNotNull();
+
     TriggersConfig triggers = sonarInstallation.getTriggers();
     assertThat(triggers).isNotNull();
     assertThat(triggers.isSkipScmCause()).isTrue();
