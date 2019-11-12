@@ -92,7 +92,7 @@ public class SonarInstallation implements Serializable {
     @CheckForNull String mojoVersion,
     @CheckForNull String additionalProperties,
     @CheckForNull String additionalAnalysisProperties,
-    TriggersConfig triggers) {
+    @CheckForNull TriggersConfig triggers) {
     this.name = name;
     this.serverUrl = serverUrl;
     this.credentialsId = credentialsId;
