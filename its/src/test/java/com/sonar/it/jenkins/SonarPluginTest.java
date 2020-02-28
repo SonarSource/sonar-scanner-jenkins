@@ -42,6 +42,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sonar.wsclient.qualitygate.NewCondition;
 import org.sonar.wsclient.qualitygate.QualityGate;
@@ -72,7 +73,9 @@ public class SonarPluginTest extends AbstractJUnitTest {
   private static final String DUMP_ENV_VARS_PIPELINE_CMD = SystemUtils.IS_OS_WINDOWS ? "bat 'set'" : "sh 'env | sort'";
   private static final String GLOBAL_WEBHOOK_PROPERTY = "sonar.webhooks.global";
   private static final String SECRET = "very_secret_secret";
-  private static final String JENKINS_VERSION = "3.3.0.1492";
+  private static final String JENKINS_VERSION
+    = "3.3.0.1492";
+  private static final String MS_BUILD_RECENT_VERSION = "4.7.1.2311";
   private static long DEFAULT_QUALITY_GATE;
 
   @ClassRule
@@ -157,8 +160,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @WithOS(os = WithOS.OS.WINDOWS)
   @WithPlugins({"msbuild"})
   public void testFreestyleJobWithScannerForMsBuild() throws FailedExecutionException {
-    MSBuildScannerInstallation.install(jenkins, "3.0.0.629", false);
-    MSBuildScannerInstallation.install(jenkins, "4.1.0.1148", true);
+    MSBuildScannerInstallation.install(jenkins, MS_BUILD_RECENT_VERSION, false);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMSBuild(ORCHESTRATOR);
 
@@ -166,7 +168,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
     String projectKey = "csharp";
     assertThat(getProject(projectKey)).isNull();
     jenkinsOrch
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleApp1Folder, projectKey, "CSharp", "1.0", "3.0.0.629", "ConsoleApplication1.sln", false)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleApp1Folder, projectKey, "CSharp", "1.0", MS_BUILD_RECENT_VERSION, "ConsoleApplication1.sln", false)
       .executeJob(jobName);
 
     waitForComputationOnSQServer();
@@ -177,14 +179,14 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @Test
   public void testFreestyleJobWithScannerForMsBuild_NetCore() {
     MSBuildScannerInstallation.install(jenkins, "3.0.0.629", false);
-    MSBuildScannerInstallation.install(jenkins, "4.1.0.1148", true);
+    MSBuildScannerInstallation.install(jenkins, MS_BUILD_RECENT_VERSION, true);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String jobName = "csharp-core";
     String projectKey = "csharp-core";
     assertThat(getProject(projectKey)).isNull();
     jenkinsOrch
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", "4.1.0.1148", "NetCoreConsoleApp.sln", true)
+      .newFreestyleJobWithScannerForMsBuild(jobName,  null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", MS_BUILD_RECENT_VERSION, "NetCoreConsoleApp.sln", true)
       .executeJob(jobName);
 
     waitForComputationOnSQServer();
