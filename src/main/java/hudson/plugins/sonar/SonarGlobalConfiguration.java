@@ -32,6 +32,7 @@ import hudson.plugins.sonar.utils.Logger;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import java.io.Serializable;
 import java.util.function.Supplier;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
@@ -52,9 +53,9 @@ import java.util.Optional;
  * The global configuration was migrated from SonarPublisher to this component.
  */
 @Extension(ordinal = 100)
-public class SonarGlobalConfiguration extends GlobalConfiguration {
+public class SonarGlobalConfiguration extends GlobalConfiguration implements Serializable {
 
-  private final Supplier<Jenkins> jenkinsSupplier;
+  private final transient Supplier<Jenkins> supplyJenkins;
 
   @CopyOnWrite
   private volatile SonarInstallation[] installations = new SonarInstallation[0];
@@ -72,7 +73,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
   @VisibleForTesting
   public SonarGlobalConfiguration(Supplier<Jenkins> supplier) {
     load();
-    this.jenkinsSupplier = supplier;
+    this.supplyJenkins = supplier;
   }
 
   /**
@@ -168,7 +169,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
   }
 
   private ListBoxModel createListBoxModel(String credentialId) {
-    if (!jenkinsSupplier.get().hasPermission(Jenkins.ADMINISTER)) {
+    if (!supplyJenkins.get().hasPermission(Jenkins.ADMINISTER)) {
       return new StandardListBoxModel().includeCurrentValue(credentialId);
     }
 
@@ -176,7 +177,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration {
       .includeEmptyValue()
       .includeMatchingAs(
         ACL.SYSTEM,
-        jenkinsSupplier.get(),
+        supplyJenkins.get(),
         StringCredentials.class,
         Collections.emptyList(),
         CredentialsMatchers.always()
