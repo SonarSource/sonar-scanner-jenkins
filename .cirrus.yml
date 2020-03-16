@@ -87,6 +87,9 @@ linux_qa_task:
   on_failure:
     reports_artifacts:
       path: "**/target/**/logs/*"
+    junit_artifacts:
+      path: "**/test-results/**/*.xml"
+      format: junit
 
 promote_task:
   depends_on:
