@@ -83,8 +83,9 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
   private static void validate(String payload) {
     JSONObject.fromObject(payload);
   }
+
   public static SonarQubeWebHook get() {
-    return Jenkins.getInstance().getExtensionList(RootAction.class).get(SonarQubeWebHook.class);
+    return Jenkins.get().getExtensionList(RootAction.class).get(SonarQubeWebHook.class);
   }
 
   public void addListener(Listener l) {

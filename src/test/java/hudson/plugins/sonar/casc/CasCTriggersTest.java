@@ -19,26 +19,27 @@
  */
 package hudson.plugins.sonar.casc;
 
-import hudson.plugins.sonar.SonarGlobalConfiguration;
 import hudson.plugins.sonar.SonarInstallation;
-import io.jenkins.plugins.casc.misc.RoundTripAbstractTest;
-import jenkins.model.GlobalConfiguration;
+import hudson.plugins.sonar.model.TriggersConfig;
 import org.jvnet.hudson.test.RestartableJenkinsRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CasCTest extends RoundTripAbstractTest {
+public class CasCTriggersTest extends CasCMinimalTest {
 
   @Override
-  protected void assertConfiguredAsExpected(RestartableJenkinsRule restartableJenkinsRule, String s) {
-    SonarInstallation installation = GlobalConfiguration.all()
-      .get(SonarGlobalConfiguration.class)
-      .getInstallations()[0];
-    assertThat(installation).isNotNull();
+  protected String configResource() {
+    return "config-w-triggers.yaml";
   }
 
   @Override
-  protected String stringInLogExpected() {
-    return "credentialsId = test-id";
+  protected void assertConfiguredAsExpected(RestartableJenkinsRule restartableJenkinsRule, String s) {
+    SonarInstallation sonarInstallation = getSonarInstallation();
+    assertThat(sonarInstallation).isNotNull();
+
+    TriggersConfig triggers = sonarInstallation.getTriggers();
+    assertThat(triggers).isNotNull();
+    assertThat(triggers.isSkipScmCause()).isTrue();
+    assertThat(triggers.isSkipUpstreamCause()).isTrue();
   }
 }

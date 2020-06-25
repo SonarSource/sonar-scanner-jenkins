@@ -6,12 +6,12 @@
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
     <!-- See https://github.com/jenkinsci/plugin-pom/blob/master/CHANGELOG.md -->
-    <version>3.46</version>
+    <version>3.54</version>
     <relativePath />
   </parent>
 
   <artifactId>sonar</artifactId>
-  <version>2.11-SNAPSHOT</version>
+  <version>2.11</version>
   <packaging>hpi</packaging>
 
   <name>SonarQube Scanner for Jenkins</name>
@@ -33,7 +33,7 @@
     <connection>scm:git:git://github.com/jenkinsci/sonarqube-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/sonarqube-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/sonarqube-plugin</url>
-    <tag>HEAD</tag>
+    <tag>sonar-2.11</tag>
   </scm>
   <issueManagement>
     <system>JIRA</system>
@@ -55,8 +55,8 @@
     <findbugs.failOnError>false</findbugs.failOnError>
     <!-- Disable parallel tests on Travis -->
     <concurrency>1</concurrency>
-    <!-- Skip Findbugs -->
-    <findbugs.skip>true</findbugs.skip>
+    <!-- Skip Spotbugs, we are using SonarQube -->
+    <spotbugs.skip>true</spotbugs.skip>
     <!-- No need to rerun tests, because of HAP-859, artifactory plugin will not upload the artifact -->
     <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
 
@@ -352,6 +352,32 @@
     </plugins>
   </build>
   <profiles>
+    <profile>
+      <id>coverage</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.4</version>
+            <executions>
+              <execution>
+                <id>prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>report</id>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>deploy-sonarsource</id>
       <build>
