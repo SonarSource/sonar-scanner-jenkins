@@ -190,7 +190,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       for (SonarAnalysisAction a : reversedActions) {
         ceTaskId = a.getCeTaskId();
         if (ceTaskId != null) {
-          serverUrl = a.getUsableServerUrl();
+          serverUrl = a.getServerApiEndpoint();
           installationName = a.getInstallationName();
           credentialsId = a.getCredentialsId();
           break;

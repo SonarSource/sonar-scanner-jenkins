@@ -149,7 +149,7 @@ public class SonarAnalysisAction extends InvisibleAction {
 
   @CheckForNull
   @Transient
-  public String getUsableServerUrl() {
+  public String getServerApiEndpoint() {
     return (installationServerUrl != null  && !installationServerUrl.contains("$"))
         ? installationServerUrl : serverUrl;
   }
