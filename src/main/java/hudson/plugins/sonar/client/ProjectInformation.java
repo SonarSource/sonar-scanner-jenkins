@@ -33,6 +33,10 @@ public class ProjectInformation extends InvisibleAction {
   private String ceStatus;
   private String ceUrl;
 
+  private final String ERROR_MESSAGE = "Failed";
+  private final String OK_MESSAGE = "Passed";
+  private final String WARN_MESSAGE = "Warning";
+
   public ProjectInformation() {
     this.created = System.currentTimeMillis();
   }
@@ -93,6 +97,25 @@ public class ProjectInformation extends InvisibleAction {
 
   public void setStatus(String status) {
     this.status = status;
+  }
+
+  public String getBadgeStatus() {
+
+    String badgeString = "";
+
+    if (status == null) {
+      return "N/A";
+    }
+
+    switch(status.toUpperCase()) {
+      case "OK": 
+        badgeString = OK_MESSAGE;
+      case "WARN": 
+        badgeString = WARN_MESSAGE;
+      default:
+        badgeString = ERROR_MESSAGE;
+    }
+    return badgeString;
   }
 
 }
