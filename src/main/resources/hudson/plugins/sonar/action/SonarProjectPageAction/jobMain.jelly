@@ -28,8 +28,11 @@
 		            <j:when test="${status=='Warning'}">
 		              <div class="badge badge-warning"> ${status}</div>
 		            </j:when>
-		            <j:otherwise>
+		            <j:when test="${status=='Failed'}">
 		              <div class="badge badge-failing"> ${status}</div>
+		            </j:when>
+		            <j:otherwise>
+		              <div class="badge badge-warning"> ${status}</div>
 		            </j:otherwise>
 		          </j:choose>
 		        </a>

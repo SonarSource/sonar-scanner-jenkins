@@ -36,6 +36,7 @@ public class ProjectInformation extends InvisibleAction {
   private final String ERROR_MESSAGE = "Failed";
   private final String OK_MESSAGE = "Passed";
   private final String WARN_MESSAGE = "Warning";
+  private final String UNKOWN_MESSAGE = "N/A";
 
   public ProjectInformation() {
     this.created = System.currentTimeMillis();
@@ -112,8 +113,10 @@ public class ProjectInformation extends InvisibleAction {
         badgeString = OK_MESSAGE;
       case "WARN": 
         badgeString = WARN_MESSAGE;
-      default:
+      case "ERROR":
         badgeString = ERROR_MESSAGE;
+      default:
+        badgeString = UNKOWN_MESSAGE;
     }
     return badgeString;
   }
