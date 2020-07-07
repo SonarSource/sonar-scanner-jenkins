@@ -7,7 +7,7 @@
     <artifactId>plugin</artifactId>
     <!-- See https://github.com/jenkinsci/plugin-pom/blob/master/CHANGELOG.md -->
     <version>3.54</version>
-    <relativePath />
+    <relativePath/>
   </parent>
 
   <artifactId>sonar</artifactId>
@@ -144,7 +144,7 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>6.7</version>
+      <version>6.7.7</version>
     </dependency>
     <dependency>
       <!-- needed for SonarPublisher -->
