@@ -203,6 +203,29 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
+  public void testBuildCredentialsOnly() throws Exception {
+    // set up a free style project with our wrapper that will execute CaptureVarsBuilder
+    configureSonar(installation);
+    CaptureVarsBuilder b = new CaptureVarsBuilder();
+    FreeStyleProject project = setupFreeStyleProject(b);
+    wrapper.setCli(false);
+    project.getBuildWrappersList().add(wrapper);
+    Run<?, ?> build = build(project);
+
+    assertThat(build.getResult()).isEqualTo(Result.SUCCESS);
+
+    // ensure that vars were injected to the job
+    assertThat(b.vars)
+      .containsEntry("SONAR_HOST_URL", "http://localhost:9001")
+      .containsEntry("SONAR_AUTH_TOKEN", MYTOKEN)
+      .containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
+
+    // job's log should have passwords masked
+    assertThat(build.getLog(1000)).contains("the token is: ******");
+    assertThat(build.getActions(SonarAnalysisAction.class)).isEmpty();
+  }
+
+  @Test
   public void testFailedBuild() throws Exception {
     // set up a free style project with our wrapper that will execute CaptureVarsBuilder
     configureSonar(installation);

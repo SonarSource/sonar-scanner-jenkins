@@ -89,7 +89,7 @@ public final class SonarUtils {
       candidates = workspace.list("**/" + REPORT_TASK_FILE_NAME);
     }
     if (candidates == null || candidates.length == 0) {
-      listener.getLogger().println("WARN: Unable to locate '" + REPORT_TASK_FILE_NAME + "' in the workspace. Did the SonarScanner succeeded?");
+      listener.getLogger().println("WARN: Unable to locate '" + REPORT_TASK_FILE_NAME + "' in the workspace. Did the SonarScanner succeed?");
       return null;
     } else {
       if (candidates.length > 1) {
