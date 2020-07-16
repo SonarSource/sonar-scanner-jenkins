@@ -10,7 +10,7 @@
 	    <table class="sonar-projects">
 	    
 	    <j:forEach var="project" items="${projects}">
-		  <j:set var="status" value="${project.getStatus()}" />  
+		  <j:set var="status" value="${project.getBadgeStatus()}" />  
 		  <j:set var="ceStatus" value="${project.getCeStatus()}" />
 		  
 		  <j:if test="${status != null}">
@@ -22,14 +22,17 @@
 		      <div class="sonar-qg-status">
 		        <a href="${project.getUrl()}"> 
 		          <j:choose>
-		            <j:when test="${status=='OK'}">
+		            <j:when test="${status=='Passed'}">
 		              <div class="badge badge-success"> ${status}</div>
 		            </j:when>
-		            <j:when test="${status=='WARN'}">
+		            <j:when test="${status=='Warning'}">
 		              <div class="badge badge-warning"> ${status}</div>
 		            </j:when>
-		            <j:otherwise>
+		            <j:when test="${status=='Failed'}">
 		              <div class="badge badge-failing"> ${status}</div>
+		            </j:when>
+		            <j:otherwise>
+		              <div class="badge badge-warning"> ${status}</div>
 		            </j:otherwise>
 		          </j:choose>
 		        </a>
