@@ -81,6 +81,8 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
+    // Disable webhook url validation
+    .setServerProperty("sonar.validateWebhooks", Boolean.FALSE.toString())
     // The scanner for maven should still be compatible with previous LTS 6.7, and not the 7.9
     // at the time of writing, so the installed plugins should be compatible with
     // both 6.7 and 8.x. The latest releases of analysers drop the compatibility with
