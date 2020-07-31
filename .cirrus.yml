@@ -87,8 +87,10 @@ linux_qa_task:
   on_failure:
     reports_artifacts:
       path: "**/target/**/logs/*"
+    test_reports_artifacts:
+      path: "**/target/surefire-reports/*"
     junit_artifacts:
-      path: "**/test-results/**/*.xml"
+      path: "**/target/surefire-reports/*.xml"
       format: junit
 
 promote_task:
