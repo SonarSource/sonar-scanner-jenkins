@@ -21,11 +21,11 @@ package com.sonar.it.jenkins;
 
 import com.google.common.base.Function;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -56,8 +56,14 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.sonar.wsclient.jsonsimple.JSONValue;
-import org.sonar.wsclient.qualitygate.QualityGates;
+import org.sonarqube.ws.Qualitygates;
+import org.sonarqube.ws.UserTokens;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.qualitygates.ListRequest;
+import org.sonarqube.ws.client.qualitygates.SetAsDefaultRequest;
+import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jenkinsci.test.acceptance.po.CapybaraPortingLayer.by;
@@ -152,7 +158,9 @@ public class JenkinsUtils {
     findElement(buttonByText("Add build step")).click();
     findElement(By.linkText("Execute SonarQube Scanner")).click();
     StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < properties.length / 2; i++) {
+    for (int i = 0;
+         i < properties.length / 2;
+         i++) {
       String key = properties[2 * i];
       String value = properties[2 * i + 1];
       if (key.equals("sonar.task")) {
@@ -351,18 +359,26 @@ public class JenkinsUtils {
   }
 
   public void configureDefaultQG(Orchestrator orchestrator) {
-    QualityGates qualityGates = orchestrator.getServer().adminWsClient().qualityGateClient().list();
-    assertThat(qualityGates.qualityGates().size()).isGreaterThan(0);
+    WsClient wsClient = createWsClient(orchestrator);
+    Qualitygates.ListWsResponse qualityGates = wsClient.qualitygates().list(new ListRequest());
+    assertThat(qualityGates.getQualitygatesList().size()).isPositive();
 
-    long id = qualityGates.qualityGates().iterator().next().id();
-    orchestrator.getServer().adminWsClient().qualityGateClient().setDefault(id);
+    String id = String.valueOf(qualityGates.getQualitygates(0).getId());
+    wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(id));
     System.out.println("Set default QG: " + id);
   }
 
   public String generateToken(Orchestrator orchestrator) {
-    String json = orchestrator.getServer().adminWsClient().post("api/user_tokens/generate", "name", "token" + tokenCounter++);
-    Map response = (Map) JSONValue.parse(json);
-    return (String) response.get("token");
+    WsClient wsClient = createWsClient(orchestrator);
+    UserTokens.GenerateWsResponse generate = wsClient.userTokens().generate(new GenerateRequest().setName("token" + tokenCounter++));
+    return generate.getToken();
+  }
+
+  private WsClient createWsClient(Orchestrator orchestrator) {
+    return WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
+      .url(orchestrator.getServer().getUrl())
+      .credentials(Server.ADMIN_LOGIN, Server.ADMIN_PASSWORD)
+      .build());
   }
 
   public Build executeJob(String jobName) {

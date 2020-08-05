@@ -106,7 +106,6 @@ public class SonarPluginTest extends AbstractJUnitTest {
   public static void setUpJenkins() {
     // Use String.valueOf since in 7.9 the Id is a long and 8.4 uses a String
     DEFAULT_QUALITY_GATE = getDefaultQualityGateId();
-    // Set up webhook
     wsClient = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(ORCHESTRATOR.getServer().getUrl())
       .credentials(Server.ADMIN_LOGIN, Server.ADMIN_PASSWORD)
