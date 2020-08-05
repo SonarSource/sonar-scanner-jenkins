@@ -509,7 +509,13 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   private static String getDefaultQualityGateId() {
-    return String.valueOf(wsClient.qualitygates().list(new org.sonarqube.ws.client.qualitygates.ListRequest()).getDefault());
+    Qualitygates.ListWsResponse list = wsClient.qualitygates().list(new org.sonarqube.ws.client.qualitygates.ListRequest());
+
+    return String.valueOf(list.getQualitygatesList()
+      .stream()
+      .filter(Qualitygates.ListWsResponse.QualityGate::getIsDefault)
+      .findFirst()
+      .orElseGet(() -> list.getQualitygates(0)).getId());
   }
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
