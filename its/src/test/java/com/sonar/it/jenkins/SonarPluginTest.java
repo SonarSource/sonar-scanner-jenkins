@@ -69,7 +69,6 @@ import static org.junit.Assert.fail;
 public class SonarPluginTest extends AbstractJUnitTest {
 
   private static final String DUMP_ENV_VARS_PIPELINE_CMD = SystemUtils.IS_OS_WINDOWS ? "bat 'set'" : "sh 'env | sort'";
-  private static final String GLOBAL_WEBHOOK_PROPERTY = "sonar.webhooks.global";
   private static final String SECRET = "very_secret_secret";
   private static final String JENKINS_VERSION
     = "3.3.0.1492";
@@ -114,9 +113,9 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @Before
   public void setUp() {
     ORCHESTRATOR.resetData();
-    //wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(DEFAULT_QUALITY_GATE));
+    wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(DEFAULT_QUALITY_GATE));
     jenkinsOrch = new JenkinsUtils(jenkins, driver);
-    //jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
+    jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
     jenkins.open();
     webhookKey = enableWebhook();
   }

@@ -40,7 +40,7 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>7.8</version>
+      <version>8.4.0.35641</version>
       <scope>test</scope>
     </dependency>
     <dependency>
