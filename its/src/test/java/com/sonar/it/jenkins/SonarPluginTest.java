@@ -108,14 +108,13 @@ public class SonarPluginTest extends AbstractJUnitTest {
       .url(ORCHESTRATOR.getServer().getUrl())
       .credentials(Server.ADMIN_LOGIN, Server.ADMIN_PASSWORD)
       .build());
-    // Use String.valueOf since in 7.9 the Id is a long and 8.4 uses a String
     DEFAULT_QUALITY_GATE = getDefaultQualityGateId();
   }
 
   @Before
   public void setUp() {
     ORCHESTRATOR.resetData();
-    wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(DEFAULT_QUALITY_GATE));
+    //wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(DEFAULT_QUALITY_GATE));
     jenkinsOrch = new JenkinsUtils(jenkins, driver);
     jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
     jenkins.open();
