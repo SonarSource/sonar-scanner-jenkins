@@ -116,7 +116,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
     ORCHESTRATOR.resetData();
     //wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(DEFAULT_QUALITY_GATE));
     jenkinsOrch = new JenkinsUtils(jenkins, driver);
-    jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
+    //jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
     jenkins.open();
     webhookKey = enableWebhook();
   }
