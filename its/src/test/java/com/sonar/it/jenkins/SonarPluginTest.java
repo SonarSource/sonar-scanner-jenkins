@@ -42,20 +42,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.sonar.wsclient.qualitygate.NewCondition;
-import org.sonar.wsclient.qualitygate.QualityGate;
-import org.sonar.wsclient.qualitygate.QualityGateClient;
-import org.sonar.wsclient.services.PropertyDeleteQuery;
-import org.sonar.wsclient.services.PropertyUpdateQuery;
 import org.sonarqube.ws.Components.Component;
+import org.sonarqube.ws.Qualitygates;
 import org.sonarqube.ws.Webhooks;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.HttpException;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.components.ShowRequest;
+import org.sonarqube.ws.client.qualitygates.CreateConditionRequest;
+import org.sonarqube.ws.client.qualitygates.DestroyRequest;
+import org.sonarqube.ws.client.qualitygates.SetAsDefaultRequest;
 import org.sonarqube.ws.client.webhooks.CreateRequest;
 import org.sonarqube.ws.client.webhooks.DeleteRequest;
 import org.sonarqube.ws.client.webhooks.ListRequest;
@@ -71,16 +69,17 @@ import static org.junit.Assert.fail;
 public class SonarPluginTest extends AbstractJUnitTest {
 
   private static final String DUMP_ENV_VARS_PIPELINE_CMD = SystemUtils.IS_OS_WINDOWS ? "bat 'set'" : "sh 'env | sort'";
-  private static final String GLOBAL_WEBHOOK_PROPERTY = "sonar.webhooks.global";
   private static final String SECRET = "very_secret_secret";
   private static final String JENKINS_VERSION
     = "3.3.0.1492";
   private static final String MS_BUILD_RECENT_VERSION = "4.7.1.2311";
-  private static long DEFAULT_QUALITY_GATE;
+  private static String DEFAULT_QUALITY_GATE;
 
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
     .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
+    // Disable webhook url validation
+    .setServerProperty("sonar.validateWebhooks", Boolean.FALSE.toString())
     // The scanner for maven should still be compatible with previous LTS 6.7, and not the 7.9
     // at the time of writing, so the installed plugins should be compatible with
     // both 6.7 and 8.x. The latest releases of analysers drop the compatibility with
@@ -104,18 +103,17 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @BeforeClass
   public static void setUpJenkins() {
-    DEFAULT_QUALITY_GATE = qgClient().list().defaultGate().id();
-    // Set up webhook
     wsClient = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
       .url(ORCHESTRATOR.getServer().getUrl())
       .credentials(Server.ADMIN_LOGIN, Server.ADMIN_PASSWORD)
       .build());
+    DEFAULT_QUALITY_GATE = getDefaultQualityGateId();
   }
 
   @Before
   public void setUp() {
     ORCHESTRATOR.resetData();
-    qgClient().setDefault(DEFAULT_QUALITY_GATE);
+    wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(DEFAULT_QUALITY_GATE));
     jenkinsOrch = new JenkinsUtils(jenkins, driver);
     jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
     jenkins.open();
@@ -186,7 +184,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
     String projectKey = "csharp-core";
     assertThat(getProject(projectKey)).isNull();
     jenkinsOrch
-      .newFreestyleJobWithScannerForMsBuild(jobName,  null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", MS_BUILD_RECENT_VERSION, "NetCoreConsoleApp.sln", true)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", MS_BUILD_RECENT_VERSION, "NetCoreConsoleApp.sln", true)
       .executeJob(jobName);
 
     waitForComputationOnSQServer();
@@ -391,10 +389,10 @@ public class SonarPluginTest extends AbstractJUnitTest {
     SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
-    Long previousDefault = qgClient().list().defaultGate().id();
-    QualityGate simple = qgClient().create("AlwaysFail");
-    qgClient().setDefault(simple.id());
-    qgClient().createCondition(NewCondition.create(simple.id()).metricKey("lines").operator("GT").errorThreshold("0"));
+    String previousDefault = getDefaultQualityGateId();
+    Qualitygates.CreateResponse simple = wsClient.qualitygates().create(new org.sonarqube.ws.client.qualitygates.CreateRequest().setName("AlwaysFail"));
+    wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(String.valueOf(simple.getId())));
+    wsClient.qualitygates().createCondition(new CreateConditionRequest().setGateId(String.valueOf(simple.getId())).setMetric("lines").setOp("GT").setError("0"));
 
     try {
       StringBuilder script = new StringBuilder();
@@ -419,8 +417,8 @@ public class SonarPluginTest extends AbstractJUnitTest {
       assertThat(buildResult.isSuccess()).isFalse();
 
     } finally {
-      qgClient().setDefault(previousDefault);
-      qgClient().destroy(simple.id());
+      wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(previousDefault));
+      wsClient.qualitygates().destroy(new DestroyRequest().setId(String.valueOf(simple.getId())));
     }
   }
 
@@ -508,8 +506,14 @@ public class SonarPluginTest extends AbstractJUnitTest {
     job.save();
   }
 
-  private static QualityGateClient qgClient() {
-    return ORCHESTRATOR.getServer().adminWsClient().qualityGateClient();
+  private static String getDefaultQualityGateId() {
+    Qualitygates.ListWsResponse list = wsClient.qualitygates().list(new org.sonarqube.ws.client.qualitygates.ListRequest());
+
+    return String.valueOf(list.getQualitygatesList()
+      .stream()
+      .filter(Qualitygates.ListWsResponse.QualityGate::getIsDefault)
+      .findFirst()
+      .orElseGet(() -> list.getQualitygates(0)).getId());
   }
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
@@ -526,22 +530,13 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   private String enableWebhook() {
     String url = StringUtils.removeEnd(jenkins.getCurrentUrl(), "/") + "/sonarqube-webhook/";
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 1)) {
-      // SONAR-9058
+    Webhooks.CreateWsResponse response = wsClient.webhooks().create(new CreateRequest()
+      .setName("Jenkins")
+      .setUrl(url)
+      .setSecret(SECRET)
+    );
 
-      Webhooks.CreateWsResponse response = wsClient.webhooks().create(new CreateRequest()
-        .setName("Jenkins")
-        .setUrl(url)
-        .setSecret(SECRET)
-      );
-
-      return response.getWebhook().getKey();
-    } else {
-      setProperty(GLOBAL_WEBHOOK_PROPERTY + ".1.name", "Jenkins");
-      setProperty(GLOBAL_WEBHOOK_PROPERTY + ".1.url", url);
-      setProperty(GLOBAL_WEBHOOK_PROPERTY, "1");
-      return null;
-    }
+    return response.getWebhook().getKey();
   }
 
   private void setWebhookSecret(String secret) {
@@ -559,17 +554,8 @@ public class SonarPluginTest extends AbstractJUnitTest {
     }
   }
 
-  private static void setProperty(String key, String value) {
-    ORCHESTRATOR.getServer().getAdminWsClient().update(new PropertyUpdateQuery(key, value));
-  }
-
   private static void disableGlobalWebhooks() {
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 1)) {
-      // SONAR-9058
-      wsClient.webhooks().list(new ListRequest()).getWebhooksList().forEach(p -> wsClient.webhooks().delete(new DeleteRequest().setWebhook(p.getKey())));
-    } else {
-      ORCHESTRATOR.getServer().getAdminWsClient().delete(new PropertyDeleteQuery(GLOBAL_WEBHOOK_PROPERTY));
-    }
+    wsClient.webhooks().list(new ListRequest()).getWebhooksList().forEach(p -> wsClient.webhooks().delete(new DeleteRequest().setWebhook(p.getKey())));
   }
 
   @CheckForNull

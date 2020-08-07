@@ -75,9 +75,9 @@ linux_qa_task:
     BROWSER: chrome
     matrix:
       - SQ_VERSION: LATEST_RELEASE[7.9]
-        JENKINS_VERSION: 2.164.1
+        JENKINS_VERSION: 2.176.4
       - SQ_VERSION: DEV
-        JENKINS_VERSION: 2.176.1
+        JENKINS_VERSION: 2.176.4
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:
@@ -87,8 +87,10 @@ linux_qa_task:
   on_failure:
     reports_artifacts:
       path: "**/target/**/logs/*"
+    test_reports_artifacts:
+      path: "**/target/surefire-reports/*"
     junit_artifacts:
-      path: "**/test-results/**/*.xml"
+      path: "**/target/surefire-reports/*.xml"
       format: junit
 
 promote_task:

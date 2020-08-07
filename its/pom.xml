@@ -17,6 +17,10 @@
 
   <inceptionYear>2013</inceptionYear>
 
+  <properties>
+    <sonar-ws.version>7.9</sonar-ws.version>
+  </properties>
+
   <repositories>
     <repository>
       <id>repo.jenkins-ci.org</id>
@@ -40,13 +44,13 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>7.8</version>
+      <version>${sonar-ws.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator</artifactId>
-      <version>3.24.0.1993</version>
+      <version>3.29.0.2543</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -94,6 +98,18 @@
       </activation>
       <properties>
         <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
+      </properties>
+    </profile>
+    <profile>
+      <id>sonar-ws-dev</id>
+      <activation>
+        <property>
+          <name>env.SQ_VERSION</name>
+          <value>DEV</value>
+        </property>
+      </activation>
+      <properties>
+        <sonar-ws.version>8.4.0.35641</sonar-ws.version>
       </properties>
     </profile>
   </profiles>
