@@ -391,7 +391,7 @@ public class JenkinsUtils {
 
   public Build executeJobQuietly(String jobName) {
     Job job = jenkins.getJobs().get(Job.class, jobName);
-    return job.scheduleBuild().waitUntilFinished();
+    return job.scheduleBuild().waitUntilFinished(240);
   }
 
   private String getMavenParams(Orchestrator orchestrator) {
