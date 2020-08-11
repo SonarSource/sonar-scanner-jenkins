@@ -67,11 +67,11 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
 
     LOGGER.info("Received POST from " + req.getRemoteHost());
     try {
-      validate(payload);
-      LOGGER.fine(() -> "Full details of the POST was " + JSONObject.fromObject(payload).toString());
+      JSONObject jsonObject = validate(payload);
+      LOGGER.fine(() -> "Full details of the POST was " + jsonObject.toString());
 
       for (Listener listener : listeners) {
-        listener.onTaskCompleted(new Payload(payload), req.getHeader("X-Sonar-Webhook-HMAC-SHA256"));
+        listener.onTaskCompleted(new Payload(payload, jsonObject), req.getHeader("X-Sonar-Webhook-HMAC-SHA256"));
       }
     } catch (JSONException e) {
       LOGGER.log(Level.WARNING, e, () -> "Invalid payload " + payload);
@@ -80,8 +80,8 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
     rsp.setStatus(HttpServletResponse.SC_OK);
   }
 
-  private static void validate(String payload) {
-    JSONObject.fromObject(payload);
+  private static JSONObject validate(String payload) {
+    return JSONObject.fromObject(payload);
   }
 
   public static SonarQubeWebHook get() {
@@ -97,7 +97,7 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
   }
 
   @FunctionalInterface
-  public static interface Listener {
+  public interface Listener {
 
     void onTaskCompleted(Payload payload, String receivedSignature);
 
@@ -110,8 +110,7 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
     private final String taskStatus;
     private final String qualityGateStatus;
 
-    Payload(String payloadAsString) {
-      JSONObject json = JSONObject.fromObject(payloadAsString);
+    Payload(String payloadAsString, JSONObject json) {
       this.payloadAsString = payloadAsString;
       this.taskId = json.getString("taskId");
       this.taskStatus = json.getString("status");
