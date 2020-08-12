@@ -29,6 +29,7 @@ import hudson.security.ACL;
 import hudson.util.Secret;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
@@ -46,14 +47,19 @@ class GlobalCredentialMigrator {
     List<StringCredentials> allStringCredentials = CredentialsMatchers.filter(
       CredentialsProvider.lookupCredentials(
         StringCredentials.class,
-        Jenkins.getInstance(),
+        Jenkins.getInstanceOrNull(),
         ACL.SYSTEM,
         (DomainRequirement) null),
       CredentialsMatchers.always());
 
     return allStringCredentials
       .stream()
-      .filter(cred -> cred.getSecret().getPlainText().equals(token))
+      // The plaintext secret should not be nullable but a NPE can still be thrown, SONARJNKNS-313, Optional wrapping
+      .filter(cred -> Optional.ofNullable(cred)
+        .map(StringCredentials::getSecret)
+        .map(Secret::getPlainText)
+        .filter(token::equals)
+        .isPresent())
       .findAny()
       .orElseGet(() -> addCredentialIfNotPresent(token));
   }

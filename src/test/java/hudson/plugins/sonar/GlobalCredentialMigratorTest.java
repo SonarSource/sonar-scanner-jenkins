@@ -57,4 +57,14 @@ public class GlobalCredentialMigratorTest extends SonarTestCase {
         assertThat(authenticationToken.getDescription()).isEqualTo("Pre-existing token");
         assertThat(authenticationToken.getId()).isEqualTo("test-api-token");
     }
+
+    @Test
+    @LocalData
+    public void authTokenIsMigratedToCredentialWhenSecretIsNull() {
+        SonarInstallation sonarInstallation = SonarGlobalConfiguration.get().getInstallations()[0];
+        StringCredentials authenticationToken = sonarInstallation.getCredentials(project.getFirstBuild());
+
+        assertThat(authenticationToken.getSecret().getPlainText()).isEqualTo("fake-api-token");
+        assertThat(authenticationToken.getDescription()).isEqualTo("Migrated SonarQube authentication token");
+    }
 }
