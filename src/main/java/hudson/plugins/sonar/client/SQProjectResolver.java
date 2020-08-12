@@ -19,16 +19,22 @@
  */
 package hudson.plugins.sonar.client;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.utils.Logger;
 import hudson.plugins.sonar.utils.Version;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 public class SQProjectResolver {
+  @VisibleForTesting
+  static final Cache<String, Version> INSTANCE_VERSION_CACHE = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
   private final HttpClient client;
 
   public SQProjectResolver(HttpClient client) {
@@ -55,7 +61,8 @@ public class SQProjectResolver {
     try {
       String serverAuthenticationToken = inst.getServerAuthenticationToken(build);
       WsClient wsClient = new WsClient(client, serverUrl, serverAuthenticationToken);
-      Version version = new Version(wsClient.getServerVersion());
+
+      Version version = INSTANCE_VERSION_CACHE.get(installationName, () -> new Version(wsClient.getServerVersion()));
 
       if (version.compareTo(new Version("5.6")) < 0) {
         Logger.LOG.info(() -> "SQ < 5.6 is not supported");
