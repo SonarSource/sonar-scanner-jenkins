@@ -50,6 +50,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -150,7 +151,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     return new Execution(this, context);
   }
 
-  private static class Execution extends StepExecution implements SonarQubeWebHook.Listener {
+  private static class Execution extends StepExecution implements Consumer<SonarQubeWebHook.WebhookEvent> {
 
     private static final String PLEASE_USE_THE_WITH_SONAR_QUBE_ENV_WRAPPER_TO_RUN_YOUR_ANALYSIS = "Please use the 'withSonarQubeEnv' wrapper to run your analysis.";
 
@@ -260,7 +261,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     }
 
     @Override
-    public void onTaskCompleted(SonarQubeWebHook.WebhookEvent event) {
+    public void accept(SonarQubeWebHook.WebhookEvent event) {
       if (event.getPayload().getTaskId().equals(step.taskId)) {
         try {
           PauseAction.endCurrentPause(getContextClass(FlowNode.class));

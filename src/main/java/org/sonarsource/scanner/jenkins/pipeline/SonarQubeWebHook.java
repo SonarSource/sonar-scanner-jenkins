@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -49,7 +50,7 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
   public static final String URLNAME = "sonarqube-webhook";
 
   @VisibleForTesting
-  List<Listener> listeners = new CopyOnWriteArrayList<>();
+  List<Consumer<WebhookEvent>> listeners = new CopyOnWriteArrayList<>();
 
   @Override
   public String getIconFileName() {
@@ -79,8 +80,8 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
 
       eventCache.put(event.payload.taskId, event);
 
-      for (Listener listener : listeners) {
-        listener.onTaskCompleted(event);
+      for (Consumer<WebhookEvent> listener : listeners) {
+        listener.accept(event);
       }
     } catch (JSONException e) {
       LOGGER.log(Level.WARNING, e, () -> "Invalid payload " + payload);
@@ -97,24 +98,17 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
     return Jenkins.get().getExtensionList(RootAction.class).get(SonarQubeWebHook.class);
   }
 
-  public void addListener(Listener l) {
+  public void addListener(Consumer<WebhookEvent> l) {
     listeners.add(l);
   }
 
-  public void removeListener(Listener l) {
+  public void removeListener(Consumer<WebhookEvent> l) {
     listeners.remove(l);
   }
 
   @Nullable
   public WebhookEvent getWebhookEventForTaskId(String taskId) {
     return eventCache.getIfPresent(taskId);
-  }
-
-  @FunctionalInterface
-  public interface Listener {
-
-    void onTaskCompleted(WebhookEvent event);
-
   }
 
   static final class WebhookEvent {
