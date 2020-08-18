@@ -20,6 +20,8 @@
 package org.sonarsource.scanner.jenkins.pipeline;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import hudson.Extension;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
@@ -27,8 +29,10 @@ import hudson.plugins.sonar.client.WsClient.CETask;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletResponse;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONException;
@@ -41,6 +45,7 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 @Extension
 public class SonarQubeWebHook implements UnprotectedRootAction {
   private static final Logger LOGGER = Logger.getLogger(SonarQubeWebHook.class.getName());
+  private final Cache<String, WebhookEvent> eventCache = CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.HOURS).build();
   public static final String URLNAME = "sonarqube-webhook";
 
   @VisibleForTesting
@@ -70,8 +75,12 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
       JSONObject jsonObject = validate(payload);
       LOGGER.fine(() -> "Full details of the POST was " + jsonObject.toString());
 
+      WebhookEvent event = new WebhookEvent(new Payload(payload, jsonObject), req.getHeader("X-Sonar-Webhook-HMAC-SHA256"));
+
+      eventCache.put(event.payload.taskId, event);
+
       for (Listener listener : listeners) {
-        listener.onTaskCompleted(new Payload(payload, jsonObject), req.getHeader("X-Sonar-Webhook-HMAC-SHA256"));
+        listener.onTaskCompleted(event);
       }
     } catch (JSONException e) {
       LOGGER.log(Level.WARNING, e, () -> "Invalid payload " + payload);
@@ -96,11 +105,34 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
     listeners.remove(l);
   }
 
+  @Nullable
+  public WebhookEvent getWebhookEventForTaskId(String taskId) {
+    return eventCache.getIfPresent(taskId);
+  }
+
   @FunctionalInterface
   public interface Listener {
 
-    void onTaskCompleted(Payload payload, String receivedSignature);
+    void onTaskCompleted(WebhookEvent event);
 
+  }
+
+  static final class WebhookEvent {
+    private final Payload payload;
+    private final String receivedSignature;
+
+    WebhookEvent(Payload payload, String receivedSignature) {
+      this.payload = payload;
+      this.receivedSignature = receivedSignature;
+    }
+
+    public Payload getPayload() {
+      return payload;
+    }
+
+    public String getReceivedSignature() {
+      return receivedSignature;
+    }
   }
 
   static final class Payload {
