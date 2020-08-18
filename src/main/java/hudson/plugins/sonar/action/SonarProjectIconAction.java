@@ -44,7 +44,7 @@ public final class SonarProjectIconAction implements ProminentProjectAction {
 
   @Override
   public String getIconFileName() {
-    PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
+    PluginWrapper wrapper = Jenkins.getInstanceOrNull().getPluginManager()
       .getPlugin(SonarPlugin.class);
     return "/plugin/" + wrapper.getShortName() + "/images/waves_48x48.png";
   }
