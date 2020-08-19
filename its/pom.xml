@@ -109,7 +109,7 @@
         </property>
       </activation>
       <properties>
-        <sonar-ws.version>8.4.0.35641</sonar-ws.version>
+        <sonar-ws.version>8.4.0.35506</sonar-ws.version>
       </properties>
     </profile>
   </profiles>
