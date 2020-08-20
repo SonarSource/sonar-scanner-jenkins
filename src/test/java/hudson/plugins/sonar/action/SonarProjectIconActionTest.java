@@ -35,7 +35,7 @@ public class SonarProjectIconActionTest extends SonarTestCase {
   @Test
   public void test() throws Exception {
     AbstractProject project = mock(AbstractProject.class);
-    SonarProjectIconAction action = new SonarProjectIconAction(new SonarAnalysisAction("inst", "credId"));
+    SonarProjectIconAction action = new SonarProjectIconAction(new SonarAnalysisAction("inst", "credId", null));
     when(project.getBuilds()).thenReturn(new RunList());
     assertThat(action.getDisplayName()).isNotNull();
     assertThat(action.getIconFileName()).isNotNull();

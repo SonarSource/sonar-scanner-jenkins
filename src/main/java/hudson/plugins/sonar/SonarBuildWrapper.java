@@ -208,7 +208,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     @Override
     public void tearDown(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
       // null result means success so far. If no logs are found, it's probably because it was simply skipped
-      SonarUtils.addBuildInfoTo(build, listener, workspace, installation.getName(), credentialsId, build.getResult() == null);
+      SonarUtils.addBuildInfoTo(build, listener, workspace, installation, credentialsId, build.getResult() == null);
     }
   }
 

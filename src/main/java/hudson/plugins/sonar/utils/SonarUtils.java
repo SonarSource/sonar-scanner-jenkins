@@ -20,6 +20,7 @@
 package hudson.plugins.sonar.utils;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Action;
 import hudson.model.Actionable;
@@ -107,14 +108,14 @@ public final class SonarUtils {
   }
 
   @Nullable
-  /** 
+  /**
    * Collects as much information as it finds from the sonar analysis in the build and adds it as an action to the build.
    * Even if no information is found, the action is added, marking in the build that a sonar analysis ran. 
    */
-  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, @Nullable String credentialId,
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, SonarInstallation sonarInstallation, @Nullable String credentialId,
     boolean skippedIfNoBuild)
     throws IOException, InterruptedException {
-    SonarAnalysisAction buildInfo = new SonarAnalysisAction(installationName, credentialId);
+    SonarAnalysisAction buildInfo = createSonarAnalysisAction(sonarInstallation, credentialId, build, listener);
     Properties reportTask = extractReportTask(listener, workspace);
 
     if (reportTask != null) {
@@ -122,40 +123,58 @@ public final class SonarUtils {
       buildInfo.setUrl(reportTask.getProperty(DASHBOARD_URL_KEY));
       buildInfo.setCeTaskId(reportTask.getProperty(CE_TASK_ID_KEY));
     } else {
-      return addBuildInfoFromLastBuildTo(build, installationName, credentialId, skippedIfNoBuild);
+      return addBuildInfoFromLastBuildTo(build, listener, sonarInstallation, credentialId, skippedIfNoBuild);
     }
 
     build.addAction(buildInfo);
     return buildInfo;
   }
 
-  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, String installationName, @Nullable String credentialId)
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, SonarInstallation sonarInstallation)
     throws IOException, InterruptedException {
-    return addBuildInfoTo(build, listener, workspace, installationName, credentialId, false);
+    return addBuildInfoTo(build, listener, workspace, sonarInstallation, sonarInstallation.getCredentialsId());
   }
 
-  public static SonarAnalysisAction addBuildInfoFromLastBuildTo(Run<?, ?> build, String installationName, @Nullable String credentialId, boolean isSkipped) {
+  public static SonarAnalysisAction addBuildInfoTo(Run<?, ?> build, TaskListener listener, FilePath workspace, SonarInstallation sonarInstallation, @Nullable String credentialId)
+    throws IOException, InterruptedException {
+    return addBuildInfoTo(build, listener, workspace, sonarInstallation, credentialId, false);
+  }
+
+  public static SonarAnalysisAction addBuildInfoFromLastBuildTo(Run<?, ?> build, TaskListener listener, SonarInstallation sonarInstallation, boolean isSkipped)
+    throws IOException, InterruptedException {
+    return addBuildInfoFromLastBuildTo(build, listener, sonarInstallation, sonarInstallation.getCredentialsId(), isSkipped);
+  }
+
+  public static SonarAnalysisAction addBuildInfoFromLastBuildTo(Run<?, ?> build, TaskListener listener, SonarInstallation sonarInstallation, @Nullable String credentialId,
+    boolean isSkipped) throws IOException, InterruptedException {
     Run<?, ?> previousBuild = build.getPreviousBuild();
     if (previousBuild == null) {
-      return addEmptyBuildInfo(build, installationName, credentialId, isSkipped);
+      return addEmptyBuildInfo(build, listener, sonarInstallation, credentialId, isSkipped);
     }
 
     for (SonarAnalysisAction analysis : previousBuild.getActions(SonarAnalysisAction.class)) {
-      if (analysis.getUrl() != null && analysis.getInstallationName().equals(installationName)) {
+      if (analysis.getUrl() != null && analysis.getInstallationName().equals(sonarInstallation.getName())) {
         SonarAnalysisAction copy = new SonarAnalysisAction(analysis);
         copy.setSkipped(isSkipped);
         build.addAction(copy);
         return copy;
       }
     }
-    return addEmptyBuildInfo(build, installationName, credentialId, isSkipped);
+    return addEmptyBuildInfo(build, listener, sonarInstallation, credentialId, isSkipped);
   }
 
-  public static SonarAnalysisAction addEmptyBuildInfo(Run<?, ?> build, String installationName, @Nullable String credentialId, boolean isSkipped) {
-    SonarAnalysisAction analysis = new SonarAnalysisAction(installationName, credentialId);
+  public static SonarAnalysisAction addEmptyBuildInfo(Run<?, ?> build, TaskListener listener, SonarInstallation sonarInstallation, @Nullable String credentialId, boolean isSkipped)
+    throws IOException, InterruptedException {
+    SonarAnalysisAction analysis = createSonarAnalysisAction(sonarInstallation, credentialId, build, listener);
     analysis.setSkipped(isSkipped);
     build.addAction(analysis);
     return analysis;
+  }
+
+  private static SonarAnalysisAction createSonarAnalysisAction(SonarInstallation sonarInstallation, @Nullable String credentialId, Run<?, ?> build, TaskListener listener)
+    throws IOException, InterruptedException {
+    EnvVars envVars = BuilderUtils.getEnvAndBuildVars(build, listener);
+    return new SonarAnalysisAction(sonarInstallation.getName(), credentialId, envVars.expand(sonarInstallation.getServerUrl()));
   }
 
   public static String getMavenGoal(String version) {
