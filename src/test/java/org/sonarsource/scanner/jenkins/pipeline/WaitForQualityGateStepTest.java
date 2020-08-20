@@ -432,11 +432,12 @@ public class WaitForQualityGateStepTest {
 
   private QueueTaskFuture<WorkflowRun> submitPipeline(boolean specifyServer, boolean twoProjects, @Nullable String webhookSecretId) throws IOException {
     SonarQubeWebHook.get().listeners.clear();
-    String serverUrl = "http://localhost:" + port + "/sonarqube";
     story.j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class)
       .setInstallations(
-        new SonarInstallation(SONAR_INSTALLATION_NAME, serverUrl, null, null, null, null, null, null, null));
+        new SonarInstallation(SONAR_INSTALLATION_NAME, "http://localhost:" + port + "/sonarqube", null, null, null, null, null, null, null));
     WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
+    // Use a fake serverUrl to validate that the installation url is used by the wait step
+    String serverUrl = "http://sonarqube.example.com";
     String reportTaskContent1 = "dashboardUrl=" + serverUrl + "/dashboard\\n"
       + "ceTaskId=" + FAKE_TASK_ID_1 + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
     String reportTaskContent2 = "dashboardUrl=" + serverUrl + "/dashboard\\n"

@@ -110,7 +110,7 @@ public class SonarProjectActionFactoryTest {
   }
 
   private static SonarAnalysisAction createBuildInfo(String url) {
-    SonarAnalysisAction buildInfo = new SonarAnalysisAction("inst", "credId");
+    SonarAnalysisAction buildInfo = new SonarAnalysisAction("inst", "credId", null);
     buildInfo.setUrl(url);
     return buildInfo;
   }
