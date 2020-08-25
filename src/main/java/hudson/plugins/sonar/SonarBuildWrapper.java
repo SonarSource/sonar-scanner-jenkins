@@ -90,6 +90,10 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     this.credentialsId = Util.fixEmpty(credentialsId);
   }
 
+  public boolean isCli() {
+    return cli;
+  }
+
   @DataBoundSetter
   public void setCli(boolean cli) {
     this.cli = cli;

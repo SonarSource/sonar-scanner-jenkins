@@ -59,20 +59,10 @@ public class SonarQubeWebHookTest {
       "\"qualityGate\":{\"status\":\"OK\"}\n" +
       "}");
 
-    SonarQubeWebHook.get().addListener(new SonarQubeWebHook.Listener() {
-
-      @Override
-      public void onTaskCompleted(SonarQubeWebHook.Payload payload, String receivedSignature) {
-        eventsPerListener.put("ListenerA", payload.getTaskId() + payload.getTaskStatus() + payload.getQualityGateStatus());
-      }
-    });
-    SonarQubeWebHook.get().addListener(new SonarQubeWebHook.Listener() {
-
-      @Override
-      public void onTaskCompleted(SonarQubeWebHook.Payload payload, String receivedSignature) {
-        eventsPerListener.put("ListenerB", payload.getTaskId() + payload.getTaskStatus() + payload.getQualityGateStatus());
-      }
-    });
+    SonarQubeWebHook.get().addListener(
+      event -> eventsPerListener.put("ListenerA", event.getPayload().getTaskId() + event.getPayload().getTaskStatus() + event.getPayload().getQualityGateStatus()));
+    SonarQubeWebHook.get().addListener(
+      event -> eventsPerListener.put("ListenerB", event.getPayload().getTaskId() + event.getPayload().getTaskStatus() + event.getPayload().getQualityGateStatus()));
 
     jenkins.postJSON("sonarqube-webhook/", "{\n" +
       "\"taskId\":\"AVpBJY0hh5C8Sya1ZSgH\",\n" +
