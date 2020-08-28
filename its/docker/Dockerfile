@@ -12,7 +12,7 @@
 # Google Cloud Container Registry. See section "gke_container" of .cirrus.yml
 #------------------------------------------------------------------------------
 
-FROM gcr.io/ci-cd-215716/base:latest
+FROM gcr.io/sonarqube-team/base:mvn-jdk-11
 
 USER root
 
