@@ -25,6 +25,12 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 
 public class ProjectInformation extends InvisibleAction {
+
+  static final String ERROR_MESSAGE = "Failed";
+  static final String OK_MESSAGE = "Passed";
+  static final String WARN_MESSAGE = "Warning";
+  static final String UNKNOWN_MESSAGE = "N/A";
+  
   private long created;
   private String[] errors;
   private String name;
@@ -95,4 +101,21 @@ public class ProjectInformation extends InvisibleAction {
     this.status = status;
   }
 
+  public String getBadgeStatus() {
+
+    if (status == null) {
+      return UNKNOWN_MESSAGE;
+    }
+
+    switch(status.toUpperCase(Locale.US)) {
+      case "OK": 
+        return OK_MESSAGE;
+      case "WARN":
+        return WARN_MESSAGE;
+      case "ERROR":
+        return ERROR_MESSAGE;
+      default:
+        return UNKNOWN_MESSAGE;
+    }
+  }
 }

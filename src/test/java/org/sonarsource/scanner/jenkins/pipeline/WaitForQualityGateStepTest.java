@@ -140,6 +140,23 @@ public class WaitForQualityGateStepTest {
   }
 
   @Test
+  public void waitForQualityGateOk_webhook_received_before_wait_started() {
+    story.addStep(new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        handler.status1 = "PENDING";
+        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, false);
+
+        submitWebHook("another task", "FAILURE", "KO");
+        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK");
+
+        pipeline.waitForStart();
+        story.j.assertBuildStatusSuccess(pipeline);
+      }
+    });
+  }
+
+  @Test
   public void waitForQualityGateKo() {
     story.addStep(new Statement() {
       @Override
@@ -404,6 +421,10 @@ public class WaitForQualityGateStepTest {
   private void submitWebHook(String taskId, String endTaskStatus, String qgStatus, WorkflowRun b) throws InterruptedException, IOException {
     waitForStepToWait(b);
 
+    submitWebHook(taskId, endTaskStatus, qgStatus);
+  }
+
+  private void submitWebHook(String taskId, String endTaskStatus, String qgStatus) throws IOException {
     String payload = "{\n" +
       "\"taskId\":\"" + taskId + "\",\n" +
       "\"status\":\"" + endTaskStatus + "\",\n" +
@@ -432,11 +453,12 @@ public class WaitForQualityGateStepTest {
 
   private QueueTaskFuture<WorkflowRun> submitPipeline(boolean specifyServer, boolean twoProjects, @Nullable String webhookSecretId) throws IOException {
     SonarQubeWebHook.get().listeners.clear();
-    String serverUrl = "http://localhost:" + port + "/sonarqube";
     story.j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class)
       .setInstallations(
-        new SonarInstallation(SONAR_INSTALLATION_NAME, serverUrl, null, null, null, null, null, null, null));
+        new SonarInstallation(SONAR_INSTALLATION_NAME, "http://localhost:" + port + "/sonarqube", null, null, null, null, null, null, null));
     WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
+    // Use a fake serverUrl to validate that the installation url is used by the wait step
+    String serverUrl = "http://sonarqube.example.com";
     String reportTaskContent1 = "dashboardUrl=" + serverUrl + "/dashboard\\n"
       + "ceTaskId=" + FAKE_TASK_ID_1 + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
     String reportTaskContent2 = "dashboardUrl=" + serverUrl + "/dashboard\\n"

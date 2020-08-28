@@ -31,6 +31,7 @@ import org.kohsuke.stapler.export.ExportedBean;
 @ExportedBean(defaultVisibility = 2)
 public class SonarAnalysisAction extends InvisibleAction {
   private String installationName;
+  private String installationUrl;
   private String credentialsId;
   private String ceTaskId;
   // Dashboard URL
@@ -39,8 +40,9 @@ public class SonarAnalysisAction extends InvisibleAction {
   private boolean isNew;
   private boolean isSkipped;
 
-  public SonarAnalysisAction(String installationName, @Nullable String credentialId) {
+  public SonarAnalysisAction(String installationName, @Nullable String credentialId, @Nullable String installationUrl) {
     this.installationName = installationName;
+    this.installationUrl  = installationUrl;
     this.credentialsId = credentialId;
     this.url = null;
     this.ceTaskId = null;
@@ -51,6 +53,7 @@ public class SonarAnalysisAction extends InvisibleAction {
 
   public SonarAnalysisAction(SonarAnalysisAction copy) {
     this.installationName = copy.installationName;
+    this.installationUrl = copy.installationUrl;
     this.credentialsId = copy.credentialsId;
     this.url = copy.url;
     this.serverUrl = copy.serverUrl;
@@ -110,6 +113,11 @@ public class SonarAnalysisAction extends InvisibleAction {
   @Exported
   public String getInstallationName() {
     return installationName;
+  }
+
+  @Exported
+  public String getInstallationUrl() {
+    return installationUrl != null ? installationUrl : serverUrl;
   }
 
   @CheckForNull

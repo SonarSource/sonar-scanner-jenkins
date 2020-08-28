@@ -64,7 +64,7 @@ public class SonarCacheActionTest {
 
   @Test
   public void testResolve() {
-    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId");
+    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId", null);
     analysis.setCeTaskId("taskId");
     analysis.setUrl("projUrl");
     analysis.setServerUrl("serverUrl");
@@ -73,6 +73,19 @@ public class SonarCacheActionTest {
 
     cache.get(resolver, 0, Collections.singletonList(analysis), run);
     verify(resolver).resolve("serverUrl", "projUrl", "taskId", "inst", run);
+  }
+
+  @Test
+  public void testResolveUsingInstallationUrl() {
+    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId", "installationUrl");
+    analysis.setCeTaskId("taskId");
+    analysis.setUrl("projUrl");
+    analysis.setServerUrl("serverUrl");
+    analysis.setUrl("projUrl");
+    Run<?, ?> run = mock(Run.class);
+
+    cache.get(resolver, 0, Collections.singletonList(analysis), run);
+    verify(resolver).resolve("installationUrl", "projUrl", "taskId", "inst", run);
   }
 
   @Test
@@ -110,7 +123,7 @@ public class SonarCacheActionTest {
   }
 
   private SonarAnalysisAction createAnalysis(String serverUrl, String url, String taskId) {
-    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId");
+    SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId", null);
     analysis.setServerUrl(serverUrl);
     analysis.setCeTaskId(taskId);
     analysis.setUrl(url);

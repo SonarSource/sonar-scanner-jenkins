@@ -19,11 +19,17 @@
  */
 package hudson.plugins.sonar.client;
 
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(DataProviderRunner.class)
 public class ProjectInformationTest {
+
   @Test
   public void testRoundTrips() {
     ProjectInformation proj = new ProjectInformation();
@@ -41,5 +47,29 @@ public class ProjectInformationTest {
     assertThat(proj.getUrl()).isEqualTo("url");
     assertThat(proj.getProjectName()).isEqualTo("name");
     assertThat(proj.hasErrors()).isTrue();
+    assertThat(proj.getBadgeStatus()).isEqualTo(ProjectInformation.UNKNOWN_MESSAGE);
+  }
+
+  @Test
+  @UseDataProvider("qualityGateStatuses")
+  public void testGetBadgeStatus(String status, String badgeStatus) {
+    ProjectInformation info = new ProjectInformation();
+    info.setStatus(status);
+
+    assertThat(info.getBadgeStatus()).isEqualTo(badgeStatus);
+  }
+
+  @DataProvider
+  public static Object[][] qualityGateStatuses() {
+    return new Object[][] {
+      {"OK", ProjectInformation.OK_MESSAGE},
+      {"ok", ProjectInformation.OK_MESSAGE},
+      {"WARN", ProjectInformation.WARN_MESSAGE},
+      {"warn", ProjectInformation.WARN_MESSAGE},
+      {"ERROR", ProjectInformation.ERROR_MESSAGE},
+      {"error", ProjectInformation.ERROR_MESSAGE},
+      {"Something Else", ProjectInformation.UNKNOWN_MESSAGE},
+      {null, ProjectInformation.UNKNOWN_MESSAGE},
+    };
   }
 }

@@ -21,6 +21,8 @@ package hudson.plugins.sonar.utils;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import java.io.IOException;
 import java.io.StringReader;
@@ -56,8 +58,8 @@ public class SonarUtilsTest {
   }
 
   @Test
-  public void testAddBuildInfoFromLastBuild() {
-    SonarAnalysisAction a1 = new SonarAnalysisAction("inst", "credId");
+  public void testAddBuildInfoFromLastBuild() throws Exception {
+    SonarAnalysisAction a1 = new SonarAnalysisAction("inst", "credId", null);
     a1.setSkipped(true);
     a1.setUrl("url1");
     a1.setCeTaskId("task1");
@@ -65,7 +67,8 @@ public class SonarUtilsTest {
     Run last = mockedRun(null, a1);
     Run r = mockedRun(last);
 
-    SonarAnalysisAction action = SonarUtils.addBuildInfoFromLastBuildTo(r, "inst", "credId", false);
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", null, "credentialsId", null, null, null, null, null, null);
+    SonarAnalysisAction action = SonarUtils.addBuildInfoFromLastBuildTo(r, mock(TaskListener.class), sonarInstallation, "credId", false);
 
     assertThat(action.getInstallationName()).isEqualTo("inst");
     assertThat(action.getCredentialsId()).isEqualTo("credId");

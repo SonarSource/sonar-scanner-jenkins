@@ -71,8 +71,9 @@ import org.kohsuke.stapler.QueryParameter;
 import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 
 public class SonarBuildWrapper extends SimpleBuildWrapper {
-  private String installationName = null;
+  private String installationName;
   private String credentialsId;
+  private boolean cli = true;
 
   @DataBoundConstructor
   public SonarBuildWrapper(@Nullable String installationName) {
@@ -89,6 +90,15 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     this.credentialsId = Util.fixEmpty(credentialsId);
   }
 
+  public boolean isCli() {
+    return cli;
+  }
+
+  @DataBoundSetter
+  public void setCli(boolean cli) {
+    this.cli = cli;
+  }
+
   @Override
   public void setUp(Context context, Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment)
     throws IOException, InterruptedException {
@@ -101,6 +111,10 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     listener.getLogger().println(msg);
 
     context.getEnv().putAll(createVars(installation, getCredentialsId(), initialEnvironment, build));
+
+    if (!cli) {
+      return;
+    }
 
     context.setDisposer(new AddBuildInfo(installation, getCredentialsId()));
 
@@ -198,7 +212,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     @Override
     public void tearDown(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
       // null result means success so far. If no logs are found, it's probably because it was simply skipped
-      SonarUtils.addBuildInfoTo(build, listener, workspace, installation.getName(), credentialsId, build.getResult() == null);
+      SonarUtils.addBuildInfoTo(build, listener, workspace, installation, credentialsId, build.getResult() == null);
     }
   }
 
@@ -278,8 +292,8 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
       for (ListBoxModel.Option o : CredentialsProvider
         .listCredentials(StandardUsernameCredentials.class, project, project instanceof Queue.Task
-          ? Tasks.getAuthenticationOf((Queue.Task) project)
-          : ACL.SYSTEM,
+            ? Tasks.getAuthenticationOf((Queue.Task) project)
+            : ACL.SYSTEM,
           Collections.emptyList(),
           CredentialsMatchers.always())) {
         if (StringUtils.equals(value, o.value)) {

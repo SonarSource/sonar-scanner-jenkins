@@ -20,6 +20,8 @@
 package org.sonarsource.scanner.jenkins.pipeline;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import hudson.Extension;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
@@ -27,8 +29,11 @@ import hudson.plugins.sonar.client.WsClient.CETask;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletResponse;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONException;
@@ -41,10 +46,11 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 @Extension
 public class SonarQubeWebHook implements UnprotectedRootAction {
   private static final Logger LOGGER = Logger.getLogger(SonarQubeWebHook.class.getName());
+  private final Cache<String, WebhookEvent> eventCache = CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.HOURS).build();
   public static final String URLNAME = "sonarqube-webhook";
 
   @VisibleForTesting
-  List<Listener> listeners = new CopyOnWriteArrayList<>();
+  List<Consumer<WebhookEvent>> listeners = new CopyOnWriteArrayList<>();
 
   @Override
   public String getIconFileName() {
@@ -67,11 +73,15 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
 
     LOGGER.info("Received POST from " + req.getRemoteHost());
     try {
-      validate(payload);
-      LOGGER.fine(() -> "Full details of the POST was " + JSONObject.fromObject(payload).toString());
+      JSONObject jsonObject = validate(payload);
+      LOGGER.fine(() -> "Full details of the POST was " + jsonObject.toString());
 
-      for (Listener listener : listeners) {
-        listener.onTaskCompleted(new Payload(payload), req.getHeader("X-Sonar-Webhook-HMAC-SHA256"));
+      WebhookEvent event = new WebhookEvent(new Payload(payload, jsonObject), req.getHeader("X-Sonar-Webhook-HMAC-SHA256"));
+
+      eventCache.put(event.payload.taskId, event);
+
+      for (Consumer<WebhookEvent> listener : listeners) {
+        listener.accept(event);
       }
     } catch (JSONException e) {
       LOGGER.log(Level.WARNING, e, () -> "Invalid payload " + payload);
@@ -80,27 +90,43 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
     rsp.setStatus(HttpServletResponse.SC_OK);
   }
 
-  private static void validate(String payload) {
-    JSONObject.fromObject(payload);
+  private static JSONObject validate(String payload) {
+    return JSONObject.fromObject(payload);
   }
 
   public static SonarQubeWebHook get() {
     return Jenkins.get().getExtensionList(RootAction.class).get(SonarQubeWebHook.class);
   }
 
-  public void addListener(Listener l) {
+  public void addListener(Consumer<WebhookEvent> l) {
     listeners.add(l);
   }
 
-  public void removeListener(Listener l) {
+  public void removeListener(Consumer<WebhookEvent> l) {
     listeners.remove(l);
   }
 
-  @FunctionalInterface
-  public static interface Listener {
+  @Nullable
+  public WebhookEvent getWebhookEventForTaskId(String taskId) {
+    return eventCache.getIfPresent(taskId);
+  }
 
-    void onTaskCompleted(Payload payload, String receivedSignature);
+  static final class WebhookEvent {
+    private final Payload payload;
+    private final String receivedSignature;
 
+    WebhookEvent(Payload payload, String receivedSignature) {
+      this.payload = payload;
+      this.receivedSignature = receivedSignature;
+    }
+
+    public Payload getPayload() {
+      return payload;
+    }
+
+    public String getReceivedSignature() {
+      return receivedSignature;
+    }
   }
 
   static final class Payload {
@@ -110,8 +136,7 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
     private final String taskStatus;
     private final String qualityGateStatus;
 
-    Payload(String payloadAsString) {
-      JSONObject json = JSONObject.fromObject(payloadAsString);
+    Payload(String payloadAsString, JSONObject json) {
       this.payloadAsString = payloadAsString;
       this.taskId = json.getString("taskId");
       this.taskStatus = json.getString("status");
