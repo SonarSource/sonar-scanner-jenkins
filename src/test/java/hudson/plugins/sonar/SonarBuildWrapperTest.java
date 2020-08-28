@@ -203,12 +203,12 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void testBuildCredentialsOnly() throws Exception {
+  public void testBuild_EnvOnly() throws Exception {
     // set up a free style project with our wrapper that will execute CaptureVarsBuilder
     configureSonar(installation);
     CaptureVarsBuilder b = new CaptureVarsBuilder();
     FreeStyleProject project = setupFreeStyleProject(b);
-    wrapper.setCli(false);
+    wrapper.setEnvOnly(true);
     project.getBuildWrappersList().add(wrapper);
     Run<?, ?> build = build(project);
 
