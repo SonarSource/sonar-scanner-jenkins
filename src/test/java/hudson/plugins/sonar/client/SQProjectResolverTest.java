@@ -110,9 +110,28 @@ public class SQProjectResolverTest extends SonarTestCase {
   }
 
   @Test
-  public void testWsHttpError() throws Exception {
-    mockSQServer(new HttpException(SERVER_URL, 404, "oops"));
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, SONAR_INSTALLATION_NAME, mock(Run.class));
+  public void testWsHttpNotFound() {
+    SonarInstallation inst = spy(new SonarInstallation(testName.getMethodName(), SERVER_URL, CREDENTIAL_ID, null, null, null, null,
+      null, null));
+    addCredential(CREDENTIAL_ID, TOKEN);
+    configureSonar(inst);
+
+    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null)).thenReturn("5.6");
+    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN))).thenThrow(new HttpException(SERVER_URL, 404, "oops"));
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName.getMethodName(), mock(Run.class));
+    assertThat(proj).isNull();
+  }
+
+  @Test
+  public void testWsHttpError() {
+    SonarInstallation inst = spy(new SonarInstallation(testName.getMethodName(), SERVER_URL, CREDENTIAL_ID, null, null, null, null,
+      null, null));
+    addCredential(CREDENTIAL_ID, TOKEN);
+    configureSonar(inst);
+
+    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null)).thenReturn("5.6");
+    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN))).thenThrow(new HttpException(SERVER_URL, 500, "oops"));
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName.getMethodName(), mock(Run.class));
     assertThat(proj).isNull();
   }
 
