@@ -73,7 +73,7 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeJson;
 public class SonarBuildWrapper extends SimpleBuildWrapper {
   private String installationName;
   private String credentialsId;
-  private boolean cli = true;
+  private boolean envOnly = false;
 
   @DataBoundConstructor
   public SonarBuildWrapper(@Nullable String installationName) {
@@ -90,13 +90,13 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     this.credentialsId = Util.fixEmpty(credentialsId);
   }
 
-  public boolean isCli() {
-    return cli;
+  public boolean isEnvOnly() {
+    return envOnly;
   }
 
   @DataBoundSetter
-  public void setCli(boolean cli) {
-    this.cli = cli;
+  public void setEnvOnly(boolean envOnly) {
+    this.envOnly = envOnly;
   }
 
   @Override
@@ -112,7 +112,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     context.getEnv().putAll(createVars(installation, getCredentialsId(), initialEnvironment, build));
 
-    if (!cli) {
+    if (envOnly) {
       return;
     }
 
