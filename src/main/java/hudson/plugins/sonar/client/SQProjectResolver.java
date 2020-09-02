@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import org.sonarqube.ws.client.HttpException;
 
 public class SQProjectResolver {
   @VisibleForTesting
@@ -79,6 +80,13 @@ public class SQProjectResolver {
 
       return projectInfo;
 
+    } catch (HttpException e) {
+      if (e.code() == 404) {
+        Logger.LOG.log(Level.FINE, "Error fetching project information: {0}", e.getMessage());
+      } else {
+        Logger.LOG.log(Level.WARNING, "Error fetching project information", e);
+      }
+      return null;
     } catch (Exception e) {
       Logger.LOG.log(Level.WARNING, "Error fetching project information", e);
       return null;
