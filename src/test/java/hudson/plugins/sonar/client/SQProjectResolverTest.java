@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.sonarqube.ws.client.HttpException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -104,6 +105,32 @@ public class SQProjectResolverTest extends SonarTestCase {
   @Test
   public void testWsError() {
     mockSQServer(new NullPointerException());
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName.getMethodName(), mock(Run.class));
+    assertThat(proj).isNull();
+  }
+
+  @Test
+  public void testWsHttpNotFound() {
+    SonarInstallation inst = spy(new SonarInstallation(testName.getMethodName(), SERVER_URL, CREDENTIAL_ID, null, null, null, null,
+      null, null));
+    addCredential(CREDENTIAL_ID, TOKEN);
+    configureSonar(inst);
+
+    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null)).thenReturn("5.6");
+    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN))).thenThrow(new HttpException(SERVER_URL, 404, "oops"));
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName.getMethodName(), mock(Run.class));
+    assertThat(proj).isNull();
+  }
+
+  @Test
+  public void testWsHttpError() {
+    SonarInstallation inst = spy(new SonarInstallation(testName.getMethodName(), SERVER_URL, CREDENTIAL_ID, null, null, null, null,
+      null, null));
+    addCredential(CREDENTIAL_ID, TOKEN);
+    configureSonar(inst);
+
+    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null)).thenReturn("5.6");
+    when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN))).thenThrow(new HttpException(SERVER_URL, 500, "oops"));
     ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName.getMethodName(), mock(Run.class));
     assertThat(proj).isNull();
   }
