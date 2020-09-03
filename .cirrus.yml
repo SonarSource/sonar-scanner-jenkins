@@ -1,5 +1,5 @@
 # content of service-account-credentials.json, used to access to Google Cloud Platform
-gcp_credentials: ENCRYPTED[!1fcffe5cc2de4fbbda5befae835ca275a47c1148dabbbb7b5d21334604efba3ef8730d8bc5820952e575c7dd5177e433!]
+gcp_credentials: ENCRYPTED[0d178dfe545338be7f624109115b4cc0b6e840ed105c0bd2013abf5ea851a82ae3e84cdde97e1836b8ddd132d7630cb8]
 
 #
 # ENV VARIABLES
@@ -31,9 +31,9 @@ env:
 # RE-USABLE CONFIGS
 #
 container_definition: &CONTAINER_DEFINITION
-  image: gcr.io/ci-cd-215716/base:latest
-  cluster_name: cirrus-uscentral1a-cluster
-  zone: us-central1-a
+  image: gcr.io/sonarqube-team/base:mvn-jdk-11
+  cluster_name: cirrus-ci-cluster
+  zone: europe-west4-a
   namespace: default
 
 only_sonarsource_qa: &ONLY_SONARSOURCE_QA
@@ -64,10 +64,10 @@ linux_qa_task:
   <<: *ONLY_SONARSOURCE_QA
   gke_container:
     dockerfile: its/docker/Dockerfile
-    builder_image_project: ci-cd-215716
-    builder_image_name: docker-builder-v2
-    cluster_name: cirrus-uscentral1a-cluster
-    zone: us-central1-a
+    builder_image_project: sonarqube-team
+    builder_image_name: docker-builder-v20200819
+    cluster_name: cirrus-ci-cluster
+    zone: europe-west4-a
     namespace: default
     cpu: 3
     memory: 8G
