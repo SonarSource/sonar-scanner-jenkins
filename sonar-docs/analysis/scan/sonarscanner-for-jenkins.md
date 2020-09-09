@@ -84,14 +84,6 @@ We provide a `withSonarQubeEnv` block that allows you to select the SonarQube se
 
 If needed you can override the `credentialId` if you don't want to use the one defined in global configuration (for example if you define credentials at folder level).
 
-If you only need the SonarQube environment variables to be expanded in the build context then you can override the `cli` flag.
-```
-withSonarQubeEnv('My SonarQube Server', cli: false) {
-  final url = "$env.SONAR_HOST_URL/api/issues/search?componentKeys=my-app&resolved=no&ps=100"
-  readJSON(text: sh(returnStdout: true, script: "curl -ksS -u $env.SONAR_AUTH_TOKEN: '$url'")).issues
-}
-```
-
 Here are a some examples for every scanner, assuming you run on Unix slaves and you have configured a server named "My SonarQube Server" as well as required tools. If you run on Windows slaves, just replace `sh` with `bat`.
 
 SonarScanner:
