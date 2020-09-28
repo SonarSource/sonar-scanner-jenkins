@@ -32,7 +32,7 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>1.65</version>
+      <version>1.75</version>
     </dependency>
 
     <dependency>
@@ -50,8 +50,15 @@
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator</artifactId>
-      <version>3.29.0.2543</version>
+      <version>3.30.0.2630</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <!-- nothing in there actually uses the log4j API, and this layer conflicts with slf4j-log4j12 from Jenkins ATH -->
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>
