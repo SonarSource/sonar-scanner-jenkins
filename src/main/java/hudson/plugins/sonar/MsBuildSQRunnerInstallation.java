@@ -132,14 +132,18 @@ public class MsBuildSQRunnerInstallation extends ToolInstallation implements Env
   }
 
   public String getToolPath(Launcher launcher) throws IOException, InterruptedException {
-    return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
-      private static final long serialVersionUID = 1L;
-
-      @Override
-      public String call() {
-        String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars);
-        return getScannerToolPath(home);
-      }
-    });
+    return launcher.getChannel().call(new GetToolPath(getHome()));
+  }
+  private static class GetToolPath extends MasterToSlaveCallable<String, IOException> {
+    private static final long serialVersionUID = 1L;
+    private final String rawHome;
+    GetToolPath(String rawHome) {
+        this.rawHome = rawHome;
+    }
+    @Override
+    public String call() {
+      String home = Util.replaceMacro(rawHome, EnvVars.masterEnvVars);
+      return getScannerToolPath(home);
+    }
   }
 }
