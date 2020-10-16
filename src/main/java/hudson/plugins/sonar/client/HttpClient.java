@@ -26,10 +26,14 @@ import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsResponse;
 
 public class HttpClient {
-  public String getHttp(String url, @Nullable String token) {
+  public String getHttp(String url, @Nullable String token, @Nullable Float timeout_ms) {
     String baseUrl = StringUtils.substringBeforeLast(url, "/");
     String path = StringUtils.substringAfterLast(url, "/");
+    Float connect_timout = defaultIfBlank(timeout_ms, 5_000)
+    Float read_timout = defaultIfBlank(timeout_ms, 5_000)
     HttpConnector httpConnector = HttpConnector.newBuilder()
+      .readTimeoutMilliseconds(read_timout)
+      .connectTimeoutMilliseconds(connect_timout)
       .userAgent("Scanner for Jenkins")
       .url(baseUrl)
       .credentials(token, null)
