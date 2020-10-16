@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
-import org.apache.commons.lang.ObjectUtils;
 
 public class WsClient {
   private static final String STATUS_ATTR = "status";
@@ -49,8 +48,7 @@ public class WsClient {
 
   public CETask getCETask(String taskId) {
     String url = serverUrl + API_CE_TASK + taskId;
-    String http = client.getHttp(url, token);
-    String text = http;
+    String text = client.getHttp(url, token);
     try {
       JSONObject json = (JSONObject) JSONSerializer.toJSON(text);
       JSONObject task = json.getJSONObject("task");
