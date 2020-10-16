@@ -25,12 +25,15 @@ import org.sonarqube.ws.client.GetRequest;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsResponse;
 
+import static org.apache.commons.lang.StringUtils.defaultIfBlank;
+import static java.lang.Integer.parseInt;
+
 public class HttpClient {
-  public String getHttp(String url, @Nullable String token, @Nullable Float timeout_ms) {
+  public String getHttp(String url, @Nullable String token) {
     String baseUrl = StringUtils.substringBeforeLast(url, "/");
     String path = StringUtils.substringAfterLast(url, "/");
-    Float connect_timout = defaultIfBlank(timeout_ms, 5_000)
-    Float read_timout = defaultIfBlank(timeout_ms, 5_000)
+    Integer connect_timout = 5_000;
+    Integer read_timout = 10_000;
     HttpConnector httpConnector = HttpConnector.newBuilder()
       .readTimeoutMilliseconds(read_timout)
       .connectTimeoutMilliseconds(connect_timout)
