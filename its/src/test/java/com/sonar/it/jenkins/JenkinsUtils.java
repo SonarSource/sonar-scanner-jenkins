@@ -88,12 +88,6 @@ public class JenkinsUtils {
     this.driver = driver;
   }
 
-  public JenkinsUtils newMavenJob(String jobName, File projectPath) {
-    newMavenJobConfig(jobName, projectPath).save();
-
-    return this;
-  }
-
   private MavenModuleSet newMavenJobConfig(String jobName, File projectPath) {
     MavenModuleSet job = jenkins.jobs.create(MavenModuleSet.class, jobName);
     job.configure();
@@ -282,15 +276,6 @@ public class JenkinsUtils {
     return e;
   }
 
-  public void emulateBlur(WebElement e) {
-    JavascriptExecutor js = (JavascriptExecutor) driver;
-    js.executeScript("var obj = arguments[0];"
-      + "var ev = document.createEvent('MouseEvents');"
-      + "ev.initEvent('blur', true, false);"
-      + "obj.dispatchEvent(ev);"
-      + "return true;", e);
-  }
-
   public JenkinsUtils enableInjectionVars(boolean enable) {
     jenkins.configure();
 
@@ -407,10 +392,6 @@ public class JenkinsUtils {
 
   private By buttonByText(String text) {
     return By.xpath(".//button[normalize-space(.) = '" + text + "']");
-  }
-
-  public WebDriver getDriver() {
-    return driver;
   }
 
   public WebElement findElement(By by) {
