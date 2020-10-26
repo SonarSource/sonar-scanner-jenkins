@@ -19,20 +19,33 @@
  */
 package hudson.plugins.sonar.utils;
 
+import hudson.EnvVars;
+import hudson.FilePath;
 import hudson.model.AbstractBuild;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SonarUtilsTest {
@@ -77,6 +90,37 @@ public class SonarUtilsTest {
     assertThat(action.getUrl()).isEqualTo("url1");
   }
 
+  @Test
+  public void should_mark_build_as_unstable_when_java_warning_is_logged() throws Exception {
+    Run r = mockedBuild("The version of Java (1.8.0_101) you have used to run this analysis is deprecated and we will stop accepting it from October 2020. Please update to at least Java 11.");
+    FilePath workspace = new FilePath(new File("non_existing_file"));
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", "credentialsId", null, null, null, null, null, null);
+    TaskListener listener = mock(TaskListener.class);
+    PrintStream printStream = mock(PrintStream.class);
+    when(listener.getLogger()).thenReturn(printStream);
+
+    SonarUtils.addBuildInfoTo(r, listener, workspace, sonarInstallation, "credId", false);
+
+    verify(r).setResult(eq(Result.UNSTABLE));
+    verify(printStream, times(1)).println("Pipeline marked as 'UNSTABLE'. Please update to at least Java 11. Find more information here on how to do this: https://sonarcloud.io/documentation/appendices/move-analysis-java-11/");
+  }
+
+  @Test
+  public void should_not_mark_build_as_unstable_when_result_is_already_failed() throws Exception {
+    Run r = mockedBuild("The version of Java (1.8.0_101) you have used to run this analysis is deprecated and we will stop accepting it from October 2020. Please update to at least Java 11.");
+    FilePath workspace = new FilePath(new File("non_existing_file"));
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", "credentialsId", null, null, null, null, null, null);
+    TaskListener listener = mock(TaskListener.class);
+    PrintStream printStream = mock(PrintStream.class);
+    when(listener.getLogger()).thenReturn(printStream);
+
+    when(r.getResult()).thenReturn(Result.FAILURE);
+    SonarUtils.addBuildInfoTo(r, listener, workspace, sonarInstallation, "credId", false);
+
+    verify(r, never()).setResult(eq(Result.UNSTABLE));
+    verify(printStream, never()).println("Pipeline marked as 'UNSTABLE'. Please update to at least Java 11. Find more information here on how to do this: https://sonarcloud.io/documentation/appendices/move-analysis-java-11/");
+  }
+
   private static Run mockedRun(Run previous, SonarAnalysisAction... actions) {
     Run r = mock(Run.class);
     when(r.getActions(SonarAnalysisAction.class)).thenReturn(Arrays.asList(actions));
@@ -84,9 +128,12 @@ public class SonarUtilsTest {
     return r;
   }
 
-  private static AbstractBuild<?, ?> mockedBuild(String log) throws IOException {
+  private static AbstractBuild<?, ?> mockedBuild(String log) throws IOException, InterruptedException {
     AbstractBuild<?, ?> build = mock(AbstractBuild.class);
     when(build.getLogReader()).thenReturn(new StringReader(log));
+    when(build.getLog(anyInt())).thenReturn(Collections.singletonList(log));
+    when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
+    when(build.getEnvironment(any())).thenReturn(new EnvVars());
     return build;
   }
 
