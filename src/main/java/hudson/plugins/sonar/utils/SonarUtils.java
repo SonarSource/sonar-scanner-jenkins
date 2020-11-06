@@ -24,6 +24,7 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Action;
 import hudson.model.Actionable;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.SonarInstallation;
@@ -116,8 +117,18 @@ public final class SonarUtils {
     boolean skippedIfNoBuild)
     throws IOException, InterruptedException {
     SonarAnalysisAction buildInfo = createSonarAnalysisAction(sonarInstallation, credentialId, build, listener);
-    Properties reportTask = extractReportTask(listener, workspace);
 
+    boolean java11Warning = build.getLog(Integer.MAX_VALUE).stream()
+      .anyMatch(line -> line.contains("Please update to at least Java 11."));
+
+    Result result = build.getResult();
+    if (java11Warning && !Result.FAILURE.equals(result)) {
+      build.setResult(Result.UNSTABLE);
+      listener.getLogger().println("Pipeline marked as 'UNSTABLE'. Please update to at least Java 11. " +
+        "Find more information here on how to do this: https://sonarcloud.io/documentation/appendices/move-analysis-java-11/");
+    }
+
+    Properties reportTask = extractReportTask(listener, workspace);
     if (reportTask != null) {
       buildInfo.setServerUrl(reportTask.getProperty(SERVER_URL_KEY));
       buildInfo.setUrl(reportTask.getProperty(DASHBOARD_URL_KEY));

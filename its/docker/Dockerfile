@@ -12,7 +12,7 @@
 # Google Cloud Container Registry. See section "gke_container" of .cirrus.yml
 #------------------------------------------------------------------------------
 
-FROM gcr.io/ci-cd-215716/base:latest
+FROM gcr.io/sonarqube-team/base:mvn-jdk-11
 
 USER root
 
@@ -25,7 +25,7 @@ RUN apt-get update && apt-get -y install xvfb
 #==============================================================================
 # Google Chrome, for integration tests
 #==============================================================================
-ARG CHROME_VERSION=80.0.3987.122-1
+ARG CHROME_VERSION=85.0.4183.102-1
 RUN echo "Using Chrome version: $CHROME_VERSION" \
   && wget --no-verbose -O /tmp/chrome_amd64.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
   # Ignore install errors; we will try and fix them below.
@@ -35,7 +35,7 @@ RUN apt-get install -fy
 COPY its/docker/wrap_chrome_binary /opt/bin/wrap_chrome_binary
 RUN /opt/bin/wrap_chrome_binary
 
-ARG CHROME_DRIVER_VERSION=80.0.3987.16
+ARG CHROME_DRIVER_VERSION=85.0.4183.87
 RUN echo "Using chromedriver version: "$CHROME_DRIVER_VERSION \
   && wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
   && rm -rf /opt/selenium/chromedriver \

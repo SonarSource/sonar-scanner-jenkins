@@ -24,10 +24,16 @@ import com.sonar.it.jenkins.JenkinsUtils.FailedExecutionException;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.container.Server;
+import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.FileLocation;
 import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import javax.annotation.CheckForNull;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +57,7 @@ import org.sonarqube.ws.client.HttpException;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.components.ShowRequest;
+import org.sonarqube.ws.client.projects.SearchRequest;
 import org.sonarqube.ws.client.qualitygates.CreateConditionRequest;
 import org.sonarqube.ws.client.qualitygates.DestroyRequest;
 import org.sonarqube.ws.client.qualitygates.SetAsDefaultRequest;
@@ -73,6 +80,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   private static final String JENKINS_VERSION
     = "3.3.0.1492";
   private static final String MS_BUILD_RECENT_VERSION = "4.7.1.2311";
+  private static final String MVN_PROJECT_KEY = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
   private static String DEFAULT_QUALITY_GATE;
 
   @ClassRule
@@ -112,7 +120,6 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Before
   public void setUp() {
-    ORCHESTRATOR.resetData();
     wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(DEFAULT_QUALITY_GATE));
     jenkinsOrch = new JenkinsUtils(jenkins, driver);
     jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
@@ -122,6 +129,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @After
   public void cleanup() {
+    reset();
     disableGlobalWebhooks();
   }
 
@@ -253,14 +261,13 @@ public class SonarPluginTest extends AbstractJUnitTest {
       .configureMaven(ORCHESTRATOR);
 
     String jobName = "abacus-maven";
-    String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
-    assertThat(getProject(projectKey)).isNull();
+    assertThat(getProject(MVN_PROJECT_KEY)).isNull();
     jenkinsOrch
       .newMavenJobWithSonar(jobName, new File("projects", "abacus"), null)
       .executeJob(jobName);
     waitForComputationOnSQServer();
-    assertThat(getProject(projectKey)).isNotNull();
-    assertSonarUrlOnJob(jobName, projectKey);
+    assertThat(getProject(MVN_PROJECT_KEY)).isNotNull();
+    assertSonarUrlOnJob(jobName, MVN_PROJECT_KEY);
   }
 
   @Test
@@ -270,15 +277,14 @@ public class SonarPluginTest extends AbstractJUnitTest {
       .configureMaven(ORCHESTRATOR);
 
     String jobName = "abacus-freestyle-vars";
-    String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
-    assertThat(getProject(projectKey)).isNull();
+    assertThat(getProject(MVN_PROJECT_KEY)).isNull();
 
     jenkinsOrch.enableInjectionVars(true)
       .newFreestyleJobWithMaven(jobName, new File("projects", "abacus"), null, ORCHESTRATOR)
       .executeJob(jobName);
     waitForComputationOnSQServer();
-    assertThat(getProject(projectKey)).isNotNull();
-    assertSonarUrlOnJob(jobName, projectKey);
+    assertThat(getProject(MVN_PROJECT_KEY)).isNotNull();
+    assertSonarUrlOnJob(jobName, MVN_PROJECT_KEY);
     jenkinsOrch.assertQGOnProjectPage(jobName);
   }
 
@@ -289,14 +295,13 @@ public class SonarPluginTest extends AbstractJUnitTest {
       .configureMaven(ORCHESTRATOR);
 
     String jobName = "abacus-freestyle";
-    String projectKey = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
-    assertThat(getProject(projectKey)).isNull();
+    assertThat(getProject(MVN_PROJECT_KEY)).isNull();
     jenkinsOrch
       .newFreestyleJobWithSonar(jobName, new File("projects", "abacus"), null)
       .executeJob(jobName);
     waitForComputationOnSQServer();
-    assertThat(getProject(projectKey)).isNotNull();
-    assertSonarUrlOnJob(jobName, projectKey);
+    assertThat(getProject(MVN_PROJECT_KEY)).isNotNull();
+    assertSonarUrlOnJob(jobName, MVN_PROJECT_KEY);
     jenkinsOrch.assertQGOnProjectPage(jobName);
   }
 
@@ -537,6 +542,23 @@ public class SonarPluginTest extends AbstractJUnitTest {
     );
 
     return response.getWebhook().getKey();
+  }
+
+  public void reset() {
+    // We add one day to ensure that today's entries are deleted.
+    Instant instant = Instant.now().plus(1, ChronoUnit.DAYS);
+
+    // The expected format is yyyy-MM-dd.
+    String currentDateTime = DateTimeFormatter.ISO_LOCAL_DATE
+      .withZone(ZoneId.of("UTC"))
+      .format(instant);
+
+    ORCHESTRATOR.getServer()
+      .newHttpCall("/api/projects/bulk_delete")
+      .setAdminCredentials()
+      .setMethod(HttpMethod.POST)
+      .setParams("analyzedBefore", currentDateTime)
+      .execute();
   }
 
   private void setWebhookSecret(String secret) {
