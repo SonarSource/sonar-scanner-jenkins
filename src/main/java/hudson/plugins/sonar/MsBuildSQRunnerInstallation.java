@@ -27,6 +27,7 @@ import hudson.Util;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Node;
 import hudson.model.TaskListener;
+import hudson.remoting.VirtualChannel;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
@@ -38,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -132,14 +134,22 @@ public class MsBuildSQRunnerInstallation extends ToolInstallation implements Env
   }
 
   public String getToolPath(Launcher launcher) throws IOException, InterruptedException {
-    return launcher.getChannel().call(new GetToolPath(getHome()));
+    VirtualChannel channel = launcher.getChannel();
+    String rawHome = getHome();
+    if (channel == null || StringUtils.isBlank(rawHome)) {
+      throw new IllegalStateException("Node is not configured to support executing sonar analysis.");
+    }
+    return channel.call(new GetToolPath(rawHome));
   }
+
   private static class GetToolPath extends MasterToSlaveCallable<String, IOException> {
     private static final long serialVersionUID = 1L;
     private final String rawHome;
+
     GetToolPath(String rawHome) {
-        this.rawHome = rawHome;
+      this.rawHome = rawHome;
     }
+
     @Override
     public String call() {
       String home = Util.replaceMacro(rawHome, EnvVars.masterEnvVars);

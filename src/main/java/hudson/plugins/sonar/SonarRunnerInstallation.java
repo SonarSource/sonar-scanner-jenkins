@@ -28,6 +28,7 @@ import hudson.Util;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.Node;
 import hudson.model.TaskListener;
+import hudson.remoting.VirtualChannel;
 import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstallation;
@@ -40,12 +41,13 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
-* Represents a SonarQube Scanner installation in a system.
-*/
+ * Represents a SonarQube Scanner installation in a system.
+ */
 public class SonarRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<SonarRunnerInstallation>, NodeSpecific<SonarRunnerInstallation> {
   private static final long serialVersionUID = 1L;
 
@@ -58,13 +60,21 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
    * Gets the executable path of this SonarQube Scanner on the given target system.
    */
   public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-    return launcher.getChannel().call(new GetExecutable(getHome()));
+    VirtualChannel channel = launcher.getChannel();
+    String rawHome = getHome();
+    if (channel == null || StringUtils.isBlank(rawHome)) {
+      throw new IllegalStateException("Node is not configured to support executing sonar analysis.");
+    }
+    return channel.call(new GetExecutable(rawHome));
   }
+
   private static class GetExecutable extends MasterToSlaveCallable<String, IOException> {
     private final String rawHome;
+
     GetExecutable(String rawHome) {
       this.rawHome = rawHome;
     }
+
     @Override
     public String call() throws IOException {
       File exe = getExeFile("sonar-scanner", rawHome);
