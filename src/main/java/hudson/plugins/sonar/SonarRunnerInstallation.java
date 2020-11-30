@@ -80,13 +80,13 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
       }
       return null;
     }
-  }
 
-  private static File getExeFile(String name, String rawHome) {
-    String execName = Functions.isWindows() ? (name + ".bat") : name;
-    String home = Util.replaceMacro(rawHome, EnvVars.masterEnvVars);
+    private static File getExeFile(String name, String rawHome) {
+      String execName = Functions.isWindows() ? (name + ".bat") : name;
+      String home = Util.replaceMacro(rawHome, EnvVars.masterEnvVars);
 
-    return new File(home, "bin/" + execName);
+      return new File(home, "bin/" + execName);
+    }
   }
 
   @Override
