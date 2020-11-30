@@ -60,12 +60,7 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
    * Gets the executable path of this SonarQube Scanner on the given target system.
    */
   public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-    VirtualChannel channel = launcher.getChannel();
-    String rawHome = getHome();
-    if (channel == null || StringUtils.isBlank(rawHome)) {
-      throw new IllegalStateException("Node is not configured to support executing sonar analysis.");
-    }
-    return channel.call(new GetExecutable(rawHome));
+    return launcher.getChannel().call(new GetExecutable(getHome()));
   }
 
   private static class GetExecutable extends MasterToSlaveCallable<String, IOException> {

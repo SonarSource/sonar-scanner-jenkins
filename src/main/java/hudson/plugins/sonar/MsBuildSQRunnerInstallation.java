@@ -134,12 +134,7 @@ public class MsBuildSQRunnerInstallation extends ToolInstallation implements Env
   }
 
   public String getToolPath(Launcher launcher) throws IOException, InterruptedException {
-    VirtualChannel channel = launcher.getChannel();
-    String rawHome = getHome();
-    if (channel == null || StringUtils.isBlank(rawHome)) {
-      throw new IllegalStateException("Node is not configured to support executing sonar analysis.");
-    }
-    return channel.call(new GetToolPath(rawHome));
+    return launcher.getChannel().call(new GetToolPath(getHome()));
   }
 
   private static class GetToolPath extends MasterToSlaveCallable<String, IOException> {
