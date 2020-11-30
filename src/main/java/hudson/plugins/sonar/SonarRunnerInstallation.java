@@ -44,8 +44,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
-* Represents a SonarQube Scanner installation in a system.
-*/
+ * Represents a SonarQube Scanner installation in a system.
+ */
 public class SonarRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<SonarRunnerInstallation>, NodeSpecific<SonarRunnerInstallation> {
   private static final long serialVersionUID = 1L;
 
@@ -58,27 +58,35 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
    * Gets the executable path of this SonarQube Scanner on the given target system.
    */
   public String getExecutable(Launcher launcher) throws IOException, InterruptedException {
-    return launcher.getChannel().call(new MasterToSlaveCallable<String, IOException>() {
-      @Override
-      public String call() throws IOException {
-        File exe = getExeFile("sonar-scanner");
-        if (exe.exists()) {
-          return exe.getPath();
-        }
-        File oldExe = getExeFile("sonar-runner");
-        if (oldExe.exists()) {
-          return oldExe.getPath();
-        }
-        return null;
-      }
-    });
+    return launcher.getChannel().call(new GetExecutable(getHome()));
   }
 
-  private File getExeFile(String name) {
-    String execName = Functions.isWindows() ? (name + ".bat") : name;
-    String home = Util.replaceMacro(getHome(), EnvVars.masterEnvVars);
+  private static class GetExecutable extends MasterToSlaveCallable<String, IOException> {
+    private final String rawHome;
 
-    return new File(home, "bin/" + execName);
+    GetExecutable(String rawHome) {
+      this.rawHome = rawHome;
+    }
+
+    @Override
+    public String call() throws IOException {
+      File exe = getExeFile("sonar-scanner", rawHome);
+      if (exe.exists()) {
+        return exe.getPath();
+      }
+      File oldExe = getExeFile("sonar-runner", rawHome);
+      if (oldExe.exists()) {
+        return oldExe.getPath();
+      }
+      return null;
+    }
+
+    private static File getExeFile(String name, String rawHome) {
+      String execName = Functions.isWindows() ? (name + ".bat") : name;
+      String home = Util.replaceMacro(rawHome, EnvVars.masterEnvVars);
+
+      return new File(home, "bin/" + execName);
+    }
   }
 
   @Override
