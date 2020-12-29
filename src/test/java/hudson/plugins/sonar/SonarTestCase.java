@@ -76,8 +76,12 @@ public abstract class SonarTestCase {
   protected Maven.MavenInstallation configureDefaultMaven() throws Exception {
     File mvn = new File(getClass().getResource("SonarTestCase/maven/bin/mvn").toURI().getPath());
     if (!Functions.isWindows()) {
-      // noinspection OctalInteger
-      GNUCLibrary.LIBC.chmod(mvn.getPath(), 0755);
+      try {
+        // noinspection OctalInteger
+        GNUCLibrary.LIBC.chmod(mvn.getPath(), 0755);
+      } catch (Error e) {
+        e.printStackTrace();
+      }
     }
     String home = mvn.getParentFile().getParentFile().getAbsolutePath();
     Maven.MavenInstallation mavenInstallation = new Maven.MavenInstallation("default", home, JenkinsRule.NO_PROPERTIES);
