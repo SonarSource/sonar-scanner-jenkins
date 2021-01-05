@@ -36,8 +36,8 @@ container_definition: &CONTAINER_DEFINITION
   zone: us-central1-a
   namespace: default
 
-only_sonarsource_qa: &ONLY_SONARSOURCE_QA
-  only_if: $CIRRUS_USER_COLLABORATOR == 'true' && ($CIRRUS_PR != "" || $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*")
+only_qa: &ONLY_QA
+  only_if: ($CIRRUS_PR != "" || $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*")
 
 #
 # TASKS
@@ -61,7 +61,7 @@ build_task:
 linux_qa_task:
   depends_on:
     - build
-  <<: *ONLY_SONARSOURCE_QA
+  <<: *ONLY_QA
   gke_container:
     dockerfile: its/docker/Dockerfile
     builder_image_project: sonarqube-team
@@ -96,7 +96,7 @@ linux_qa_task:
 promote_task:
   depends_on:
     - linux_qa
-  <<: *ONLY_SONARSOURCE_QA
+  <<: *ONLY_QA
   gke_container:
     <<: *CONTAINER_DEFINITION
     cpu: 0.5
