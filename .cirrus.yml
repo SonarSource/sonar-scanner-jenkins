@@ -37,7 +37,7 @@ container_definition: &CONTAINER_DEFINITION
   namespace: default
 
 only_qa: &ONLY_QA
-  only_if: ($CIRRUS_PR != "" || $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*")
+  only_if: $CIRRUS_PR != "" || $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*"
 
 #
 # TASKS
