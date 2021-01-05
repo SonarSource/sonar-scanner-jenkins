@@ -20,7 +20,7 @@
 		      <div class="sonar-qg-label">${project.getProjectName()}</div>
 		  
 		      <div class="sonar-qg-status">
-		        <a href="${project.getUrl()}"> 
+		        <a href="${project.getUrl()}" target="_blank" rel="noopener noreferrer" >
 		          <j:choose>
 		            <j:when test="${status=='Passed'}">
 		              <div class="badge badge-success"> ${status}</div>
