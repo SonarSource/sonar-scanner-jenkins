@@ -1,6 +1,6 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials" xmlns:s="/lib/sonar">
          
   <f:section title="${%Title}">
     <f:entry title="${%InjectVarsTitle}" description="${%InjectVarsDesc}">
@@ -10,7 +10,7 @@
     <f:entry title="${%SonarInstallations}" description="${%SonarInstallationsDescr}">
       <div class="sonar-section">
       <f:repeatable var="inst" items="${instance.installations}" add="${%AddSonar}">
-        <table width="100%" class="sonar-installation">
+        <s:blockWrapper class="sonar-installation">
           <f:entry title="${%Name}">
             <f:textbox name="sonar.name" value="${inst.getName()}" checkUrl="'${rootURL}/descriptor/SonarGlobalConfiguration/checkMandatory?value='+escape(this.value)"/>
           </f:entry>
@@ -50,7 +50,7 @@
               <f:repeatableDeleteButton value="${%DeleteSonar}"/>
             </div>
           </f:entry>
-        </table>
+        </s:blockWrapper>
       </f:repeatable>
       </div>
     </f:entry>

@@ -1,6 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form" xmlns:s="/lib/sonar">
 
   <f:block>
     <p style="color:red">
@@ -85,13 +84,13 @@
     </f:entry>
     <!-- Build Triggers -->
     <f:nested>
-      <table width="100%">
+      <s:blockWrapper>
         <f:optionalBlock name="sonar.triggers" title="${%DontUseGlobalTriggers}"
                          checked="${instance.isUseLocalTriggers()}"
                          help="/plugin/sonar/help-trigger-global.html">
           <st:include class="${descriptor.clazz}" page="triggers.jelly" it="${instance.getTriggers()}"/>
         </f:optionalBlock>
-      </table>
+      </s:blockWrapper>
     </f:nested>
   </f:advanced>
 
