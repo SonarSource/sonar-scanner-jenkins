@@ -3,6 +3,8 @@ SonarQube Scanner for Jenkins
 
 [![Build Status](https://travis-ci.org/SonarSource/sonar-scanner-jenkins.svg?branch=master)](https://travis-ci.org/SonarSource/sonar-scanner-jenkins) [![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.jenkins-ci.plugins%3Asonar&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.jenkins-ci.plugins%3Asonar)
 
+This plugin allow easy integration of [SonarQube™](https://www.sonarqube.org/), the open source platform for Continuous Inspection of code quality.
+
 Documentation: http://redirect.sonarsource.com/plugins/jenkins.html
 
 Issue tracking: https://jira.sonarsource.com/browse/SONARJNKNS
