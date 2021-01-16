@@ -15,7 +15,7 @@
   <packaging>hpi</packaging>
 
   <name>SonarQube Scanner for Jenkins</name>
-  <url>http://redirect.sonarsource.com/plugins/jenkins.html</url>
+  <url>https://github.com/jenkinsci/sonarqube-plugin</url>
   <inceptionYear>2007</inceptionYear>
   <organization>
     <name>SonarSource</name>
@@ -24,7 +24,7 @@
   <licenses>
     <license>
       <name>GNU Lesser General Public License (LGPL), v.3</name>
-      <url>http://www.gnu.org/licenses/lgpl.txt</url>
+      <url>https://www.gnu.org/licenses/lgpl.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -37,7 +37,7 @@
   </scm>
   <issueManagement>
     <system>JIRA</system>
-    <url>http://jira.sonarsource.com/browse/SONARJNKNS</url>
+    <url>https://jira.sonarsource.com/browse/SONARJNKNS</url>
   </issueManagement>
   <ciManagement>
     <system>Travis</system>
