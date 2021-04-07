@@ -75,9 +75,9 @@ linux_qa_task:
     BROWSER: chrome
     matrix:
       - SQ_VERSION: LATEST_RELEASE[7.9]
-        JENKINS_VERSION: 2.204.1
+        JENKINS_VERSION: 2.204.4
       - SQ_VERSION: DEV
-        JENKINS_VERSION: 2.204.1
+        JENKINS_VERSION: 2.204.4
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:

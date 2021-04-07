@@ -13,3 +13,6 @@ work
 .classpath
 .project
 /.sonar
+
+# Maven wrapper JAR file
+.mvn/wrapper/maven-wrapper.jar
