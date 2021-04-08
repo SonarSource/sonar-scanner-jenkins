@@ -113,10 +113,8 @@ public class SonarProjectActionFactory extends TransientActionFactory<Job> {
     long endTime = run.getStartTimeInMillis() + run.getDuration();
     List<ProjectInformation> projects;
 
-    synchronized (run) {
-      SonarCacheAction cache = getOrCreateCache(run);
-      projects = cache.get(resolver, endTime, actions, run);
-    }
+    SonarCacheAction cache = getOrCreateCache(run);
+    projects = cache.get(resolver, endTime, actions, run);
 
     if (projects == null || projects.isEmpty()) {
       return null;
