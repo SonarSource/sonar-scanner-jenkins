@@ -435,7 +435,7 @@
                 <configuration>
                   <artifactory>
                     <envVarsExcludePatterns>
-                      *password*,*PASSWORD*,*secret*,*MAVEN_CMD_LINE_ARGS*,sun.java.command,*token*,*TOKEN*,*LOGIN*,*login*
+                      *password*,*PASSWORD*,*secret*,*MAVEN_CMD_LINE_ARGS*,sun.java.command,*token*,*TOKEN*,*LOGIN*,*login*,*SIGN_KEY*,*ARTIFACTORY_API_KEY*,*API_KEY*,*PASSPHRASE*
                     </envVarsExcludePatterns>
                     <includeEnvVars>true</includeEnvVars>
                     <timeoutSec>60</timeoutSec>
