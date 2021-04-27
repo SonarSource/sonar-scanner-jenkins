@@ -35,9 +35,10 @@ RUN apt-get install -fy
 COPY its/docker/wrap_chrome_binary /opt/bin/wrap_chrome_binary
 RUN /opt/bin/wrap_chrome_binary
 
-ARG CHROME_DRIVER_VERSION=85.0.4183.87
-RUN echo "Using chromedriver version: "$CHROME_DRIVER_VERSION \
-  && wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
+ARG CHROME_DRIVER_VERSION=google-chrome-stable
+RUN INSTALLED_CHROME_VERSION=$(apt-cache policy google-chrome-stable | grep Installed | cut -d: -f2 | xargs | cut -d\.  -f1) \
+  && CHROME_DRIVER_VERSION=$(curl "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$INSTALLED_CHROME_VERSION") \
+  && wget --no-verbose -O /tmp/chromedriver_linux64.zip "https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip" \
   && rm -rf /opt/selenium/chromedriver \
   && mkdir -p /opt/selenium \
   && unzip /tmp/chromedriver_linux64.zip -d /opt/selenium \
