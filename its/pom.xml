@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>55</version>
+    <version>59.0.29</version>
     <relativePath />
   </parent>
 
@@ -116,7 +116,7 @@
         </property>
       </activation>
       <properties>
-        <sonar-ws.version>8.4.0.35506</sonar-ws.version>
+        <sonar-ws.version>8.4.0.359.0.2906</sonar-ws.version>
       </properties>
     </profile>
   </profiles>
