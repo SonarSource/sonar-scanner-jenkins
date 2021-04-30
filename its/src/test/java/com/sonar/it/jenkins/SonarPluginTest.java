@@ -19,6 +19,12 @@
  */
 package com.sonar.it.jenkins;
 
+import static com.sonar.it.jenkins.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
+import static java.util.Objects.requireNonNull;
+import static java.util.regex.Matcher.quoteReplacement;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+
 import com.google.common.net.UrlEscapers;
 import com.sonar.it.jenkins.JenkinsUtils.FailedExecutionException;
 import com.sonar.orchestrator.Orchestrator;
@@ -64,22 +70,20 @@ import org.sonarqube.ws.client.webhooks.DeleteRequest;
 import org.sonarqube.ws.client.webhooks.ListRequest;
 import org.sonarqube.ws.client.webhooks.UpdateRequest;
 
-import static com.sonar.it.jenkins.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
-import static java.util.Objects.requireNonNull;
-import static java.util.regex.Matcher.quoteReplacement;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
 @WithPlugins({"sonar", "filesystem_scm", "plain-credentials"})
 public class SonarPluginTest extends AbstractJUnitTest {
 
+  private static final ScannerSupportedVersionProvider SCANNER_VERSION_PROVIDER = new ScannerSupportedVersionProvider();
+
   private static final String DUMP_ENV_VARS_PIPELINE_CMD = SystemUtils.IS_OS_WINDOWS ? "bat 'set'" : "sh 'env | sort'";
   private static final String SECRET = "very_secret_secret";
-  private static final String JENKINS_VERSION
-    = "3.3.0.1492";
+  private static final String JENKINS_VERSION = "3.3.0.1492";
   private static final String MS_BUILD_RECENT_VERSION = "4.7.1.2311";
   private static final String MVN_PROJECT_KEY = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
   private static String DEFAULT_QUALITY_GATE;
+
+
+  private static String EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION;
 
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
@@ -114,6 +118,9 @@ public class SonarPluginTest extends AbstractJUnitTest {
       .credentials(Server.ADMIN_LOGIN, Server.ADMIN_PASSWORD)
       .build());
     DEFAULT_QUALITY_GATE = getDefaultQualityGateId();
+
+    EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION = SCANNER_VERSION_PROVIDER
+        .getEarliestSupportedVersion("sonar-scanner-msbuild");
   }
 
   @Before
@@ -182,7 +189,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Test
   public void testFreestyleJobWithScannerForMsBuild_NetCore() {
-    MSBuildScannerInstallation.install(jenkins, "3.0.0.629", false);
+    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
     MSBuildScannerInstallation.install(jenkins, MS_BUILD_RECENT_VERSION, true);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
@@ -203,7 +210,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @WithPlugins({"msbuild"})
   public void testFreestyleJobWithScannerForMsBuild_3_0() {
     MSBuildScannerInstallation.install(jenkins, "2.3.2.573", false);
-    MSBuildScannerInstallation.install(jenkins, "3.0.0.629", false);
+    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMSBuild(ORCHESTRATOR);
 
@@ -211,8 +218,9 @@ public class SonarPluginTest extends AbstractJUnitTest {
     String projectKey = "msbuild-sq-runner-3_0";
     assertThat(getProject(projectKey)).isNull();
     Build result = jenkinsOrch
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, jsFolder, projectKey, "JS with space", "1.0", "3.0.0.629", null, false)
-      .executeJobQuietly(jobName);
+        .newFreestyleJobWithScannerForMsBuild(jobName, null, jsFolder, projectKey, "JS with space", "1.0",
+            EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, null, false)
+        .executeJobQuietly(jobName);
 
     assertThat(result.getConsole())
       .contains(
@@ -226,7 +234,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @WithPlugins({"msbuild"})
   public void testFreestyleJobWithScannerForMsBuild_2_3_2() {
     MSBuildScannerInstallation.install(jenkins, "2.3.2.573", false);
-    MSBuildScannerInstallation.install(jenkins, "3.0.0.629", false);
+    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMSBuild(ORCHESTRATOR);
 
@@ -346,12 +354,12 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @WithPlugins({"workflow-aggregator", "msbuild"})
   @WithOS(os = WithOS.OS.WINDOWS)
   public void msbuild_pipeline() {
-    MSBuildScannerInstallation.install(jenkins, "3.0.0.629", false);
+    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n"
       + "  bat 'xcopy " + Paths.get("projects/csharp").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n"
-      + "  def sqScannerMsBuildHome = tool 'Scanner for MSBuild 3.0.0.629'\n"
+      + "  def sqScannerMsBuildHome = tool 'Scanner for MSBuild " + EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION + "'\n"
       + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe begin /k:csharp /n:CSharp /v:1.0\"\n"
       + "  bat '\\\"%MSBUILD_PATH%\\\" /t:Rebuild'\n"
       + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe end\"\n"
