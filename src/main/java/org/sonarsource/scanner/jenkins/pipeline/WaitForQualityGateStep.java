@@ -35,6 +35,7 @@ import hudson.model.TaskListener;
 import hudson.model.queue.Tasks;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
+import hudson.plugins.sonar.action.SonarQualityGateAction;
 import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.WsClient;
 import hudson.plugins.sonar.utils.SonarUtils;
@@ -173,14 +174,21 @@ public class WaitForQualityGateStep extends Step implements Serializable {
         SonarQubeWebHook.WebhookEvent webhookEvent = SonarQubeWebHook.get().getWebhookEventForTaskId(step.taskId);
         if (webhookEvent != null) {
           validateWebhookAndCheckQualityGateIfValid(webhookEvent, true);
+          addQualityGateAction();
           return true;
         } else {
           getContextClass(FlowNode.class).addAction(new PauseAction("SonarQube analysis"));
           return false;
         }
       } else {
+        addQualityGateAction();
         return true;
       }
+    }
+
+    private void addQualityGateAction() {
+      getContextClass(Run.class).addAction(new SonarQualityGateAction(step.isAbortPipeline(),
+          step.getInstallationName(), step.getServerUrl(), step.getTaskId()));
     }
 
     private void processStepParameters() {
@@ -248,6 +256,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       SonarQubeWebHook.get().addListener(this);
       try {
         checkTaskCompleted();
+        addQualityGateAction();
       } catch (Exception e) {
         throw new IllegalStateException("Unable to restore step", e);
       }
@@ -257,6 +266,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     public void stop(Throwable cause) throws Exception {
       PauseAction.endCurrentPause(getContextClass(FlowNode.class));
       SonarQubeWebHook.get().removeListener(this);
+      addQualityGateAction();
       getContext().onFailure(cause);
     }
 
@@ -266,6 +276,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
         try {
           PauseAction.endCurrentPause(getContextClass(FlowNode.class));
           validateWebhookAndCheckQualityGateIfValid(event, false);
+          addQualityGateAction();
         } catch (IOException e) {
           getContext().onFailure(e);
           throw new IllegalStateException(e);
