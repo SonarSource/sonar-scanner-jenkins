@@ -32,7 +32,6 @@ import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.FileLocation;
-import com.sonar.orchestrator.locator.MavenLocation;
 import java.io.File;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -64,8 +63,6 @@ import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.components.ShowRequest;
 import org.sonarqube.ws.client.qualitygates.CreateConditionRequest;
-import org.sonarqube.ws.client.qualitygates.DestroyRequest;
-import org.sonarqube.ws.client.qualitygates.SetAsDefaultRequest;
 import org.sonarqube.ws.client.webhooks.CreateRequest;
 import org.sonarqube.ws.client.webhooks.DeleteRequest;
 import org.sonarqube.ws.client.webhooks.ListRequest;
@@ -118,9 +115,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Before
   public void setUp() {
-    wsClient.wsConnector().call(
-        new PostRequest("api/qualitygates/set_as_default").setParam("name", DEFAULT_QUALITY_GATE_NAME)
-    );
+    setDefaultQualityGate(DEFAULT_QUALITY_GATE_NAME);
     jenkinsOrch = new JenkinsUtils(jenkins, driver);
     jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
     jenkins.open();
@@ -373,7 +368,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
     if (SystemUtils.IS_OS_WINDOWS) {
       script.append("  bat 'xcopy " + Paths.get("projects/js").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
     } else {
-      script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath().toString() + "/. .'\n");
+      script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath() + "/. .'\n");
     }
     script.append("  def scannerHome = tool 'SonarQube Scanner 3.3.0.1492'\n");
     if (SystemUtils.IS_OS_WINDOWS) {
@@ -397,8 +392,8 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
     String previousDefault = getDefaultQualityGateName();
     Qualitygates.CreateResponse simple = wsClient.qualitygates().create(new org.sonarqube.ws.client.qualitygates.CreateRequest().setName("AlwaysFail"));
-    wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(String.valueOf(simple.getId())));
-    wsClient.qualitygates().createCondition(new CreateConditionRequest().setGateId(String.valueOf(simple.getId())).setMetric("lines").setOp("GT").setError("0"));
+    setDefaultQualityGate(simple.getName());
+    wsClient.qualitygates().createCondition(new CreateConditionRequest().setGateId(simple.getId()).setMetric("lines").setOp("GT").setError("0"));
 
     try {
       StringBuilder script = new StringBuilder();
@@ -406,7 +401,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
       if (SystemUtils.IS_OS_WINDOWS) {
         script.append("  bat 'xcopy " + Paths.get("projects/js").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
       } else {
-        script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath().toString() + "/. .'\n");
+        script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath() + "/. .'\n");
       }
       script.append("  def scannerHome = tool 'SonarQube Scanner 3.3.0.1492'\n");
       if (SystemUtils.IS_OS_WINDOWS) {
@@ -423,8 +418,10 @@ public class SonarPluginTest extends AbstractJUnitTest {
       assertThat(buildResult.isSuccess()).isFalse();
 
     } finally {
-      wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(previousDefault));
-      wsClient.qualitygates().destroy(new DestroyRequest().setId(String.valueOf(simple.getId())));
+      setDefaultQualityGate(previousDefault);
+      wsClient.wsConnector().call(
+          new PostRequest("api/qualitygates/destroy").setParam("name", simple.getName())
+      );
     }
   }
 
@@ -459,9 +456,6 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @Test
   @WithPlugins("workflow-aggregator")
   public void qualitygate_with_wrong_webhook_secret_fails_pipeline() {
-    if (!ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(7, 9)) {
-      return;
-    }
     SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
     setWebhookSecret("wrong");
@@ -523,11 +517,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
-    if (ORCHESTRATOR.getServer().version().isGreaterThan(6, 7)) {
       assertThat(jenkinsOrch.getSonarUrlOnJob(jobName)).isEqualTo(ORCHESTRATOR.getServer().getUrl() + "/dashboard?id=" + UrlEscapers.urlFormParameterEscaper().escape(projectKey));
-    } else {
-      assertThat(jenkinsOrch.getSonarUrlOnJob(jobName)).isEqualTo(ORCHESTRATOR.getServer().getUrl() + "/dashboard/index/" + UrlEscapers.urlPathSegmentEscaper().escape(projectKey));
-    }
   }
 
   private static void waitForComputationOnSQServer() {
@@ -591,6 +581,12 @@ public class SonarPluginTest extends AbstractJUnitTest {
       }
       throw new IllegalStateException(e);
     }
+  }
+
+  private void setDefaultQualityGate(String qualityGateName) {
+    wsClient.wsConnector().call(
+        new PostRequest("api/qualitygates/set_as_default").setParam("name", qualityGateName)
+    );
   }
 
 }
