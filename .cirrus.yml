@@ -74,7 +74,7 @@ linux_qa_task:
   env:
     BROWSER: chrome
     matrix:
-      - SQ_VERSION: LATEST_RELEASE[7.9]
+      - SQ_VERSION: LATEST_RELEASE[8.9]
         JENKINS_VERSION: 2.204.6
       - SQ_VERSION: DEV
         JENKINS_VERSION: 2.204.6

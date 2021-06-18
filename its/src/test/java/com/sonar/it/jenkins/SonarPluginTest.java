@@ -59,6 +59,7 @@ import org.sonarqube.ws.Qualitygates;
 import org.sonarqube.ws.Webhooks;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.HttpException;
+import org.sonarqube.ws.client.PostRequest;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.components.ShowRequest;
@@ -80,8 +81,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   private static final String JENKINS_VERSION = "3.3.0.1492";
   private static final String MS_BUILD_RECENT_VERSION = "4.7.1.2311";
   private static final String MVN_PROJECT_KEY = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
-  private static String DEFAULT_QUALITY_GATE;
-
+  private static String DEFAULT_QUALITY_GATE_NAME;
 
   private static String EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION;
 
@@ -90,14 +90,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
     .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
     // Disable webhook url validation
     .setServerProperty("sonar.validateWebhooks", Boolean.FALSE.toString())
-    // The scanner for maven should still be compatible with previous LTS 6.7, and not the 7.9
-    // at the time of writing, so the installed plugins should be compatible with
-    // both 6.7 and 8.x. The latest releases of analysers drop the compatibility with
-    // 6.7, that's why versions are hardcoded here.
-    .addPlugin(MavenLocation.of("org.sonarsource.java", "sonar-java-plugin", "5.14.0.18788"))
-    .addPlugin(MavenLocation.of("org.sonarsource.javascript", "sonar-javascript-plugin", "5.2.1.7778"))
-    // Needed by Scanner for MSBuild
-    .addPlugin(MavenLocation.of("org.sonarsource.dotnet", "sonar-csharp-plugin", "7.17.0.9346"))
+    .keepBundledPlugins()
     .restoreProfileAtStartup(FileLocation.ofClasspath("/com/sonar/it/jenkins/SonarPluginTest/sonar-way-it-profile_java.xml"))
     .build();
 
@@ -117,7 +110,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
       .url(ORCHESTRATOR.getServer().getUrl())
       .credentials(Server.ADMIN_LOGIN, Server.ADMIN_PASSWORD)
       .build());
-    DEFAULT_QUALITY_GATE = getDefaultQualityGateId();
+    DEFAULT_QUALITY_GATE_NAME = getDefaultQualityGateName();
 
     EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION = SCANNER_VERSION_PROVIDER
         .getEarliestSupportedVersion("sonar-scanner-msbuild");
@@ -125,7 +118,9 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Before
   public void setUp() {
-    wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(DEFAULT_QUALITY_GATE));
+    wsClient.wsConnector().call(
+        new PostRequest("api/qualitygates/set_as_default").setParam("name", DEFAULT_QUALITY_GATE_NAME)
+    );
     jenkinsOrch = new JenkinsUtils(jenkins, driver);
     jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
     jenkins.open();
@@ -400,7 +395,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
     SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
-    String previousDefault = getDefaultQualityGateId();
+    String previousDefault = getDefaultQualityGateName();
     Qualitygates.CreateResponse simple = wsClient.qualitygates().create(new org.sonarqube.ws.client.qualitygates.CreateRequest().setName("AlwaysFail"));
     wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(String.valueOf(simple.getId())));
     wsClient.qualitygates().createCondition(new CreateConditionRequest().setGateId(String.valueOf(simple.getId())).setMetric("lines").setOp("GT").setError("0"));
@@ -517,14 +512,14 @@ public class SonarPluginTest extends AbstractJUnitTest {
     job.save();
   }
 
-  private static String getDefaultQualityGateId() {
+  private static String getDefaultQualityGateName() {
     Qualitygates.ListWsResponse list = wsClient.qualitygates().list(new org.sonarqube.ws.client.qualitygates.ListRequest());
 
-    return String.valueOf(list.getQualitygatesList()
-      .stream()
-      .filter(Qualitygates.ListWsResponse.QualityGate::getIsDefault)
-      .findFirst()
-      .orElseGet(() -> list.getQualitygates(0)).getId());
+    return list.getQualitygatesList()
+        .stream()
+        .filter(Qualitygates.ListWsResponse.QualityGate::getIsDefault)
+        .findFirst()
+        .orElseGet(() -> list.getQualitygates(0)).getName();
   }
 
   private void assertSonarUrlOnJob(String jobName, String projectKey) {
