@@ -214,6 +214,7 @@ public class WaitForQualityGateStepTest {
 
         submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "KO", b, WEBHOOK_SECRET);
         story.j.assertBuildStatus(Result.FAILURE, pipeline);
+        story.j.assertLogContains("A webhook secret id was configured, but the corresponding credential could not be found", b);
       }
     });
   }
@@ -231,6 +232,7 @@ public class WaitForQualityGateStepTest {
         submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
         submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
         story.j.assertBuildStatusSuccess(pipeline);
+        story.j.assertLogContains("The incoming webhook matched the configured webhook secret", b);
       }
     });
   }
