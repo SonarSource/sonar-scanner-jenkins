@@ -25,9 +25,9 @@ import hudson.model.Run;
 import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
@@ -38,11 +38,11 @@ public class SonarCacheAction extends InvisibleAction {
   private List<ProjectInformation> lastProjInfo;
 
   public SonarCacheAction() {
-    this.infoByTaskId = new HashMap<>();
+    this.infoByTaskId = new ConcurrentHashMap<>();
   }
 
   public List<ProjectInformation> get(SQProjectResolver resolver, long lastBuildTime, List<SonarAnalysisAction> analysis, Run<?, ?> run) {
-    if (lastRequest != null && age(lastRequest) < TimeUnit.SECONDS.toMillis(10)) {
+    if (lastRequest != null && age(lastRequest) < TimeUnit.SECONDS.toMillis(30)) {
       return lastProjInfo;
     }
 
