@@ -22,8 +22,11 @@ package hudson.plugins.sonar.action;
 import hudson.model.Run;
 import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -90,18 +93,34 @@ public class SonarCacheActionTest {
 
   @Test
   public void testResponseCached() {
-    ProjectInformation mocked = createProj(now(), "success");
-    SonarAnalysisAction analysis = createAnalysis("serverUrl", "projUrl", "taskId");
+    ProjectInformation mocked1 = createProj(now(), "success");
+    ProjectInformation mocked2 = createProj(now(), "error");
+    SonarAnalysisAction analysis1 = createAnalysis("serverUrl", "projUrl", "taskId1");
+    SonarAnalysisAction analysis2 = createAnalysis("serverUrl", "projUrl", "taskId2");
     Run<?, ?> run = mock(Run.class);
 
-    when(resolver.resolve("serverUrl", "projUrl", "taskId", "inst", run)).thenReturn(mocked);
-    List<ProjectInformation> projs = cache.get(resolver, 0, Collections.singletonList(analysis), run);
-    List<ProjectInformation> projs2 = cache.get(resolver, 0, Collections.singletonList(analysis), run);
+    when(resolver.resolve(analysis1.getServerUrl(), analysis1.getUrl(), Objects.requireNonNull(analysis1.getCeTaskId()), analysis1.getInstallationName(), run)).thenReturn(mocked1);
+    when(resolver.resolve(analysis2.getServerUrl(), analysis2.getUrl(), Objects.requireNonNull(analysis2.getCeTaskId()), analysis2.getInstallationName(), run)).thenReturn(mocked2);
 
-    assertThat(projs).isEqualTo(projs2);
+    List<ProjectInformation> projs = cache.get(resolver, 0, Collections.singletonList(analysis1), run);
+    // Calling it again in quick succession, even with more analyses, should still return the cached value.
+    List<ProjectInformation> projs2 = cache.get(resolver, 0, Arrays.asList(analysis1, analysis2), run);
+
     assertThat(projs).hasSize(1);
+    assertThat(projs2).hasSize(1);
     assertThat(projs.get(0).getCeStatus()).isEqualTo("success");
-    verify(resolver, times(1)).resolve("serverUrl", "projUrl", "taskId", "inst", run);
+    verify(resolver, times(1)).resolve(analysis1.getServerUrl(), analysis1.getUrl(), Objects.requireNonNull(analysis1.getCeTaskId()), analysis1.getInstallationName(), run);
+    verify(resolver, times(0)).resolve(analysis2.getServerUrl(), analysis2.getUrl(), Objects.requireNonNull(analysis2.getCeTaskId()), analysis2.getInstallationName(), run);
+
+    // Invalidate the cache, by setting the age to more than 30s.
+    cache.cacheProjectInfo(projs, System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(40));
+
+    // Calling it again with more analyses, now that the cache is invalid, should change the result.
+    List<ProjectInformation> projs3 = cache.get(resolver, 0, Arrays.asList(analysis1, analysis2), run);
+
+    assertThat(projs3).hasSize(2);
+    assertThat(projs3.get(1).getCeStatus()).isEqualTo("error");
+    verify(resolver, times(1)).resolve(analysis2.getServerUrl(), analysis2.getUrl(), Objects.requireNonNull(analysis2.getCeTaskId()), analysis2.getInstallationName(), run);
   }
 
   @Test
