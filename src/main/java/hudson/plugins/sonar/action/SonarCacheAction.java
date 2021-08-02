@@ -55,8 +55,7 @@ public class SonarCacheAction extends InvisibleAction {
       }
     }
 
-    lastProjInfo = list;
-    lastRequest = System.currentTimeMillis();
+    cacheProjectInfo(list, System.currentTimeMillis());
     return list;
   }
 
@@ -103,6 +102,12 @@ public class SonarCacheAction extends InvisibleAction {
     }
 
     return false;
+  }
+
+  @VisibleForTesting
+  protected void cacheProjectInfo(List<ProjectInformation> list, Long time) {
+    lastProjInfo = list;
+    lastRequest = time;
   }
 
   private static long age(long time) {
