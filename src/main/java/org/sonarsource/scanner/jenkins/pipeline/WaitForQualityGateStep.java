@@ -141,6 +141,10 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     return credentialsId;
   }
 
+  public String getWebhookSecretId() {
+    return webhookSecretId;
+  }
+
   @DataBoundSetter
   public void setCredentialsId(@Nullable String credentialsId) {
     this.credentialsId = Util.fixEmpty(credentialsId);
