@@ -110,6 +110,13 @@ public class WaitForQualityGateStepTest {
   }
 
   @Test
+  public void getWebhookSecretId() {
+    WaitForQualityGateStep waitForQualityGateStep = new WaitForQualityGateStep(true);
+    waitForQualityGateStep.setWebhookSecretId("AV4p2424BJY0hh5C8Sya1ZS234234");
+    assertThat(waitForQualityGateStep.getWebhookSecretId()).isEqualTo("AV4p2424BJY0hh5C8Sya1ZS234234");
+  }
+
+  @Test
   public void failIfNoTaskIdInContext() {
     story.addStep(new Statement() {
       @Override
