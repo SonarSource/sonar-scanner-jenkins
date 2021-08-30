@@ -20,8 +20,8 @@
 package org.sonarsource.scanner.jenkins.pipeline;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import hudson.Extension;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
@@ -46,7 +46,7 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 @Extension
 public class SonarQubeWebHook implements UnprotectedRootAction {
   private static final Logger LOGGER = Logger.getLogger(SonarQubeWebHook.class.getName());
-  private final Cache<String, WebhookEvent> eventCache = CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.HOURS).build();
+  private final Cache<String, WebhookEvent> eventCache = Caffeine.newBuilder().expireAfterWrite(2, TimeUnit.HOURS).build();
   public static final String URLNAME = "sonarqube-webhook";
 
   @VisibleForTesting
