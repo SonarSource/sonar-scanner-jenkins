@@ -40,14 +40,27 @@ public class ScannerSupportedVersionProvider {
    */
   public String getEarliestSupportedVersion(String scannerNameRepo) {
     try {
-      HttpUrl.Builder httpBuilder = HttpUrl
-          .parse(String.format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
-      Request request = new Request.Builder().url(httpBuilder.build()).build();
-      Response response = client.newCall(request).execute();
-      JSONArray array = new JSONArray(response.body().string());
-      return ((JSONObject) array.get(array.length() - 1)).getString("tag_name");
+      JSONArray array = getSupportVersions(scannerNameRepo);
+      return ((JSONObject) array.get(1)).getString("tag_name");
     } catch (IOException | JSONException e) {
       throw new IllegalStateException(String.format("Could not fetch earliest supported version of %s", scannerNameRepo), e);
     }
+  }
+
+  public String getLatestSupportedVersion(String scannerNameRepo) {
+    try {
+      JSONArray array = getSupportVersions(scannerNameRepo);
+      return ((JSONObject) array.get(0)).getString("tag_name");
+    } catch (IOException | JSONException e) {
+      throw new IllegalStateException(String.format("Could not fetch latest supported version of %s", scannerNameRepo), e);
+    }
+  }
+
+  private JSONArray getSupportVersions(String scannerNameRepo) throws IOException, JSONException {
+    HttpUrl.Builder httpBuilder = HttpUrl
+      .parse(String.format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
+    Request request = new Request.Builder().url(httpBuilder.build()).build();
+    Response response = client.newCall(request).execute();
+    return new JSONArray(response.body().string());
   }
 }
