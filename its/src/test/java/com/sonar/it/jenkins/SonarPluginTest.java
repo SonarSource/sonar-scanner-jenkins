@@ -75,11 +75,11 @@ public class SonarPluginTest extends AbstractJUnitTest {
   private static final String DUMP_ENV_VARS_PIPELINE_CMD = SystemUtils.IS_OS_WINDOWS ? "bat 'set'" : "sh 'env | sort'";
   private static final String SECRET = "very_secret_secret";
   private static final String JENKINS_VERSION = "3.3.0.1492";
+  private static final String MS_BUILD_RECENT_VERSION = "4.7.1.2311";
   private static final String MVN_PROJECT_KEY = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
   private static String DEFAULT_QUALITY_GATE_NAME;
 
   private static String EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION;
-  private static String MS_BUILD_RECENT_VERSION;
 
   @ClassRule
   public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
@@ -109,9 +109,6 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
     EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION = SCANNER_VERSION_PROVIDER
         .getEarliestSupportedVersion("sonar-scanner-msbuild");
-
-    MS_BUILD_RECENT_VERSION = SCANNER_VERSION_PROVIDER
-      .getLatestSupportedVersion("sonar-scanner-msbuild");
   }
 
   @Before
