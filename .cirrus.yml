@@ -75,9 +75,9 @@ linux_qa_task:
     BROWSER: chrome
     matrix:
       - SQ_VERSION: LATEST_RELEASE[8.9]
-        JENKINS_VERSION: 2.235.5
+        JENKINS_VERSION: 2.249.1
       - SQ_VERSION: DEV
-        JENKINS_VERSION: 2.235.5 ### https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
+        JENKINS_VERSION: 2.249.1 ### https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:
