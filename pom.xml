@@ -6,7 +6,7 @@
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
     <!-- See https://github.com/jenkinsci/plugin-pom/blob/master/CHANGELOG.md -->
-    <version>4.31</version>
+    <version>4.24</version>
     <relativePath />
   </parent>
 
@@ -349,8 +349,7 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-javadoc-plugin</artifactId>
-	<version>3.3.1</version>
+        <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
           <source>8</source>
           <doclint>none</doclint>
