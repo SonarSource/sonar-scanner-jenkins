@@ -45,7 +45,7 @@
   </ciManagement>
 
   <properties>
-    <revision>2.15</revision>
+    <revision>2.14</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/sonarqube-plugin</gitHubRepo>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
