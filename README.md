@@ -31,6 +31,6 @@ thanks to crawlers written in groovy:
 License
 -------
 
-Copyright 2007-2021 SonarSource.
+Copyright 2007-2022 SonarSource.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
