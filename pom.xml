@@ -54,6 +54,7 @@
     <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
     <version.artifactory.plugin>2.6.1</version.artifactory.plugin>
     <jenkins.version>2.222.4</jenkins.version>
+    <version.cyclonedx.plugin>2.5.3</version.cyclonedx.plugin>
     <java.level>8</java.level>
     <findbugs.failOnError>false</findbugs.failOnError>
     <!-- Disable parallel tests on Travis -->
@@ -70,7 +71,7 @@
     <license.years>${project.inceptionYear}-2022</license.years>
     <license.mailto>mailto:info AT sonarsource DOT com</license.mailto>
 
-    <artifactsToPublish>${project.groupId}:${project.artifactId}:hpi</artifactsToPublish>
+    <artifactsToPublish>${project.groupId}:${project.artifactId}:hpi${project.groupId}:${project.artifactId}:json:cyclonedx</artifactsToPublish>
 
     <maven.compiler.release>8</maven.compiler.release>
   </properties>
@@ -293,6 +294,23 @@
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>0.8.4</version>
         </plugin>
+        <plugin>
+          <groupId>org.cyclonedx</groupId>
+          <artifactId>cyclonedx-maven-plugin</artifactId>
+          <version>${version.cyclonedx.plugin}</version>
+          <configuration>
+            <projectType>application</projectType>
+            <includeBomSerialNumber>true</includeBomSerialNumber>
+            <includeCompileScope>true</includeCompileScope>
+            <includeProvidedScope>true</includeProvidedScope>
+            <includeRuntimeScope>true</includeRuntimeScope>
+            <includeSystemScope>true</includeSystemScope>
+            <includeTestScope>true</includeTestScope>
+            <includeLicenseText>false</includeLicenseText>
+            <outputFormat>json</outputFormat>
+            <outputName>bom</outputName>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -357,6 +375,18 @@
           <source>8</source>
           <doclint>none</doclint>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.cyclonedx</groupId>
+        <artifactId>cyclonedx-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>makeAggregateBom</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
