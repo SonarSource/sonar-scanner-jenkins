@@ -74,7 +74,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   private static final String DUMP_ENV_VARS_PIPELINE_CMD = SystemUtils.IS_OS_WINDOWS ? "bat 'set'" : "sh 'env | sort'";
   private static final String SECRET = "very_secret_secret";
-  private static final String JENKINS_VERSION = "3.3.0.1492";
+  private static final String SONARQUBE_SCANNER_VERSION = "3.3.0.1492";
   private static final String MS_BUILD_RECENT_VERSION = "4.7.1.2311";
   private static final String MVN_PROJECT_KEY = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
   private static String DEFAULT_QUALITY_GATE_NAME;
@@ -128,7 +128,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Test
   public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_3_3() {
-    SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
+    SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String jobName = "js-runner-sq-3.3";
@@ -147,7 +147,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
     } else {
       assertThat(result.getConsole()).contains("sonar-scanner -Duseless=Y");
     }
-    assertThat(result.getConsole()).contains("SonarQube Scanner 3.3.0.1492");
+    assertThat(result.getConsole()).contains("SonarQube Scanner " + SONARQUBE_SCANNER_VERSION);
 
     waitForComputationOnSQServer();
     assertThat(getProject(projectKey)).isNotNull();
@@ -358,7 +358,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @Test
   @WithPlugins("workflow-aggregator")
   public void qualitygate_pipeline_ok() {
-    SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
+    SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     StringBuilder script = new StringBuilder();
@@ -385,7 +385,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   @Test
   @WithPlugins("workflow-aggregator")
   public void qualitygate_pipeline_ko() {
-    SonarScannerInstallation.install(jenkins, JENKINS_VERSION);
+    SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String previousDefault = getDefaultQualityGateName();
