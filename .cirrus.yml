@@ -74,10 +74,12 @@ linux_qa_task:
   env:
     BROWSER: chrome
     matrix:
+      # If updating the JENKINS_VERSION, make sure that all installed plugins are compatible. See com.sonar.it.jenkins.SonarPluginTest
+      # https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
       - SQ_VERSION: LATEST_RELEASE[8.9]
         JENKINS_VERSION: 2.277.1
       - SQ_VERSION: DEV
-        JENKINS_VERSION: 2.277.1 ### https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
+        JENKINS_VERSION: 2.277.1
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:
