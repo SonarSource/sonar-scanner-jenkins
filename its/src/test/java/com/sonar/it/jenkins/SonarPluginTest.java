@@ -241,14 +241,6 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  // Maven plugin no more installed by default in version 2
-  @Since("2.0")
-  public void testNoSonarPublisher() {
-    String jobName = "noSonarPublisher";
-    jenkinsOrch.assertNoSonarPublisher(jobName, new File("projects", "noPublisher"));
-  }
-
-  @Test
   @WithPlugins({"maven-plugin"})
   public void testMavenJob() {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)

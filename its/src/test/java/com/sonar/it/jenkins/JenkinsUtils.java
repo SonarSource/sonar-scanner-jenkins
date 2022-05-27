@@ -441,17 +441,6 @@ public class JenkinsUtils {
     });
   }
 
-  public void assertNoSonarPublisher(String jobName, File projectPath) {
-    try {
-      newFreestyleJobConfig(jobName, projectPath);
-      findElement(buttonByText("Add post-build action")).click();
-      assertNoElement(MAVEN_POST_BUILD_LABEL);
-      // Save to avoid alert asking if we want to leave
-    } finally {
-      findElement(buttonByText("Save")).click();
-    }
-  }
-
   public void select(WebElement element, String optionValue) {
     Select select = new Select(element);
     select.selectByValue(optionValue);
