@@ -61,7 +61,6 @@ build_task:
 linux_qa_task:
   depends_on:
     - build
-  <<: *ONLY_QA
   gke_container:
     dockerfile: its/docker/Dockerfile
     builder_image_project: sonarqube-team
@@ -77,9 +76,9 @@ linux_qa_task:
       # If updating the JENKINS_VERSION, make sure that all installed plugins are compatible. See com.sonar.it.jenkins.SonarPluginTest
       # https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
       - SQ_VERSION: LATEST_RELEASE[8.9]
-        JENKINS_VERSION: 2.289.3
+        JENKINS_VERSION: 2.303.3
       - SQ_VERSION: DEV
-        JENKINS_VERSION: 2.289.3
+        JENKINS_VERSION: 2.303.3
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:
