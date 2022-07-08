@@ -292,7 +292,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithPlugins("workflow-aggregator)
+  @WithPlugins("workflow-aggregator")
   public void no_sq_vars_without_env_wrapper() throws JenkinsUtils.FailedExecutionException {
     String logs = runAndGetLogs("no-withSonarQubeEnv", DUMP_ENV_VARS_PIPELINE_CMD);
     try {
