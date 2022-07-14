@@ -19,12 +19,6 @@
  */
 package com.sonar.it.jenkins;
 
-import static com.sonar.it.jenkins.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
-import static java.util.Objects.requireNonNull;
-import static java.util.regex.Matcher.quoteReplacement;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
 import com.google.common.net.UrlEscapers;
 import com.sonar.it.jenkins.JenkinsUtils.FailedExecutionException;
 import com.sonar.orchestrator.Orchestrator;
@@ -34,16 +28,11 @@ import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.io.File;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import javax.annotation.CheckForNull;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jenkinsci.test.acceptance.junit.AbstractJUnitTest;
-import org.jenkinsci.test.acceptance.junit.Since;
 import org.jenkinsci.test.acceptance.junit.WithOS;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.po.Build;
@@ -67,7 +56,13 @@ import org.sonarqube.ws.client.webhooks.CreateRequest;
 import org.sonarqube.ws.client.webhooks.DeleteRequest;
 import org.sonarqube.ws.client.webhooks.ListRequest;
 
-@WithPlugins({"sonar", "git-server@1.10", "filesystem_scm@2.1", "plain-credentials@1.8"})
+import static com.sonar.it.jenkins.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
+import static java.util.Objects.requireNonNull;
+import static java.util.regex.Matcher.quoteReplacement;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+
+@WithPlugins({"sonar", "credentials@2.6.1", "filesystem_scm"})
 public class SonarPluginTest extends AbstractJUnitTest {
 
   private static final ScannerSupportedVersionProvider SCANNER_VERSION_PROVIDER = new ScannerSupportedVersionProvider();
@@ -157,7 +152,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Test
   @WithOS(os = WithOS.OS.WINDOWS)
-  @WithPlugins({"msbuild@1.30"})
+  @WithPlugins({"msbuild"})
   public void testFreestyleJobWithScannerForMsBuild() throws FailedExecutionException {
     MSBuildScannerInstallation.install(jenkins, MS_BUILD_RECENT_VERSION, false);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
@@ -195,7 +190,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Test
   @WithOS(os = WithOS.OS.WINDOWS)
-  @WithPlugins({"msbuild@1.30"})
+  @WithPlugins({"msbuild"})
   public void testFreestyleJobWithScannerForMsBuild_3_0() {
     MSBuildScannerInstallation.install(jenkins, "2.3.2.573", false);
     MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
@@ -219,7 +214,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Test
   @WithOS(os = WithOS.OS.WINDOWS)
-  @WithPlugins({"msbuild@1.30"})
+  @WithPlugins({"msbuild"})
   public void testFreestyleJobWithScannerForMsBuild_2_3_2() {
     MSBuildScannerInstallation.install(jenkins, "2.3.2.573", false);
     MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
@@ -241,7 +236,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithPlugins({"maven-plugin@3.18"})
+  @WithPlugins({"maven-plugin"})
   public void testMavenJob() {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMaven(ORCHESTRATOR);
@@ -257,7 +252,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithPlugins({"maven-plugin@3.18"})
+  @WithPlugins({"maven-plugin"})
   public void testVariableInjection() throws JenkinsUtils.FailedExecutionException {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMaven(ORCHESTRATOR);
@@ -275,7 +270,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithPlugins({"maven-plugin@3.18"})
+  @WithPlugins({"maven-plugin"})
   public void testFreestyleJobWithSonarMaven() {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMaven(ORCHESTRATOR);
@@ -292,7 +287,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithPlugins("workflow-aggregator@2.7")
+  @WithPlugins("workflow-aggregator")
   public void no_sq_vars_without_env_wrapper() throws JenkinsUtils.FailedExecutionException {
     String logs = runAndGetLogs("no-withSonarQubeEnv", DUMP_ENV_VARS_PIPELINE_CMD);
     try {
@@ -304,7 +299,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithPlugins("workflow-aggregator@2.7")
+  @WithPlugins("workflow-aggregator")
   public void env_wrapper_without_params_should_inject_sq_vars() {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
@@ -313,7 +308,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithPlugins("workflow-aggregator@2.7")
+  @WithPlugins("workflow-aggregator")
   public void env_wrapper_with_specific_sq_should_inject_sq_vars() {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
@@ -322,7 +317,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test(expected = JenkinsUtils.FailedExecutionException.class)
-  @WithPlugins("workflow-aggregator@2.7")
+  @WithPlugins("workflow-aggregator")
   public void env_wrapper_with_nonexistent_sq_should_fail() {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
@@ -331,7 +326,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithPlugins({"workflow-aggregator@2.7", "msbuild@1.30"})
+  @WithPlugins({"workflow-aggregator", "msbuild"})
   @WithOS(os = WithOS.OS.WINDOWS)
   public void msbuild_pipeline() {
     MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
@@ -348,7 +343,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithPlugins("workflow-aggregator@2.7")
+  @WithPlugins("workflow-aggregator")
   public void qualitygate_pipeline_ok() {
     SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
@@ -375,7 +370,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithPlugins("workflow-aggregator@2.7")
+  @WithPlugins("workflow-aggregator")
   public void qualitygate_pipeline_ko() {
     SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
@@ -469,19 +464,11 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   public void reset() {
-    // We add one day to ensure that today's entries are deleted.
-    Instant instant = Instant.now().plus(1, ChronoUnit.DAYS);
-
-    // The expected format is yyyy-MM-dd.
-    String currentDateTime = DateTimeFormatter.ISO_LOCAL_DATE
-      .withZone(ZoneId.of("UTC"))
-      .format(instant);
-
     ORCHESTRATOR.getServer()
       .newHttpCall("/api/projects/bulk_delete")
       .setAdminCredentials()
       .setMethod(HttpMethod.POST)
-      .setParams("analyzedBefore", currentDateTime)
+      .setParams("q", "sonar")
       .execute();
   }
 
