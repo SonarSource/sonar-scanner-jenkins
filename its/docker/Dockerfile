@@ -3,7 +3,7 @@
 # during the QA task.
 #
 # Build from the basedir:
-#   docker build -f its/docker/Dockerfile -t sonar-scanner-jenkins-qa its/docker
+#   docker build -f its/docker/Dockerfile -t sonar-scanner-jenkins-qa .
 #
 # Verify the content of the image by running a shell session in it:
 #   docker run -it sonar-scanner-jenkins-qa bash
@@ -29,7 +29,7 @@ RUN apt-get install -y nodejs
 #==============================================================================
 # Google Chrome, for integration tests
 #==============================================================================
-ARG CHROME_VERSION=85.0.4183.102-1
+ARG CHROME_VERSION=105.0.5195.125-1
 RUN echo "Using Chrome version: $CHROME_VERSION" \
   && wget --no-verbose -O /tmp/chrome_amd64.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
   # Ignore install errors; we will try and fix them below.
@@ -50,9 +50,9 @@ RUN INSTALLED_CHROME_VERSION=$(apt-cache policy google-chrome-stable | grep Inst
   && mv /opt/selenium/chromedriver /usr/bin/chromedriver \
   && chmod 755 /usr/bin/chromedriver
 
-RUN echo "Installing dotnet 2.2" \
+RUN echo "Installing dotnet 3.1.423" \
   && set -x \
-  && wget --no-verbose -O /tmp/dotnet.tar.gz https://download.visualstudio.microsoft.com/download/pr/228832ea-805f-45ab-8c88-fa36165701b9/16ce29a06031eeb09058dee94d6f5330/dotnet-sdk-2.2.401-linux-x64.tar.gz \
+  && wget --no-verbose -O /tmp/dotnet.tar.gz https://download.visualstudio.microsoft.com/download/pr/e137cdac-0e15-46ec-bd60-14fe6ad50c41/30c102677cc4bd0f117cc026781ec5e8/dotnet-sdk-3.1.423-linux-x64.tar.gz \
   && mkdir -p /usr/share/dotnet/ \
   && tar zxf /tmp/dotnet.tar.gz -C /usr/share/dotnet/ && rm /tmp/dotnet.tar.gz \
   && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet \
@@ -61,3 +61,4 @@ RUN echo "Installing dotnet 2.2" \
 RUN dotnet --info
 
 USER sonarsource
+
