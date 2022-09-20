@@ -17,15 +17,17 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.jenkins;
+package com.sonar.it.jenkins.utility;
 
 import com.google.common.base.Function;
+import com.sonar.it.jenkins.FilesystemScm;
+import com.sonar.it.jenkins.MSBuildScannerInstallation;
+import com.sonar.it.jenkins.SonarScannerInstallation;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -73,6 +75,16 @@ public class JenkinsUtils {
 
   public static final String DEFAULT_SONARQUBE_INSTALLATION = "SonarQube";
 
+  private static final String CODE_MIRROR_SCRIPT = "cmElem = document.evaluate(" +
+    "        arguments[0], document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null" +
+    ").singleNodeValue;" +
+    "codemirror = cmElem.CodeMirror;" +
+    "if (codemirror == null) {" +
+    "    console.log('CodeMirror object not found!');" +
+    "}" +
+    "codemirror.setValue(arguments[1]);" +
+    "codemirror.save();";
+
   private final Jenkins jenkins;
   private final WebDriver driver;
   private static int tokenCounter = 0;
@@ -88,67 +100,49 @@ public class JenkinsUtils {
     this.driver = driver;
   }
 
-  private MavenModuleSet newMavenJobConfig(String jobName, File projectPath) {
+  public JenkinsUtils newMavenJobConfig(String jobName, File projectPath) {
     MavenModuleSet job = jenkins.jobs.create(MavenModuleSet.class, jobName);
     job.configure();
     configureScm(job, projectPath);
-    return job;
+    return this;
   }
 
   private void configureScm(Job job, File projectPath) {
     job.useScm(FilesystemScm.class).scmPath(projectPath.getAbsolutePath());
   }
 
-  private void newFreestyleJobConfig(String jobName, File projectPath) {
+  public JenkinsUtils newFreestyleJobConfig(String jobName, File projectPath) {
     FreeStyleJob job = jenkins.jobs.create(FreeStyleJob.class, jobName);
     job.configure();
     configureScm(job, projectPath);
-  }
-
-  public JenkinsUtils newMavenJobWithSonar(String jobName, File projectPath, String branch) {
-    MavenModuleSet job = newMavenJobConfig(jobName, projectPath);
-
-    activateSonarPostBuildMaven(branch);
-
-    job.save();
     return this;
   }
 
-  public JenkinsUtils newFreestyleJobWithSonar(String jobName, File projectPath, String branch) {
-    newFreestyleJobConfig(jobName, projectPath);
-
+  public JenkinsUtils addMavenBuildStep(String mvnGoals) {
     findElement(buttonByText("Add build step")).click();
     findElement(By.linkText("Invoke top-level Maven targets")).click();
-    setTextValue(findElement(By.name("_.targets")), "clean package");
-
-    activateSonarPostBuildMaven(branch);
-
-    findElement(buttonByText("Save")).click();
+    setTextValue(findElement(By.name("_.targets")), mvnGoals);
     return this;
   }
 
-  public JenkinsUtils newFreestyleJobWithMaven(String jobName, File projectPath, String branch, Orchestrator orchestrator) {
-    newFreestyleJobConfig(jobName, projectPath);
-
-    findElement(By.name("hudson-plugins-sonar-SonarBuildWrapper")).findElement(By.xpath("..")).click();
-
+  public JenkinsUtils addSonarMavenBuildStep(Orchestrator orchestrator) {
     findElement(buttonByText("Add build step")).click();
-    findElement(By.linkText("Invoke top-level Maven targets")).click();
-    setTextValue(findElement(By.name("_.targets")), "clean package");
-
-    findElement(buttonByText("Add build step")).click();
-
     findElement(By.linkText("Invoke top-level Maven targets")).click();
     setTextValue(findElement(driver, By.xpath("(//input[@name='_.targets'])[2]")), getMavenParams(orchestrator));
-
-    findElement(buttonByText("Save")).click();
     return this;
   }
 
-  public JenkinsUtils newFreestyleJobWithSQScanner(String jobName, @Nullable String additionalArgs, File projectPath, @Nullable String sqScannerVersion,
-    String... properties) {
-    newFreestyleJobConfig(jobName, projectPath);
+  public JenkinsUtils configureSonarBuildWrapper() {
+    findElement(By.name("hudson-plugins-sonar-SonarBuildWrapper")).findElement(By.xpath("..")).click();
+    return this;
+  }
 
+  public void save() {
+    findElement(buttonByText("Save")).click();
+  }
+
+  public JenkinsUtils addSonarScannerBuildStep(@Nullable String additionalArgs, @Nullable String sqScannerVersion,
+    String... properties) {
     findElement(buttonByText("Add build step")).click();
     findElement(By.linkText("Execute SonarQube Scanner")).click();
     StringBuilder builder = new StringBuilder();
@@ -172,8 +166,6 @@ public class JenkinsUtils {
     if (additionalArgs != null) {
       setTextValue(findElement(By.name("_.additionalArguments")), additionalArgs);
     }
-
-    findElement(buttonByText("Save")).click();
     return this;
   }
 
@@ -211,7 +203,7 @@ public class JenkinsUtils {
         } catch (Exception notfound) {
           driver.findElement(By.xpath("//*[@path='/builder[1]/command']")); // wait until the element in question appears in DOM
           try {
-            ((JavascriptExecutor) driver).executeScript(codeMirrorScript, String.format("//*[@path='/builder[1]/command']/following-sibling::div"), command);
+            ((JavascriptExecutor) driver).executeScript(CODE_MIRROR_SCRIPT, "//*[@path='/builder[1]/command']/following-sibling::div", command);
           } catch (JavascriptException e) {
             System.err.println("CodeMirror not found. Save screenshot to: target/codemirror.png");
             takeScreenshot(new File("target/codemirror.png"));
@@ -232,17 +224,12 @@ public class JenkinsUtils {
     return this;
   }
 
-  private static final String codeMirrorScript = "cmElem = document.evaluate(" +
-    "        arguments[0], document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null" +
-    ").singleNodeValue;" +
-    "codemirror = cmElem.CodeMirror;" +
-    "if (codemirror == null) {" +
-    "    console.log('CodeMirror object not found!');" +
-    "}" +
-    "codemirror.setValue(arguments[1]);" +
-    "codemirror.save();";
 
-  private void activateSonarPostBuildMaven(String branch) {
+  public JenkinsUtils activateSonarPostBuildMaven() {
+    return activateSonarPostBuildMaven(null);
+  }
+
+  public JenkinsUtils activateSonarPostBuildMaven(String branch) {
     WebElement addPostBuildButton = findElement(buttonByText("Add post-build action"));
     addPostBuildButton.click();
     findElement(MAVEN_POST_BUILD_LABEL).click();
@@ -252,6 +239,7 @@ public class JenkinsUtils {
       sonarPublisher.findElement(buttonByText("Advanced...")).click();
       setTextValue(sonarPublisher.findElement(By.name("sonar.branch")), branch);
     }
+    return this;
   }
 
   public String getSonarUrlOnJob(String jobName) {
@@ -350,7 +338,7 @@ public class JenkinsUtils {
     Qualitygates.ListWsResponse qualityGates = wsClient.qualitygates().list(new ListRequest());
     assertThat(qualityGates.getQualitygatesList().size()).isPositive();
 
-    String id = String.valueOf(qualityGates.getQualitygates(0).getId());
+    String id = qualityGates.getQualitygates(0).getId();
     wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(id));
     System.out.println("Set default QG: " + id);
   }
@@ -407,14 +395,6 @@ public class JenkinsUtils {
       System.err.println("Element not found. Save screenshot to: target/no_such_element.png");
       takeScreenshot(new File("target/no_such_element.png"));
       throw e;
-    }
-  }
-
-  public void assertNoElement(By by) {
-    List<WebElement> elements = driver.findElements(by);
-    if (!elements.isEmpty()) {
-      System.err.println("Not expecting finding element, but found " + elements.size() + ". Save screenshot to: target/no_such_element.png");
-      takeScreenshot(new File("target/no_such_element.png"));
     }
   }
 
