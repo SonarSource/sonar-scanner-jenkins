@@ -19,8 +19,9 @@
  */
 package com.sonar.it.jenkins;
 
+import com.sonar.it.jenkins.utility.JenkinsUtils;
+import com.sonar.it.jenkins.utility.SonarQubeScriptBuilder;
 import java.io.File;
-import java.nio.file.Paths;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
@@ -30,8 +31,7 @@ import org.sonarqube.ws.Qualitygates;
 import org.sonarqube.ws.client.PostRequest;
 import org.sonarqube.ws.client.qualitygates.CreateConditionRequest;
 
-import static com.sonar.it.jenkins.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
-import static java.util.regex.Matcher.quoteReplacement;
+import static com.sonar.it.jenkins.utility.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -50,14 +50,16 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     String jobName = "js-runner-sq-3.3";
     String projectKey = "js-runner-3.3";
     assertThat(getProject(projectKey)).isNull();
-    Build result = jenkinsOrch
-      .newFreestyleJobWithSQScanner(jobName, "-Duseless=Y", jsFolder, null,
+    jenkinsOrch
+      .newFreestyleJobConfig(jobName, jsFolder)
+      .addSonarScannerBuildStep("-Duseless=Y", null,
         "sonar.projectKey", projectKey,
         "sonar.projectVersion", "1.0",
         "sonar.projectName", "Abacus",
         "sonar.sources", "src")
-      .executeJob(jobName);
+      .save();
 
+    Build result = jenkinsOrch.executeJob(jobName);
     if (SystemUtils.IS_OS_WINDOWS) {
       assertThat(result.getConsole()).contains("sonar-scanner.bat -Duseless=Y");
     } else {
@@ -98,8 +100,11 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     String jobName = "abacus-maven";
     assertThat(getProject(MVN_PROJECT_KEY)).isNull();
     jenkinsOrch
-      .newMavenJobWithSonar(jobName, new File("projects", "abacus"), null)
-      .executeJob(jobName);
+      .newMavenJobConfig(jobName, new File("projects", "abacus"))
+      .activateSonarPostBuildMaven()
+      .save();
+
+    jenkinsOrch.executeJob(jobName);
     waitForComputationOnSQServer();
     assertThat(getProject(MVN_PROJECT_KEY)).isNotNull();
     assertSonarUrlOnJob(jobName, MVN_PROJECT_KEY);
@@ -115,8 +120,13 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     assertThat(getProject(MVN_PROJECT_KEY)).isNull();
 
     jenkinsOrch.enableInjectionVars(true)
-      .newFreestyleJobWithMaven(jobName, new File("projects", "abacus"), null, ORCHESTRATOR)
-      .executeJob(jobName);
+      .newFreestyleJobConfig(jobName, new File("projects", "abacus"))
+      .configureSonarBuildWrapper()
+      .addMavenBuildStep("clean package")
+      .addSonarMavenBuildStep(ORCHESTRATOR)
+      .save();
+
+    jenkinsOrch.executeJob(jobName);
     waitForComputationOnSQServer();
     assertThat(getProject(MVN_PROJECT_KEY)).isNotNull();
     assertSonarUrlOnJob(jobName, MVN_PROJECT_KEY);
@@ -131,9 +141,15 @@ public class SonarPluginTest extends SonarPluginTestSuite {
 
     String jobName = "abacus-freestyle";
     assertThat(getProject(MVN_PROJECT_KEY)).isNull();
+
     jenkinsOrch
-      .newFreestyleJobWithSonar(jobName, new File("projects", "abacus"), null)
-      .executeJob(jobName);
+      .newFreestyleJobConfig(jobName, new File("projects", "abacus"))
+      .addMavenBuildStep("clean package")
+      .activateSonarPostBuildMaven()
+      .save();
+
+    jenkinsOrch.executeJob(jobName);
+
     waitForComputationOnSQServer();
     assertThat(getProject(MVN_PROJECT_KEY)).isNotNull();
     assertSonarUrlOnJob(jobName, MVN_PROJECT_KEY);
@@ -185,23 +201,11 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
-    StringBuilder script = new StringBuilder();
-    script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
-    if (SystemUtils.IS_OS_WINDOWS) {
-      script.append("  bat 'xcopy " + Paths.get("projects/js").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
-    } else {
-      script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath() + "/. .'\n");
-    }
-    script.append("  def scannerHome = tool 'SonarQube Scanner 3.3.0.1492'\n");
-    if (SystemUtils.IS_OS_WINDOWS) {
-      script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat\"\n");
-    } else {
-      script.append("  sh \"${scannerHome}/bin/sonar-scanner\"\n");
-    }
-    script.append("}\n");
-    script.append("def qg = waitForQualityGate()\n");
-    script.append("if (qg.status != 'OK') { error 'Quality gate failure'}\n");
-    createPipelineJobFromScript("js-pipeline", script.toString());
+    String script = SonarQubeScriptBuilder.newScript()
+      .sonarQubeScannerVersion(SONARQUBE_SCANNER_VERSION)
+      .build();
+
+    createPipelineJobFromScript("js-pipeline", script);
     Build buildResult = jenkinsOrch.executeJob("js-pipeline");
     assertThat(buildResult.isSuccess()).isTrue();
   }
@@ -218,23 +222,10 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     wsClient.qualitygates().createCondition(new CreateConditionRequest().setGateId(simple.getId()).setMetric("lines").setOp("GT").setError("0"));
 
     try {
-      StringBuilder script = new StringBuilder();
-      script.append("withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n");
-      if (SystemUtils.IS_OS_WINDOWS) {
-        script.append("  bat 'xcopy " + Paths.get("projects/js").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n");
-      } else {
-        script.append("  sh 'cp -rf " + Paths.get("projects/js").toAbsolutePath() + "/. .'\n");
-      }
-      script.append("  def scannerHome = tool 'SonarQube Scanner 3.3.0.1492'\n");
-      if (SystemUtils.IS_OS_WINDOWS) {
-        script.append("  bat \"${scannerHome}\\\\bin\\\\sonar-scanner.bat\"\n");
-      } else {
-        script.append("  sh \"${scannerHome}/bin/sonar-scanner\"\n");
-      }
-      script.append("}\n");
-      script.append("def qg = waitForQualityGate()\n");
-      script.append("if (qg.status != 'OK') { error 'Quality gate failure'}\n");
-      createPipelineJobFromScript("js-pipeline-ko", script.toString());
+      String script = SonarQubeScriptBuilder.newScript()
+        .sonarQubeScannerVersion(SONARQUBE_SCANNER_VERSION)
+        .build();
+      createPipelineJobFromScript("js-pipeline-ko", script);
       Build buildResult = jenkinsOrch.executeJobQuietly("js-pipeline-ko");
 
       assertThat(buildResult.isSuccess()).isFalse();
@@ -242,7 +233,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     } finally {
       setDefaultQualityGate(previousDefault);
       wsClient.wsConnector().call(
-          new PostRequest("api/qualitygates/destroy").setParam("name", simple.getName())
+        new PostRequest("api/qualitygates/destroy").setParam("name", simple.getName())
       );
     }
   }
@@ -259,5 +250,4 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     assertThat(logs).contains("SONAR_MAVEN_GOAL=sonar:sonar");
     assertThat(logs).contains("SONARQUBE_SCANNER_PARAMS={ \"sonar.host.url\" : \"" + StringEscapeUtils.escapeJson(ORCHESTRATOR.getServer().getUrl()) + "");
   }
-
 }

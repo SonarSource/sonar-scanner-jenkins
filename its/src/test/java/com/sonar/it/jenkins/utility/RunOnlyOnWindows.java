@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.jenkins;
+package com.sonar.it.jenkins.utility;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.runner.notification.RunNotifier;

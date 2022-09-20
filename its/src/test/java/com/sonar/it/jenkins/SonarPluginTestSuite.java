@@ -20,6 +20,8 @@
 package com.sonar.it.jenkins;
 
 import com.google.common.net.UrlEscapers;
+import com.sonar.it.jenkins.utility.JenkinsUtils;
+import com.sonar.it.jenkins.utility.ScannerSupportedVersionProvider;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.container.Server;

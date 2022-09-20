@@ -19,7 +19,8 @@
  */
 package com.sonar.it.jenkins;
 
-import com.sonar.it.jenkins.JenkinsUtils.FailedExecutionException;
+import com.sonar.it.jenkins.utility.JenkinsUtils.FailedExecutionException;
+import com.sonar.it.jenkins.utility.RunOnlyOnWindows;
 import java.io.File;
 import java.nio.file.Paths;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
@@ -27,7 +28,7 @@ import org.jenkinsci.test.acceptance.po.Build;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.sonar.it.jenkins.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
+import static com.sonar.it.jenkins.utility.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
 import static java.util.regex.Matcher.quoteReplacement;
 import static org.assertj.core.api.Assertions.assertThat;
 
