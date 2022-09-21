@@ -19,110 +19,31 @@
  */
 package com.sonar.it.jenkins;
 
-import com.google.common.net.UrlEscapers;
-import com.sonar.it.jenkins.JenkinsUtils.FailedExecutionException;
-import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.build.SynchronousAnalyzer;
-import com.sonar.orchestrator.container.Server;
-import com.sonar.orchestrator.http.HttpMethod;
-import com.sonar.orchestrator.locator.FileLocation;
 import java.io.File;
 import java.nio.file.Paths;
-import javax.annotation.CheckForNull;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.jenkinsci.test.acceptance.junit.AbstractJUnitTest;
-import org.jenkinsci.test.acceptance.junit.WithOS;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
 import org.jenkinsci.test.acceptance.po.Build;
-import org.jenkinsci.test.acceptance.po.WorkflowJob;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.sonarqube.ws.Components.Component;
 import org.sonarqube.ws.Qualitygates;
-import org.sonarqube.ws.Webhooks;
-import org.sonarqube.ws.client.HttpConnector;
-import org.sonarqube.ws.client.HttpException;
 import org.sonarqube.ws.client.PostRequest;
-import org.sonarqube.ws.client.WsClient;
-import org.sonarqube.ws.client.WsClientFactories;
-import org.sonarqube.ws.client.components.ShowRequest;
 import org.sonarqube.ws.client.qualitygates.CreateConditionRequest;
-import org.sonarqube.ws.client.webhooks.CreateRequest;
-import org.sonarqube.ws.client.webhooks.DeleteRequest;
-import org.sonarqube.ws.client.webhooks.ListRequest;
 
 import static com.sonar.it.jenkins.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
-import static java.util.Objects.requireNonNull;
 import static java.util.regex.Matcher.quoteReplacement;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-@WithPlugins({"sonar", "credentials@2.6.1", "filesystem_scm"})
-public class SonarPluginTest extends AbstractJUnitTest {
-
-  private static final ScannerSupportedVersionProvider SCANNER_VERSION_PROVIDER = new ScannerSupportedVersionProvider();
+public class SonarPluginTest extends SonarPluginTestSuite {
 
   private static final String DUMP_ENV_VARS_PIPELINE_CMD = SystemUtils.IS_OS_WINDOWS ? "bat 'set'" : "sh 'env | sort'";
-  private static final String SECRET = "very_secret_secret";
   private static final String SONARQUBE_SCANNER_VERSION = "3.3.0.1492";
-  private static final String MS_BUILD_RECENT_VERSION = "4.7.1.2311";
   private static final String MVN_PROJECT_KEY = "org.codehaus.sonar-plugins:sonar-abacus-plugin";
-  private static String DEFAULT_QUALITY_GATE_NAME;
-
-  private static String EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION;
-
-  @ClassRule
-  public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
-    .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
-    // Disable webhook url validation
-    .setServerProperty("sonar.validateWebhooks", Boolean.FALSE.toString())
-    .keepBundledPlugins()
-    .restoreProfileAtStartup(FileLocation.ofClasspath("/com/sonar/it/jenkins/SonarPluginTest/sonar-way-it-profile_java.xml"))
-    .build();
-
-  private static WsClient wsClient;
-
-  private final File csharpFolder = new File("projects", "csharp");
-  private final File consoleApp1Folder = new File(csharpFolder, "ConsoleApplication1");
   private final File consoleNetCoreFolder = new File(csharpFolder, "NetCoreConsoleApp");
-  private final File jsFolder = new File("projects", "js");
-
-  private JenkinsUtils jenkinsOrch;
-
-  @BeforeClass
-  public static void setUpJenkins() {
-    wsClient = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
-      .url(ORCHESTRATOR.getServer().getUrl())
-      .credentials(Server.ADMIN_LOGIN, Server.ADMIN_PASSWORD)
-      .build());
-    DEFAULT_QUALITY_GATE_NAME = getDefaultQualityGateName();
-
-    EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION = SCANNER_VERSION_PROVIDER
-        .getEarliestSupportedVersion("sonar-scanner-msbuild");
-  }
-
-  @Before
-  public void setUp() {
-    setDefaultQualityGate(DEFAULT_QUALITY_GATE_NAME);
-    jenkinsOrch = new JenkinsUtils(jenkins, driver);
-    jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
-    jenkins.open();
-    enableWebhook();
-  }
-
-  @After
-  public void cleanup() {
-    reset();
-    disableGlobalWebhooks();
-  }
 
   @Test
-  public void testFreestyleJobWithSonarQubeScanner_use_sq_scanner_3_3() {
+  public void freestyle_job_with_sonar_qube_scanner_use_sq_scanner_3_3() {
     SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
@@ -151,27 +72,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithOS(os = WithOS.OS.WINDOWS)
-  @WithPlugins({"msbuild"})
-  public void testFreestyleJobWithScannerForMsBuild() throws FailedExecutionException {
-    MSBuildScannerInstallation.install(jenkins, MS_BUILD_RECENT_VERSION, false);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
-      .configureMSBuild(ORCHESTRATOR);
-
-    String jobName = "csharp";
-    String projectKey = "csharp";
-    assertThat(getProject(projectKey)).isNull();
-    jenkinsOrch
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleApp1Folder, projectKey, "CSharp", "1.0", MS_BUILD_RECENT_VERSION, "ConsoleApplication1.sln", false)
-      .executeJob(jobName);
-
-    waitForComputationOnSQServer();
-    assertThat(getProject(projectKey)).isNotNull();
-    assertSonarUrlOnJob(jobName, projectKey);
-  }
-
-  @Test
-  public void testFreestyleJobWithScannerForMsBuild_NetCore() {
+  public void test_freestyle_job_with_scanner_for_ms_build_net_core() {
     MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
     MSBuildScannerInstallation.install(jenkins, MS_BUILD_RECENT_VERSION, true);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
@@ -189,55 +90,8 @@ public class SonarPluginTest extends AbstractJUnitTest {
   }
 
   @Test
-  @WithOS(os = WithOS.OS.WINDOWS)
-  @WithPlugins({"msbuild"})
-  public void testFreestyleJobWithScannerForMsBuild_3_0() {
-    MSBuildScannerInstallation.install(jenkins, "2.3.2.573", false);
-    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
-      .configureMSBuild(ORCHESTRATOR);
-
-    String jobName = "msbuild-sq-runner-3_0";
-    String projectKey = "msbuild-sq-runner-3_0";
-    assertThat(getProject(projectKey)).isNull();
-    Build result = jenkinsOrch
-        .newFreestyleJobWithScannerForMsBuild(jobName, null, jsFolder, projectKey, "JS with space", "1.0",
-            EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, null, false)
-        .executeJobQuietly(jobName);
-
-    assertThat(result.getConsole())
-      .contains(
-        "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation" + File.separator + "Scanner_for_MSBuild_3.0.0.629" + File.separator
-          + "MSBuild.SonarQube.Runner.exe begin /k:" + projectKey + " \"/n:JS with space\" /v:1.0 /d:sonar.host.url="
-          + ORCHESTRATOR.getServer().getUrl());
-  }
-
-  @Test
-  @WithOS(os = WithOS.OS.WINDOWS)
-  @WithPlugins({"msbuild"})
-  public void testFreestyleJobWithScannerForMsBuild_2_3_2() {
-    MSBuildScannerInstallation.install(jenkins, "2.3.2.573", false);
-    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
-      .configureMSBuild(ORCHESTRATOR);
-
-    String jobName = "msbuild-sq-runner-2_3_2";
-    String projectKey = "msbuild-sq-runner-2_3_2";
-    assertThat(getProject(projectKey)).isNull();
-    Build result = jenkinsOrch
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, jsFolder, projectKey, "JS with space", "1.0", "2.3.2.573", null, false)
-      .executeJobQuietly(jobName);
-
-    assertThat(result.getConsole())
-      .contains(
-        "tools" + File.separator + "hudson.plugins.sonar.MsBuildSQRunnerInstallation" + File.separator + "Scanner_for_MSBuild_2.3.2.573" + File.separator
-          + "MSBuild.SonarQube.Runner.exe begin /k:" + projectKey + " \"/n:JS with space\" /v:1.0 /d:sonar.host.url="
-          + ORCHESTRATOR.getServer().getUrl());
-  }
-
-  @Test
   @WithPlugins({"maven-plugin"})
-  public void testMavenJob() {
+  public void maven_job() {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMaven(ORCHESTRATOR);
 
@@ -253,7 +107,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Test
   @WithPlugins({"maven-plugin"})
-  public void testVariableInjection() throws JenkinsUtils.FailedExecutionException {
+  public void variable_injection() throws JenkinsUtils.FailedExecutionException {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMaven(ORCHESTRATOR);
 
@@ -271,7 +125,7 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
   @Test
   @WithPlugins({"maven-plugin"})
-  public void testFreestyleJobWithSonarMaven() {
+  public void freestyle_job_with_sonar_maven() {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMaven(ORCHESTRATOR);
 
@@ -323,23 +177,6 @@ public class SonarPluginTest extends AbstractJUnitTest {
 
     String script = "withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifyEnvVarsExist("withSonarQubeEnv-nonexistent", script);
-  }
-
-  @Test
-  @WithPlugins({"workflow-aggregator", "msbuild"})
-  @WithOS(os = WithOS.OS.WINDOWS)
-  public void msbuild_pipeline() {
-    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
-
-    String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n"
-      + "  bat 'xcopy " + Paths.get("projects/csharp").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n"
-      + "  def sqScannerMsBuildHome = tool 'Scanner for MSBuild " + EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION + "'\n"
-      + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe begin /k:csharp /n:CSharp /v:1.0\"\n"
-      + "  bat '\\\"%MSBUILD_PATH%\\\" /t:Rebuild'\n"
-      + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe end\"\n"
-      + "}";
-    assertThat(runAndGetLogs("csharp-pipeline", script)).contains("ANALYSIS SUCCESSFUL, you can browse");
   }
 
   @Test
@@ -415,83 +252,12 @@ public class SonarPluginTest extends AbstractJUnitTest {
     verifyEnvVarsExist(logs);
   }
 
-  private String runAndGetLogs(String jobName, String script) {
-    createPipelineJobFromScript(jobName, script);
-    return jenkinsOrch.executeJob(jobName).getConsole();
-  }
-
   private void verifyEnvVarsExist(String logs) {
     assertThat(logs).contains("SONAR_AUTH_TOKEN=");
     assertThat(logs).contains("SONAR_CONFIG_NAME=" + DEFAULT_SONARQUBE_INSTALLATION);
     assertThat(logs).contains("SONAR_HOST_URL=" + ORCHESTRATOR.getServer().getUrl());
     assertThat(logs).contains("SONAR_MAVEN_GOAL=sonar:sonar");
     assertThat(logs).contains("SONARQUBE_SCANNER_PARAMS={ \"sonar.host.url\" : \"" + StringEscapeUtils.escapeJson(ORCHESTRATOR.getServer().getUrl()) + "");
-  }
-
-  private void createPipelineJobFromScript(String jobName, String script) {
-    WorkflowJob job = jenkins.jobs.create(WorkflowJob.class, jobName);
-    job.script.set("node { withEnv(['MY_SONAR_URL=" + ORCHESTRATOR.getServer().getUrl() + "']) {" + script + "}}");
-    job.save();
-  }
-
-  private static String getDefaultQualityGateName() {
-    Qualitygates.ListWsResponse list = wsClient.qualitygates().list(new org.sonarqube.ws.client.qualitygates.ListRequest());
-
-    return list.getQualitygatesList()
-        .stream()
-        .filter(Qualitygates.ListWsResponse.QualityGate::getIsDefault)
-        .findFirst()
-        .orElseGet(() -> list.getQualitygates(0)).getName();
-  }
-
-  private void assertSonarUrlOnJob(String jobName, String projectKey) {
-      assertThat(jenkinsOrch.getSonarUrlOnJob(jobName)).isEqualTo(ORCHESTRATOR.getServer().getUrl() + "/dashboard?id=" + UrlEscapers.urlFormParameterEscaper().escape(projectKey));
-  }
-
-  private static void waitForComputationOnSQServer() {
-    new SynchronousAnalyzer(ORCHESTRATOR.getServer()).waitForDone();
-  }
-
-  private String enableWebhook() {
-    String url = StringUtils.removeEnd(jenkins.getCurrentUrl(), "/") + "/sonarqube-webhook/";
-    Webhooks.CreateWsResponse response = wsClient.webhooks().create(new CreateRequest()
-      .setName("Jenkins")
-      .setUrl(url)
-      .setSecret(SECRET)
-    );
-
-    return response.getWebhook().getKey();
-  }
-
-  public void reset() {
-    ORCHESTRATOR.getServer()
-      .newHttpCall("/api/projects/bulk_delete")
-      .setAdminCredentials()
-      .setMethod(HttpMethod.POST)
-      .setParams("q", "sonar")
-      .execute();
-  }
-
-  private static void disableGlobalWebhooks() {
-    wsClient.webhooks().list(new ListRequest()).getWebhooksList().forEach(p -> wsClient.webhooks().delete(new DeleteRequest().setWebhook(p.getKey())));
-  }
-
-  @CheckForNull
-  static Component getProject(String componentKey) {
-    try {
-      return wsClient.components().show(new ShowRequest().setComponent(componentKey)).getComponent();
-    } catch (HttpException e) {
-      if (e.code() == 404) {
-        return null;
-      }
-      throw new IllegalStateException(e);
-    }
-  }
-
-  private void setDefaultQualityGate(String qualityGateName) {
-    wsClient.wsConnector().call(
-        new PostRequest("api/qualitygates/set_as_default").setParam("name", qualityGateName)
-    );
   }
 
 }
