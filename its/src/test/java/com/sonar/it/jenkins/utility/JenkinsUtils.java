@@ -428,7 +428,7 @@ public class JenkinsUtils {
     select.selectByValue(optionValue);
   }
 
-  public void assertQGOnProjectPage(String jobName) {
+  public void assertPassedQGOnProjectPage(String jobName) {
     try {
       Thread.sleep(10000);
     } catch (InterruptedException e) {
@@ -440,6 +440,10 @@ public class JenkinsUtils {
     WebElement qg = findElement(By.className("sonar-qg"));
     assertThat(table).isNotNull();
     assertThat(qg).isNotNull();
+
+    WebElement status = findElement(qg, By.className("sonar-qg-status"));
+    assertThat(status).isNotNull();
+    assertThat(findElement(status, By.className("badge-success"))).isNotNull();
   }
 
   public JenkinsUtils configureMSBuild(Orchestrator orchestrator) {

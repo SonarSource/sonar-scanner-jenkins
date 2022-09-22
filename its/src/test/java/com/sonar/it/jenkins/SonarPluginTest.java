@@ -32,6 +32,7 @@ import org.sonarqube.ws.client.PostRequest;
 import org.sonarqube.ws.client.qualitygates.CreateConditionRequest;
 
 import static com.sonar.it.jenkins.utility.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
+import static com.sonar.it.jenkins.utility.JenkinsUtils.FailedExecutionException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -43,7 +44,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
   private final File consoleNetCoreFolder = new File(csharpFolder, "NetCoreConsoleApp");
 
   @Test
-  public void freestyle_job_with_sonar_qube_scanner_use_sq_scanner_3_3() {
+  public void scan_project_sonarqube_scanner_v_3_3() {
     SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
@@ -70,11 +71,11 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     waitForComputationOnSQServer();
     assertThat(getProject(projectKey)).isNotNull();
     assertSonarUrlOnJob(jobName, projectKey);
-    jenkinsOrch.assertQGOnProjectPage(jobName);
+    jenkinsOrch.assertPassedQGOnProjectPage(jobName);
   }
 
   @Test
-  public void test_freestyle_job_with_scanner_for_ms_build_net_core() {
+  public void scan_project_ms_build_net_core_scanner() {
     MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
     MSBuildScannerInstallation.install(jenkins, MS_BUILD_RECENT_VERSION, true);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
@@ -93,12 +94,13 @@ public class SonarPluginTest extends SonarPluginTestSuite {
 
   @Test
   @WithPlugins({"maven-plugin"})
-  public void maven_job() {
+  public void scan_project_using_maven_plugin() {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMaven(ORCHESTRATOR);
 
     String jobName = "abacus-maven";
     assertThat(getProject(MVN_PROJECT_KEY)).isNull();
+
     jenkinsOrch
       .newMavenJobConfig(jobName, new File("projects", "abacus"))
       .activateSonarPostBuildMaven()
@@ -112,7 +114,29 @@ public class SonarPluginTest extends SonarPluginTestSuite {
 
   @Test
   @WithPlugins({"maven-plugin"})
-  public void variable_injection() throws JenkinsUtils.FailedExecutionException {
+  public void scan_project_using_maven_plugin_passed_quality_gate() {
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
+      .configureMaven(ORCHESTRATOR);
+
+    String jobName = "abacus-freestyle";
+    assertThat(getProject(MVN_PROJECT_KEY)).isNull();
+
+    jenkinsOrch
+      .newFreestyleJobConfig(jobName, new File("projects", "abacus"))
+      .addMavenBuildStep("clean package")
+      .activateSonarPostBuildMaven()
+      .save();
+
+    jenkinsOrch.executeJob(jobName);
+    waitForComputationOnSQServer();
+    assertThat(getProject(MVN_PROJECT_KEY)).isNotNull();
+    assertSonarUrlOnJob(jobName, MVN_PROJECT_KEY);
+    jenkinsOrch.assertPassedQGOnProjectPage(jobName);
+  }
+
+  @Test
+  @WithPlugins({"maven-plugin"})
+  public void scan_project_using_maven_plugin_with_variable_injection() throws FailedExecutionException {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMaven(ORCHESTRATOR);
 
@@ -130,38 +154,15 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     waitForComputationOnSQServer();
     assertThat(getProject(MVN_PROJECT_KEY)).isNotNull();
     assertSonarUrlOnJob(jobName, MVN_PROJECT_KEY);
-    jenkinsOrch.assertQGOnProjectPage(jobName);
-  }
-
-  @Test
-  @WithPlugins({"maven-plugin"})
-  public void freestyle_job_with_sonar_maven() {
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
-      .configureMaven(ORCHESTRATOR);
-
-    String jobName = "abacus-freestyle";
-    assertThat(getProject(MVN_PROJECT_KEY)).isNull();
-
-    jenkinsOrch
-      .newFreestyleJobConfig(jobName, new File("projects", "abacus"))
-      .addMavenBuildStep("clean package")
-      .activateSonarPostBuildMaven()
-      .save();
-
-    jenkinsOrch.executeJob(jobName);
-
-    waitForComputationOnSQServer();
-    assertThat(getProject(MVN_PROJECT_KEY)).isNotNull();
-    assertSonarUrlOnJob(jobName, MVN_PROJECT_KEY);
-    jenkinsOrch.assertQGOnProjectPage(jobName);
+    jenkinsOrch.assertPassedQGOnProjectPage(jobName);
   }
 
   @Test
   @WithPlugins("workflow-aggregator")
-  public void no_sq_vars_without_env_wrapper() throws JenkinsUtils.FailedExecutionException {
+  public void env_wrapper_missing_sq_env_vars_should_be_nonexistent() throws JenkinsUtils.FailedExecutionException {
     String logs = runAndGetLogs("no-withSonarQubeEnv", DUMP_ENV_VARS_PIPELINE_CMD);
     try {
-      verifyEnvVarsExist(logs);
+      verifySonarqubeEnvVarsExist(logs);
     } catch (AssertionError e) {
       return;
     }
@@ -174,7 +175,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String script = "withSonarQubeEnv { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
-    runAndVerifyEnvVarsExist("withSonarQubeEnv-parameterless", script);
+    runAndVerifySonarqubeEnvVarsExist("withSonarQubeEnv-parameterless", script);
   }
 
   @Test
@@ -183,7 +184,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
-    runAndVerifyEnvVarsExist("withSonarQubeEnv-SonarQube", script);
+    runAndVerifySonarqubeEnvVarsExist("withSonarQubeEnv-SonarQube", script);
   }
 
   @Test(expected = JenkinsUtils.FailedExecutionException.class)
@@ -192,12 +193,12 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String script = "withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
-    runAndVerifyEnvVarsExist("withSonarQubeEnv-nonexistent", script);
+    runAndVerifySonarqubeEnvVarsExist("withSonarQubeEnv-nonexistent", script);
   }
 
   @Test
   @WithPlugins("workflow-aggregator")
-  public void qualitygate_pipeline_ok() {
+  public void quality_gate_pipeline_result_passed() {
     SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
@@ -212,7 +213,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
 
   @Test
   @WithPlugins("workflow-aggregator")
-  public void qualitygate_pipeline_ko() {
+  public void quality_gate_pipeline_result_failed() {
     SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
@@ -238,12 +239,12 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     }
   }
 
-  private void runAndVerifyEnvVarsExist(String jobName, String script) {
+  private void runAndVerifySonarqubeEnvVarsExist(String jobName, String script) {
     String logs = runAndGetLogs(jobName, script);
-    verifyEnvVarsExist(logs);
+    verifySonarqubeEnvVarsExist(logs);
   }
 
-  private void verifyEnvVarsExist(String logs) {
+  private void verifySonarqubeEnvVarsExist(String logs) {
     assertThat(logs).contains("SONAR_AUTH_TOKEN=");
     assertThat(logs).contains("SONAR_CONFIG_NAME=" + DEFAULT_SONARQUBE_INSTALLATION);
     assertThat(logs).contains("SONAR_HOST_URL=" + ORCHESTRATOR.getServer().getUrl());
