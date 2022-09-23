@@ -50,9 +50,10 @@ RUN INSTALLED_CHROME_VERSION=$(apt-cache policy google-chrome-stable | grep Inst
   && mv /opt/selenium/chromedriver /usr/bin/chromedriver \
   && chmod 755 /usr/bin/chromedriver
 
-RUN echo "Installing dotnet 3.1.423" \
+# https://community.sonarsource.com/t/no-usable-version-of-the-libssl-was-found/40941/4
+RUN echo "Installing dotnet 2.2" \
   && set -x \
-  && wget --no-verbose -O /tmp/dotnet.tar.gz https://download.visualstudio.microsoft.com/download/pr/e137cdac-0e15-46ec-bd60-14fe6ad50c41/30c102677cc4bd0f117cc026781ec5e8/dotnet-sdk-3.1.423-linux-x64.tar.gz \
+  && wget --no-verbose -O /tmp/dotnet.tar.gz https://download.microsoft.com/download/f/c/1/fc16c864-b374-4668-83a2-f9f880928b2d/dotnet-sdk-2.1.202-linux-x64.tar.gz \
   && mkdir -p /usr/share/dotnet/ \
   && tar zxf /tmp/dotnet.tar.gz -C /usr/share/dotnet/ && rm /tmp/dotnet.tar.gz \
   && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet \
