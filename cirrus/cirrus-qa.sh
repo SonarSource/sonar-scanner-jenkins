@@ -14,6 +14,7 @@ cd its
 # "ERROR: Multiple CI environments are detected: [CirrusCI, Jenkins]. Please check environment variables or set property sonar.ci.autoconfig.disabled to true."
 # We then need to explicly set the variable to false. Another solution would to do this in the IT itself, but couldn't find a way to do it yet.
 CIRRUS_CI=false
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
 mvn -B -e -Dsonar.runtimeVersion="$SQ_VERSION" clean verify
 
 
