@@ -51,6 +51,8 @@ RUN INSTALLED_CHROME_VERSION=$(apt-cache policy google-chrome-stable | grep Inst
   && chmod 755 /usr/bin/chromedriver
 
 # https://community.sonarsource.com/t/no-usable-version-of-the-libssl-was-found/40941/4
+RUN apt-get install -y libssl-dev
+RUN export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
 RUN echo "Installing dotnet 2.2" \
   && set -x \
   && wget --no-verbose -O /tmp/dotnet.tar.gz https://download.microsoft.com/download/f/c/1/fc16c864-b374-4668-83a2-f9f880928b2d/dotnet-sdk-2.1.202-linux-x64.tar.gz \
