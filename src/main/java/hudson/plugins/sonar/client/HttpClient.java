@@ -19,23 +19,62 @@
  */
 package hudson.plugins.sonar.client;
 
+import com.google.common.base.Strings;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import javax.annotation.Nullable;
-import org.apache.commons.lang.StringUtils;
-import org.sonarqube.ws.client.GetRequest;
-import org.sonarqube.ws.client.HttpConnector;
-import org.sonarqube.ws.client.WsResponse;
+import okhttp3.Credentials;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import org.sonarqube.ws.client.HttpException;
 
 public class HttpClient {
-  public String getHttp(String url, @Nullable String token) {
-    String baseUrl = StringUtils.substringBeforeLast(url, "/");
-    String path = StringUtils.substringAfterLast(url, "/");
-    HttpConnector httpConnector = HttpConnector.newBuilder()
-      .userAgent("Scanner for Jenkins")
-      .url(baseUrl)
-      .credentials(token, null)
-      .build();
-    WsResponse response = httpConnector.call(new GetRequest(path));
-    response.failIfNotSuccessful();
-    return response.content();
+  private final OkHttpClient okHttpClient;
+
+  public HttpClient(OkHttpClient okHttpClient) {
+    this.okHttpClient = okHttpClient;
   }
+
+  public String getHttp(String url, @Nullable String token) {
+    Request request = newRequest(url, token);
+    Response response = httpCall(request);
+    String content = getContent(response);
+
+    if (isSuccessful(response)) {
+      return content;
+    } else {
+      throw new HttpException(url, response.code(), content);
+    }
+  }
+
+  private static Request newRequest(String url, @Nullable String token) {
+    Request.Builder builder = new Request.Builder().url(url);
+    if (!Strings.isNullOrEmpty(token)) {
+      builder.addHeader("Authorization", Credentials.basic(token, "", StandardCharsets.UTF_8));
+    }
+    return builder.build();
+  }
+
+  private static String getContent(Response response) {
+    try (ResponseBody body = response.body()) {
+      return body.string();
+    } catch (IOException e) {
+      throw new IllegalStateException("Fail to read response of " + response.request().url(), e);
+    }
+  }
+
+  private Response httpCall(Request request) {
+    try {
+      return okHttpClient.newCall(request).execute();
+    } catch (IOException e) {
+      throw new IllegalStateException("Fail to request " + request.url(), e);
+    }
+  }
+
+  private static boolean isSuccessful(Response response) {
+    return response.code() >= 200 && response.code() < 300;
+  }
+
 }

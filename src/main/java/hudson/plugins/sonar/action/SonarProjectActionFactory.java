@@ -28,6 +28,7 @@ import hudson.model.ProminentProjectAction;
 import hudson.model.Run;
 import hudson.plugins.sonar.SonarBuildWrapper;
 import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.OkHttpClientSingleton;
 import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
 import hudson.plugins.sonar.utils.SonarUtils;
@@ -47,7 +48,7 @@ public class SonarProjectActionFactory extends TransientActionFactory<Job> {
   private SQProjectResolver resolver;
 
   public SonarProjectActionFactory() {
-    resolver = new SQProjectResolver(new HttpClient());
+    resolver = new SQProjectResolver(new HttpClient(OkHttpClientSingleton.getInstance()));
   }
 
   @Override
