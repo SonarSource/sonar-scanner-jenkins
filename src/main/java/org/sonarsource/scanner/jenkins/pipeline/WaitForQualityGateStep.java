@@ -36,6 +36,7 @@ import hudson.model.queue.Tasks;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.OkHttpClientSingleton;
 import hudson.plugins.sonar.client.WsClient;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.security.ACL;
@@ -234,7 +235,8 @@ public class WaitForQualityGateStep extends Step implements Serializable {
 
       log("Checking status of SonarQube task '%s' on server '%s'", step.taskId, step.getInstallationName());
       SonarInstallation inst = getInstallation();
-      WsClient wsClient = new WsClient(new HttpClient(), step.getServerUrl(), SonarUtils.getAuthenticationToken(getContextClass(Run.class), inst, step.credentialsId));
+      WsClient wsClient = new WsClient(new HttpClient(OkHttpClientSingleton.getInstance()),
+        step.getServerUrl(), SonarUtils.getAuthenticationToken(getContextClass(Run.class), inst, step.credentialsId));
       WsClient.CETask ceTask = wsClient.getCETask(step.getTaskId());
       return checkQualityGate(ceTask.getStatus(), () -> wsClient.requestQualityGateStatus(ceTask.getAnalysisId()), true);
     }
