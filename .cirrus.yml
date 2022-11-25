@@ -47,7 +47,7 @@ build_task:
     memory: 3G
   env:
     SONAR_TOKEN: VAULT[development/kv/data/next data.token]
-    SONAR_HOST_URL: https://next.sonarqube.com/sonarqube
+    SONAR_HOST_URL: VAULT[development/kv/data/next data.url]
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   script:
