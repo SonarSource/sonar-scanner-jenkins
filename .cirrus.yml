@@ -1,6 +1,3 @@
-# content of service-account-credentials.json, used to access to Google Cloud Platform
-gcp_credentials: ENCRYPTED[!e5f7207bd8d02d383733bef47e18296ac32e3b7d22eb480354e8dd8fdc0004be45a8a4e72c797bd66ee94eb3340fa363!]
-
 #
 # ENV VARIABLES
 #
@@ -29,9 +26,9 @@ env:
 # RE-USABLE CONFIGS
 #
 container_definition: &CONTAINER_DEFINITION
-  image: us.gcr.io/sonarqube-team/base:j11-m3-latest
-  cluster_name: cirrus-ci-cluster
-  zone: us-central1-a
+  image: ${CIRRUS_AWS_ACCOUNT}.dkr.ecr.eu-central-1.amazonaws.com/base:j11-m3-latest
+  cluster_name: ${CIRRUS_CLUSTER_NAME}
+  region: eu-central-1
   namespace: default
 
 only_qa: &ONLY_QA
@@ -41,7 +38,7 @@ only_qa: &ONLY_QA
 # TASKS
 #
 build_task:
-  gke_container:
+  eks_container:
     <<: *CONTAINER_DEFINITION
     cpu: 2
     memory: 3G
@@ -60,12 +57,16 @@ linux_qa_task:
   depends_on:
     - build
   <<: *ONLY_QA
-  gke_container:
+  eks_container:
     dockerfile: its/docker/Dockerfile
-    builder_image_project: sonarqube-team
-    builder_image_name: docker-builder-v20200915
-    cluster_name: cirrus-ci-cluster
-    zone: us-central1-a
+    docker_arguments:
+￼      CIRRUS_AWS_ACCOUNT: ${CIRRUS_AWS_ACCOUNT}
+ ￼  cluster_name: ${CIRRUS_CLUSTER_NAME}
+￼   builder_role: cirrus-builder
+￼   builder_image: docker-builder-v*
+￼   builder_instance_type: t2.small
+ ￼  builder_subnet_id: ${CIRRUS_AWS_SUBNET}
+￼   region: eu-central-1
     namespace: default
     cpu: 3
     memory: 8G
@@ -99,7 +100,7 @@ promote_task:
   depends_on:
     - linux_qa
   <<: *ONLY_QA
-  gke_container:
+  eks_container:
     <<: *CONTAINER_DEFINITION
     cpu: 0.5
     memory: 500M

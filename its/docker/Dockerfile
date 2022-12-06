@@ -12,7 +12,8 @@
 # Google Cloud Container Registry. See section "gke_container" of .cirrus.yml
 #------------------------------------------------------------------------------
 
-FROM us.gcr.io/sonarqube-team/base:j11-m3-latest
+ARG CIRRUS_AWS_ACCOUNT
+FROM ${CIRRUS_AWS_ACCOUNT}.dkr.ecr.eu-central-1.amazonaws.com/base:j11-m3-latest as tools
 
 USER root
 
