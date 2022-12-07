@@ -9,7 +9,7 @@
 #   docker run -it sonar-scanner-jenkins-qa bash
 #
 # CirrusCI builds the image when needed. No need to manually upload it to
-# Google Cloud Container Registry. See section "gke_container" of .cirrus.yml
+# AWS ECR. See section "eks_container" of .cirrus.yml
 #------------------------------------------------------------------------------
 
 ARG CIRRUS_AWS_ACCOUNT
