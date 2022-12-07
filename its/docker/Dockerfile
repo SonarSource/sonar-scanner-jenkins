@@ -30,9 +30,9 @@ RUN apt-get install -y nodejs
 #==============================================================================
 # Google Chrome, for integration tests
 #==============================================================================
-ARG CHROME_VERSION=85.0.4183.102-1
+ARG CHROME_VERSION=108.0.5359.94-1
 RUN echo "Using Chrome version: $CHROME_VERSION" \
-  && wget --no-verbose -O /tmp/chrome_amd64.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
+  && wget --no-verbose -O /tmp/chrome_amd64.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
   # Ignore install errors; we will try and fix them below.
   && dpkg -i /tmp/chrome_amd64.deb || true
 RUN apt-get install -fy
