@@ -12,7 +12,7 @@
 # AWS ECR. See section "eks_container" of .cirrus.yml
 #------------------------------------------------------------------------------
 
-ARG CIRRUS_AWS_ACCOUNT
+ARG CIRRUS_AWS_ACCOUNT=275878209202
 FROM ${CIRRUS_AWS_ACCOUNT}.dkr.ecr.eu-central-1.amazonaws.com/base:j11-m3-latest as tools
 
 USER root
