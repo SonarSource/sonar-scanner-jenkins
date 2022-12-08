@@ -9,10 +9,11 @@
 #   docker run -it sonar-scanner-jenkins-qa bash
 #
 # CirrusCI builds the image when needed. No need to manually upload it to
-# Google Cloud Container Registry. See section "gke_container" of .cirrus.yml
+# AWS ECR. See section "eks_container" of .cirrus.yml
 #------------------------------------------------------------------------------
 
-FROM us.gcr.io/sonarqube-team/base:j11-m3-latest
+ARG CIRRUS_AWS_ACCOUNT=275878209202
+FROM ${CIRRUS_AWS_ACCOUNT}.dkr.ecr.eu-central-1.amazonaws.com/base:j11-m3-latest as tools
 
 USER root
 
@@ -29,9 +30,9 @@ RUN apt-get install -y nodejs
 #==============================================================================
 # Google Chrome, for integration tests
 #==============================================================================
-ARG CHROME_VERSION=85.0.4183.102-1
+ARG CHROME_VERSION=108.0.5359.94-1
 RUN echo "Using Chrome version: $CHROME_VERSION" \
-  && wget --no-verbose -O /tmp/chrome_amd64.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
+  && wget --no-verbose -O /tmp/chrome_amd64.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
   # Ignore install errors; we will try and fix them below.
   && dpkg -i /tmp/chrome_amd64.deb || true
 RUN apt-get install -fy
@@ -59,5 +60,12 @@ RUN echo "Installing dotnet 2.2" \
   && chmod -R 755 /usr/share/dotnet \
   && chmod 755 /usr/bin/dotnet
 RUN dotnet --info
+
+# .NET < 6 requires OpenSSL 1 which is not installed by default on Ubuntu 22.04
+# https://github.com/dotnet/core/issues/7038#issuecomment-1110377345
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
+RUN dpkg -i libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
+RUN rm libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
+RUN apt-get install libicu70
 
 USER sonarsource
