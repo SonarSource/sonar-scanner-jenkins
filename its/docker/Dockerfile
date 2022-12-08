@@ -61,4 +61,10 @@ RUN echo "Installing dotnet 2.2" \
   && chmod 755 /usr/bin/dotnet
 RUN dotnet --info
 
+# https://github.com/dotnet/core/issues/7038#issuecomment-1110377345
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
+RUN dpkg -i libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
+RUN rm libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
+RUN apt-get install libicu70
+
 USER sonarsource
