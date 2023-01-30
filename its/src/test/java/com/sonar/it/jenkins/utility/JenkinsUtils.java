@@ -125,7 +125,11 @@ public class JenkinsUtils {
     return this;
   }
 
-  public JenkinsUtils addSonarMavenBuildStep(Orchestrator orchestrator) {
+  public JenkinsUtils newFreestyleJobWithMaven(String jobName, File projectPath, String branch, Orchestrator orchestrator) {
+    newFreestyleJobConfig(jobName, projectPath);
+
+    findElement(By.name("hudson-plugins-sonar-SonarBuildWrapper")).click();
+
     findElement(buttonByText("Add build step")).click();
     findElement(By.linkText("Invoke top-level Maven targets")).click();
     setTextValue(findElement(driver, By.xpath("(//input[@name='_.targets'])[2]")), getMavenParams(orchestrator));
@@ -268,10 +272,8 @@ public class JenkinsUtils {
     jenkins.configure();
 
     WebElement checkbox = findElement(By.name("enableBuildWrapper"));
-    //get parent of current element as it is clickable
-    WebElement clickable = checkbox.findElement(By.xpath(".."));
     if (checkbox.isSelected() != enable) {
-      clickable.click();
+      checkbox.click();
     }
     findElement(buttonByText("Save")).click();
     return this;

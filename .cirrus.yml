@@ -78,10 +78,10 @@ linux_qa_task:
       # If updating the JENKINS_VERSION, make sure that all installed plugins are compatible. See com.sonar.it.jenkins.SonarPluginTest
       # https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
       - SQ_VERSION: LATEST_RELEASE[8.9]
-        JENKINS_VERSION: 2.361.1
+        JENKINS_VERSION: 2.289.1
         VERSION_OVERRIDES: git-server=1.9,sshd=3.0.3
       - SQ_VERSION: DEV
-        JENKINS_VERSION: 2.361.1
+        JENKINS_VERSION: 2.289.1
         VERSION_OVERRIDES: git-server=1.9,sshd=3.0.3
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
