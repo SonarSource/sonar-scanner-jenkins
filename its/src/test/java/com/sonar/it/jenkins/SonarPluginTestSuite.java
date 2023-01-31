@@ -60,7 +60,7 @@ public class SonarPluginTestSuite extends AbstractJUnitTest {
   private static final String SECRET = "very_secret_secret";
   private static String DEFAULT_QUALITY_GATE_NAME;
   protected static String EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION;
-  protected static final String MS_BUILD_RECENT_VERSION = "4.7.1.2311";
+  protected static final String MS_BUILD_RECENT_VERSION = "5.10.0.59947";
   protected static WsClient wsClient;
   protected JenkinsUtils jenkinsOrch;
   protected final File csharpFolder = new File("projects", "csharp");
