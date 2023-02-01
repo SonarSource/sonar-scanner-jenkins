@@ -21,7 +21,7 @@ package com.sonar.it.jenkins;
 
 import com.google.common.net.UrlEscapers;
 import com.sonar.it.jenkins.utility.JenkinsUtils;
-import com.sonar.it.jenkins.utility.ScannerSupportedVersionProvider;
+import com.sonar.it.jenkins.utility.ScannerAvailableVersionsProvider;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.container.Server;
@@ -55,12 +55,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @WithPlugins({"sonar", "credentials@2.6.1", "filesystem_scm"})
 public class SonarPluginTestSuite extends AbstractJUnitTest {
-
-  private static final ScannerSupportedVersionProvider SCANNER_VERSION_PROVIDER = new ScannerSupportedVersionProvider();
   private static final String SECRET = "very_secret_secret";
   private static String DEFAULT_QUALITY_GATE_NAME;
-  protected static String EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION;
-  protected static final String MS_BUILD_RECENT_VERSION = "4.7.1.2311";
+  protected static String EARLIEST_JENKINS_INSTALLABLE_MSBUILD_VERSION;
+  protected static String LATEST_JENKINS_MSBUILD_VERSION;
   protected static WsClient wsClient;
   protected JenkinsUtils jenkinsOrch;
   protected final File csharpFolder = new File("projects", "csharp");
@@ -83,8 +81,11 @@ public class SonarPluginTestSuite extends AbstractJUnitTest {
       .build());
     DEFAULT_QUALITY_GATE_NAME = getDefaultQualityGateName();
 
-    EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION = SCANNER_VERSION_PROVIDER
-        .getEarliestSupportedVersion("sonar-scanner-msbuild");
+    ScannerAvailableVersionsProvider scannerProvider = new ScannerAvailableVersionsProvider();
+    ScannerAvailableVersionsProvider.ScannerAvailableVersions scannerVersions = scannerProvider.getScannerAvailableVersions("sonar-scanner-msbuild");
+
+    EARLIEST_JENKINS_INSTALLABLE_MSBUILD_VERSION = scannerVersions.getOldest();
+    LATEST_JENKINS_MSBUILD_VERSION = scannerVersions.getLatest();
   }
 
   @Before

@@ -27,27 +27,49 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-public class ScannerSupportedVersionProvider {
+public class ScannerAvailableVersionsProvider {
   private final OkHttpClient client = new OkHttpClient().newBuilder()
       .connectTimeout(10, TimeUnit.SECONDS)
       .readTimeout(30, TimeUnit.SECONDS)
       .build();
 
-  /*
-  Based on https://github.com/jenkins-infra/crawler/blob/master/sonarqubescannermsbuild.groovy
-   */
-  public String getEarliestSupportedVersion(String scannerNameRepo) {
+  public ScannerAvailableVersions getScannerAvailableVersions(String scannerNameRepo) {
+    JSONArray versions;
     try {
-      HttpUrl.Builder httpBuilder = HttpUrl
-          .parse(String.format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
+      HttpUrl.Builder httpBuilder = HttpUrl.parse(String.format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
+      httpBuilder.addQueryParameter("per_page", "30");
+      httpBuilder.addQueryParameter("page", "1");
       Request request = new Request.Builder().url(httpBuilder.build()).build();
       Response response = client.newCall(request).execute();
-      JSONArray array = new JSONArray(response.body().string());
-      return ((JSONObject) array.get(array.length() - 1)).getString("tag_name");
+      versions = new JSONArray(response.body().string());
     } catch (IOException | JSONException e) {
       throw new IllegalStateException(String.format("Could not fetch earliest supported version of %s", scannerNameRepo), e);
+    }
+    ScannerAvailableVersions scannerAvailableVersions = new ScannerAvailableVersions();
+    scannerAvailableVersions.setLatest(versions.getJSONObject(0).getString("tag_name"));
+    scannerAvailableVersions.setOldest(versions.getJSONObject(versions.length() - 1).getString("tag_name"));
+    return scannerAvailableVersions;
+  }
+
+  public static class ScannerAvailableVersions {
+    private String latest;
+    private String oldest;
+
+    public String getLatest() {
+      return latest;
+    }
+
+    public void setLatest(String latest) {
+      this.latest = latest;
+    }
+
+    public String getOldest() {
+      return oldest;
+    }
+
+    public void setOldest(String oldest) {
+      this.oldest = oldest;
     }
   }
 }

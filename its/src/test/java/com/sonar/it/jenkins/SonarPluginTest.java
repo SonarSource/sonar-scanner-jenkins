@@ -76,15 +76,18 @@ public class SonarPluginTest extends SonarPluginTestSuite {
 
   @Test
   public void scan_project_ms_build_net_core_scanner() {
-    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
-    MSBuildScannerInstallation.install(jenkins, MS_BUILD_RECENT_VERSION, true);
+    if (!versionsAreDifferent(EARLIEST_JENKINS_INSTALLABLE_MSBUILD_VERSION, LATEST_JENKINS_MSBUILD_VERSION)) {
+      return;
+    }
+    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_INSTALLABLE_MSBUILD_VERSION, false);
+    MSBuildScannerInstallation.install(jenkins, LATEST_JENKINS_MSBUILD_VERSION, true);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String jobName = "csharp-core";
     String projectKey = "csharp-core";
     assertThat(getProject(projectKey)).isNull();
     jenkinsOrch
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", MS_BUILD_RECENT_VERSION, "NetCoreConsoleApp.sln", true)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", LATEST_JENKINS_MSBUILD_VERSION, "NetCoreConsoleApp.sln", true)
       .executeJob(jobName);
 
     waitForComputationOnSQServer();
@@ -250,5 +253,9 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     assertThat(logs).contains("SONAR_HOST_URL=" + ORCHESTRATOR.getServer().getUrl());
     assertThat(logs).contains("SONAR_MAVEN_GOAL=sonar:sonar");
     assertThat(logs).contains("SONARQUBE_SCANNER_PARAMS={ \"sonar.host.url\" : \"" + StringEscapeUtils.escapeJson(ORCHESTRATOR.getServer().getUrl()) + "");
+  }
+
+  private boolean versionsAreDifferent(String v1, String v2) {
+    return v1 != v2;
   }
 }
