@@ -28,48 +28,41 @@ import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-public class ScannerAvailableVersionsProvider {
+public class InstallableScannerVersionsProvider {
   private final OkHttpClient client = new OkHttpClient().newBuilder()
       .connectTimeout(10, TimeUnit.SECONDS)
       .readTimeout(30, TimeUnit.SECONDS)
       .build();
 
-  public ScannerAvailableVersions getScannerAvailableVersions(String scannerNameRepo) {
+  public InstallableScannerVersions getScannerInstallableVersions(String scannerNameRepo) {
     JSONArray versions;
     try {
       HttpUrl.Builder httpBuilder = HttpUrl.parse(String.format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
-      httpBuilder.addQueryParameter("per_page", "30");
-      httpBuilder.addQueryParameter("page", "1");
       Request request = new Request.Builder().url(httpBuilder.build()).build();
       Response response = client.newCall(request).execute();
       versions = new JSONArray(response.body().string());
     } catch (IOException | JSONException e) {
       throw new IllegalStateException(String.format("Could not fetch earliest supported version of %s", scannerNameRepo), e);
     }
-    ScannerAvailableVersions scannerAvailableVersions = new ScannerAvailableVersions();
-    scannerAvailableVersions.setLatest(versions.getJSONObject(0).getString("tag_name"));
-    scannerAvailableVersions.setOldest(versions.getJSONObject(versions.length() - 1).getString("tag_name"));
-    return scannerAvailableVersions;
+    return new InstallableScannerVersions(
+      versions.getJSONObject(versions.length() - 1).getString("tag_name"),
+      versions.getJSONObject(0).getString("tag_name")
+    );
   }
 
-  public static class ScannerAvailableVersions {
-    private String latest;
-    private String oldest;
+  public static class InstallableScannerVersions {
+    private final String oldestVersion;
+    private final String latestVersion;
 
-    public String getLatest() {
-      return latest;
+    public InstallableScannerVersions(String oldestVersion, String latestVersion) {
+      this.oldestVersion = oldestVersion;
+      this.latestVersion = latestVersion;
     }
-
-    public void setLatest(String latest) {
-      this.latest = latest;
+    public String getOldestVersion() {
+      return oldestVersion;
     }
-
-    public String getOldest() {
-      return oldest;
-    }
-
-    public void setOldest(String oldest) {
-      this.oldest = oldest;
+    public String getLatestVersion() {
+      return latestVersion;
     }
   }
 }

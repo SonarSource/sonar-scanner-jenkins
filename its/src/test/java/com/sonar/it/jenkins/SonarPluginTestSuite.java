@@ -21,7 +21,8 @@ package com.sonar.it.jenkins;
 
 import com.google.common.net.UrlEscapers;
 import com.sonar.it.jenkins.utility.JenkinsUtils;
-import com.sonar.it.jenkins.utility.ScannerAvailableVersionsProvider;
+import com.sonar.it.jenkins.utility.InstallableScannerVersionsProvider;
+import com.sonar.it.jenkins.utility.InstallableScannerVersionsProvider.InstallableScannerVersions;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.container.Server;
@@ -57,8 +58,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SonarPluginTestSuite extends AbstractJUnitTest {
   private static final String SECRET = "very_secret_secret";
   private static String DEFAULT_QUALITY_GATE_NAME;
-  protected static String EARLIEST_JENKINS_INSTALLABLE_MSBUILD_VERSION;
-  protected static String LATEST_JENKINS_MSBUILD_VERSION;
+  protected static String OLDEST_INSTALLABLE_MSBUILD_VERSION;
+  protected static String LATEST_INSTALLABLE_MSBUILD_VERSION;
   protected static WsClient wsClient;
   protected JenkinsUtils jenkinsOrch;
   protected final File csharpFolder = new File("projects", "csharp");
@@ -81,11 +82,11 @@ public class SonarPluginTestSuite extends AbstractJUnitTest {
       .build());
     DEFAULT_QUALITY_GATE_NAME = getDefaultQualityGateName();
 
-    ScannerAvailableVersionsProvider scannerProvider = new ScannerAvailableVersionsProvider();
-    ScannerAvailableVersionsProvider.ScannerAvailableVersions scannerVersions = scannerProvider.getScannerAvailableVersions("sonar-scanner-msbuild");
+    InstallableScannerVersionsProvider installableScannerVersionsProvider = new InstallableScannerVersionsProvider();
+    InstallableScannerVersions installableMSBuildScannerVersions = installableScannerVersionsProvider.getScannerInstallableVersions("sonar-scanner-msbuild");
 
-    EARLIEST_JENKINS_INSTALLABLE_MSBUILD_VERSION = scannerVersions.getOldest();
-    LATEST_JENKINS_MSBUILD_VERSION = scannerVersions.getLatest();
+    OLDEST_INSTALLABLE_MSBUILD_VERSION = installableMSBuildScannerVersions.getOldestVersion();
+    LATEST_INSTALLABLE_MSBUILD_VERSION = installableMSBuildScannerVersions.getLatestVersion();
   }
 
   @Before
