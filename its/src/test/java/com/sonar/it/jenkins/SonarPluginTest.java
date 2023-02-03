@@ -222,7 +222,13 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     String previousDefault = getDefaultQualityGateName();
     Qualitygates.CreateResponse simple = wsClient.qualitygates().create(new org.sonarqube.ws.client.qualitygates.CreateRequest().setName("AlwaysFail"));
     setDefaultQualityGate(simple.getName());
-    wsClient.qualitygates().createCondition(new CreateConditionRequest().setGateId(simple.getId()).setMetric("lines").setOp("GT").setError("0"));
+    wsClient.wsConnector().call(
+      new PostRequest("api/qualitygates/create_condition")
+        .setParam("gateName", simple.getName())
+        .setParam("metric", "lines")
+        .setParam("op", "GT")
+        .setParam("error", "0")
+    );
 
     try {
       String script = SonarQubeScriptBuilder.newScript()

@@ -61,6 +61,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.sonarqube.ws.Qualitygates;
 import org.sonarqube.ws.UserTokens;
 import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.PostRequest;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.qualitygates.ListRequest;
@@ -338,9 +339,12 @@ public class JenkinsUtils {
     Qualitygates.ListWsResponse qualityGates = wsClient.qualitygates().list(new ListRequest());
     assertThat(qualityGates.getQualitygatesList().size()).isPositive();
 
-    String id = qualityGates.getQualitygates(0).getId();
-    wsClient.qualitygates().setAsDefault(new SetAsDefaultRequest().setId(id));
-    System.out.println("Set default QG: " + id);
+    String name = qualityGates.getQualitygates(0).getName();
+    wsClient.wsConnector().call(
+      new PostRequest("api/qualitygates/set_as_default").setParam("name", name)
+    );
+
+    System.out.println("Set default QG: " + name);
   }
 
   public String generateToken(Orchestrator orchestrator) {
