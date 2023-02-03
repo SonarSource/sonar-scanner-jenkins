@@ -27,27 +27,42 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-public class ScannerSupportedVersionProvider {
+public class InstallableScannerVersionsProvider {
   private final OkHttpClient client = new OkHttpClient().newBuilder()
       .connectTimeout(10, TimeUnit.SECONDS)
       .readTimeout(30, TimeUnit.SECONDS)
       .build();
 
-  /*
-  Based on https://github.com/jenkins-infra/crawler/blob/master/sonarqubescannermsbuild.groovy
-   */
-  public String getEarliestSupportedVersion(String scannerNameRepo) {
+  public InstallableScannerVersions getScannerInstallableVersions(String scannerNameRepo) {
+    JSONArray versions;
     try {
-      HttpUrl.Builder httpBuilder = HttpUrl
-          .parse(String.format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
+      HttpUrl.Builder httpBuilder = HttpUrl.parse(String.format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
       Request request = new Request.Builder().url(httpBuilder.build()).build();
       Response response = client.newCall(request).execute();
-      JSONArray array = new JSONArray(response.body().string());
-      return ((JSONObject) array.get(array.length() - 1)).getString("tag_name");
+      versions = new JSONArray(response.body().string());
     } catch (IOException | JSONException e) {
       throw new IllegalStateException(String.format("Could not fetch earliest supported version of %s", scannerNameRepo), e);
+    }
+    return new InstallableScannerVersions(
+      versions.getJSONObject(versions.length() - 1).getString("tag_name"),
+      versions.getJSONObject(0).getString("tag_name")
+    );
+  }
+
+  public static class InstallableScannerVersions {
+    private final String oldestVersion;
+    private final String latestVersion;
+
+    public InstallableScannerVersions(String oldestVersion, String latestVersion) {
+      this.oldestVersion = oldestVersion;
+      this.latestVersion = latestVersion;
+    }
+    public String getOldestVersion() {
+      return oldestVersion;
+    }
+    public String getLatestVersion() {
+      return latestVersion;
     }
   }
 }

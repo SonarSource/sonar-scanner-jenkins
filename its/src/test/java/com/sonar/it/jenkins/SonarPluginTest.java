@@ -31,6 +31,7 @@ import org.sonarqube.ws.Qualitygates;
 import org.sonarqube.ws.client.PostRequest;
 import org.sonarqube.ws.client.qualitygates.CreateConditionRequest;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.sonar.it.jenkins.utility.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
 import static com.sonar.it.jenkins.utility.JenkinsUtils.FailedExecutionException;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,15 +77,16 @@ public class SonarPluginTest extends SonarPluginTestSuite {
 
   @Test
   public void scan_project_ms_build_net_core_scanner() {
-    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
-    MSBuildScannerInstallation.install(jenkins, MS_BUILD_RECENT_VERSION, true);
+    checkState(!OLDEST_INSTALLABLE_MSBUILD_VERSION.equals(LATEST_INSTALLABLE_MSBUILD_VERSION), "The test aims to install 2 different versions of the Scanner MSBuild, but they are not.");
+    MSBuildScannerInstallation.install(jenkins, OLDEST_INSTALLABLE_MSBUILD_VERSION, false);
+    MSBuildScannerInstallation.install(jenkins, LATEST_INSTALLABLE_MSBUILD_VERSION, true);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String jobName = "csharp-core";
     String projectKey = "csharp-core";
     assertThat(getProject(projectKey)).isNull();
     jenkinsOrch
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", MS_BUILD_RECENT_VERSION, "NetCoreConsoleApp.sln", true)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", LATEST_INSTALLABLE_MSBUILD_VERSION, "NetCoreConsoleApp.sln", true)
       .executeJob(jobName);
 
     waitForComputationOnSQServer();

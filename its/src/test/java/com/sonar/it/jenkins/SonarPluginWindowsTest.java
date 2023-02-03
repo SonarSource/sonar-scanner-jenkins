@@ -40,12 +40,12 @@ public class SonarPluginWindowsTest extends SonarPluginTestSuite {
   @Test
   @WithPlugins({"workflow-aggregator", "msbuild"})
   public void msbuild_pipeline() {
-    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
+    MSBuildScannerInstallation.install(jenkins, OLDEST_INSTALLABLE_MSBUILD_VERSION, false);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
 
     String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n"
       + "  bat 'xcopy " + Paths.get("projects/csharp").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n"
-      + "  def sqScannerMsBuildHome = tool 'Scanner for MSBuild " + EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION + "'\n"
+      + "  def sqScannerMsBuildHome = tool 'Scanner for MSBuild " + OLDEST_INSTALLABLE_MSBUILD_VERSION + "'\n"
       + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe begin /k:csharp /n:CSharp /v:1.0\"\n"
       + "  bat '\\\"%MSBUILD_PATH%\\\" /t:Rebuild'\n"
       + "  bat \"${sqScannerMsBuildHome}\\\\MSBuild.SonarQube.Runner.exe end\"\n"
@@ -57,7 +57,7 @@ public class SonarPluginWindowsTest extends SonarPluginTestSuite {
   @WithPlugins({"msbuild"})
   public void freestyle_job_with_scanner_for_ms_build_2_3_2() {
     MSBuildScannerInstallation.install(jenkins, "2.3.2.573", false);
-    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
+    MSBuildScannerInstallation.install(jenkins, OLDEST_INSTALLABLE_MSBUILD_VERSION, false);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMSBuild(ORCHESTRATOR);
 
@@ -79,7 +79,7 @@ public class SonarPluginWindowsTest extends SonarPluginTestSuite {
   @WithPlugins({"msbuild"})
   public void freestyle_job_with_scanner_for_ms_build_3_0() {
     MSBuildScannerInstallation.install(jenkins, "2.3.2.573", false);
-    MSBuildScannerInstallation.install(jenkins, EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, false);
+    MSBuildScannerInstallation.install(jenkins, OLDEST_INSTALLABLE_MSBUILD_VERSION, false);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMSBuild(ORCHESTRATOR);
 
@@ -88,7 +88,7 @@ public class SonarPluginWindowsTest extends SonarPluginTestSuite {
     assertThat(getProject(projectKey)).isNull();
     Build result = jenkinsOrch
       .newFreestyleJobWithScannerForMsBuild(jobName, null, jsFolder, projectKey, "JS with space", "1.0",
-        EARLIEST_JENKINS_SUPPORTED_MS_BUILD_VERSION, null, false)
+        OLDEST_INSTALLABLE_MSBUILD_VERSION, null, false)
       .executeJobQuietly(jobName);
 
     assertThat(result.getConsole())
@@ -101,7 +101,7 @@ public class SonarPluginWindowsTest extends SonarPluginTestSuite {
   @Test
   @WithPlugins({"msbuild"})
   public void freestyle_job_with_scanner_for_ms_build() throws FailedExecutionException {
-    MSBuildScannerInstallation.install(jenkins, MS_BUILD_RECENT_VERSION, false);
+    MSBuildScannerInstallation.install(jenkins, LATEST_INSTALLABLE_MSBUILD_VERSION, false);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
       .configureMSBuild(ORCHESTRATOR);
 
@@ -109,7 +109,7 @@ public class SonarPluginWindowsTest extends SonarPluginTestSuite {
     String projectKey = "csharp";
     assertThat(getProject(projectKey)).isNull();
     jenkinsOrch
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleApp1Folder, projectKey, "CSharp", "1.0", MS_BUILD_RECENT_VERSION, "ConsoleApplication1.sln", false)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleApp1Folder, projectKey, "CSharp", "1.0", LATEST_INSTALLABLE_MSBUILD_VERSION, "ConsoleApplication1.sln", false)
       .executeJob(jobName);
 
     waitForComputationOnSQServer();
