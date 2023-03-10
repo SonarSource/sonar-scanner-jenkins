@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -49,7 +50,7 @@ public class MsBuildSQRunnerInstallation extends ToolInstallation implements Env
   private static String testExeName = null;
 
   @DataBoundConstructor
-  public MsBuildSQRunnerInstallation(String name, String home, List<? extends ToolProperty<?>> properties) {
+  public MsBuildSQRunnerInstallation(String name, @CheckForNull String home, List<? extends ToolProperty<?>> properties) {
     super(Util.fixEmptyAndTrim(name), Util.fixEmptyAndTrim(home), properties);
   }
 
