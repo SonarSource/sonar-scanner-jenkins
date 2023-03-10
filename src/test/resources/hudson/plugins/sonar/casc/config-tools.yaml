@@ -1,0 +1,21 @@
+tool:
+  sonarRunnerInstallation:
+    installations:
+    - name: "SonarQube Scanner"
+      properties:
+      - installSource:
+          installers:
+          - sonarRunnerInstaller:
+              id: "4.8.0.2856"
+    - name: "local SonarQube Scanner"
+      home: "/home/jenkins/agent/tools/sonarscanner"
+  msBuildSQRunnerInstallation:
+    installations:
+    - name: "SonarQube MSScanner"
+      properties:
+      - installSource:
+          installers:
+          - msBuildSonarQubeRunnerInstaller:
+              id: "5.11.0.60783-netcore3"
+    - name: "local SonarQube MSScanner"
+      home: "/home/jenkins/agent/tools/msscanner"
