@@ -63,6 +63,9 @@ public abstract class AbstractMsBuildSQRunner extends Builder {
     throws IOException, InterruptedException {
     MsBuildSQRunnerInstallation inst = BuilderUtils.getBuildTool(msBuildScanner, env, listener, workspace);
 
+    
+    
+    
     String exe;
     if (inst != null) {
       exe = inst.getToolPath(launcher);
