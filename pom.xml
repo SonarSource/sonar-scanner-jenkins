@@ -6,7 +6,7 @@
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
     <!-- See https://github.com/jenkinsci/plugin-pom/blob/master/CHANGELOG.md -->
-    <version>4.47</version>
+    <version>4.71</version>
     <relativePath />
   </parent>
 
@@ -55,7 +55,7 @@
     <version.artifactory.plugin>2.6.1</version.artifactory.plugin>
     <jenkins.version>2.361.1</jenkins.version>
     <version.cyclonedx.plugin>2.5.3</version.cyclonedx.plugin>
-    <java.level>8</java.level>
+    <java.level>11</java.level>
     <findbugs.failOnError>false</findbugs.failOnError>
     <!-- Disable parallel tests on Travis -->
     <concurrency>1</concurrency>
@@ -73,7 +73,7 @@
 
     <artifactsToPublish>${project.groupId}:${project.artifactId}:hpi${project.groupId}:${project.artifactId}:json:cyclonedx</artifactsToPublish>
 
-    <maven.compiler.release>8</maven.compiler.release>
+    <maven.compiler.release>11</maven.compiler.release>
   </properties>
 
   <dependencyManagement>
