@@ -39,11 +39,9 @@ import org.sonarqube.ws.client.HttpException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -53,8 +51,6 @@ public class SQProjectResolverTest extends SonarTestCase {
   private final static String PROJECT_KEY = "org.sonarsource.sonarlint:sonarlint-cli";
   private final static String PROJECT_URL = SERVER_URL + "/dashboard/index/" + PROJECT_KEY;
   private final static String CE_TASK_ID = "task1";
-  private final static String PASS = "mypass";
-  private final static String USER = "user";
   private final static String TOKEN = "token";
   private final static String CREDENTIAL_ID = "cred-id";
 
@@ -83,7 +79,6 @@ public class SQProjectResolverTest extends SonarTestCase {
 
     verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS_WITH_ANALYSISID), eq(TOKEN));
     verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN));
-    verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_VERSION), isNull());
 
     verifyNoMoreInteractions(client);
   }
@@ -142,36 +137,6 @@ public class SQProjectResolverTest extends SonarTestCase {
     assertThat(proj).isNull();
   }
 
-  @Test
-  public void testServerVersionCached() throws Exception {
-    mockSQServer56();
-
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, CE_TASK_ID, testName.getMethodName(), mock(Run.class));
-
-    assertThat(proj).isNotNull();
-    verify(client, times(1)).getHttp(SERVER_URL + WsClient.API_VERSION, null);
-    verify(client, times(1)).getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS_WITH_ANALYSISID), eq(TOKEN));
-    verify(client, times(1)).getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN));
-
-    // Calling again should use cached version
-    proj = resolver.resolve(SERVER_URL, PROJECT_URL, CE_TASK_ID, testName.getMethodName(), mock(Run.class));
-
-    assertThat(proj).isNotNull();
-    verify(client, times(1)).getHttp(SERVER_URL + WsClient.API_VERSION, null);
-    verify(client, times(2)).getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS_WITH_ANALYSISID), eq(TOKEN));
-    verify(client, times(2)).getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN));
-
-    SQProjectResolver.INSTANCE_VERSION_CACHE.invalidateAll();
-
-    // Calling again after invaliding the cache entry should call the sever for the version.
-    proj = resolver.resolve(SERVER_URL, PROJECT_URL, CE_TASK_ID, testName.getMethodName(), mock(Run.class));
-
-    assertThat(proj).isNotNull();
-    verify(client, times(2)).getHttp(SERVER_URL + WsClient.API_VERSION, null);
-    verify(client, times(3)).getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS_WITH_ANALYSISID), eq(TOKEN));
-    verify(client, times(3)).getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN));
-  }
-
   @Override
   protected SonarInstallation configureDefaultSonar() {
     return configureSonar(new SonarInstallation(testName.getMethodName(), null, null, null, null, null, null, null, null));
@@ -187,7 +152,6 @@ public class SQProjectResolverTest extends SonarTestCase {
     addCredential(CREDENTIAL_ID, TOKEN);
     configureSonar(inst);
 
-    when(client.getHttp(SERVER_URL + WsClient.API_VERSION, null)).thenReturn("5.6");
     when(client.getHttp(startsWith(SERVER_URL + WsClient.API_PROJECT_STATUS_WITH_ANALYSISID), eq(TOKEN))).thenReturn(getFile("projectStatus.json"));
     when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN))).thenReturn(getFile("ce_task.json"));
   }
