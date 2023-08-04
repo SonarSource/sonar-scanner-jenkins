@@ -116,6 +116,7 @@ public class TriggersConfigTest {
     when(build.getEnvironment(listener)).thenReturn(env_vars);
     Map<String, String> build_vars = new HashMap<String, String>();
     when(build.getBuildVariables()).thenReturn(build_vars);
+    when(build.getBuildVariableResolver()).thenCallRealMethod();
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
     triggers.setEnvVar("SKIP_SONAR");
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
@@ -133,6 +134,7 @@ public class TriggersConfigTest {
     when(build.getEnvironment(listener)).thenReturn(env_vars);
     Map<String, String> build_vars = new HashMap<String, String>();
     when(build.getBuildVariables()).thenReturn(build_vars);
+    when(build.getBuildVariableResolver()).thenCallRealMethod();
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
     triggers.setEnvVar("SKIP_SONAR");
     assertThat(triggers.isSkipSonar(build, listener)).isNull();

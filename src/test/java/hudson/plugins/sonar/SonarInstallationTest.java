@@ -19,13 +19,20 @@
  */
 package hudson.plugins.sonar;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.CredentialsStore;
+import com.cloudbees.plugins.credentials.domains.Domain;
 import hudson.Util;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
 import hudson.model.Run;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Secret;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
@@ -43,21 +50,28 @@ import static org.mockito.Mockito.spy;
 public class SonarInstallationTest extends SonarTestCase {
 
   @Test
-  public void testRoundtrip() throws IOException {
+  public void testRoundtrip() throws IOException, ExecutionException, InterruptedException {
     TriggersConfig triggers = new TriggersConfig();
     SonarGlobalConfiguration d = new SonarGlobalConfiguration();
+    String credentialsId = "credentialsId";
     SonarInstallation inst = spy(new SonarInstallation(
       "Name",
       "server.url",
-      "credentialsId",
+            credentialsId,
       null,
       "secretId",
       "mojoVersion",
       "props",
       "key=value",
       triggers));
-    StringCredentials cred = new StringCredentialsImpl(CredentialsScope.GLOBAL, "an-id", null, Secret.fromString("token"));
-    doReturn(cred).when(inst).getCredentials(any(Run.class));
+    StringCredentials cred = new StringCredentialsImpl(CredentialsScope.GLOBAL, credentialsId, null, Secret.fromString("token"));
+
+    CredentialsStore store = CredentialsProvider.lookupStores(j.jenkins).iterator().next();
+    store.addCredentials(Domain.global(), cred);
+
+    FreeStyleProject freeStyleProject = j.createFreeStyleProject();
+    FreeStyleBuild run = new FreeStyleBuild(freeStyleProject);
+
     d.setInstallations(inst);
 
     SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
@@ -65,7 +79,7 @@ public class SonarInstallationTest extends SonarTestCase {
 
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
-    assertThat(i.getServerAuthenticationToken(mock(Run.class))).isEqualTo("token");
+    assertThat(i.getServerAuthenticationToken(run)).isEqualTo("token");
     assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
     assertThat(i.getAdditionalProperties()).isEqualTo("props");
     assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");

@@ -49,7 +49,7 @@ public class HttpClientTest {
   BufferedSource source = mock(BufferedSource.class);
   HttpClient underTest = new HttpClient(okHttpClient);
   Request request = new Request.Builder().url(URL).build();
-  Response response = new Response.Builder().code(200).body(body).protocol(Protocol.HTTP_2).request(request).build();
+  Response response = new Response.Builder().code(200).body(body).protocol(Protocol.HTTP_2).message("message").request(request).build();
 
   @Before
   public void setUp() throws IOException {
@@ -57,6 +57,7 @@ public class HttpClientTest {
     when(okHttpClient.newCall(any())).thenReturn(call);
     when(call.execute()).thenReturn(response);
     when(body.source()).thenReturn(source);
+    when(body.string()).thenCallRealMethod();
   }
 
   @Test
@@ -72,7 +73,7 @@ public class HttpClientTest {
 
   @Test
   public void request_fail_should_throw_http_exception() throws IOException {
-    Response failedResponse = new Response.Builder().code(401).body(body).protocol(Protocol.HTTP_2).request(request).build();
+    Response failedResponse = new Response.Builder().code(401).body(body).protocol(Protocol.HTTP_2).message("message").request(request).build();
     when(call.execute()).thenReturn(failedResponse);
 
     assertThatThrownBy(() -> underTest.getHttp(URL, null))

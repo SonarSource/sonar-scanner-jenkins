@@ -28,6 +28,7 @@ import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.version.Version;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -237,7 +238,7 @@ public class JenkinsUtils {
     // Here we need to wait for the Sonar step to be really activated
     WebElement sonarPublisher = findElement(By.xpath("//div[@descriptorid='hudson.plugins.sonar.SonarPublisher']"));
     if (StringUtils.isNotBlank(branch)) {
-      sonarPublisher.findElement(buttonByText("Advanced...")).click();
+      sonarPublisher.findElement(buttonByText("Advanced")).click();
       setTextValue(sonarPublisher.findElement(By.name("sonar.branch")), branch);
     }
     return this;
@@ -326,7 +327,7 @@ public class JenkinsUtils {
     public final Control serverUrl = control("serverUrl");
     public final Control credentialId = control("credentialsId");
     public final Control webhookSecretId = control("webhookSecretId");
-    public final Control advanced = control(by.button("Advanced..."));
+    public final Control advanced = control(by.button("Advanced"));
 
     public SonarQubeServer(PageObject context, String path) {
       super(context, path);
@@ -417,7 +418,7 @@ public class JenkinsUtils {
    * Update: it is no more necessary as I have disabled native events but I keep it just in case
    */
   public void setTextValue(final WebElement element, final String text) {
-    (new WebDriverWait(driver, 10)).until(new Function<WebDriver, Boolean>() {
+    (new WebDriverWait(driver, Duration.ofSeconds(10))).until(new Function<WebDriver, Boolean>() {
       @Override
       public Boolean apply(WebDriver input) {
         element.clear();

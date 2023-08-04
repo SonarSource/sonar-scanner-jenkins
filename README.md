@@ -1,7 +1,7 @@
 SonarQube Scanner for Jenkins
 =============================
 
-[![Build Status](https://travis-ci.org/SonarSource/sonar-scanner-jenkins.svg?branch=master)](https://travis-ci.org/SonarSource/sonar-scanner-jenkins) [![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.jenkins-ci.plugins%3Asonar&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.jenkins-ci.plugins%3Asonar)
+[![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.jenkins-ci.plugins%3Asonar&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.jenkins-ci.plugins%3Asonar)
 
 This plugin allow easy integration of [SonarQube™](https://www.sonarqube.org/), the open source platform for Continuous Inspection of code quality.
 
@@ -18,12 +18,11 @@ With this plugin, you can configure SonarQube instances and run a SonarQube Scan
 
 
 'SonarQube Scanner' and 'SonarScanner for MSBuild' are managed as installable tools. List of available versions is retrieved
-automatically by Jenkins/Hudson from a json file hosted on their respective update site:
-* http://hudson-ci.org/updates/hudson.plugins.sonar.SonarRunnerInstaller.json
-* http://mirrors.jenkins-ci.org/updates/updates/hudson.plugins.sonar.SonarRunnerInstaller.json
-* http://mirrors.jenkins-ci.org/updates/updates/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller.json
+automatically by Jenkins from a json file hosted on their respective update site:
+* https://updates.jenkins.io/updates/hudson.plugins.sonar.SonarRunnerInstaller.json
+* https://updates.jenkins.io/updates/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller.json
 
-For Jenkins, the files are automatically updated when a new version of Sonar Scanner or SonarScanner for MSBuild is published,
+The files are automatically updated when a new version of SonarScanner or SonarScanner for MSBuild is published,
 thanks to crawlers written in groovy:
 * https://github.com/jenkins-infra/crawler/blob/master/sonarqubescanner.groovy
 * https://github.com/jenkins-infra/crawler/blob/master/sonarqubescannermsbuild.groovy
