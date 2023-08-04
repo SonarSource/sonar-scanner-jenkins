@@ -19,23 +19,16 @@
  */
 package hudson.plugins.sonar.client;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.utils.Logger;
-import hudson.plugins.sonar.utils.Version;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.sonarqube.ws.client.HttpException;
 
 public class SQProjectResolver {
-  @VisibleForTesting
-  static final Cache<String, Version> INSTANCE_VERSION_CACHE = Caffeine.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).build();
   private final HttpClient client;
 
   public SQProjectResolver(HttpClient client) {
@@ -62,13 +55,6 @@ public class SQProjectResolver {
     try {
       String serverAuthenticationToken = inst.getServerAuthenticationToken(build);
       WsClient wsClient = new WsClient(client, serverUrl, serverAuthenticationToken);
-
-      Version version = INSTANCE_VERSION_CACHE.get(installationName, unused -> new Version(wsClient.getServerVersion()));
-
-      if (version.compareTo(new Version("5.6")) < 0) {
-        Logger.LOG.info(() -> "SQ < 5.6 is not supported");
-        return null;
-      }
 
       ProjectInformation projectInfo = new ProjectInformation();
       projectInfo.setUrl(projectDashboardUrl);
