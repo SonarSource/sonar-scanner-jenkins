@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <!-- See https://github.com/jenkinsci/plugin-pom/blob/master/CHANGELOG.md -->
-    <version>4.47</version>
+    <!-- See https://github.com/jenkinsci/plugin-pom/releases -->
+    <version>4.73</version>
     <relativePath />
   </parent>
 
@@ -30,7 +30,7 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
+    <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
     <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
     <url>https://github.com/${gitHubRepo}</url>
     <tag>sonar-2.15</tag>
@@ -39,10 +39,6 @@
     <system>JIRA</system>
     <url>https://jira.sonarsource.com/browse/SONARJNKNS</url>
   </issueManagement>
-  <ciManagement>
-    <system>Travis</system>
-    <url>https://travis-ci.org/SonarSource/sonar-scanner-jenkins</url>
-  </ciManagement>
 
   <properties>
     <revision>2.16</revision>
@@ -53,9 +49,8 @@
     <sonar.exclusions>target/generated-sources/**/*</sonar.exclusions>
     <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
     <version.artifactory.plugin>3.6.1</version.artifactory.plugin>
-    <jenkins.version>2.361.1</jenkins.version>
-    <version.cyclonedx.plugin>2.5.3</version.cyclonedx.plugin>
-    <java.level>8</java.level>
+    <jenkins.version>2.387.3</jenkins.version>
+    <version.cyclonedx.plugin>2.7.9</version.cyclonedx.plugin>
     <findbugs.failOnError>false</findbugs.failOnError>
     <!-- Disable parallel tests on Travis -->
     <concurrency>1</concurrency>
@@ -72,27 +67,15 @@
     <license.mailto>mailto:info AT sonarsource DOT com</license.mailto>
 
     <artifactsToPublish>${project.groupId}:${project.artifactId}:hpi${project.groupId}:${project.artifactId}:json:cyclonedx</artifactsToPublish>
-
-    <maven.compiler.release>8</maven.compiler.release>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <!-- Resolve dependency conflicts of plugins used during tests (workflow) -->
       <dependency>
-        <groupId>com.google.protobuf</groupId>
-        <artifactId>protobuf-java</artifactId>
-        <version>3.16.3</version>
-      </dependency>
-      <dependency>
-        <groupId>com.jcraft</groupId>
-        <artifactId>jsch</artifactId>
-        <version>0.1.55</version>
-      </dependency>
-      <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.361.x</artifactId>
-        <version>1607.va_c1576527071</version>
+        <artifactId>bom-2.387.x</artifactId>
+        <version>2401.v7a_d68f8d0b_09</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -150,9 +133,8 @@
   </dependencyManagement>
   <dependencies>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.11</version>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>commons-lang3-api</artifactId>
     </dependency>
     <dependency>
       <groupId>io.jenkins.plugins</groupId>
@@ -161,19 +143,31 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>6.7</version>
+      <version>10.1.0.73491</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.squareup.okhttp3</groupId>
+          <artifactId>okhttp</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
+
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>okhttp-api</artifactId>
+    </dependency>
+
     <dependency>
       <!-- needed for SonarPublisher -->
       <groupId>org.jenkins-ci.main</groupId>
       <artifactId>maven-plugin</artifactId>
-      <version>2.17</version>
+      <version>3.22</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>configurationslicing</artifactId>
-      <version>1.47</version>
+      <version>548.ve92d48e66b_f8</version>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -206,7 +200,6 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>3.12.4</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -369,14 +362,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <source>8</source>
-          <doclint>none</doclint>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>org.cyclonedx</groupId>
         <artifactId>cyclonedx-maven-plugin</artifactId>
         <executions>
@@ -398,7 +383,7 @@
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.4</version>
+            <version>0.8.10</version>
             <executions>
               <execution>
                 <id>prepare-agent</id>

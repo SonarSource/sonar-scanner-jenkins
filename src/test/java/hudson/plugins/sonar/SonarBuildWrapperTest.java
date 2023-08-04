@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class SonarBuildWrapperTest extends SonarTestCase {
@@ -110,7 +110,10 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     addCredential(CREDENTIALSID, MYTOKEN);
     configureSonar(inst);
 
-    OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
+    AbstractBuild<?, ?> mock = mock(AbstractBuild.class);
+    when(mock.getCharset()).thenCallRealMethod();
+
+    OutputStream os = wrapper.decorateLogger(mock, bos);
     IOUtils.write("test sonar\ntest mytoken\n", os);
     assertThat(new String(bos.toByteArray())).isEqualTo("test sonar\ntest ******\n");
   }
@@ -166,7 +169,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     OutputStream out = wrapper.decorateLogger(build, null);
     assertThat(out).isNull();
 
-    verifyZeroInteractions(build);
+    verifyNoInteractions(build);
   }
 
   @Test
