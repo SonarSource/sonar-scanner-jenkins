@@ -4,7 +4,7 @@
          
   <f:section title="${%Title}">
     <f:entry title="${%InjectVarsTitle}" description="${%InjectVarsDesc}">
-      <f:checkbox name="enableBuildWrapper" checked="${instance.isBuildWrapperEnabled()}"/> ${%InjectVars}
+      <f:checkbox name="enableBuildWrapper" checked="${instance.isBuildWrapperEnabled()}"/>
     </f:entry>
 
     <f:entry title="${%SonarInstallations}" description="${%SonarInstallationsDescr}">
