@@ -56,7 +56,8 @@ public class SonarQubeWebHookTest {
     jenkins.postJSON("sonarqube-webhook/", "{\n" +
       "\"taskId\":\"AVpBJY0hh5C8Sya1ZSgH\",\n" +
       "\"status\":\"SUCCESS\",\n" +
-      "\"qualityGate\":{\"status\":\"OK\"}\n" +
+      "\"qualityGate\":{\"status\":\"OK\"},\n" +
+      "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
       "}");
 
     SonarQubeWebHook.get().addListener(
@@ -67,7 +68,8 @@ public class SonarQubeWebHookTest {
     jenkins.postJSON("sonarqube-webhook/", "{\n" +
       "\"taskId\":\"AVpBJY0hh5C8Sya1ZSgH\",\n" +
       "\"status\":\"SUCCESS\",\n" +
-      "\"qualityGate\":{\"status\":\"OK\"}\n" +
+      "\"qualityGate\":{\"status\":\"OK\"},\n" +
+      "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
       "}");
 
     assertThat(eventsPerListener).containsOnly(entry("ListenerA", "AVpBJY0hh5C8Sya1ZSgHSUCCESSOK"),
@@ -79,6 +81,7 @@ public class SonarQubeWebHookTest {
     jenkins.postJSON("sonarqube-webhook/", "{\n" +
       "\"taskId\":\"AVpBJY0hh5C8Sya1ZSgH\",\n" +
       "\"status\":\"SUCCESS\",\n" +
+     "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
       "}");
 
     assertThat(eventsPerListener).containsOnly(entry("ListenerA", "AVpBJY0hh5C8Sya1ZSgHSUCCESSNONE"),
