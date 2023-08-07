@@ -133,13 +133,18 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
 
     private final String payloadAsString;
     private final String taskId;
+    private final String componentName;
     private final String taskStatus;
     private final String qualityGateStatus;
+    private final String dashboardUrl;
 
     Payload(String payloadAsString, JSONObject json) {
       this.payloadAsString = payloadAsString;
       this.taskId = json.getString("taskId");
       this.taskStatus = json.getString("status");
+      JSONObject project = json.getJSONObject("project");
+      this.componentName = project.getString("name");
+      this.dashboardUrl = project.getString("url");
       if (CETask.STATUS_SUCCESS.equals(getTaskStatus())) {
         this.qualityGateStatus = json.has("qualityGate") ? json.getJSONObject("qualityGate").getString("status") : "NONE";
       } else {
@@ -157,6 +162,14 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
 
     String getQualityGateStatus() {
       return qualityGateStatus;
+    }
+
+    String getComponentName() {
+      return componentName;
+    }
+
+    String getDashboardUrl() {
+      return dashboardUrl;
     }
 
     String getPayloadAsString() {

@@ -37,6 +37,7 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.OkHttpClientSingleton;
+import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.WsClient;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.security.ACL;
@@ -47,6 +48,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -163,6 +165,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private WaitForQualityGateStep step;
+    String dashboardUrl;
 
     public Execution(WaitForQualityGateStep step, StepContext context) {
       super(context);
@@ -207,6 +210,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
         if (ceTaskId != null) {
           serverUrl = a.getInstallationUrl();
           installationName = a.getInstallationName();
+          dashboardUrl = a.getUrl();
           credentialsId = a.getCredentialsId();
           break;
         }
@@ -238,10 +242,21 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       WsClient wsClient = new WsClient(new HttpClient(OkHttpClientSingleton.getInstance()),
         step.getServerUrl(), SonarUtils.getAuthenticationToken(getContextClass(Run.class), inst, step.credentialsId));
       WsClient.CETask ceTask = wsClient.getCETask(step.getTaskId());
-      return checkQualityGate(ceTask.getStatus(), () -> wsClient.requestQualityGateStatus(ceTask.getAnalysisId()), true);
+
+      ProjectInformation projectInformation = new ProjectInformation();
+      projectInformation.setUrl(dashboardUrl);
+
+      projectInformation.setCeStatus(ceTask.getStatus());
+      projectInformation.setCeUrl(ceTask.getUrl());
+      projectInformation.setName(ceTask.getComponentName());
+
+      return checkQualityGate(projectInformation, () -> wsClient.requestQualityGateStatus(ceTask.getAnalysisId()), true);
     }
 
-    private void handleQGStatus(String status) {
+    private void handleQGStatus(ProjectInformation projectInformation) {
+      getContextClass(Run.class).addAction(projectInformation);
+
+      String status = projectInformation.getStatus();
       if (step.isAbortPipeline() && !"OK".equals(status)) {
         getContext().onFailure(new AbortException("Pipeline aborted due to quality gate failure: " + status));
       } else {
@@ -282,22 +297,31 @@ public class WaitForQualityGateStep extends Step implements Serializable {
     private void validateWebhookAndCheckQualityGateIfValid(SonarQubeWebHook.WebhookEvent event, boolean onStart) {
       SonarQubeWebHook.get().removeListener(this);
       if (validateWebhook(event)) {
+        ProjectInformation projectInformation = new ProjectInformation();
+        SonarQubeWebHook.Payload payload = event.getPayload();
+        projectInformation.setCeStatus(payload.getTaskStatus());
+        projectInformation.setUrl(dashboardUrl);
+        projectInformation.setName(payload.getComponentName());
+
         // only execute the checkQualityGate if the webhook is found to be valid (getContext().onFailure() does not interrupt execution)
-        checkQualityGate(event.getPayload().getTaskStatus(), event.getPayload()::getQualityGateStatus, onStart);
+        checkQualityGate(projectInformation, payload::getQualityGateStatus, onStart);
       }
     }
 
-    private boolean checkQualityGate(String taskStatus, Supplier<String> qgStatusSupplier, boolean onStart) {
-      log("SonarQube task '%s' status is '%s'", step.taskId, taskStatus);
-      switch (taskStatus) {
+    private boolean checkQualityGate(ProjectInformation projectInformation, Supplier<String> qgStatusSupplier, boolean onStart) {
+      log("SonarQube task '%s' status is '%s'", step.taskId, projectInformation.getCeStatus());
+      switch (projectInformation.getCeStatus().toUpperCase(Locale.US)) {
         case WsClient.CETask.STATUS_SUCCESS:
-          String qgstatus = qgStatusSupplier.get();
-          log("SonarQube task '%s' completed. Quality gate is '%s'", step.taskId, qgstatus);
-          handleQGStatus(qgstatus);
+          String qualityGateStatus = qgStatusSupplier.get();
+
+          projectInformation.setStatus(qualityGateStatus);
+
+          log("SonarQube task '%s' completed. Quality gate is '%s'", step.taskId, qualityGateStatus);
+          handleQGStatus(projectInformation);
           return true;
         case WsClient.CETask.STATUS_FAILURE:
         case WsClient.CETask.STATUS_CANCELED:
-          IllegalStateException exception = new IllegalStateException("SonarQube analysis '" + step.getTaskId() + "' failed: " + taskStatus);
+          IllegalStateException exception = new IllegalStateException("SonarQube analysis '" + step.getTaskId() + "' failed: " + projectInformation.getStatus());
           if (onStart) {
             throw exception;
           } else {
@@ -308,7 +332,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
           if (onStart) {
             return false;
           } else {
-            throw new IllegalStateException("Unexpected task status: " + taskStatus);
+            throw new IllegalStateException("Unexpected task status: " + projectInformation.getStatus());
           }
       }
     }
