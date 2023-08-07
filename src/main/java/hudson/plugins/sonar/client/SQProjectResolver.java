@@ -52,6 +52,12 @@ public class SQProjectResolver {
       return null;
     }
 
+    // provided by SonarQubeWebHook
+    ProjectInformation action = build.getAction(ProjectInformation.class);
+    if (action != null) {
+      return action;
+    }
+
     try {
       String serverAuthenticationToken = inst.getServerAuthenticationToken(build);
       WsClient wsClient = new WsClient(client, serverUrl, serverAuthenticationToken);

@@ -416,7 +416,8 @@ public class WaitForQualityGateStepTest {
     String payload = "{\n" +
       "\"taskId\":\"" + taskId + "\",\n" +
       "\"status\":\"" + endTaskStatus + "\",\n" +
-      "\"qualityGate\":{\"status\":\"" + qgStatus + "\"}\n" +
+      "\"qualityGate\":{\"status\":\"" + qgStatus + "\"},\n" +
+      "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
       "}";
     OkHttpClient client = new OkHttpClient();
     Request req = new Request.Builder()
@@ -437,7 +438,8 @@ public class WaitForQualityGateStepTest {
     String payload = "{\n" +
       "\"taskId\":\"" + taskId + "\",\n" +
       "\"status\":\"" + endTaskStatus + "\",\n" +
-      "\"qualityGate\":{\"status\":\"" + qgStatus + "\"}\n" +
+      "\"qualityGate\":{\"status\":\"" + qgStatus + "\"},\n" +
+      "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
       "}";
 
     Request req = new Request.Builder()
