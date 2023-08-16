@@ -13,7 +13,7 @@
 #------------------------------------------------------------------------------
 
 ARG CIRRUS_AWS_ACCOUNT=275878209202
-FROM ${CIRRUS_AWS_ACCOUNT}.dkr.ecr.eu-central-1.amazonaws.com/base:j17-g7-latest as tools
+FROM ${CIRRUS_AWS_ACCOUNT}.dkr.ecr.eu-central-1.amazonaws.com/base:j17-g7-latest AS tools
 
 USER root
 
@@ -63,9 +63,9 @@ RUN dotnet --info
 
 # .NET < 6 requires OpenSSL 1 which is not installed by default on Ubuntu 22.04
 # https://github.com/dotnet/core/issues/7038#issuecomment-1110377345
-RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.18_amd64.deb
-RUN dpkg -i libssl1.1_1.1.1f-1ubuntu2.18_amd64.deb
-RUN rm libssl1.1_1.1.1f-1ubuntu2.18_amd64.deb
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+RUN dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+RUN rm libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 RUN apt-get install libicu70
 
 USER sonarsource
