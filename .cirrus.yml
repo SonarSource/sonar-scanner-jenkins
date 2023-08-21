@@ -49,7 +49,7 @@ container_template: &STD_CONTAINER_TEMPLATE
   memory: 3G
 
 only_qa: &ONLY_QA
-  only_if: $CIRRUS_PR != "" || $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*"
+  only_if: $CIRRUS_PR != "" || $CIRRUS_BRANCH == "master"
 
 except_nightly_cron: &EXCEPT_ON_NIGHTLY_CRON
   only_if: $CIRRUS_CRON != $NIGHTLY_CRON
