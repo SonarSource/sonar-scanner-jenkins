@@ -41,6 +41,9 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import static hudson.plugins.sonar.SonarInstallation.PROPERTY_SONAR_LOGIN;
+import static hudson.plugins.sonar.SonarInstallation.PROPERTY_SONAR_TOKEN;
+
 public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
   @DataBoundConstructor
   public MsBuildSQRunnerEnd() {
@@ -91,7 +94,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     for (Map.Entry<String, String> e : props.entrySet()) {
       if (!StringUtils.isEmpty(e.getValue())) {
         // expand macros using environment variables and hide token
-        boolean hide = e.getKey().contains("sonar.login");
+        boolean hide = e.getKey().contains(PROPERTY_SONAR_LOGIN) || e.getKey().contains(PROPERTY_SONAR_TOKEN);
         args.addKeyValuePair("/d:", e.getKey(), env.expand(e.getValue()), hide);
       }
     }
@@ -104,7 +107,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
 
     String token = inst.getServerAuthenticationToken(run);
     if (!StringUtils.isBlank(token)) {
-      map.put("sonar.login", token);
+      map.put(inst.getTokenPropertyName(), token);
     }
 
     return map;

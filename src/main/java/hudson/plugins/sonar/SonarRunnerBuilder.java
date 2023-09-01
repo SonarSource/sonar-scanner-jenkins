@@ -43,6 +43,7 @@ import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
+import io.jenkins.cli.shaded.org.apache.sshd.core.CoreModuleProperties;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map.Entry;
@@ -363,7 +364,7 @@ public class SonarRunnerBuilder extends Builder {
       args.append("sonar.host.url", si.getServerUrl());
       String token = si.getServerAuthenticationToken(build);
       if (StringUtils.isNotBlank(token)) {
-        args.appendMasked("sonar.login", token);
+        args.appendMasked(si.getTokenPropertyName(), token);
       }
     }
 

@@ -80,7 +80,7 @@ public class SonarUtilsTest {
     Run last = mockedRun(null, a1);
     Run r = mockedRun(last);
 
-    SonarInstallation sonarInstallation = new SonarInstallation("inst", null, "credentialsId", null, null, null, null, null, null);
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", null, "credentialsId", null, null, null, null, null, null, false);
     SonarAnalysisAction action = SonarUtils.addBuildInfoFromLastBuildTo(r, mock(TaskListener.class), sonarInstallation, "credId", false);
 
     assertThat(action.getInstallationName()).isEqualTo("inst");
@@ -94,7 +94,7 @@ public class SonarUtilsTest {
   public void should_mark_build_as_unstable_when_java_warning_is_logged() throws Exception {
     Run r = mockedBuild("The version of Java (1.8.0_101) you have used to run this analysis is deprecated and we will stop accepting it from October 2020. Please update to at least Java 11.");
     FilePath workspace = new FilePath(new File("non_existing_file"));
-    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", "credentialsId", null, null, null, null, null, null);
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", "credentialsId", null, null, null, null, null, null, false);
     TaskListener listener = mock(TaskListener.class);
     PrintStream printStream = mock(PrintStream.class);
     when(listener.getLogger()).thenReturn(printStream);
@@ -109,7 +109,7 @@ public class SonarUtilsTest {
   public void should_not_mark_build_as_unstable_when_result_is_already_failed() throws Exception {
     Run r = mockedBuild("The version of Java (1.8.0_101) you have used to run this analysis is deprecated and we will stop accepting it from October 2020. Please update to at least Java 11.");
     FilePath workspace = new FilePath(new File("non_existing_file"));
-    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", "credentialsId", null, null, null, null, null, null);
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", "credentialsId", null, null, null, null, null, null, false);
     TaskListener listener = mock(TaskListener.class);
     PrintStream printStream = mock(PrintStream.class);
     when(listener.getLogger()).thenReturn(printStream);

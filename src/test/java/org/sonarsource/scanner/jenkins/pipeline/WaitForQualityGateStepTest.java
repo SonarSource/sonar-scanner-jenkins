@@ -464,7 +464,7 @@ public class WaitForQualityGateStepTest {
     SonarQubeWebHook.get().listeners.clear();
     story.j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class)
       .setInstallations(
-        new SonarInstallation(SONAR_INSTALLATION_NAME, "http://localhost:" + port + "/sonarqube", null, null, null, null, null, null, null));
+        new SonarInstallation(SONAR_INSTALLATION_NAME, "http://localhost:" + port + "/sonarqube", null, null, null, null, null, null, null, false));
     WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
     // Use a fake serverUrl to validate that the installation url is used by the wait step
     String serverUrl = "http://sonarqube.example.com";

@@ -93,7 +93,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   @Test
   public void additionalArgs() {
     ArgumentListBuilder args = new ArgumentListBuilder();
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, "-Y", "key=value", null);
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, "-Y", "key=value", null, false);
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X -e");
     builder.addAdditionalArguments(args, inst);
     assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X -e");
@@ -132,12 +132,14 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
     when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
+    when(installation.useTokenProperty()).thenReturn(true);
+    when(installation.getTokenPropertyName()).thenCallRealMethod();
 
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation);
 
     assertThat(args.toStringWithQuote())
-      .contains("-Dsonar.login=token");
+      .contains("-Dsonar.token=token");
   }
 
   /**

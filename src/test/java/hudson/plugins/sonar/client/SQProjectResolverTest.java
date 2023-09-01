@@ -112,7 +112,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   @Test
   public void testWsHttpNotFound() {
     SonarInstallation inst = spy(new SonarInstallation(testName.getMethodName(), SERVER_URL, CREDENTIAL_ID, null, null, null, null,
-      null, null));
+      null, null, false));
     addCredential(CREDENTIAL_ID, TOKEN);
     configureSonar(inst);
 
@@ -125,7 +125,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   @Test
   public void testWsHttpError() {
     SonarInstallation inst = spy(new SonarInstallation(testName.getMethodName(), SERVER_URL, CREDENTIAL_ID, null, null, null, null,
-      null, null));
+      null, null, false));
     addCredential(CREDENTIAL_ID, TOKEN);
     configureSonar(inst);
 
@@ -174,7 +174,7 @@ public class SQProjectResolverTest extends SonarTestCase {
 
   @Override
   protected SonarInstallation configureDefaultSonar() {
-    return configureSonar(new SonarInstallation(testName.getMethodName(), null, null, null, null, null, null, null, null));
+    return configureSonar(new SonarInstallation(testName.getMethodName(), null, null, null, null, null, null, null, null, false));
   }
 
   private void mockSQServer(Exception toThrow) {
@@ -183,7 +183,7 @@ public class SQProjectResolverTest extends SonarTestCase {
 
   private void mockSQServer56() throws Exception {
     SonarInstallation inst = spy(new SonarInstallation(testName.getMethodName(), SERVER_URL, CREDENTIAL_ID, null, null, null, null,
-        null, null));
+        null, null, false));
     addCredential(CREDENTIAL_ID, TOKEN);
     configureSonar(inst);
 

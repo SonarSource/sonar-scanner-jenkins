@@ -77,7 +77,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
   @Test
   public void additionalArgs() throws Exception {
     SonarInstallation inst = new SonarInstallation("default", null,
-      null, null, null, null, "/x:a=b", "key=value", null);
+      null, null, null, null, "/x:a=b", "key=value", null, false);
     configureSonar(inst);
     configureMsBuildScanner(true);
 
@@ -91,7 +91,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
   @Test
   public void testSonarProps() throws Exception {
     SonarInstallation inst = spy(new SonarInstallation("default", "http://dummy-server:9090", "credentialsId", null,
-      null, null, null, null, null));
+      null, null, null, null, null, false));
     configureSonar(inst);
     addCredential("credentialsId", "any-token");
     configureMsBuildScanner(false);

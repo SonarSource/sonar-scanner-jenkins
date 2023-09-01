@@ -48,6 +48,8 @@ public class SonarMavenTest {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
     when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("xyz");
+    when(installation.useTokenProperty()).thenReturn(true);
+    when(installation.getTokenPropertyName()).thenCallRealMethod();
     when(publisher.getInstallation()).thenReturn(installation);
     when(publisher.getBranch()).thenReturn("branch");
 
@@ -60,7 +62,7 @@ public class SonarMavenTest {
     assertThat(result).contains("-Dprop=value");
     assertThat(result).contains("-Dsonar.host.url=hostUrl");
     assertThat(result).contains("-Dsonar.branch=branch");
-    assertThat(result).contains("-Dsonar.login=xyz");
+    assertThat(result).contains("-Dsonar.token=xyz");
   }
 
   @Test

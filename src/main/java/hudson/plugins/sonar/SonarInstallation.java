@@ -35,6 +35,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 public class SonarInstallation implements Serializable {
 
   private static final long serialVersionUID = 1L;
+  static final String PROPERTY_SONAR_TOKEN = "sonar.token";
+  static final String PROPERTY_SONAR_LOGIN = "sonar.login";
 
   private final String name;
   private final String serverUrl;
@@ -69,6 +71,8 @@ public class SonarInstallation implements Serializable {
 
   private String[] split;
 
+  private final boolean useTokenProperty;
+
   /**
    * Maintained to retain compatibility
    * @deprecated since 2.9
@@ -79,7 +83,7 @@ public class SonarInstallation implements Serializable {
     String mojoVersion, String additionalProperties, TriggersConfig triggers,
     String additionalAnalysisProperties) {
     this(name, serverUrl, null, Secret.fromString(StringUtils.trimToNull(serverAuthenticationToken)), null,
-      mojoVersion, additionalProperties, additionalAnalysisProperties, triggers);
+      mojoVersion, additionalProperties, additionalAnalysisProperties, triggers, false);
   }
 
   @DataBoundConstructor
@@ -92,7 +96,8 @@ public class SonarInstallation implements Serializable {
     @CheckForNull String mojoVersion,
     @CheckForNull String additionalProperties,
     @CheckForNull String additionalAnalysisProperties,
-    @CheckForNull TriggersConfig triggers) {
+    @CheckForNull TriggersConfig triggers,
+    boolean useTokenProperty) {
     this.name = name;
     this.serverUrl = serverUrl;
     this.credentialsId = credentialsId;
@@ -102,6 +107,7 @@ public class SonarInstallation implements Serializable {
     this.mojoVersion = mojoVersion;
     this.additionalProperties = additionalProperties;
     this.triggers = triggers;
+    this.useTokenProperty = useTokenProperty;
   }
 
   /**
@@ -254,6 +260,14 @@ public class SonarInstallation implements Serializable {
       triggers = new TriggersConfig();
     }
     return triggers;
+  }
+
+  public boolean useTokenProperty() {
+    return useTokenProperty;
+  }
+
+  public String getTokenPropertyName() {
+    return useTokenProperty() ? PROPERTY_SONAR_TOKEN : PROPERTY_SONAR_LOGIN;
   }
 
   @SuppressWarnings("deprecation")

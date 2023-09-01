@@ -5,3 +5,4 @@ unclassified:
       - name: "TEST"
         credentialsId: "test-id"
         serverUrl: "http://url:9000"
+        useTokenProperty: true

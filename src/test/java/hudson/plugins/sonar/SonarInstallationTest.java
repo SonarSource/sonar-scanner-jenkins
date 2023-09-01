@@ -31,6 +31,8 @@ import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Test;
 
+import static hudson.plugins.sonar.SonarInstallation.PROPERTY_SONAR_LOGIN;
+import static hudson.plugins.sonar.SonarInstallation.PROPERTY_SONAR_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -55,7 +57,8 @@ public class SonarInstallationTest extends SonarTestCase {
       "mojoVersion",
       "props",
       "key=value",
-      triggers));
+      triggers,
+      false));
     StringCredentials cred = new StringCredentialsImpl(CredentialsScope.GLOBAL, "an-id", null, Secret.fromString("token"));
     doReturn(cred).when(inst).getCredentials(any(Run.class));
     d.setInstallations(inst);
@@ -122,12 +125,24 @@ public class SonarInstallationTest extends SonarTestCase {
   }
 
   private void assertAnalysisPropsWindows(String input, String... expectedEntries) {
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, input, null);
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, input, null, false);
     assertThat(inst.getAdditionalAnalysisPropertiesWindows()).isEqualTo(expectedEntries);
   }
 
   private void assertAnalysisPropsUnix(String input, String... expectedEntries) {
-    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, input, null);
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, input, null, false);
     assertThat(inst.getAdditionalAnalysisPropertiesUnix()).isEqualTo(expectedEntries);
+  }
+
+  @Test
+  public void getTokenPropertyName_whenUseTokenProperty_shouldReturnSonarToken() {
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, null, null, true);
+    assertThat(inst.getTokenPropertyName()).isEqualTo(PROPERTY_SONAR_TOKEN);
+  }
+
+  @Test
+  public void getTokenPropertyName_whenNotUseTokenProperty_shouldReturnSonarLogin() {
+    SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, null, null, null, false);
+    assertThat(inst.getTokenPropertyName()).isEqualTo(PROPERTY_SONAR_LOGIN);
   }
 }

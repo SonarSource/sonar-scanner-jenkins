@@ -33,7 +33,7 @@ public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testToken() throws Exception {
-    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "credentialsId", null,null, null, null, null, null));
+    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "credentialsId", null,null, null, null, null, null, false));
     addCredential("credentialsId", "token");
     configureSonar(inst);
     configureMsBuildScanner(false);

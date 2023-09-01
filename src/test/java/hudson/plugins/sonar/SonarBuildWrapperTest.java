@@ -106,7 +106,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   public void maskAuthToken() throws IOException, InterruptedException {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     SonarInstallation inst = spy(new SonarInstallation("local", "http://localhost:9001", CREDENTIALSID, null, null, null, null,
-      null, new TriggersConfig()));
+      null, new TriggersConfig(), false));
     addCredential(CREDENTIALSID, MYTOKEN);
     configureSonar(inst);
 
@@ -138,7 +138,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
   @Test
   public void testEnvironmentMojoVersion() {
-    installation = new SonarInstallation(null, null, null, null, null, "2.0", null, null, null);
+    installation = new SonarInstallation(null, null, null, null, null, "2.0", null, null, null, false);
 
     Map<String, String> map = SonarBuildWrapper.createVars(installation, null, new EnvVars(), mock(Run.class));
 
@@ -272,14 +272,14 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     addCredential(CREDENTIALSID, MYTOKEN);
 
     return new SonarInstallation("local", "http://localhost:9001", CREDENTIALSID, null, null, null,
-      "-X", "key=value", new TriggersConfig());
+      "-X", "key=value", new TriggersConfig(), false);
   }
 
   private SonarInstallation createTestInstallationForEnv() {
     addCredential(CREDENTIALSID, MYTOKEN);
 
     return new SonarInstallation("local", "http://$MY_SERVER:$MY_PORT", CREDENTIALSID, null, null, null,
-      "-X", "key=$MY_VALUE", new TriggersConfig());
+      "-X", "key=$MY_VALUE", new TriggersConfig(), false);
   }
 
 }

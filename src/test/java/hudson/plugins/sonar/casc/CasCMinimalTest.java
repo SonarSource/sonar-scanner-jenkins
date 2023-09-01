@@ -40,6 +40,7 @@ public class CasCMinimalTest extends RoundTripAbstractTest {
     assertThat(installation).isNotNull();
     assertThat(installation.getName()).isEqualTo("TEST");
     assertThat(installation.getServerUrl()).isEqualTo("http://url:9000");
+    assertThat(installation.useTokenProperty()).isEqualTo(true);
   }
 
   SonarInstallation getSonarInstallation() {
