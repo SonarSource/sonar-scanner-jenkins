@@ -52,7 +52,7 @@
     <hudson.version>${project.parent.version}</hudson.version>
     <sonar.exclusions>target/generated-sources/**/*</sonar.exclusions>
     <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
-    <version.artifactory.plugin>2.6.1</version.artifactory.plugin>
+    <version.artifactory.plugin>3.6.1</version.artifactory.plugin>
     <jenkins.version>2.361.1</jenkins.version>
     <version.cyclonedx.plugin>2.5.3</version.cyclonedx.plugin>
     <java.level>8</java.level>
