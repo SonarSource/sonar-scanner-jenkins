@@ -26,6 +26,8 @@ import hudson.model.BuildListener;
 import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.WsClient;
 import hudson.util.ArgumentListBuilder;
 import java.util.List;
 import org.junit.Rule;
@@ -51,9 +53,12 @@ public class SonarMavenTest {
     when(publisher.getInstallation()).thenReturn(installation);
     when(publisher.getBranch()).thenReturn("branch");
 
+    HttpClient client = mock(HttpClient.class);
+    when(client.getHttp(installation.getServerUrl() + WsClient.API_VERSION, null)).thenReturn("9.9");
+
     ArgumentListBuilder args = new ArgumentListBuilder();
     SonarMaven sonarMaven = new SonarMaven("-Dprop=value", "Default Maven", "pom.xml", "", new DefaultLocalRepositoryLocator(), publisher, mock(BuildListener.class), null, null,
-      null);
+      null, client);
     sonarMaven.wrapUpArguments(args, "sonar:sonar", mock(AbstractBuild.class), mock(Launcher.class), mock(BuildListener.class));
 
     List<String> result = args.toList();
@@ -72,5 +77,4 @@ public class SonarMavenTest {
     assertThat(SonarMaven.getTarget(installation)).isEqualTo("-e -B sonar:sonar");
     assertThat(SonarMaven.getTarget(installation)).isEqualTo("-e -B org.codehaus.mojo:sonar-maven-plugin:1.0-beta-2:sonar");
   }
-
 }

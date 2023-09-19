@@ -28,8 +28,11 @@ import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.OkHttpClientSingleton;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.plugins.sonar.utils.JenkinsRouter;
+import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
@@ -43,6 +46,9 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+
+import static hudson.plugins.sonar.utils.SonarUtils.PROPERTY_SONAR_LOGIN;
+import static hudson.plugins.sonar.utils.SonarUtils.PROPERTY_SONAR_TOKEN;
 
 public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
 
@@ -104,13 +110,13 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     }
   }
 
-  private static Map<String, String> getSonarProps(SonarInstallation inst, Run<?, ?> run) {
+  private Map<String, String> getSonarProps(SonarInstallation inst, Run<?, ?> run) {
     Map<String, String> map = new LinkedHashMap<>();
 
     map.put("sonar.host.url", inst.getServerUrl());
     String token = inst.getServerAuthenticationToken(run);
     if (!StringUtils.isBlank(token)) {
-      map.put("sonar.login", token);
+      map.put(SonarUtils.getTokenProperty(inst, run, getClient()), token);
     }
 
     return map;
@@ -129,7 +135,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     for (Map.Entry<String, String> e : props.entrySet()) {
       if (!StringUtils.isEmpty(e.getValue())) {
         // expand macros using environment variables and hide token
-        boolean hide = e.getKey().contains("sonar.login");
+        boolean hide = e.getKey().contains(PROPERTY_SONAR_LOGIN) || e.getKey().contains(PROPERTY_SONAR_TOKEN);
         args.addKeyValuePair("/d:", e.getKey(), env.expand(e.getValue()), hide);
       }
     }

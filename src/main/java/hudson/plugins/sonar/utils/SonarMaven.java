@@ -33,6 +33,8 @@ import hudson.model.Computer;
 import hudson.model.JDK;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.OkHttpClientSingleton;
 import hudson.tasks.Maven;
 import hudson.util.ArgumentListBuilder;
 import java.io.IOException;
@@ -56,9 +58,11 @@ public final class SonarMaven extends Maven {
   private JDK jdk;
   private final BuildListener listener;
   private final LocalRepositoryLocator locaRepository;
+  private final HttpClient client;
 
   public SonarMaven(String additionalProperties, String name, String pom, String jvmOptions, LocalRepositoryLocator locaRepository,
-    SonarPublisher publisher, BuildListener listener, JDK jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings) {
+                    SonarPublisher publisher, BuildListener listener, JDK jdk, SettingsProvider settings, GlobalSettingsProvider globalSettings,
+                    HttpClient client) {
     super(getTarget(publisher.getInstallation()), name, pom, "", jvmOptions, false,
       settings, globalSettings);
     this.additionalProperties = additionalProperties;
@@ -66,6 +70,7 @@ public final class SonarMaven extends Maven {
     this.publisher = publisher;
     this.jdk = jdk;
     this.listener = listener;
+    this.client = client;
   }
 
   /**
@@ -97,7 +102,7 @@ public final class SonarMaven extends Maven {
 
     String token = getInstallation().getServerAuthenticationToken(build);
     if (StringUtils.isNotBlank(token)) {
-      argsBuilder.appendMasked("sonar.login", token);
+      argsBuilder.appendMasked(SonarUtils.getTokenProperty(getInstallation(), build, client), token);
     }
 
     if (build instanceof MavenModuleSetBuild) {
@@ -162,7 +167,8 @@ public final class SonarMaven extends Maven {
     // Execute Maven
     // SONARPLUGINS-487
     String pomPath = build.getModuleRoot().child(pom).getRemote();
-    return new SonarMaven(additionalProperties, mavenName, pomPath, mvnOptions, locaRepositoryToUse, sonarPublisher, listener, jdk, settingsToUse, globalSettingsToUse)
+    return new SonarMaven(additionalProperties, mavenName, pomPath, mvnOptions, locaRepositoryToUse, sonarPublisher, listener, jdk,
+      settingsToUse, globalSettingsToUse, new HttpClient(OkHttpClientSingleton.getInstance()))
       .perform(build, launcher, listener);
   }
 

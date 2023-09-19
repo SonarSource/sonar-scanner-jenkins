@@ -29,6 +29,8 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.WsClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -49,6 +51,8 @@ public final class SonarUtils {
   public static final String DASHBOARD_URL_KEY = "dashboardUrl";
   public static final String CE_TASK_ID_KEY = "ceTaskId";
   public static final String REPORT_TASK_FILE_NAME = "report-task.txt";
+  public static final String PROPERTY_SONAR_LOGIN = "sonar.login";
+  public static final String PROPERTY_SONAR_TOKEN = "sonar.token";
 
   /**
    * Hide utility-class constructor.
@@ -226,5 +230,21 @@ public final class SonarUtils {
 
   public static StringCredentials getCredentials(Run<?, ?> build, String credentialsId) {
     return CredentialsProvider.findCredentialById(credentialsId, StringCredentials.class, build);
+  }
+
+  public static String getTokenProperty(SonarInstallation inst, Run<?, ?> build, HttpClient client) {
+    if (getVersion(inst, build, client).compareTo(new Version("10.0")) < 0) {
+      return PROPERTY_SONAR_LOGIN;
+    } else {
+      return PROPERTY_SONAR_TOKEN;
+    }
+  }
+
+  public static Version getVersion(SonarInstallation inst, Run<?, ?> build, HttpClient client) {
+    if (inst.getServerUrl() == null) {
+      throw new IllegalStateException("No server url on installation: " + inst.getName());
+    }
+    WsClient wsClient = new WsClient(client, inst.getServerUrl(), inst.getServerAuthenticationToken(build));
+    return new Version(wsClient.getServerVersion());
   }
 }

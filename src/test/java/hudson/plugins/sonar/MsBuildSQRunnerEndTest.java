@@ -24,22 +24,43 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.sonar.MsBuildSQRunnerEnd.DescriptorImpl;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.WsClient;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testToken() throws Exception {
+    testTokenForVersion("9.9");
+  }
+
+  @Test
+  public void testTokenWithSonarToken() throws Exception {
+    testTokenForVersion("10.0");
+  }
+
+  public void testTokenForVersion(String serverVersion) throws Exception {
     SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "credentialsId", null,null, null, null, null, null));
     addCredential("credentialsId", "token");
     configureSonar(inst);
     configureMsBuildScanner(false);
 
-    FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));
-    proj.getBuildersList().add(new MsBuildSQRunnerEnd());
+    HttpClient client = mock(HttpClient.class);
+    when(client.getHttp(inst.getServerUrl() + WsClient.API_VERSION, null)).thenReturn(serverVersion);
+
+    MsBuildSQRunnerBegin runnerBegin = new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", "");
+    runnerBegin.setClient(client);
+    MsBuildSQRunnerEnd runnerEnd = new MsBuildSQRunnerEnd();
+    runnerEnd.setClient(client);
+
+    FreeStyleProject proj = setupFreeStyleProject(runnerBegin);
+    proj.getBuildersList().add(runnerEnd);
     Run<?, ?> r = build(proj, Result.SUCCESS);
     assertLogContains("end ********", r);
     assertLogContains("This is a fake MS Build Scanner", r);

@@ -31,6 +31,8 @@ import hudson.model.Run;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.plugins.sonar.SonarBuildWrapper.DescriptorImpl;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.WsClient;
 import hudson.plugins.sonar.model.TriggersConfig;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -60,8 +62,9 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
   @Before
   public void setUp() {
-    wrapper = new SonarBuildWrapper("local");
     installation = spy(createTestInstallation());
+    wrapper = new SonarBuildWrapper("local");
+    wrapper.setClient(mockServer(installation));
     stream = mock(PrintStream.class);
   }
 
@@ -126,7 +129,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     initialEnvironment.put("MY_SERVER", "myserver");
     initialEnvironment.put("MY_PORT", "10000");
     initialEnvironment.put("MY_VALUE", "myValue");
-    Map<String, String> map = SonarBuildWrapper.createVars(installation, null, initialEnvironment, mock(Run.class));
+    Map<String, String> map = SonarBuildWrapper.createVars(installation, null, initialEnvironment, mock(Run.class), mockServer(installation));
 
     assertThat(map).containsEntry("SONAR_HOST_URL", "http://myserver:10000");
     assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
@@ -143,7 +146,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   public void testEnvironmentMojoVersion() {
     installation = new SonarInstallation(null, null, null, null, null, "2.0", null, null, null);
 
-    Map<String, String> map = SonarBuildWrapper.createVars(installation, null, new EnvVars(), mock(Run.class));
+    Map<String, String> map = SonarBuildWrapper.createVars(installation, null, new EnvVars(), mock(Run.class), mock(HttpClient.class));
 
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "org.codehaus.mojo:sonar-maven-plugin:2.0:sonar");
   }
@@ -241,6 +244,12 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
     assertThat(build.getLog(1000)).contains("the token is: ******");
     assertThat(build.getActions(SonarAnalysisAction.class)).hasSize(1);
+  }
+
+  private static HttpClient mockServer(SonarInstallation installation) {
+    HttpClient client = mock(HttpClient.class);
+    when(client.getHttp(installation.getServerUrl() + WsClient.API_VERSION, null)).thenReturn("9.9");
+    return client;
   }
 
   private static class CaptureVarsBuilder extends TestBuilder {

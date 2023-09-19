@@ -27,6 +27,8 @@ import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.Node;
 import hudson.model.Run;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.WsClient;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.scm.SCM;
 import hudson.util.ArgumentListBuilder;
@@ -43,6 +45,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -120,7 +123,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     projectSettings.createNewFile();
 
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, null);
-    builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, null);
+    builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, null, null);
 
     assertThat(args.toStringWithQuote())
       .contains("-Dsonar.projectBaseDir=" + moduleDir)
@@ -128,16 +131,51 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   }
 
   @Test
-  public void shouldPopulateSonarToken() throws IOException, InterruptedException {
+  public void populateConfiguration_whenSQVersionLowerThan10_shouldPopulateSonarLogin() throws IOException, InterruptedException {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
     when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
+    HttpClient client = mockServerVersion(installation, "9.9");
 
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
-    builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation);
+    builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation, client);
 
     assertThat(args.toStringWithQuote())
       .contains("-Dsonar.login=token");
+  }
+
+  @Test
+  public void populateConfiguration_whenSQVersionHigherThan10_shouldPopulateSonarToken() throws IOException, InterruptedException {
+    SonarInstallation installation = mock(SonarInstallation.class);
+    when(installation.getServerUrl()).thenReturn("hostUrl");
+    when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
+    HttpClient client = mockServerVersion(installation, "10.0");
+
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
+    builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation, client);
+
+    assertThat(args.toStringWithQuote())
+      .contains("-Dsonar.token=token");
+  }
+
+  @Test
+  public void populateConfiguration_whenInstallationHasNoUrl_shouldFail() {
+    SonarInstallation installation = mock(SonarInstallation.class);
+    when(installation.getName()).thenReturn("test-install");
+    when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
+    HttpClient client = mockServerVersion(installation, "10.0");
+
+    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
+
+    assertThatThrownBy(() -> builder.populateConfiguration(argsBuilder, build, null, listener, env, installation, client))
+      .isInstanceOf(IllegalStateException.class)
+      .hasMessage("No server url on installation: test-install");
+  }
+
+  private static HttpClient mockServerVersion(SonarInstallation installation, String version) {
+    HttpClient client = mock(HttpClient.class);
+    when(client.getHttp(installation.getServerUrl() + WsClient.API_VERSION, null)).thenReturn(version);
+    return client;
   }
 
   /**

@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar;
 
+import com.google.common.annotations.VisibleForTesting;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
@@ -29,6 +30,8 @@ import hudson.model.BuildListener;
 import hudson.model.InvisibleAction;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.OkHttpClientSingleton;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
@@ -39,6 +42,20 @@ import javax.annotation.Nullable;
 public abstract class AbstractMsBuildSQRunner extends Builder {
   static final String INST_NAME_KEY = "msBuildScannerInstallationName";
   static final String SONAR_INST_NAME_KEY = "sonarInstanceName";
+
+  private HttpClient client;
+
+  protected HttpClient getClient() {
+    if (client == null) {
+      client = new HttpClient(OkHttpClientSingleton.getInstance());
+    }
+    return client;
+  }
+
+  @VisibleForTesting
+  void setClient(HttpClient client) {
+    this.client = client;
+  }
 
   protected static SonarInstallation getSonarInstallation(String instName, TaskListener listener) throws AbortException {
     if (!SonarInstallation.isValid(instName, listener)) {
