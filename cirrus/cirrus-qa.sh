@@ -6,7 +6,8 @@ source set_maven_build_version $BUILD_NUMBER
 
 # Get the Jenkins plugin HPI file. We will need it to install our plugin.
 wget --user $ARTIFACTORY_DEPLOY_USERNAME --password $ARTIFACTORY_DEPLOY_PASSWORD $ARTIFACTORY_URL/sonarsource-public-qa/org/jenkins-ci/plugins/sonar/$NEW_VERSION/sonar-$NEW_VERSION.hpi
-LOCAL_JARS=`pwd`/sonar-$CURRENT_VERSION.hpi
+export LOCAL_JARS=`pwd`/sonar-$NEW_VERSION.hpi
+echo "LOCAL_JARS: $LOCAL_JARS"
 
 # Run ITs.
 cd its
@@ -15,5 +16,3 @@ cd its
 # We then need to explicly set the variable to false. Another solution would to do this in the IT itself, but couldn't find a way to do it yet.
 CIRRUS_CI=false
 mvn -B -e -Dsonar.runtimeVersion="$SQ_VERSION" clean verify
-
-
