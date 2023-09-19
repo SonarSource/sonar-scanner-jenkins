@@ -35,6 +35,8 @@ import hudson.model.JDK;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.action.SonarMarkerAction;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.OkHttpClientSingleton;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.plugins.sonar.utils.JenkinsRouter;
@@ -51,6 +53,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import org.apache.tools.ant.taskdefs.condition.Http;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -99,6 +102,8 @@ public class SonarRunnerBuilder extends Builder {
    * @since 2.1
    */
   private String task;
+
+  private HttpClient client;
 
   @DataBoundConstructor
   public SonarRunnerBuilder() {
@@ -238,6 +243,18 @@ public class SonarRunnerBuilder extends Builder {
     return null;
   }
 
+  private HttpClient getClient() {
+    if (client == null) {
+      client = new HttpClient(OkHttpClientSingleton.getInstance());
+    }
+    return client;
+  }
+
+  @VisibleForTesting
+  void setClient(HttpClient client) {
+    this.client = client;
+  }
+
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
     FilePath workspace = build.getWorkspace();
@@ -277,7 +294,7 @@ public class SonarRunnerBuilder extends Builder {
     addTaskArgument(args);
     addAdditionalArguments(args, sonarInst);
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst);
+    populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst, getClient());
 
     // Java
     computeJdkToUse(run, workspace, listener, env);
@@ -358,12 +375,12 @@ public class SonarRunnerBuilder extends Builder {
 
   @VisibleForTesting
   void populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
-    TaskListener listener, EnvVars env, @Nullable SonarInstallation si) throws IOException, InterruptedException {
+    TaskListener listener, EnvVars env, @Nullable SonarInstallation si, HttpClient client) throws IOException, InterruptedException {
     if (si != null) {
       args.append("sonar.host.url", si.getServerUrl());
       String token = si.getServerAuthenticationToken(build);
       if (StringUtils.isNotBlank(token)) {
-        args.appendMasked("sonar.login", token);
+        args.appendMasked(SonarUtils.getTokenProperty(si, build, client), token);
       }
     }
 

@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar;
 
+import com.google.common.annotations.VisibleForTesting;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -29,6 +30,8 @@ import hudson.model.Action;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.action.SonarMarkerAction;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.OkHttpClientSingleton;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.tasks.BuildStepDescriptor;
@@ -41,7 +44,11 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import static hudson.plugins.sonar.utils.SonarUtils.PROPERTY_SONAR_LOGIN;
+import static hudson.plugins.sonar.utils.SonarUtils.PROPERTY_SONAR_TOKEN;
+
 public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
+
   @DataBoundConstructor
   public MsBuildSQRunnerEnd() {
     // will use MSBuild SQ Scanner installation defined in Begin
@@ -80,7 +87,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     addBadge(run, listener, workspace, sonarInstallation);
   }
 
-  private static void addArgs(ArgumentListBuilder args, EnvVars env, SonarInstallation sonarInstallation, Run<?, ?> run) {
+  private void addArgs(ArgumentListBuilder args, EnvVars env, SonarInstallation sonarInstallation, Run<?, ?> run) {
     Map<String, String> props = getSonarProps(sonarInstallation, run);
 
     args.add("end");
@@ -91,7 +98,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     for (Map.Entry<String, String> e : props.entrySet()) {
       if (!StringUtils.isEmpty(e.getValue())) {
         // expand macros using environment variables and hide token
-        boolean hide = e.getKey().contains("sonar.login");
+        boolean hide = e.getKey().contains(PROPERTY_SONAR_LOGIN) || e.getKey().contains(PROPERTY_SONAR_TOKEN);
         args.addKeyValuePair("/d:", e.getKey(), env.expand(e.getValue()), hide);
       }
     }
@@ -99,12 +106,12 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     args.addTokenized(sonarInstallation.getAdditionalProperties());
   }
 
-  private static Map<String, String> getSonarProps(SonarInstallation inst, Run<?, ?> run) {
+  private Map<String, String> getSonarProps(SonarInstallation inst, Run<?, ?> run) {
     Map<String, String> map = new LinkedHashMap<>();
 
     String token = inst.getServerAuthenticationToken(run);
     if (!StringUtils.isBlank(token)) {
-      map.put("sonar.login", token);
+      map.put(SonarUtils.getTokenProperty(inst, run, getClient()), token);
     }
 
     return map;
