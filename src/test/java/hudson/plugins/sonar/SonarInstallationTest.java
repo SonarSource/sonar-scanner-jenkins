@@ -57,7 +57,7 @@ public class SonarInstallationTest extends SonarTestCase {
     SonarInstallation inst = spy(new SonarInstallation(
       "Name",
       "server.url",
-            credentialsId,
+      credentialsId,
       null,
       "secretId",
       "mojoVersion",

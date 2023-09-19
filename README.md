@@ -18,7 +18,7 @@ With this plugin, you can configure SonarQube instances and run a SonarQube Scan
 
 
 'SonarQube Scanner' and 'SonarScanner for MSBuild' are managed as installable tools. List of available versions is retrieved
-automatically by Jenkins from a json file hosted on their respective update site:
+automatically by Jenkins from a json file hosted on the update site:
 * https://updates.jenkins.io/updates/hudson.plugins.sonar.SonarRunnerInstaller.json
 * https://updates.jenkins.io/updates/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller.json
 
