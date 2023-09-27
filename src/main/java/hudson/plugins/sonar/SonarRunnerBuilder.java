@@ -168,7 +168,7 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   /**
-   * @return path to a file with properties for project, never <tt>null</tt>
+   * @return path to a file with properties for project, never null
    */
   public String getProject() {
     return Util.fixNull(project);
@@ -180,7 +180,7 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   /**
-   * @return additional properties, never <tt>null</tt>
+   * @return additional properties, never null
    */
   public String getProperties() {
     return Util.fixNull(properties);
@@ -192,7 +192,7 @@ public class SonarRunnerBuilder extends Builder {
   }
 
   /**
-   * @return Java options, never <tt>null</tt>
+   * @return Java options, never null
    */
   public String getJavaOpts() {
     return Util.fixNull(javaOpts);

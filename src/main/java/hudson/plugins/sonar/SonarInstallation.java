@@ -105,7 +105,7 @@ public class SonarInstallation implements Serializable {
   }
 
   /**
-   * @return all available installations, never <tt>null</tt> but can be empty.
+   * @return all available installations, never null but can be empty.
    * @since 1.7
    */
   public static final SonarInstallation[] all() {
@@ -145,7 +145,7 @@ public class SonarInstallation implements Serializable {
   }
 
   /**
-   * @return installation by name, <tt>null</tt> if not found
+   * @return installation by name, null if not found
    * @since 1.7
    */
   public static final SonarInstallation get(String name) {
