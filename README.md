@@ -2,28 +2,31 @@ SonarQube Scanner for Jenkins
 =============================
 
 [![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.jenkins-ci.plugins%3Asonar&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.jenkins-ci.plugins%3Asonar)
+[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/sonar.svg)](https://plugins.jenkins.io/sonar)
+[![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/sonar.svg?color=blue)](https://plugins.jenkins.io/sonar)
 
-This plugin allow easy integration of [SonarQube™](https://www.sonarqube.org/), the open source platform for Continuous Inspection of code quality.
+This plugin allows the integration of [SonarQube](https://www.sonarsource.com/products/sonarqube/) in Jenkins projects.
 
-Documentation: http://redirect.sonarsource.com/plugins/jenkins.html
-
-Issue tracking: https://jira.sonarsource.com/browse/SONARJNKNS
+* [Documentation and changelog](https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/scanners/jenkins-extension-sonarqube/)
+* [Issue tracking](https://sonarsource.atlassian.net/jira/software/c/projects/SONARJNKNS/issues)
 
 If you want to make changes, please clone the [Git repository](https://github.com/SonarSource/sonar-scanner-jenkins).
 
-With this plugin, you can configure SonarQube instances and run a SonarQube Scanner analysis in several ways:
-* By injecting the SonarQube configuration as environment variables and using them in any job step (such as Maven, Ant, Gradle, ...);
-* Using the Sonar Scanner job;
-* Using SonarScanner for MSBuild's 'begin analysis' and 'end analysis' jobs;
+With this plugin, you can configure SonarQube instances and run a Sonar Scanner analysis in several ways:
 
+* By injecting the SonarQube configuration as environment variables and using them in any job step (such as Maven, Ant, Gradle, ...)
+* Using the SonarQube Scanner build step
+* Using SonarScanner for MSBuild analysis steps
 
 'SonarQube Scanner' and 'SonarScanner for MSBuild' are managed as installable tools. List of available versions is retrieved
 automatically by Jenkins from a json file hosted on the update site:
+
 * https://updates.jenkins.io/updates/hudson.plugins.sonar.SonarRunnerInstaller.json
 * https://updates.jenkins.io/updates/hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller.json
 
 The files are automatically updated when a new version of SonarScanner or SonarScanner for MSBuild is published,
 thanks to crawlers written in groovy:
+
 * https://github.com/jenkins-infra/crawler/blob/master/sonarqubescanner.groovy
 * https://github.com/jenkins-infra/crawler/blob/master/sonarqubescannermsbuild.groovy
 
