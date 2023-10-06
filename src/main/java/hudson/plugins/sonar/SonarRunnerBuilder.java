@@ -380,7 +380,7 @@ public class SonarRunnerBuilder extends Builder {
       args.append("sonar.host.url", si.getServerUrl());
       String token = si.getServerAuthenticationToken(build);
       if (StringUtils.isNotBlank(token)) {
-        args.appendMasked(SonarUtils.getTokenProperty(si, build, client), token);
+        args.appendMasked(SonarUtils.getTokenProperty(si, client), token);
       }
     }
 

@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -232,19 +233,25 @@ public final class SonarUtils {
     return CredentialsProvider.findCredentialById(credentialsId, StringCredentials.class, build);
   }
 
-  public static String getTokenProperty(SonarInstallation inst, Run<?, ?> build, HttpClient client) {
-    if (getVersion(inst, build, client).compareTo(new Version("10.0")) < 0) {
+  public static String getTokenProperty(SonarInstallation inst, HttpClient client) {
+    try {
+      if (getVersion(inst, client).compareTo(new Version("10.0")) < 0) {
+        return PROPERTY_SONAR_LOGIN;
+      } else {
+        return PROPERTY_SONAR_TOKEN;
+      }
+    } catch (Exception e) {
+      Logger.LOG.log(Level.WARNING, String.format("Failed to retrieve SonarQube instance version, '%s' is used by default",
+        PROPERTY_SONAR_LOGIN), e);
       return PROPERTY_SONAR_LOGIN;
-    } else {
-      return PROPERTY_SONAR_TOKEN;
     }
   }
 
-  public static Version getVersion(SonarInstallation inst, Run<?, ?> build, HttpClient client) {
+  public static Version getVersion(SonarInstallation inst, HttpClient client) {
     if (inst.getServerUrl() == null) {
       throw new IllegalStateException("No server url on installation: " + inst.getName());
     }
-    WsClient wsClient = new WsClient(client, inst.getServerUrl(), inst.getServerAuthenticationToken(build));
+    WsClient wsClient = new WsClient(client, inst.getServerUrl(), null);
     return new Version(wsClient.getServerVersion());
   }
 }

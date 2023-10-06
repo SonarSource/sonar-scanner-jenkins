@@ -27,6 +27,8 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
+import hudson.plugins.sonar.client.HttpClient;
+import hudson.plugins.sonar.client.WsClient;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -119,6 +121,30 @@ public class SonarUtilsTest {
 
     verify(r, never()).setResult(eq(Result.UNSTABLE));
     verify(printStream, never()).println("Pipeline marked as 'UNSTABLE'. Please update to at least Java 11. Find more information here on how to do this: https://sonarcloud.io/documentation/appendices/move-analysis-java-11/");
+  }
+
+  @Test
+  public void getTokenProperty_whenSQVersionHigherThan10_shouldReturnSonarToken() {
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", null, null, null, null, null, null, null);
+    HttpClient client = mock(HttpClient.class);
+    when(client.getHttp(sonarInstallation.getServerUrl() + WsClient.API_VERSION, null)).thenReturn("10.0");
+    assertThat(SonarUtils.getTokenProperty(sonarInstallation, client)).isEqualTo(SonarUtils.PROPERTY_SONAR_TOKEN);
+  }
+
+  @Test
+  public void getTokenProperty_whenSQVersionLowerThan10_shouldReturnSonarLogin() {
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", null, null, null, null, null, null, null);
+    HttpClient client = mock(HttpClient.class);
+    when(client.getHttp(sonarInstallation.getServerUrl() + WsClient.API_VERSION, null)).thenReturn("9.9");
+    assertThat(SonarUtils.getTokenProperty(sonarInstallation, client)).isEqualTo(SonarUtils.PROPERTY_SONAR_LOGIN);
+  }
+
+  @Test
+  public void getTokenProperty_whenSQVersionFetchFails_shouldReturnSonarLogin() {
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", null, null, null, null, null, null, null);
+    HttpClient client = mock(HttpClient.class);
+    when(client.getHttp(sonarInstallation.getServerUrl() + WsClient.API_VERSION, null)).thenThrow();
+    assertThat(SonarUtils.getTokenProperty(sonarInstallation, client)).isEqualTo(SonarUtils.PROPERTY_SONAR_LOGIN);
   }
 
   private static Run mockedRun(Run previous, SonarAnalysisAction... actions) {

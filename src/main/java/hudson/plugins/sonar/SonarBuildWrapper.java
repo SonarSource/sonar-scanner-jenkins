@@ -161,7 +161,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     StringBuilder sb = new StringBuilder();
     sb.append("{ \"sonar.host.url\" : \"").append(escapeJson(hostUrl)).append("\"");
     if (!token.isEmpty()) {
-      sb.append(", \"").append(SonarUtils.getTokenProperty(inst, build, client)).append("\" : \"").append(escapeJson(token)).append("\"");
+      sb.append(", \"").append(SonarUtils.getTokenProperty(inst, client)).append("\" : \"").append(escapeJson(token)).append("\"");
     }
     String additionalAnalysisProperties = inst.getAdditionalAnalysisProperties();
     if (additionalAnalysisProperties != null) {

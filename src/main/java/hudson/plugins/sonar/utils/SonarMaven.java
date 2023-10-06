@@ -102,7 +102,7 @@ public final class SonarMaven extends Maven {
 
     String token = getInstallation().getServerAuthenticationToken(build);
     if (StringUtils.isNotBlank(token)) {
-      argsBuilder.appendMasked(SonarUtils.getTokenProperty(getInstallation(), build, client), token);
+      argsBuilder.appendMasked(SonarUtils.getTokenProperty(getInstallation(), client), token);
     }
 
     if (build instanceof MavenModuleSetBuild) {
