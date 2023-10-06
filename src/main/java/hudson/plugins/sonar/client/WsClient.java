@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
+import org.apache.commons.lang3.StringUtils;
 
 public class WsClient {
   private static final String STATUS_ATTR = "status";
@@ -42,7 +43,7 @@ public class WsClient {
 
   public WsClient(HttpClient client, String serverUrl, @Nullable String token) {
     this.client = client;
-    this.serverUrl = serverUrl;
+    this.serverUrl = StringUtils.removeEnd(serverUrl, "/");
     this.token = token;
   }
 
