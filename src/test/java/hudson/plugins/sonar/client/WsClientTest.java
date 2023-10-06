@@ -85,6 +85,12 @@ public class WsClientTest {
     wsClient.getCETask(TASK_ID);
   }
 
+  @Test
+  public void testUrlFormat() {
+    new WsClient(client, "http://url.com/", null).getServerVersion();
+    verify(client).getHttp("http://url.com" + WsClient.API_VERSION, null);
+  }
+
   private void setSQVersion(float version) throws Exception {
     when(client.getHttp(SERVER_URL + "/api/server/version", null)).thenReturn(Float.toString(version));
   }
