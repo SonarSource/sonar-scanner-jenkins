@@ -159,17 +159,16 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   }
 
   @Test
-  public void populateConfiguration_whenInstallationHasNoUrl_shouldFail() {
+  public void populateConfiguration_whenInstallationHasNoUrl_shouldPopulateSonarLogin() throws IOException, InterruptedException {
     SonarInstallation installation = mock(SonarInstallation.class);
-    when(installation.getName()).thenReturn("test-install");
     when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
     HttpClient client = mockServerVersion(installation, "10.0");
 
     SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
+    builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation, client);
 
-    assertThatThrownBy(() -> builder.populateConfiguration(argsBuilder, build, null, listener, env, installation, client))
-      .isInstanceOf(IllegalStateException.class)
-      .hasMessage("No server url on installation: test-install");
+    assertThat(args.toStringWithQuote())
+      .contains("-Dsonar.login=token");
   }
 
   private static HttpClient mockServerVersion(SonarInstallation installation, String version) {
