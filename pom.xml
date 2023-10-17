@@ -154,8 +154,8 @@
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
-      <artifactId>workflow-cps</artifactId>
-      <version>3793.v65dec41c3a_c3</version>
+      <artifactId>workflow-api</artifactId>
+      <version>1284.v3b_38a_f02f93d</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
@@ -210,6 +210,7 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-cps</artifactId>
+      <version>3793.v65dec41c3a_c3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
