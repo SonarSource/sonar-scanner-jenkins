@@ -138,13 +138,13 @@
       <!-- needed for SonarPublisher -->
       <groupId>org.jenkins-ci.main</groupId>
       <artifactId>maven-plugin</artifactId>
-      <version>3.22</version>
+      <version>3.23</version>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>configurationslicing</artifactId>
-      <version>548.ve92d48e66b_f8</version>
+      <version>566.v27b_2e9929d8d</version>
       <optional>true</optional>
     </dependency>
     <dependency>
