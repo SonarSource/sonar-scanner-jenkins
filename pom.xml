@@ -91,17 +91,17 @@
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.5.13</version>
+        <version>4.5.14</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
-        <version>4.4.14</version>
+        <version>4.4.16</version>
       </dependency>
       <dependency>
         <groupId>org.jsoup</groupId>
         <artifactId>jsoup</artifactId>
-        <version>1.15.3</version>
+        <version>1.16.1</version>
       </dependency>
       <dependency>
         <groupId>commons-net</groupId>
