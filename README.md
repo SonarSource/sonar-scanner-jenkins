@@ -5,7 +5,7 @@ SonarQube Scanner for Jenkins
 [![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/sonar.svg)](https://plugins.jenkins.io/sonar)
 [![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/sonar.svg?color=blue)](https://plugins.jenkins.io/sonar)
 
-This plugin allows the integration of [SonarQube](https://www.sonarsource.com/products/sonarqube/) in Jenkins projects.
+This plugin allows easy integration in Jenkins projects of [SonarQube](https://www.sonarsource.com/products/sonarqube/), the open-source solution for helping developers write [Clean Code](https://www.sonarsource.com/solutions/clean-code/?utm_medium=referral&utm_source=github&utm_campaign=clean-code&utm_content=sonar-scanner-jenkins).
 
 * [Documentation and changelog](https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/scanners/jenkins-extension-sonarqube/)
 * [Issue tracking](https://sonarsource.atlassian.net/jira/software/c/projects/SONARJNKNS/issues)
