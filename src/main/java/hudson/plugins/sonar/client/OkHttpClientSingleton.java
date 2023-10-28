@@ -23,7 +23,8 @@ import okhttp3.OkHttpClient;
 import org.sonarqube.ws.client.OkHttpClientBuilder;
 
 public class OkHttpClientSingleton {
-  private static final OkHttpClient okHttpClient = new OkHttpClientBuilder().setUserAgent("Scanner for Jenkins").build();
+  private static final OkHttpClient okHttpClient = new OkHttpClientBuilder().setUserAgent("Scanner for Jenkins").build()
+          .newBuilder().callTimeout(30, java.util.concurrent.TimeUnit.SECONDS).build();
 
   private OkHttpClientSingleton() {
     // Nothing to do
