@@ -236,9 +236,7 @@ public final class SonarUtils {
 
   public static String getTokenProperty(SonarInstallation inst, HttpClient client) {
     try {
-      if (getVersion(inst, client).compareTo(new Version("10.0")) < 0
-          // SonarCloud always returns version 8.X.X. Then we have to check the url to know if it is SonarCloud or not.
-          && !isSonarCloud(inst)) {
+      if (!isSonarCloud(inst) && getVersion(inst, client).compareTo(new Version("10.0")) < 0) {
         return PROPERTY_SONAR_LOGIN;
       } else {
         return PROPERTY_SONAR_TOKEN;
