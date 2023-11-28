@@ -54,6 +54,7 @@ public final class SonarUtils {
   public static final String REPORT_TASK_FILE_NAME = "report-task.txt";
   public static final String PROPERTY_SONAR_LOGIN = "sonar.login";
   public static final String PROPERTY_SONAR_TOKEN = "sonar.token";
+  private static final String SONARCLOUD_URL = "https://sonarcloud.io";
 
   /**
    * Hide utility-class constructor.
@@ -235,7 +236,7 @@ public final class SonarUtils {
 
   public static String getTokenProperty(SonarInstallation inst, HttpClient client) {
     try {
-      if (getVersion(inst, client).compareTo(new Version("10.0")) < 0) {
+      if (!isSonarCloud(inst) && getVersion(inst, client).compareTo(new Version("10.0")) < 0) {
         return PROPERTY_SONAR_LOGIN;
       } else {
         return PROPERTY_SONAR_TOKEN;
@@ -253,5 +254,9 @@ public final class SonarUtils {
     }
     WsClient wsClient = new WsClient(client, inst.getServerUrl(), null);
     return new Version(wsClient.getServerVersion());
+  }
+
+  public static boolean isSonarCloud(SonarInstallation inst) {
+    return inst.getServerUrl() != null && inst.getServerUrl().startsWith(SONARCLOUD_URL);
   }
 }
