@@ -31,10 +31,23 @@ public class MSBuildScannerInstallation extends ToolInstallation {
   }
 
   public static void install(final Jenkins jenkins, final String version, boolean isDotnetCore) {
-    installTool(jenkins, MSBuildScannerInstallation.class, getInstallName(version, isDotnetCore), version + (isDotnetCore ? "-netcore" : ""));
+    installTool(jenkins, MSBuildScannerInstallation.class, getInstallName(version, isDotnetCore), getVersion(version, isDotnetCore));
+  }
+
+  private static String getVersion(String version, boolean isDotnetCore) {
+    String suffix;
+    if (version.startsWith("6.")) {
+      suffix = isDotnetCore ? "-net" : "-net-framework";
+    } else {
+      suffix = isDotnetCore ? "-netcore" : "";
+    }
+    return version + suffix;
   }
 
   public static String getInstallName(final String version, boolean isDotnetCore) {
+    if (version.startsWith("6.")) {
+      return "SonarScanner for " + (isDotnetCore ? " .NET" : " .NET Framework") + version;
+    }
     return "SonarScanner for MSBuild" + version + (isDotnetCore ? " - .NET Core" : " - .NET Fwk");
   }
 
