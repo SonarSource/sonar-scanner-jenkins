@@ -51,23 +51,11 @@ RUN INSTALLED_CHROME_VERSION=$(apt-cache policy google-chrome-stable | grep Inst
   && mv /opt/selenium/chromedriver /usr/bin/chromedriver \
   && chmod 755 /usr/bin/chromedriver
 
-RUN echo "Installing dotnet 2.2" \
-  && set -x \
-  && wget --no-verbose -O /tmp/dotnet.tar.gz https://download.visualstudio.microsoft.com/download/pr/228832ea-805f-45ab-8c88-fa36165701b9/16ce29a06031eeb09058dee94d6f5330/dotnet-sdk-2.2.401-linux-x64.tar.gz \
-  && mkdir -p /usr/share/dotnet/ \
-  && tar zxf /tmp/dotnet.tar.gz -C /usr/share/dotnet/ && rm /tmp/dotnet.tar.gz \
-  && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet \
-  && chmod -R 755 /usr/share/dotnet \
-  && chmod 755 /usr/bin/dotnet
-RUN dotnet --info
-
-# .NET < 6 requires OpenSSL 1 which is not installed by default on Ubuntu 22.04
-# https://github.com/dotnet/core/issues/7038#issuecomment-1110377345
-RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
-  && dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
-  && rm libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
-  && apt-get install libicu70 \
-  # Specific openssl configuration to prevent error:0E076071
-  && sed -i 's/openssl_conf = openssl_init/#openssl_conf = openssl_init/g' /etc/ssl/openssl.cnf
+# Install .NET
+RUN wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb \
+  && dpkg -i packages-microsoft-prod.deb \
+  && apt-get update \
+  && apt-get install -y dotnet-sdk-8.0 \
+  && dotnet --info
 
 USER sonarsource
