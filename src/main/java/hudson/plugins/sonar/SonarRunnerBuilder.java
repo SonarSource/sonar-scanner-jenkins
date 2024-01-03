@@ -85,23 +85,9 @@ public class SonarRunnerBuilder extends Builder {
 
   /**
    * Identifies {@link SonarRunnerInstallation} to be used.
-   * @since 2.0
-   * @deprecated since 2.5
-   */
-  @Deprecated
-  private transient String sonarRunnerName;
-
-  /**
-   * Identifies {@link SonarRunnerInstallation} to be used.
    * @since 2.5
    */
   private String sonarScannerName;
-
-  /**
-   * Optional task to run
-   * @since 2.1
-   */
-  private String task;
 
   @DataBoundConstructor
   public SonarRunnerBuilder() {
@@ -112,7 +98,7 @@ public class SonarRunnerBuilder extends Builder {
    * @deprecated We're moving to using @DataBoundSetter instead and a much leaner @DataBoundConstructor 
    */
   @Deprecated
-  public SonarRunnerBuilder(String installationName, String sonarScannerName, String project, String properties, String javaOpts, String jdk, String task,
+  public SonarRunnerBuilder(String installationName, String sonarScannerName, String project, String properties, String javaOpts, String jdk,
     String additionalArguments) {
     this.installationName = installationName;
     this.sonarScannerName = sonarScannerName;
@@ -120,7 +106,6 @@ public class SonarRunnerBuilder extends Builder {
     this.project = project;
     this.properties = properties;
     this.jdk = jdk;
-    this.task = task;
     this.additionalArguments = additionalArguments;
   }
 
@@ -214,15 +199,6 @@ public class SonarRunnerBuilder extends Builder {
     return SonarInstallation.get(getInstallationName());
   }
 
-  public String getTask() {
-    return Util.fixNull(task);
-  }
-
-  @DataBoundSetter
-  public void setTask(String task) {
-    this.task = task;
-  }
-
   @Override
   public DescriptorImpl getDescriptor() {
     return (DescriptorImpl) super.getDescriptor();
@@ -277,7 +253,6 @@ public class SonarRunnerBuilder extends Builder {
     }
 
     SonarInstallation sonarInst = getSonarInstallation();
-    addTaskArgument(args);
     addAdditionalArguments(args, sonarInst);
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
     populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst, new HttpClient(OkHttpClientSingleton.getInstance()));
@@ -353,12 +328,6 @@ public class SonarRunnerBuilder extends Builder {
     args.addTokenized(additionalArguments);
   }
 
-  private void addTaskArgument(ArgumentListBuilder args) {
-    if (StringUtils.isNotBlank(getTask())) {
-      args.add(task);
-    }
-  }
-
   @VisibleForTesting
   void populateConfiguration(ExtendedArgumentListBuilder args, Run<?, ?> build, FilePath workspace,
     TaskListener listener, EnvVars env, @Nullable SonarInstallation si, HttpClient client) throws IOException, InterruptedException {
@@ -426,14 +395,6 @@ public class SonarRunnerBuilder extends Builder {
   @Override
   public Action getProjectAction(AbstractProject<?, ?> project) {
     return new SonarMarkerAction();
-  }
-
-  protected Object readResolve() {
-    // Migrate old field to new field
-    if (sonarRunnerName != null) {
-      sonarScannerName = sonarRunnerName;
-    }
-    return this;
   }
 
   @Extension

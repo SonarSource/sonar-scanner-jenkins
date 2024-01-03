@@ -153,11 +153,7 @@ public class JenkinsUtils {
          i++) {
       String key = properties[2 * i];
       String value = properties[2 * i + 1];
-      if (key.equals("sonar.task")) {
-        setTextValue(findElement(By.name("_.task")), value);
-      } else {
-        builder.append(key).append("=").append(value).append("\n");
-      }
+      builder.append(key).append("=").append(value).append("\n");
     }
     setTextValue(findElement(By.name("_.properties")), builder.toString());
 
