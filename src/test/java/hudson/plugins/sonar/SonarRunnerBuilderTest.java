@@ -89,7 +89,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
 
   @Test
   public void shouldBeEmptyInsteadOfNull() {
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder();
     assertEmptyInsteadOfNull(builder);
   }
 
@@ -97,15 +97,18 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   public void additionalArgs() {
     ArgumentListBuilder args = new ArgumentListBuilder();
     SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, "-Y", "key=value", null);
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X -e");
+    SonarRunnerBuilder builder = new SonarRunnerBuilder();
+    builder.setProject("myCustomProjectSettings.properties");
+    builder.setAdditionalArguments("-X -e");
     builder.addAdditionalArguments(args, inst);
     assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X -e");
 
-    builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, "-X");
+    builder = new SonarRunnerBuilder();
+    builder.setProject("myCustomProjectSettings.properties");
+    builder.setAdditionalArguments("-X");
     args.clear();
     builder.addAdditionalArguments(args, inst);
     assertThat(args.toString()).isEqualTo("-Y -Dkey=value -X");
-
   }
 
   private void assertEmptyInsteadOfNull(SonarRunnerBuilder builder) {
@@ -122,7 +125,8 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     File projectSettings = new File(moduleDir, "myCustomProjectSettings.properties");
     projectSettings.createNewFile();
 
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, "myCustomProjectSettings.properties", null, null, null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder();
+    builder.setProject("myCustomProjectSettings.properties");
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, null, null);
 
     assertThat(args.toStringWithQuote())
@@ -137,7 +141,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
     HttpClient client = mockServerVersion(installation, "9.9");
 
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder();
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation, client);
 
     assertThat(args.toStringWithQuote())
@@ -151,7 +155,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
     HttpClient client = mockServerVersion(installation, "10.0");
 
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder();
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation, client);
 
     assertThat(args.toStringWithQuote())
@@ -164,7 +168,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
     HttpClient client = mockServerVersion(installation, "10.0");
 
-    SonarRunnerBuilder builder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
+    SonarRunnerBuilder builder = new SonarRunnerBuilder();
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation, client);
 
     assertThat(args.toStringWithQuote())

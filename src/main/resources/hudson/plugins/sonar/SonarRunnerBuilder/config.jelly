@@ -20,11 +20,6 @@
     </f:entry>
   </j:if>
 
-  <!-- Task -->
-  <f:entry title="${%Task}" field="task" help="/plugin/sonar/help-runner-task.html">
-    <f:textbox />
-  </f:entry>
-
   <!-- JDK -->
   <j:set var="jdks" value="${app.JDKs}" />
   <f:entry title="JDK" description="${%JDKDesc}" help="/plugin/sonar/help-sonar-jdk.html">
