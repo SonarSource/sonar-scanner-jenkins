@@ -43,20 +43,6 @@ public abstract class AbstractMsBuildSQRunner extends Builder {
   static final String INST_NAME_KEY = "msBuildScannerInstallationName";
   static final String SONAR_INST_NAME_KEY = "sonarInstanceName";
 
-  private HttpClient client;
-
-  protected HttpClient getClient() {
-    if (client == null) {
-      client = new HttpClient(OkHttpClientSingleton.getInstance());
-    }
-    return client;
-  }
-
-  @VisibleForTesting
-  void setClient(HttpClient client) {
-    this.client = client;
-  }
-
   protected static SonarInstallation getSonarInstallation(String instName, TaskListener listener) throws AbortException {
     if (!SonarInstallation.isValid(instName, listener)) {
       throw new AbortException();

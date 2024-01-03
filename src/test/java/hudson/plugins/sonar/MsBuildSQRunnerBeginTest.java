@@ -39,8 +39,6 @@ import static org.mockito.Mockito.when;
 
 public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
-  private HttpClient client = mock(HttpClient.class);
-
   @Test
   public void testNormalExec() throws Exception {
     configureDefaultSonar();
@@ -96,22 +94,11 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testSonarProps() throws Exception {
-    testSonarPropsForVersion("9.9");
-  }
-
-  @Test
-  public void testSonarPropsWithSonarToken() throws Exception {
-    testSonarPropsForVersion("10.0");
-  }
-
-  private void testSonarPropsForVersion(String serverVersion) throws Exception {
     SonarInstallation inst = spy(new SonarInstallation("default", "http://dummy-server:9090", "credentialsId", null,
       null, null, null, null, null));
     configureSonar(inst);
     addCredential("credentialsId", "any-token");
     configureMsBuildScanner(false);
-
-    when(client.getHttp(inst.getServerUrl() + WsClient.API_VERSION, null)).thenReturn(serverVersion);
 
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
@@ -156,8 +143,6 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
   }
 
   private FreeStyleProject createFreeStyleProjectWithMSBuild(String sonarInst, String msBuildInst, String key, @Nullable String additionalArgs) throws Exception {
-    MsBuildSQRunnerBegin runnerBegin = new MsBuildSQRunnerBegin(msBuildInst, sonarInst, key, "name", "1.0", additionalArgs);
-    runnerBegin.setClient(client);
-    return setupFreeStyleProject(runnerBegin);
+    return setupFreeStyleProject(new MsBuildSQRunnerBegin(msBuildInst, sonarInst, key, "name", "1.0", additionalArgs));
   }
 }

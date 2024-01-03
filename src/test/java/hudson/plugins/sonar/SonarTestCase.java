@@ -136,11 +136,7 @@ public abstract class SonarTestCase {
   }
 
   protected FreeStyleProject setupFreeStyleProjectWithSonarRunner() throws Exception {
-    HttpClient client = mock(HttpClient.class);
-    when(client.getHttp(SONAR_HOST + WsClient.API_VERSION, null)).thenReturn("9.9");
-    SonarRunnerBuilder sonarRunnerBuilder = new SonarRunnerBuilder(null, null, null, null, null, null, null, null);
-    sonarRunnerBuilder.setClient(client);
-    return setupFreeStyleProject(sonarRunnerBuilder);
+    return setupFreeStyleProject(new SonarRunnerBuilder(null, null, null, null, null, null, null, null));
   }
 
   protected FreeStyleProject setupFreeStyleProject(Builder b) throws Exception {

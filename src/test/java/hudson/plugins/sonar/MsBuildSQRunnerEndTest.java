@@ -37,30 +37,13 @@ public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
 
   @Test
   public void testToken() throws Exception {
-    testTokenForVersion("9.9");
-  }
-
-  @Test
-  public void testTokenWithSonarToken() throws Exception {
-    testTokenForVersion("10.0");
-  }
-
-  public void testTokenForVersion(String serverVersion) throws Exception {
     SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "credentialsId", null,null, null, null, null, null));
     addCredential("credentialsId", "token");
     configureSonar(inst);
     configureMsBuildScanner(false);
 
-    HttpClient client = mock(HttpClient.class);
-    when(client.getHttp(inst.getServerUrl() + WsClient.API_VERSION, null)).thenReturn(serverVersion);
-
-    MsBuildSQRunnerBegin runnerBegin = new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", "");
-    runnerBegin.setClient(client);
-    MsBuildSQRunnerEnd runnerEnd = new MsBuildSQRunnerEnd();
-    runnerEnd.setClient(client);
-
-    FreeStyleProject proj = setupFreeStyleProject(runnerBegin);
-    proj.getBuildersList().add(runnerEnd);
+    FreeStyleProject proj = setupFreeStyleProject(new MsBuildSQRunnerBegin("default", "default", "key", "name", "1.0", ""));
+    proj.getBuildersList().add(new MsBuildSQRunnerEnd());
     Run<?, ?> r = build(proj, Result.SUCCESS);
     assertLogContains("end ********", r);
     assertLogContains("This is a fake MS Build Scanner", r);

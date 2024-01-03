@@ -103,8 +103,6 @@ public class SonarRunnerBuilder extends Builder {
    */
   private String task;
 
-  private HttpClient client;
-
   @DataBoundConstructor
   public SonarRunnerBuilder() {
     // all fields are optional
@@ -243,18 +241,6 @@ public class SonarRunnerBuilder extends Builder {
     return null;
   }
 
-  private HttpClient getClient() {
-    if (client == null) {
-      client = new HttpClient(OkHttpClientSingleton.getInstance());
-    }
-    return client;
-  }
-
-  @VisibleForTesting
-  void setClient(HttpClient client) {
-    this.client = client;
-  }
-
   @Override
   public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
     FilePath workspace = build.getWorkspace();
@@ -294,7 +280,7 @@ public class SonarRunnerBuilder extends Builder {
     addTaskArgument(args);
     addAdditionalArguments(args, sonarInst);
     ExtendedArgumentListBuilder argsBuilder = new ExtendedArgumentListBuilder(args, launcher.isUnix());
-    populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst, getClient());
+    populateConfiguration(argsBuilder, run, workspace, listener, env, sonarInst, new HttpClient(OkHttpClientSingleton.getInstance()));
 
     // Java
     computeJdkToUse(run, workspace, listener, env);
