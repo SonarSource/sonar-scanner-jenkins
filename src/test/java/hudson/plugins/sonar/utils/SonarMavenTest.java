@@ -53,12 +53,9 @@ public class SonarMavenTest {
     when(publisher.getInstallation()).thenReturn(installation);
     when(publisher.getBranch()).thenReturn("branch");
 
-    HttpClient client = mock(HttpClient.class);
-    when(client.getHttp(installation.getServerUrl() + WsClient.API_VERSION, null)).thenReturn("9.9");
-
     ArgumentListBuilder args = new ArgumentListBuilder();
-    SonarMaven sonarMaven = new SonarMaven("-Dprop=value", "Default Maven", "pom.xml", "", new DefaultLocalRepositoryLocator(), publisher, mock(BuildListener.class), null, null,
-      null, client);
+    SonarMaven sonarMaven = new SonarMaven("-Dprop=value", "Default Maven", "pom.xml", "", new DefaultLocalRepositoryLocator(), publisher,
+      mock(BuildListener.class), null, null, null);
     sonarMaven.wrapUpArguments(args, "sonar:sonar", mock(AbstractBuild.class), mock(Launcher.class), mock(BuildListener.class));
 
     List<String> result = args.toList();

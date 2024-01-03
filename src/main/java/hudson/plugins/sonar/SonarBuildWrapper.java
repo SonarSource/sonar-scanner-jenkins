@@ -76,7 +76,6 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
   private String installationName;
   private String credentialsId;
   private boolean envOnly = false;
-  private HttpClient client;
 
   @DataBoundConstructor
   public SonarBuildWrapper(@Nullable String installationName) {
@@ -102,18 +101,6 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     this.envOnly = envOnly;
   }
 
-  protected HttpClient getClient() {
-    if (client == null) {
-      client = new HttpClient(OkHttpClientSingleton.getInstance());
-    }
-    return client;
-  }
-
-  @VisibleForTesting
-  void setClient(HttpClient client) {
-    this.client = client;
-  }
-
   @Override
   public void setUp(Context context, Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment)
     throws IOException, InterruptedException {
@@ -125,7 +112,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     Logger.LOG.info(msg);
     listener.getLogger().println(msg);
 
-    context.getEnv().putAll(createVars(installation, getCredentialsId(), initialEnvironment, build, getClient()));
+    context.getEnv().putAll(createVars(installation, getCredentialsId(), initialEnvironment, build, new HttpClient(OkHttpClientSingleton.getInstance())));
 
     if (envOnly) {
       return;

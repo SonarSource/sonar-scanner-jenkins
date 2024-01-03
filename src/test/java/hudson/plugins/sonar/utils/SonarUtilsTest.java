@@ -150,23 +150,20 @@ public class SonarUtilsTest {
   @Test
   public void getTokenProperty_whenIsSonarCloud_shouldReturnSonarToken() {
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://sonarcloud.io", null, null, null, null, null, null, null);
-    HttpClient client = mock(HttpClient.class);
-    when(client.getHttp(sonarInstallation.getServerUrl() + WsClient.API_VERSION, null)).thenReturn("8.0.0.50887");
-    assertThat(SonarUtils.getTokenProperty(sonarInstallation, client)).isEqualTo(SonarUtils.PROPERTY_SONAR_TOKEN);
+    assertThat(SonarUtils.getTokenProperty(sonarInstallation, mock(HttpClient.class))).isEqualTo(SonarUtils.PROPERTY_SONAR_TOKEN);
   }
 
   @Test
-  public void isSonarCloudShouldReturnFalseWhenServerUrlIsNotSonarCloud() {
+  public void isSonarCloud_whenServerUrlIsNotSonarCloud_shouldReturnFalse() {
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", null, null, null, null, null, null, null);
     assertThat(SonarUtils.isSonarCloud(sonarInstallation)).isFalse();
   }
 
   @Test
-  public void isSonarCloudShouldReturnTrueWhenServerUrlIsSonarCloud() {
+  public void isSonarCloud_whenServerUrlIsSonarCloud_shouldReturnTrue() {
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://sonarcloud.io", null, null, null, null, null, null, null);
     assertThat(SonarUtils.isSonarCloud(sonarInstallation)).isTrue();
   }
-
 
   private static Run mockedRun(Run previous, SonarAnalysisAction... actions) {
     Run r = mock(Run.class);

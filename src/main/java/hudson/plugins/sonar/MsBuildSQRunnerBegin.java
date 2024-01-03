@@ -116,7 +116,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     map.put("sonar.host.url", inst.getServerUrl());
     String token = inst.getServerAuthenticationToken(run);
     if (!StringUtils.isBlank(token)) {
-      map.put(SonarUtils.getTokenProperty(inst, getClient()), token);
+      map.put(SonarUtils.getTokenProperty(inst, new HttpClient(OkHttpClientSingleton.getInstance())), token);
     }
 
     return map;

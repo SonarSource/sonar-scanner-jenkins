@@ -64,7 +64,6 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   public void setUp() {
     installation = spy(createTestInstallation());
     wrapper = new SonarBuildWrapper("local");
-    wrapper.setClient(mockServer(installation));
     stream = mock(PrintStream.class);
   }
 
