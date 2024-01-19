@@ -36,10 +36,14 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
+import static hudson.plugins.sonar.utils.SonarUtils.REPORT_TASK_FILE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -53,6 +57,8 @@ import static org.mockito.Mockito.when;
 public class SonarUtilsTest {
   @Rule
   public ExpectedException exception = ExpectedException.none();
+  @Rule
+  public TemporaryFolder workspaceFolder = new TemporaryFolder();
 
   @Test
   public void testMajorMinor() {
@@ -90,6 +96,33 @@ public class SonarUtilsTest {
     assertThat(action.isSkipped()).isFalse();
     assertThat(action.getCeTaskId()).isNull();
     assertThat(action.getUrl()).isEqualTo("url1");
+  }
+
+  @Test
+  public void testAddBuildInfoTo() throws Exception {
+    AbstractBuild<?, ?> build = mockedBuild("log");
+
+    File scannerFolder = workspaceFolder.newFolder("scanner");
+    FileUtils.writeLines(new File(scannerFolder, REPORT_TASK_FILE_NAME), List.of(
+      "serverUrl=http://url",
+      "dashboardUrl=http://url/dashboard?id=test",
+      "ceTaskId=AYzPsI8CN2oYarIFiK6r"
+    ));
+
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", "credentialsId", null, null, null, null, null,
+      null);
+    SonarAnalysisAction action = SonarUtils.addBuildInfoTo(build, mock(TaskListener.class), new FilePath(workspaceFolder.getRoot()),
+      sonarInstallation, "credId", false);
+
+    assertThat(action.getInstallationName()).isEqualTo("inst");
+    assertThat(action.getInstallationUrl()).isEqualTo("https://url.com");
+    assertThat(action.getCredentialsId()).isEqualTo("credId");
+    assertThat(action.isSkipped()).isFalse();
+    assertThat(action.getCeTaskId()).isEqualTo("AYzPsI8CN2oYarIFiK6r");
+    assertThat(action.getUrl()).isEqualTo("http://url/dashboard?id=test");
+    assertThat(action.getServerUrl()).isEqualTo("http://url");
+
+    verify(build).addAction(action);
   }
 
   @Test
