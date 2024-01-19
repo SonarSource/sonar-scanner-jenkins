@@ -22,6 +22,7 @@ package hudson.plugins.sonar.utils;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import hudson.EnvVars;
 import hudson.FilePath;
+import hudson.Util;
 import hudson.model.Action;
 import hudson.model.Actionable;
 import hudson.model.Result;
@@ -31,6 +32,8 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.WsClient;
+import hudson.remoting.VirtualChannel;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,6 +47,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import jenkins.MasterToSlaveFileCallable;
+import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.types.FileSet;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 public final class SonarUtils {
@@ -94,7 +101,7 @@ public final class SonarUtils {
   public static Properties extractReportTask(TaskListener listener, FilePath workspace) throws IOException, InterruptedException {
     FilePath[] candidates = null;
     if (workspace.exists()) {
-      candidates = workspace.list("**/" + REPORT_TASK_FILE_NAME);
+      candidates = workspace.act(new ListWithoutSymlinksCallable("**/" + REPORT_TASK_FILE_NAME));
     }
     if (candidates == null || candidates.length == 0) {
       listener.getLogger().println("WARN: Unable to locate '" + REPORT_TASK_FILE_NAME + "' in the workspace. Did the SonarScanner succeed?");
@@ -112,6 +119,34 @@ public final class SonarUtils {
       }
     }
 
+  }
+
+  /**
+   * Similar to what is used for {@link FilePath#list(String)} but does not follow symlinks.
+   */
+  private static class ListWithoutSymlinksCallable extends MasterToSlaveFileCallable<FilePath[]> {
+    private static final long serialVersionUID = 1L;
+    private final String includes;
+
+    ListWithoutSymlinksCallable(String includes) {
+      this.includes = includes;
+    }
+
+    @Override
+    public FilePath[] invoke(File dir, VirtualChannel channel) {
+      FileSet fs = Util.createFileSet(dir, includes, null);
+      fs.setDefaultexcludes(true);
+      fs.setFollowSymlinks(false);
+
+      DirectoryScanner ds = fs.getDirectoryScanner(new Project());
+      String[] includedFiles = ds.getIncludedFiles();
+
+      FilePath[] filePaths = new FilePath[includedFiles.length];
+      for (int i = 0; i < filePaths.length; i++) {
+        filePaths[i] = new FilePath(new File(dir, includedFiles[i]));
+      }
+      return filePaths;
+    }
   }
 
   @Nullable
