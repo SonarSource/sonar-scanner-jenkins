@@ -20,7 +20,7 @@ USER root
 #==============================================================================
 # Xvfb, for integration tests
 #==============================================================================
-RUN apt-get update && apt-get -y install xvfb wget
+RUN apt-get update && apt-get -y install xvfb wget jq
 
 #==============================================================================
 # Install nodejs
@@ -30,25 +30,24 @@ RUN apt-get install -y nodejs
 #==============================================================================
 # Google Chrome, for integration tests
 #==============================================================================
-ARG CHROME_VERSION=108.0.5359.94-1
+ARG CHROME_VERSION=google-chrome-stable
 RUN echo "Using Chrome version: $CHROME_VERSION" \
-  && wget --no-verbose -O /tmp/chrome_amd64.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
+  && wget --no-verbose -O /tmp/chrome_amd64.deb https://dl.google.com/linux/direct/${CHROME_VERSION}_current_amd64.deb \
   # Ignore install errors; we will try and fix them below.
-  && dpkg -i /tmp/chrome_amd64.deb || true
-RUN apt-get install -fy
+  && dpkg -i /tmp/chrome_amd64.deb || true \
+  && apt-get install -fy
 
 COPY its/docker/wrap_chrome_binary /opt/bin/wrap_chrome_binary
 RUN /opt/bin/wrap_chrome_binary
 
-ARG CHROME_DRIVER_VERSION=google-chrome-stable
-RUN INSTALLED_CHROME_VERSION=$(apt-cache policy google-chrome-stable | grep Installed | cut -d: -f2 | xargs | cut -d\.  -f1) \
-  && CHROME_DRIVER_VERSION=$(curl "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$INSTALLED_CHROME_VERSION") \
-  && wget --no-verbose -O /tmp/chromedriver_linux64.zip "https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip" \
+RUN CHROME_DRIVER_URL=$(curl "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json" \
+    | jq -r '.channels.Stable.downloads.chromedriver[] | select(.platform == "linux64").url') \
+  && wget --no-verbose -O /tmp/chromedriver_linux64.zip $CHROME_DRIVER_URL \
   && rm -rf /opt/selenium/chromedriver \
   && mkdir -p /opt/selenium \
   && unzip /tmp/chromedriver_linux64.zip -d /opt/selenium \
   && rm /tmp/chromedriver_linux64.zip \
-  && mv /opt/selenium/chromedriver /usr/bin/chromedriver \
+  && mv /opt/selenium/chromedriver-linux64/chromedriver /usr/bin/chromedriver \
   && chmod 755 /usr/bin/chromedriver
 
 # Install .NET
@@ -56,6 +55,7 @@ RUN wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-p
   && dpkg -i packages-microsoft-prod.deb \
   && apt-get update \
   && apt-get install -y dotnet-sdk-8.0 \
+  && apt-get clean \
   && dotnet --info
 
 USER sonarsource
