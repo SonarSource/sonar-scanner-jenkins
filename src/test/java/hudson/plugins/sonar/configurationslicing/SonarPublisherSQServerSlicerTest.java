@@ -53,7 +53,7 @@ public class SonarPublisherSQServerSlicerTest {
     final SonarPublisherSQServerSlicer.SonarPublisherSQInstallSlicerSpec spec = new SonarPublisherSQServerSlicer.SonarPublisherSQInstallSlicerSpec();
     final List<String> values = spec.getValues(project);
     assertThat(values.get(0)).isEqualTo("MySonar");
-    final List<String> newValues = new ArrayList<String>();
+    final List<String> newValues = new ArrayList<>();
     newValues.add("MySonar 2");
     spec.setValues(project, newValues);
 

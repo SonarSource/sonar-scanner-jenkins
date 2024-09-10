@@ -24,6 +24,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
 import com.google.common.annotations.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -252,6 +253,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
   @Symbol("withSonarQubeEnv")
   @Extension
   public static final class DescriptorImpl extends BuildWrapperDescriptor {
+    @NonNull
     @Override
     public String getDisplayName() {
       return Messages.SonarBuildWrapper_DisplayName();
@@ -259,13 +261,13 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project,
       @QueryParameter String credentialsId) {
-      if (project == null && !Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER) ||
+      if (project == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER) ||
         project != null && !project.hasPermission(Item.EXTENDED_READ)) {
         return new StandardListBoxModel().includeCurrentValue(credentialsId);
       }
       if (project == null) {
         /* Construct a fake project */
-        project = new FreeStyleProject(Jenkins.getInstance(), "fake-" + UUID.randomUUID().toString());
+        project = new FreeStyleProject(Jenkins.get(), "fake-" + UUID.randomUUID().toString());
       }
       return new StandardListBoxModel()
         .includeEmptyValue()
@@ -282,7 +284,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
 
     public FormValidation doCheckCredentialsId(@AncestorInPath Item project,
       @QueryParameter String value) {
-      if (project == null && !Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER) ||
+      if (project == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER) ||
         project != null && !project.hasPermission(Item.EXTENDED_READ)) {
         return FormValidation.ok();
       }
