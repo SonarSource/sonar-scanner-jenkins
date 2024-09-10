@@ -68,7 +68,7 @@ public class MaskPasswordsOutputStreamTest {
   }
 
   private void assertWritten(String... str) {
-    String written = new String(os.toByteArray(), StandardCharsets.UTF_8);
+    String written = os.toString(StandardCharsets.UTF_8);
     String[] lines = written.split(System.lineSeparator());
 
     assertThat(lines).containsExactly(str);

@@ -19,7 +19,6 @@
  */
 package hudson.plugins.sonar;
 
-import com.google.common.annotations.VisibleForTesting;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
@@ -30,8 +29,6 @@ import hudson.model.BuildListener;
 import hudson.model.InvisibleAction;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.plugins.sonar.client.HttpClient;
-import hudson.plugins.sonar.client.OkHttpClientSingleton;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;

@@ -24,6 +24,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
 import com.google.common.collect.ImmutableSet;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.Util;
@@ -60,7 +61,6 @@ import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.whitelists.Whitelisted;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
@@ -392,6 +392,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
   @Extension(optional = true)
   public static final class DescriptorImpl extends StepDescriptor {
 
+    @NonNull
     @Override
     public String getDisplayName() {
       return "Wait for SonarQube analysis to be completed and return quality gate status";
@@ -399,13 +400,13 @@ public class WaitForQualityGateStep extends Step implements Serializable {
 
     public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project,
       @QueryParameter String credentialsId) {
-      if (project == null && !Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER) ||
+      if (project == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER) ||
         project != null && !project.hasPermission(Item.EXTENDED_READ)) {
         return new StandardListBoxModel().includeCurrentValue(credentialsId);
       }
       if (project == null) {
         /* Construct a fake project */
-        project = new FreeStyleProject(Jenkins.getInstance(), "fake-" + UUID.randomUUID().toString());
+        project = new FreeStyleProject(Jenkins.get(), "fake-" + UUID.randomUUID().toString());
       }
       return new StandardListBoxModel()
         .includeEmptyValue()
@@ -422,7 +423,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
 
     public FormValidation doCheckCredentialsId(@AncestorInPath Item project,
       @QueryParameter String value) {
-      if (project == null && !Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER) ||
+      if (project == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER) ||
         project != null && !project.hasPermission(Item.EXTENDED_READ)) {
         return FormValidation.ok();
       }
@@ -438,7 +439,7 @@ public class WaitForQualityGateStep extends Step implements Serializable {
             : ACL.SYSTEM,
           Collections.emptyList(),
           CredentialsMatchers.always())) {
-        if (StringUtils.equals(value, o.value)) {
+        if (Objects.equals(value, o.value)) {
           return FormValidation.ok();
         }
       }

@@ -31,7 +31,6 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -149,7 +148,7 @@ public class SQProjectResolverTest extends SonarTestCase {
   private String getFile(String name) throws IOException, URISyntaxException {
     URL resource = getClass().getResource(name);
     Path p = Paths.get(resource.toURI());
-    return new String(Files.readAllBytes(p), StandardCharsets.UTF_8);
+    return Files.readString(p);
   }
 
 }

@@ -39,7 +39,7 @@ public final class JenkinsRouter {
   }
 
   private static String getRootUrl() {
-    return Jenkins.getInstance().getRootUrl();
+    return Jenkins.get().getRootUrl();
   }
 
   private static String getGlobalToolConfigRelPath() {

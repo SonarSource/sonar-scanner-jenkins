@@ -55,7 +55,7 @@ public class SonarPublisherBranchSlicerTest {
     final List<String> values = branchSpec.getValues(project);
     assertThat(values.get(0)).isEqualTo("(Empty)");
 
-    final List<String> newValues = new ArrayList<String>();
+    final List<String> newValues = new ArrayList<>();
     newValues.add("branchName");
     branchSpec.setValues(project, newValues);
     final SonarPublisher publisher = project.getPublishersList().get(SonarPublisher.class);

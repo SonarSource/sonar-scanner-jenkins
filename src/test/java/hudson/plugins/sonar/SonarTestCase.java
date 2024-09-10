@@ -33,8 +33,6 @@ import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.sonar.action.SonarBuildBadgeAction;
 import hudson.plugins.sonar.action.SonarProjectIconAction;
-import hudson.plugins.sonar.client.HttpClient;
-import hudson.plugins.sonar.client.WsClient;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.scm.NullSCM;
 import hudson.tasks.Builder;
@@ -51,8 +49,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Evgeny Mandrikov
