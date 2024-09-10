@@ -21,6 +21,7 @@ package hudson.plugins.sonar.client;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import net.sf.json.JSONException;
@@ -84,12 +85,7 @@ public class WsClient {
   }
 
   private static String encode(String param) {
-    try {
-      return URLEncoder.encode(param, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      // Should never occurs
-      return param;
-    }
+      return URLEncoder.encode(param, StandardCharsets.UTF_8);
   }
 
   public static class CETask {
