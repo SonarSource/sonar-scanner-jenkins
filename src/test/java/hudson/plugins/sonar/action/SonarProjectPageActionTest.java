@@ -31,7 +31,7 @@ import static org.mockito.Mockito.mock;
 public class SonarProjectPageActionTest {
   @Test
   public void test() {
-    List<ProjectInformation> list = new LinkedList<ProjectInformation>();
+    List<ProjectInformation> list = new LinkedList<>();
     list.add(mock(ProjectInformation.class));
     list.add(mock(ProjectInformation.class));
     

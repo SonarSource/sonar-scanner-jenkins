@@ -19,7 +19,7 @@
  */
 package hudson.plugins.sonar;
 
-import com.google.common.annotations.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -68,7 +68,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
     String sonarInstName = beginParams.getSqServerName();
     SonarInstallation sonarInstallation = getSonarInstallation(sonarInstName, listener);
 
-    MsBuildSQRunnerInstallation msBuildScanner = Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerBegin.DescriptorImpl.class)
+    MsBuildSQRunnerInstallation msBuildScanner = Jenkins.get().getDescriptorByType(MsBuildSQRunnerBegin.DescriptorImpl.class)
       .getMsBuildScannerInstallation(scannerName);
     String scannerPath = getScannerPath(msBuildScanner, env, launcher, listener, workspace);
     if (isDotNetCoreTool(scannerPath)) {
@@ -138,6 +138,7 @@ public class MsBuildSQRunnerEnd extends AbstractMsBuildSQRunner {
       return "/plugin/sonar/help-ms-build-sq-scanner-end.html";
     }
 
+    @NonNull
     @Override
     public String getDisplayName() {
       return Messages.MsBuildScannerEnd_DisplayName();

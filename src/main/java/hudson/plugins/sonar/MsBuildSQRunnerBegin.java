@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -231,6 +232,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
       return "/plugin/sonar/help-ms-build-sq-scanner-begin.html";
     }
 
+    @NonNull
     @Override
     public String getDisplayName() {
       return Messages.MsBuildScannerBegin_DisplayName();
@@ -265,7 +267,7 @@ public class MsBuildSQRunnerBegin extends AbstractMsBuildSQRunner {
     }
 
     public MsBuildSQRunnerInstallation[] getMsBuildScannerInstallations() {
-      return Jenkins.getInstance().getDescriptorByType(MsBuildSQRunnerInstallation.DescriptorImpl.class).getInstallations();
+      return Jenkins.get().getDescriptorByType(MsBuildSQRunnerInstallation.DescriptorImpl.class).getInstallations();
     }
 
     public SonarInstallation[] getSonarInstallations() {

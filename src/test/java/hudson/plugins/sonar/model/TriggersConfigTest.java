@@ -114,7 +114,7 @@ public class TriggersConfigTest {
     AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     EnvVars env_vars = new EnvVars();
     when(build.getEnvironment(listener)).thenReturn(env_vars);
-    Map<String, String> build_vars = new HashMap<String, String>();
+    Map<String, String> build_vars = new HashMap<>();
     when(build.getBuildVariables()).thenReturn(build_vars);
     when(build.getBuildVariableResolver()).thenCallRealMethod();
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
@@ -132,7 +132,7 @@ public class TriggersConfigTest {
     AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     EnvVars env_vars = new EnvVars();
     when(build.getEnvironment(listener)).thenReturn(env_vars);
-    Map<String, String> build_vars = new HashMap<String, String>();
+    Map<String, String> build_vars = new HashMap<>();
     when(build.getBuildVariables()).thenReturn(build_vars);
     when(build.getBuildVariableResolver()).thenCallRealMethod();
     assertThat(triggers.isSkipSonar(build, listener)).isNull();

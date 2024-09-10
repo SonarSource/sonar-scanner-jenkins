@@ -20,6 +20,7 @@
 package hudson.plugins.sonar;
 
 import com.google.common.annotations.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
@@ -113,6 +114,7 @@ public class MsBuildSQRunnerInstallation extends ToolInstallation implements Env
       return (MsBuildSQRunnerInstallation) req.bindJSON(clazz, formData);
     }
 
+    @NonNull
     @Override
     public String getDisplayName() {
       return "SonarScanner for MSBuild";

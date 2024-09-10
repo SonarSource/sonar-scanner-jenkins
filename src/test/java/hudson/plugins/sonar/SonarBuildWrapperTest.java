@@ -38,6 +38,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
@@ -89,19 +90,22 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(desc.getSonarInstallations()).isEmpty();
   }
 
+
   public void testLogging() throws RunnerAbortedException, IOException, InterruptedException {
     // no instance activated -> don't activate masking
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
-    IOUtils.write("test password\ntest sonar\n", os);
-    assertThat(new String(bos.toByteArray())).isEqualTo("test password\ntest sonar\n");
+    IOUtils.write("test password\ntest sonar\n", os, StandardCharsets.UTF_8);
+    assertThat(bos.toString()).isEqualTo("test password\ntest sonar\n");
 
     // with a SQ instance configured (should mask passwords)
     configureSonar(createTestInstallation());
     bos = new ByteArrayOutputStream();
-    os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
-    IOUtils.write("test password\n", os);
-    assertThat(new String(bos.toByteArray())).isEqualTo("test ******\n");
+    final AbstractBuild mock = mock(AbstractBuild.class);
+    when(mock.getCharset()).thenReturn(StandardCharsets.UTF_8);
+    os = wrapper.decorateLogger(mock, bos);
+    IOUtils.write("test password\n", os, StandardCharsets.UTF_8);
+    assertThat(bos.toString()).isEqualTo("test ******\n");
   }
 
   @Test
@@ -116,8 +120,8 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     when(mock.getCharset()).thenCallRealMethod();
 
     OutputStream os = wrapper.decorateLogger(mock, bos);
-    IOUtils.write("test sonar\ntest mytoken\n", os);
-    assertThat(new String(bos.toByteArray())).isEqualTo("test sonar\ntest ******\n");
+    IOUtils.write("test sonar\ntest mytoken\n", os, StandardCharsets.UTF_8);
+    assertThat(bos.toString()).isEqualTo("test sonar\ntest ******\n");
   }
 
   @Test
