@@ -20,6 +20,7 @@
 package hudson.plugins.sonar;
 
 import com.google.common.annotations.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.CopyOnWrite;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -189,7 +190,7 @@ public class SonarPublisher extends Notifier {
    * Gets the JDK that this Sonar publisher is configured with, or null.
    */
   private JDK getJDK() {
-    return Jenkins.getInstance().getJDK(jdk);
+    return Jenkins.get().getJDK(jdk);
   }
 
   /**
@@ -414,6 +415,7 @@ public class SonarPublisher extends Notifier {
       load();
     }
 
+    @NonNull
     @Override
     public String getDisplayName() {
       return Messages.SonarPublisher_DisplayName();
@@ -467,7 +469,7 @@ public class SonarPublisher extends Notifier {
     public String getHelpFile(String fieldName) {
       if ("globalSettings".equals(fieldName) || "settings".equals(fieldName)) {
         // Reuse help from Maven plugin
-        return Jenkins.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getHelpFile("settings");
+        return Jenkins.get().getDescriptorByType(Maven.DescriptorImpl.class).getHelpFile("settings");
       }
       return super.getHelpFile(fieldName);
     }
@@ -488,7 +490,7 @@ public class SonarPublisher extends Notifier {
      * @return all configured {@link hudson.tasks.Maven.MavenInstallation}
      */
     public MavenInstallation[] getMavenInstallations() {
-      return Jenkins.getInstance().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations();
+      return Jenkins.get().getDescriptorByType(Maven.DescriptorImpl.class).getInstallations();
     }
 
     @Override

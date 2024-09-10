@@ -67,7 +67,7 @@ public class VersionTest {
 
   @Test
   public void testSort() {
-    List<Version> versions = new ArrayList<Version>();
+    List<Version> versions = new ArrayList<>();
     versions.add(new Version("2.0"));
     versions.add(new Version("1.0.5"));
     versions.add(new Version("1.01.0"));

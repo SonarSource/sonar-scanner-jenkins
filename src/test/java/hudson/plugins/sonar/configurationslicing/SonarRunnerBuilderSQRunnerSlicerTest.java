@@ -54,7 +54,7 @@ public class SonarRunnerBuilderSQRunnerSlicerTest {
     final SonarRunnerBuilderSQRunnerSlicer.SonarRunnerBuilderSQRunnerSlicerSpec spec = new SonarRunnerBuilderSQRunnerSlicer.SonarRunnerBuilderSQRunnerSlicerSpec();
     final List<String> values = spec.getValues(project);
     assertThat(values.get(0)).isEqualTo("SQ Runner 2.3");
-    final List<String> newValues = new ArrayList<String>();
+    final List<String> newValues = new ArrayList<>();
     newValues.add("SQ Runner 2.4");
     spec.setValues(project, newValues);
 

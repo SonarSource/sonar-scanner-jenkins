@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.CopyOnWrite;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -108,6 +109,7 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
       load();
     }
 
+    @NonNull
     @Override
     public String getDisplayName() {
       return "SonarQube Scanner";

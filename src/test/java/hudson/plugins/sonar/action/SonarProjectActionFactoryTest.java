@@ -116,7 +116,7 @@ public class SonarProjectActionFactoryTest {
   }
 
   private static List<SonarProjectIconAction> getSonarProjectIconAction(Collection<? extends Action> actions) {
-    List<SonarProjectIconAction> list = new LinkedList<SonarProjectIconAction>();
+    List<SonarProjectIconAction> list = new LinkedList<>();
 
     for (Action a : actions) {
       assertThat(a).isInstanceOfAny(SonarProjectIconAction.class, SonarProjectPageAction.class);
