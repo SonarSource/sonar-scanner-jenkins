@@ -49,7 +49,7 @@
     <sonar.exclusions>target/generated-sources/**/*</sonar.exclusions>
     <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
     <version.artifactory.plugin>3.6.1</version.artifactory.plugin>
-    <jenkins.version>2.387.3</jenkins.version>
+    <jenkins.version>2.440.3</jenkins.version>
     <version.cyclonedx.plugin>2.7.9</version.cyclonedx.plugin>
     <findbugs.failOnError>false</findbugs.failOnError>
     <!-- Disable parallel tests on Travis -->

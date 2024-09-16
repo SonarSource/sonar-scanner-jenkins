@@ -66,14 +66,13 @@ import org.sonarqube.ws.client.PostRequest;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.qualitygates.ListRequest;
-import org.sonarqube.ws.client.qualitygates.SetAsDefaultRequest;
 import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.jenkinsci.test.acceptance.po.CapybaraPortingLayer.by;
 
 public class JenkinsUtils {
-  private static final By MAVEN_POST_BUILD_LABEL = By.linkText("SonarQube analysis with Maven");
+  private static final By MAVEN_POST_BUILD_LABEL = buttonByText("SonarQube analysis with Maven");
 
   public static final String DEFAULT_SONARQUBE_INSTALLATION = "SonarQube";
 
@@ -122,14 +121,14 @@ public class JenkinsUtils {
 
   public JenkinsUtils addMavenBuildStep(String mvnGoals) {
     findElement(buttonByText("Add build step")).click();
-    findElement(By.linkText("Invoke top-level Maven targets")).click();
+    findElement(buttonByText("Invoke top-level Maven targets")).click();
     setTextValue(findElement(By.name("_.targets")), mvnGoals);
     return this;
   }
 
   public JenkinsUtils addSonarMavenBuildStep(Orchestrator orchestrator) {
     findElement(buttonByText("Add build step")).click();
-    findElement(By.linkText("Invoke top-level Maven targets")).click();
+    findElement(buttonByText("Invoke top-level Maven targets")).click();
     setTextValue(findElement(driver, By.xpath("(//input[@name='_.targets'])[2]")), getMavenParams(orchestrator));
     return this;
   }
@@ -146,7 +145,7 @@ public class JenkinsUtils {
   public JenkinsUtils addSonarScannerBuildStep(@Nullable String additionalArgs, @Nullable String sqScannerVersion,
     String... properties) {
     findElement(buttonByText("Add build step")).click();
-    findElement(By.linkText("Execute SonarQube Scanner")).click();
+    findElement(buttonByText("Execute SonarQube Scanner")).click();
     StringBuilder builder = new StringBuilder();
     for (int i = 0;
          i < properties.length / 2;
@@ -172,7 +171,7 @@ public class JenkinsUtils {
     newFreestyleJobConfig(jobName, projectPath);
 
     findElement(buttonByText("Add build step")).click();
-    findElement(By.linkText("SonarScanner for MSBuild - Begin Analysis")).click();
+    findElement(buttonByText("SonarScanner for MSBuild - Begin Analysis")).click();
 
     setTextValue(findElement(By.name("_.projectKey")), projectKey);
     setTextValue(findElement(By.name("_.projectName")), projectName);
@@ -190,9 +189,9 @@ public class JenkinsUtils {
       findElement(buttonByText("Add build step")).click();
       if (isDotNetCore) {
         if (SystemUtils.IS_OS_WINDOWS) {
-          findElement(By.linkText("Execute Windows batch command")).click();
+          findElement(buttonByText("Execute Windows batch command")).click();
         } else {
-          findElement(By.linkText("Execute shell")).click();
+          findElement(buttonByText("Execute shell")).click();
         }
         String command = "dotnet build " + solutionFile;
         try {
@@ -209,14 +208,14 @@ public class JenkinsUtils {
           }
         }
       } else {
-        findElement(By.linkText("Build a Visual Studio project or solution using MSBuild")).click();
+        findElement(buttonByText("Build a Visual Studio project or solution using MSBuild")).click();
         select(findElement(By.name("msBuildBuilder.msBuildName")), "MSBuild");
         setTextValue(findElement(By.name("msBuildBuilder.msBuildFile")), solutionFile);
       }
     }
 
     findElement(buttonByText("Add build step")).click();
-    findElement(By.linkText("SonarScanner for MSBuild - End Analysis")).click();
+    findElement(buttonByText("SonarScanner for MSBuild - End Analysis")).click();
 
     findElement(buttonByText("Save")).click();
     return this;
@@ -381,7 +380,7 @@ public class JenkinsUtils {
     }
   }
 
-  private By buttonByText(String text) {
+  private static By buttonByText(String text) {
     return By.xpath(".//button[normalize-space(.) = '" + text + "']");
   }
 
