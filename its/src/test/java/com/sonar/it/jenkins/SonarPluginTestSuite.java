@@ -54,7 +54,7 @@ import org.sonarqube.ws.client.webhooks.ListRequest;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@WithPlugins({"sonar", "credentials@2.6.1", "filesystem_scm"})
+@WithPlugins({"sonar", "credentials", "filesystem_scm"})
 public class SonarPluginTestSuite extends AbstractJUnitTest {
   private static final String SECRET = "very_secret_secret";
   private static String DEFAULT_QUALITY_GATE_NAME;

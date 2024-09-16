@@ -36,7 +36,7 @@ public class MSBuildScannerInstallation extends ToolInstallation {
 
   private static String getVersion(String version, boolean isDotnetCore) {
     String suffix;
-    if (version.startsWith("6.")) {
+    if (version.startsWith("6.") || version.startsWith("8.")) {
       suffix = isDotnetCore ? "-net" : "-net-framework";
     } else {
       suffix = isDotnetCore ? "-netcore" : "";
