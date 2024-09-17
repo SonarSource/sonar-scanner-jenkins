@@ -20,7 +20,6 @@
   <properties>
     <sonar-ws.version>9.9.0.65466</sonar-ws.version>
     <maven.compiler.release>8</maven.compiler.release>
-    <LOCAL_SNAPSHOTS>true</LOCAL_SNAPSHOTS>
   </properties>
 
   <repositories>
@@ -81,9 +80,6 @@
             <systemProperties>
               <maven.home>${maven.home}</maven.home>
             </systemProperties>
-            <environmentVariables>
-              <LOCAL_SNAPSHOTS>true</LOCAL_SNAPSHOTS>
-            </environmentVariables>
             <argLine>
                 --add-exports java.base/sun.reflect.annotation=ALL-UNNAMED
             </argLine>
@@ -122,7 +118,6 @@
       </activation>
       <properties>
         <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
-        <LOCAL_SNAPSHOTS>true</LOCAL_SNAPSHOTS>
       </properties>
     </profile>
   </profiles>
