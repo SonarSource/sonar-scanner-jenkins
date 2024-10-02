@@ -36,7 +36,7 @@ public class MSBuildScannerInstallation extends ToolInstallation {
 
   private static String getVersion(String version, boolean isDotnetCore) {
     String suffix;
-    if (version.startsWith("6.") || version.startsWith("8.")) {
+    if (isEqualOrAboveVersion6(version)) {
       suffix = isDotnetCore ? "-net" : "-net-framework";
     } else {
       suffix = isDotnetCore ? "-netcore" : "";
@@ -44,11 +44,18 @@ public class MSBuildScannerInstallation extends ToolInstallation {
     return version + suffix;
   }
 
+
   public static String getInstallName(final String version, boolean isDotnetCore) {
-    if (version.startsWith("6.")) {
+    if (isEqualOrAboveVersion6(version)) {
       return "SonarScanner for " + (isDotnetCore ? " .NET" : " .NET Framework") + version;
     }
     return "SonarScanner for MSBuild" + version + (isDotnetCore ? " - .NET Core" : " - .NET Fwk");
+  }
+
+  private static boolean isEqualOrAboveVersion6(String version) {
+    //version 6 and above have different package naming
+    String[] numbers = version.split("\\.");
+    return Integer.parseInt(numbers[0]) >= 6;
   }
 
 }
