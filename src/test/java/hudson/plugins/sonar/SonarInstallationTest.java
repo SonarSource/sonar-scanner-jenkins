@@ -26,11 +26,11 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import hudson.Util;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
-import hudson.model.Run;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Secret;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 
 import jenkins.model.Jenkins;
@@ -40,8 +40,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 /**
@@ -75,7 +73,7 @@ public class SonarInstallationTest extends SonarTestCase {
     d.setInstallations(inst);
 
     SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
-    String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), d.getId() + ".xml"));
+    String storedConfig = Util.loadFile(new File(Jenkins.get().getRootDir(), d.getId() + ".xml"), StandardCharsets.UTF_8);
 
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
@@ -104,7 +102,7 @@ public class SonarInstallationTest extends SonarTestCase {
     d.save();
 
     SonarInstallation i = new SonarGlobalConfiguration().getInstallations()[0];
-    String storedConfig = Util.loadFile(new File(Jenkins.getInstance().getRootDir(), d.getId() + ".xml"));
+    String storedConfig = Util.loadFile(new File(Jenkins.get().getRootDir(), d.getId() + ".xml"), StandardCharsets.UTF_8);
 
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");

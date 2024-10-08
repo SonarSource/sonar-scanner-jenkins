@@ -117,7 +117,7 @@ public final class SonarMaven extends Maven {
 
   @Override
   public DescriptorImpl getDescriptor() {
-    return (DescriptorImpl) Jenkins.getInstance().getDescriptorOrDie(Maven.class);
+    return (DescriptorImpl) Jenkins.get().getDescriptorOrDie(Maven.class);
   }
 
   public static boolean executeMaven(

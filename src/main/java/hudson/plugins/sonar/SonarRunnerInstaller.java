@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.tools.DownloadFromUrlInstaller;
 import hudson.tools.ToolInstallation;
@@ -35,6 +36,7 @@ public class SonarRunnerInstaller extends DownloadFromUrlInstaller {
 
   @Extension
   public static final class SonarRunnerInstallerDescriptorImpl extends DownloadFromUrlInstaller.DescriptorImpl<SonarRunnerInstaller> {
+    @NonNull
     @Override
     public String getDisplayName() {
       return Messages.InstallFromMavenCentral();

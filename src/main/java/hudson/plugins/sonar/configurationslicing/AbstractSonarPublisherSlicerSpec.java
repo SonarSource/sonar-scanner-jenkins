@@ -37,7 +37,7 @@ public abstract class AbstractSonarPublisherSlicerSpec extends UnorderedStringSl
   @Override
   public List<AbstractProject<?, ?>> getWorkDomain() {
     final List<AbstractProject<?, ?>> workDomain = new ArrayList<>();
-    for (final AbstractProject item : Jenkins.getInstance().getItems(AbstractProject.class)) {
+    for (final AbstractProject item : Jenkins.get().getItems(AbstractProject.class)) {
       if (getSonarPublisher(item) != null) {
         workDomain.add(item);
       }

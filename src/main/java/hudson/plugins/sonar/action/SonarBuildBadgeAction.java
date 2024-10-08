@@ -56,7 +56,7 @@ public final class SonarBuildBadgeAction implements BuildBadgeAction {
   }
 
   public String getIcon() {
-    PluginWrapper wrapper = Jenkins.getInstance().getPluginManager()
+    PluginWrapper wrapper = Jenkins.get().getPluginManager()
       .getPlugin(SonarPlugin.class);
     return "/plugin/" + wrapper.getShortName() + "/images/waves_16x16.png";
   }

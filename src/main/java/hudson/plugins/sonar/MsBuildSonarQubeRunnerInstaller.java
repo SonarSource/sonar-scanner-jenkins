@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.tools.DownloadFromUrlInstaller;
 import hudson.tools.ToolInstallation;
@@ -32,6 +33,7 @@ public class MsBuildSonarQubeRunnerInstaller extends DownloadFromUrlInstaller {
 
   @Extension
   public static final class MsBuildScannerInstallerDescriptorImpl extends DownloadFromUrlInstaller.DescriptorImpl<MsBuildSonarQubeRunnerInstaller> {
+    @NonNull
     @Override
     public String getDisplayName() {
       return Messages.InstallFromGitHub();

@@ -25,6 +25,7 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import hudson.model.Descriptor;
 import hudson.model.Result;
 import hudson.model.queue.QueueTaskFuture;
 import hudson.plugins.sonar.SonarGlobalConfiguration;
@@ -53,14 +54,12 @@ import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.model.Statement;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.RestartableJenkinsRule;
-import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -458,11 +457,11 @@ public class WaitForQualityGateStepTest {
     }
   }
 
-  private QueueTaskFuture<WorkflowRun> submitPipeline(boolean specifyServer, boolean twoProjects) throws IOException {
+  private QueueTaskFuture<WorkflowRun> submitPipeline(boolean specifyServer, boolean twoProjects) throws IOException, Descriptor.FormException {
     return submitPipeline(specifyServer, twoProjects, null);
   }
 
-  private QueueTaskFuture<WorkflowRun> submitPipeline(boolean specifyServer, boolean twoProjects, @Nullable String webhookSecretId) throws IOException {
+  private QueueTaskFuture<WorkflowRun> submitPipeline(boolean specifyServer, boolean twoProjects, @Nullable String webhookSecretId) throws IOException, Descriptor.FormException {
     SonarQubeWebHook.get().listeners.clear();
     story.j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class)
       .setInstallations(

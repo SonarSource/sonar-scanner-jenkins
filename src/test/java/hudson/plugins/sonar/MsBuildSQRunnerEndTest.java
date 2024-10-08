@@ -24,14 +24,10 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.sonar.MsBuildSQRunnerEnd.DescriptorImpl;
-import hudson.plugins.sonar.client.HttpClient;
-import hudson.plugins.sonar.client.WsClient;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
 

@@ -27,9 +27,8 @@ import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import java.io.IOException;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import jenkins.model.GlobalConfiguration;
+
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
@@ -53,7 +52,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   private static SonarPublisher.DescriptorImpl getPublisherDescr(boolean buildWrapperEnabled, SonarInstallation... installations) {
-    SonarPublisher.DescriptorImpl publisher = Jenkins.getInstance().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
+    SonarPublisher.DescriptorImpl publisher = Jenkins.get().getDescriptorByType(SonarPublisher.DescriptorImpl.class);
     publisher.setDeprecatedInstallations(installations);
     publisher.setDeprecatedBuildWrapperEnabled(buildWrapperEnabled);
     return publisher;

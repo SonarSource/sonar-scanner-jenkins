@@ -20,6 +20,7 @@
 package hudson.plugins.sonar;
 
 import com.google.common.annotations.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -53,7 +54,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import org.apache.tools.ant.taskdefs.condition.Http;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -138,7 +138,7 @@ public class SonarRunnerBuilder extends Builder {
    */
   @CheckForNull
   public JDK getJdkFromJenkins() {
-    return Jenkins.getInstance().getJDK(jdk);
+    return Jenkins.get().getJDK(jdk);
   }
 
   public String getJdk() {
@@ -420,13 +420,14 @@ public class SonarRunnerBuilder extends Builder {
       return true;
     }
 
+    @NonNull
     @Override
     public String getDisplayName() {
       return Messages.SonarScannerBuilder_DisplayName();
     }
 
     public SonarRunnerInstallation[] getSonarRunnerInstallations() {
-      return Jenkins.getInstance().getDescriptorByType(SonarRunnerInstallation.DescriptorImpl.class).getInstallations();
+      return Jenkins.get().getDescriptorByType(SonarRunnerInstallation.DescriptorImpl.class).getInstallations();
     }
 
   }

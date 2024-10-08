@@ -26,8 +26,6 @@ import hudson.model.BuildListener;
 import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
-import hudson.plugins.sonar.client.HttpClient;
-import hudson.plugins.sonar.client.WsClient;
 import hudson.util.ArgumentListBuilder;
 import java.util.List;
 import org.junit.Rule;
