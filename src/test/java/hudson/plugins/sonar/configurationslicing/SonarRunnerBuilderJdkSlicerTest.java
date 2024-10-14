@@ -55,7 +55,7 @@ public class SonarRunnerBuilderJdkSlicerTest {
     final SonarRunnerBuilderJdkSlicer.SonarRunnerBuilderJdkSlicerSpec spec = new SonarRunnerBuilderJdkSlicer.SonarRunnerBuilderJdkSlicerSpec();
     final List<String> values = spec.getValues(project);
     assertThat(values.get(0)).isEqualTo("1.7");
-    final List<String> newValues = new ArrayList<String>();
+    final List<String> newValues = new ArrayList<>();
     newValues.add("1.8");
     spec.setValues(project, newValues);
 

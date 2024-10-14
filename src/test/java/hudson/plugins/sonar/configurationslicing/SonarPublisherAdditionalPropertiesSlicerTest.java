@@ -55,7 +55,7 @@ public class SonarPublisherAdditionalPropertiesSlicerTest {
     final List<String> values = propertiesSpec.getValues(project);
     assertThat(values.get(0)).isEqualTo("-Dsonar.verbose");
 
-    final List<String> newValues = new ArrayList<String>();
+    final List<String> newValues = new ArrayList<>();
     newValues.add("-Dsonar.showSql");
     propertiesSpec.setValues(project, newValues);
     final SonarPublisher publisher = project.getPublishersList().get(SonarPublisher.class);
