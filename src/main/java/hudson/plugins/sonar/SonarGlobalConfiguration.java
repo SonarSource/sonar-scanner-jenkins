@@ -176,7 +176,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration implements Ser
     return new StandardListBoxModel()
       .includeEmptyValue()
       .includeMatchingAs(
-        ACL.SYSTEM,
+        ACL.SYSTEM2,
         supplyJenkins.get(),
         StringCredentials.class,
         Collections.emptyList(),
