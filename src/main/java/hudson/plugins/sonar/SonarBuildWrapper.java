@@ -273,8 +273,8 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
         .includeEmptyValue()
         .includeMatchingAs(
           project instanceof Queue.Task
-            ? Tasks.getAuthenticationOf((Queue.Task) project)
-            : ACL.SYSTEM,
+            ? Tasks.getAuthenticationOf2((Queue.Task) project)
+            : ACL.SYSTEM2,
           project,
           StringCredentials.class,
           Collections.emptyList(),
@@ -295,9 +295,9 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
       }
 
       for (ListBoxModel.Option o : CredentialsProvider
-        .listCredentials(StandardUsernameCredentials.class, project, project instanceof Queue.Task
-            ? Tasks.getAuthenticationOf((Queue.Task) project)
-            : ACL.SYSTEM,
+        .listCredentialsInItem(StandardUsernameCredentials.class, project, project instanceof Queue.Task
+            ? Tasks.getAuthenticationOf2((Queue.Task) project)
+            : ACL.SYSTEM2,
           Collections.emptyList(),
           CredentialsMatchers.always())) {
         if (StringUtils.equals(value, o.value)) {
