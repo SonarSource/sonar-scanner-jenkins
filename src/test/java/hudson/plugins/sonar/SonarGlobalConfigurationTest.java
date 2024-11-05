@@ -85,11 +85,11 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   @Test
-  public void testMandatory() {
-    assertThat(globalConfiguration.doCheckMandatory("").kind).isEqualTo(Kind.ERROR);
-    assertThat(globalConfiguration.doCheckMandatory(null).kind).isEqualTo(Kind.ERROR);
-    assertThat(globalConfiguration.doCheckMandatory("   ").kind).isEqualTo(Kind.ERROR);
-    assertThat(globalConfiguration.doCheckMandatory("asd").kind).isEqualTo(Kind.OK);
+  public void testNameValidation() {
+    assertThat(globalConfiguration.doCheckName("").kind).isEqualTo(Kind.ERROR);
+    assertThat(globalConfiguration.doCheckName(null).kind).isEqualTo(Kind.ERROR);
+    assertThat(globalConfiguration.doCheckName("   ").kind).isEqualTo(Kind.ERROR);
+    assertThat(globalConfiguration.doCheckName("asd").kind).isEqualTo(Kind.OK);
   }
 
   @Test

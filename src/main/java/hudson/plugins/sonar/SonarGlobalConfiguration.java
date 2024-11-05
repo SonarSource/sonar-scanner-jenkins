@@ -149,7 +149,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration implements Ser
     return true;
   }
 
-  public FormValidation doCheckMandatory(@QueryParameter String value) {
+  public FormValidation doCheckName(@QueryParameter String value) {
     return StringUtils.isBlank(value) ? FormValidation.error(Messages.SonarGlobalConfiguration_MandatoryProperty()) : FormValidation.ok();
   }
 
