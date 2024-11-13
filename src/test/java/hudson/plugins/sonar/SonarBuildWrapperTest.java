@@ -90,13 +90,12 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(desc.getSonarInstallations()).isEmpty();
   }
 
-
   public void testLogging() throws RunnerAbortedException, IOException, InterruptedException {
     // no instance activated -> don't activate masking
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
     IOUtils.write("test password\ntest sonar\n", os, StandardCharsets.UTF_8);
-    assertThat(bos.toString()).isEqualTo("test password\ntest sonar\n");
+    assertThat(bos).hasToString("test password\ntest sonar\n");
 
     // with a SQ instance configured (should mask passwords)
     configureSonar(createTestInstallation());
@@ -105,7 +104,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     when(mock.getCharset()).thenReturn(StandardCharsets.UTF_8);
     os = wrapper.decorateLogger(mock, bos);
     IOUtils.write("test password\n", os, StandardCharsets.UTF_8);
-    assertThat(bos.toString()).isEqualTo("test ******\n");
+    assertThat(bos).hasToString("test ******\n");
   }
 
   @Test
@@ -121,7 +120,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
     OutputStream os = wrapper.decorateLogger(mock, bos);
     IOUtils.write("test sonar\ntest mytoken\n", os, StandardCharsets.UTF_8);
-    assertThat(bos.toString()).isEqualTo("test sonar\ntest ******\n");
+    assertThat(bos).hasToString("test sonar\ntest ******\n");
   }
 
   @Test

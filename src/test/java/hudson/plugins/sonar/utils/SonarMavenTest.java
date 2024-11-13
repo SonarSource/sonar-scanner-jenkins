@@ -26,6 +26,7 @@ import hudson.model.BuildListener;
 import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
+import hudson.tasks.Maven;
 import hudson.util.ArgumentListBuilder;
 import java.util.List;
 import org.junit.Rule;
@@ -71,5 +72,16 @@ public class SonarMavenTest {
       .thenReturn("1.0-beta-2");
     assertThat(SonarMaven.getTarget(installation)).isEqualTo("-e -B sonar:sonar");
     assertThat(SonarMaven.getTarget(installation)).isEqualTo("-e -B org.codehaus.mojo:sonar-maven-plugin:1.0-beta-2:sonar");
+  }
+
+  @Test
+  public void testGetDescriptor() {
+    SonarPublisher publisher = mock(SonarPublisher.class);
+    when(publisher.getInstallation()).thenReturn(mock(SonarInstallation.class));
+    SonarMaven sonarMaven = new SonarMaven("", "Default Maven", "pom.xml", "", new DefaultLocalRepositoryLocator(), publisher,
+      mock(BuildListener.class), null, null, null);
+    Maven.DescriptorImpl descriptor = sonarMaven.getDescriptor();
+    assertThat(descriptor).isNotNull();
+    assertThat(descriptor).isInstanceOf(Maven.DescriptorImpl.class);
   }
 }

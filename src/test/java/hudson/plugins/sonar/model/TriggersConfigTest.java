@@ -114,13 +114,13 @@ public class TriggersConfigTest {
     AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     EnvVars env_vars = new EnvVars();
     when(build.getEnvironment(listener)).thenReturn(env_vars);
-    Map<String, String> build_vars = new HashMap<>();
-    when(build.getBuildVariables()).thenReturn(build_vars);
+    Map<String, String> buildVars = new HashMap<>();
+    when(build.getBuildVariables()).thenReturn(buildVars);
     when(build.getBuildVariableResolver()).thenCallRealMethod();
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
     triggers.setEnvVar("SKIP_SONAR");
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
-    build_vars.put("SKIP_SONAR", "true");
+    buildVars.put("SKIP_SONAR", "true");
     assertThat(triggers.isSkipSonar(build, listener)).isNotNull();
   }
 
@@ -132,8 +132,8 @@ public class TriggersConfigTest {
     AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     EnvVars env_vars = new EnvVars();
     when(build.getEnvironment(listener)).thenReturn(env_vars);
-    Map<String, String> build_vars = new HashMap<>();
-    when(build.getBuildVariables()).thenReturn(build_vars);
+    Map<String, String> buildVars = new HashMap<>();
+    when(build.getBuildVariables()).thenReturn(buildVars);
     when(build.getBuildVariableResolver()).thenCallRealMethod();
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
     triggers.setEnvVar("SKIP_SONAR");

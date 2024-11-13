@@ -35,9 +35,9 @@ public abstract class AbstractSonarRunnerBuilderSlicerSpec extends UnorderedStri
   protected abstract String getDefaultValue();
 
   @Override
-  public List getWorkDomain() {
+  public List<Project<?, ?>> getWorkDomain() {
     final List<Project<?, ?>> workDomain = new ArrayList<>();
-    for (final Project item : Jenkins.get().getItems(Project.class)) {
+    for (final Project<?, ?> item : Jenkins.get().getItems(Project.class)) {
       if (!getSonarRunnerBuilders(item).isEmpty()) {
         workDomain.add(item);
       }
