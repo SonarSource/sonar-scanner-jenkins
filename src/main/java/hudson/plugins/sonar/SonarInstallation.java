@@ -28,6 +28,7 @@ import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Secret;
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -148,7 +149,7 @@ public class SonarInstallation implements Serializable {
    * @return installation by name, null if not found
    * @since 1.7
    */
-  public static final SonarInstallation get(String name) {
+  public static SonarInstallation get(@Nullable String name) {
     SonarInstallation[] available = all();
     if (StringUtils.isEmpty(name) && available.length > 0) {
       return available[0];

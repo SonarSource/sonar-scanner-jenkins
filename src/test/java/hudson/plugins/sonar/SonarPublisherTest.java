@@ -38,7 +38,7 @@ public class SonarPublisherTest extends SonarTestCase {
     publisher.readResolve();
     assertThat(publisher.getJobAdditionalProperties()).isEqualTo("-Dsonar.language=js -Dsonar.version=1.0");
   }
-  
+
   @Test
   public void getters() throws Exception {
     SonarInstallation inst = super.configureDefaultSonar();
@@ -46,13 +46,11 @@ public class SonarPublisherTest extends SonarTestCase {
     SonarPublisher publisher = new SonarPublisher(SONAR_INSTALLATION_NAME, null, null, "-Dx=y", "-X", maven.getName(), "mypom.xml", null, null, null, false);
 
     assertThat(publisher.getJobAdditionalProperties()).isEqualTo("-Dx=y");
-    
+
     assertThat(publisher.getInstallationName()).isEqualTo(SONAR_INSTALLATION_NAME);
     assertThat(publisher.getRootPom()).isEqualTo("mypom.xml");
     assertThat(publisher.getInstallation()).isEqualTo(inst);
     assertThat(publisher.getMavenInstallationName()).isEqualTo(maven.getName());
     assertThat(publisher.getMavenOpts()).isEqualTo("-X");
-    
-
   }
 }

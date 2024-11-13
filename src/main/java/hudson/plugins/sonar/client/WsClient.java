@@ -19,7 +19,6 @@
  */
 package hudson.plugins.sonar.client;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import javax.annotation.CheckForNull;
@@ -31,11 +30,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class WsClient {
   private static final String STATUS_ATTR = "status";
-  public static final String API_RESOURCES = "/api/resources?format=json&depth=0&metrics=alert_status&resource=";
-  public static final String API_MEASURES = "/api/measures/component?metricKeys=alert_status&componentKey=";
   public static final String API_PROJECT_STATUS_WITH_ANALYSISID = "/api/qualitygates/project_status?analysisId=";
   public static final String API_VERSION = "/api/server/version";
-  public static final String API_PROJECT_NAME = "/api/projects/index?format=json&key=";
   public static final String API_CE_TASK = "/api/ce/task?id=";
 
   private final HttpClient client;
@@ -85,7 +81,7 @@ public class WsClient {
   }
 
   private static String encode(String param) {
-      return URLEncoder.encode(param, StandardCharsets.UTF_8);
+    return URLEncoder.encode(param, StandardCharsets.UTF_8);
   }
 
   public static class CETask {

@@ -30,9 +30,11 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
+import hudson.model.ItemGroup;
 import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.model.TopLevelItem;
 import hudson.model.queue.Tasks;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
@@ -398,15 +400,14 @@ public class WaitForQualityGateStep extends Step implements Serializable {
       return "Wait for SonarQube analysis to be completed and return quality gate status";
     }
 
-    public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item project,
+    public static ListBoxModel doFillCredentialsIdItems(@Nullable @AncestorInPath Item project,
       @QueryParameter String credentialsId) {
-      if (project == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER) ||
-        project != null && !project.hasPermission(Item.EXTENDED_READ)) {
+      if (project == null ? !Jenkins.get().hasPermission(Jenkins.ADMINISTER) : !project.hasPermission(Item.EXTENDED_READ)) {
         return new StandardListBoxModel().includeCurrentValue(credentialsId);
       }
       if (project == null) {
         /* Construct a fake project */
-        project = new FreeStyleProject(Jenkins.get(), "fake-" + UUID.randomUUID().toString());
+        project = new FreeStyleProject((ItemGroup<TopLevelItem>) Jenkins.get(), "fake-" + UUID.randomUUID());
       }
       return new StandardListBoxModel()
         .includeEmptyValue()
@@ -421,10 +422,9 @@ public class WaitForQualityGateStep extends Step implements Serializable {
         .includeCurrentValue(credentialsId);
     }
 
-    public FormValidation doCheckCredentialsId(@AncestorInPath Item project,
+    public static FormValidation doCheckCredentialsId(@Nullable @AncestorInPath Item project,
       @QueryParameter String value) {
-      if (project == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER) ||
-        project != null && !project.hasPermission(Item.EXTENDED_READ)) {
+      if (project == null ? !Jenkins.get().hasPermission(Jenkins.ADMINISTER) : !project.hasPermission(Item.EXTENDED_READ)) {
         return FormValidation.ok();
       }
 
