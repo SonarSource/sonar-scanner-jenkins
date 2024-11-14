@@ -19,10 +19,10 @@
  */
 package hudson.plugins.sonar.client;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.model.InvisibleAction;
 import java.util.Locale;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 
 public class ProjectInformation extends InvisibleAction {
 

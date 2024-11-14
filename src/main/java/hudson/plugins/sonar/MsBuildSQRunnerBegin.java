@@ -20,6 +20,7 @@
 package hudson.plugins.sonar;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -41,7 +42,6 @@ import hudson.util.FormValidation;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;

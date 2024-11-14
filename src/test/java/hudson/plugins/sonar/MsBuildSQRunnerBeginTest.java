@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.EnvVars;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
@@ -27,8 +28,6 @@ import hudson.plugins.sonar.AbstractMsBuildSQRunner.SonarQubeScannerMsBuildParam
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
-
-import javax.annotation.Nullable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;

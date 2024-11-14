@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import javax.servlet.http.HttpServletResponse;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONException;

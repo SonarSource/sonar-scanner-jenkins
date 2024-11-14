@@ -25,6 +25,7 @@ import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.security.ACL;
 import hudson.util.Secret;
 import java.io.IOException;
@@ -32,7 +33,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
@@ -41,7 +41,7 @@ class GlobalCredentialMigrator {
 
   private static final Logger LOGGER = Logger.getLogger(GlobalCredentialMigrator.class.getName());
 
-  StandardCredentials migrate(@Nonnull String token) {
+  StandardCredentials migrate(@NonNull String token) {
     LOGGER.info("Migrating SonarQube credential: moving authentication token into a credential");
 
     List<StringCredentials> allStringCredentials = CredentialsMatchers.filter(
@@ -64,7 +64,7 @@ class GlobalCredentialMigrator {
       .orElseGet(() -> addCredentialIfNotPresent(token));
   }
 
-  private static StringCredentials addCredentialIfNotPresent(@Nonnull String token) {
+  private static StringCredentials addCredentialIfNotPresent(@NonNull String token) {
     StringCredentials credentials = new StringCredentialsImpl(
       CredentialsScope.GLOBAL,
       UUID.randomUUID().toString(),

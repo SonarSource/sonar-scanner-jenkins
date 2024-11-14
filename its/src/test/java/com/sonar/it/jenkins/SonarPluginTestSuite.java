@@ -29,7 +29,6 @@ import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.http.HttpMethod;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.io.File;
-import javax.annotation.CheckForNull;
 import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.test.acceptance.junit.AbstractJUnitTest;
 import org.jenkinsci.test.acceptance.junit.WithPlugins;
@@ -104,7 +103,6 @@ public class SonarPluginTestSuite extends AbstractJUnitTest {
     disableGlobalWebhooks();
   }
 
-  @CheckForNull
   protected static Components.Component getProject(String componentKey) {
     try {
       return wsClient.components().show(new ShowRequest().setComponent(componentKey)).getComponent();

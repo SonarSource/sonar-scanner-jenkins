@@ -126,6 +126,10 @@
           <groupId>com.google.protobuf</groupId>
           <artifactId>protobuf-java</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -239,6 +243,12 @@
       <groupId>io.jenkins.configuration-as-code</groupId>
       <artifactId>test-harness</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 

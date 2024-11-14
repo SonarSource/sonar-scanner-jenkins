@@ -59,7 +59,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import jenkins.model.Jenkins;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;

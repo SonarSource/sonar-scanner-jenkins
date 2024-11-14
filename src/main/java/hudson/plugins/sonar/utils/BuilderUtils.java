@@ -19,6 +19,8 @@
  */
 package hudson.plugins.sonar.utils;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
@@ -32,8 +34,6 @@ import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolInstallation;
 import java.io.IOException;
 import java.util.Collection;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import jenkins.triggers.SCMTriggerItem;
 
 public class BuilderUtils {

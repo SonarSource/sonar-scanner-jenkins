@@ -20,9 +20,9 @@
 package hudson.plugins.sonar.client;
 
 import com.google.common.base.Strings;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import javax.annotation.Nullable;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;

@@ -19,10 +19,10 @@
  */
 package hudson.plugins.sonar.client;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
