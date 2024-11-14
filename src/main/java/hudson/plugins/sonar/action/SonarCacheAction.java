@@ -20,6 +20,8 @@
 package hudson.plugins.sonar.action;
 
 import com.google.common.annotations.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.model.InvisibleAction;
 import hudson.model.Run;
 import hudson.plugins.sonar.client.ProjectInformation;
@@ -29,8 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 
 public class SonarCacheAction extends InvisibleAction {
   private Map<String, ProjectInformation> infoByTaskId;

@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
@@ -32,9 +33,7 @@ import hudson.model.TaskListener;
 import hudson.plugins.sonar.utils.BuilderUtils;
 import hudson.tasks.Builder;
 import hudson.util.ArgumentListBuilder;
-
 import java.io.IOException;
-import javax.annotation.Nullable;
 
 public abstract class AbstractMsBuildSQRunner extends Builder {
   static final String INST_NAME_KEY = "msBuildScannerInstallationName";

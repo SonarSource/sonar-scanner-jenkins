@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar.action;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Actionable;
@@ -37,7 +38,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.CheckForNull;
 import jenkins.model.TransientActionFactory;
 
 @Extension

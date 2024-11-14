@@ -19,13 +19,13 @@
  */
 package hudson.plugins.sonar.client;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.utils.Logger;
 import java.util.logging.Level;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import org.sonarqube.ws.client.HttpException;
 
 public class SQProjectResolver {

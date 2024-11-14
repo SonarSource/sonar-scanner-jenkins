@@ -20,6 +20,8 @@
 package hudson.plugins.sonar;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.AbortException;
 import hudson.Util;
 import hudson.model.Run;
@@ -27,8 +29,6 @@ import hudson.model.TaskListener;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Secret;
 import java.io.Serializable;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.DataBoundConstructor;

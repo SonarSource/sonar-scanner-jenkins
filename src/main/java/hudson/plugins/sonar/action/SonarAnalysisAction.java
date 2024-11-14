@@ -19,9 +19,9 @@
  */
 package hudson.plugins.sonar.action;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.model.InvisibleAction;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 

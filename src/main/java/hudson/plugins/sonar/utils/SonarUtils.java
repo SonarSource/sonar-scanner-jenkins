@@ -20,6 +20,8 @@
 package hudson.plugins.sonar.utils;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Util;
@@ -45,8 +47,6 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import jenkins.MasterToSlaveFileCallable;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;

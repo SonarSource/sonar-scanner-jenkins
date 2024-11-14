@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar.model;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.EnvVars;
 import hudson.Util;
 import hudson.model.AbstractBuild;
@@ -33,7 +34,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.annotation.CheckForNull;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**

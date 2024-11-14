@@ -19,6 +19,7 @@
  */
 package hudson.plugins.sonar;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.CopyOnWrite;
 import hudson.EnvVars;
@@ -38,7 +39,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.CheckForNull;
 import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
