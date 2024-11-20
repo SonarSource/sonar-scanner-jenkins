@@ -30,17 +30,23 @@ import org.json.JSONException;
 
 public class InstallableScannerVersionsProvider {
   private final OkHttpClient client = new OkHttpClient().newBuilder()
-      .connectTimeout(10, TimeUnit.SECONDS)
-      .readTimeout(30, TimeUnit.SECONDS)
-      .build();
+    .connectTimeout(10, TimeUnit.SECONDS)
+    .readTimeout(30, TimeUnit.SECONDS)
+    .build();
 
   public InstallableScannerVersions getScannerInstallableVersions(String scannerNameRepo) {
     JSONArray versions;
-    try {
-      HttpUrl.Builder httpBuilder = HttpUrl.parse(String.format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
-      Request request = new Request.Builder().url(httpBuilder.build()).build();
-      Response response = client.newCall(request).execute();
-      versions = new JSONArray(response.body().string());
+    HttpUrl.Builder httpBuilder = HttpUrl.parse(String.format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
+    Request request = new Request.Builder().url(httpBuilder.build()).build();
+    try (Response response = client.newCall(request).execute()) {
+
+      if (response.isSuccessful()) {
+        versions = new JSONArray(response.body().string());
+      } else {
+        throw new IllegalStateException(String.format("Got error from Github, status: %d, body: %s",
+          response.code(), response.body().string()));
+      }
+
     } catch (IOException | JSONException e) {
       throw new IllegalStateException(String.format("Could not fetch earliest supported version of %s", scannerNameRepo), e);
     }
@@ -58,9 +64,11 @@ public class InstallableScannerVersionsProvider {
       this.oldestVersion = oldestVersion;
       this.latestVersion = latestVersion;
     }
+
     public String getOldestVersion() {
       return oldestVersion;
     }
+
     public String getLatestVersion() {
       return latestVersion;
     }
