@@ -32,6 +32,11 @@ import jenkins.model.TransientActionFactory;
 public class SonarBuildBadgeActionFactory extends TransientActionFactory<Run> {
 
   @Override
+  public Class<? extends Action> actionType() {
+    return SonarBuildBadgeAction.class;
+  }
+
+  @Override
   public Class<Run> type() {
     return Run.class;
   }
