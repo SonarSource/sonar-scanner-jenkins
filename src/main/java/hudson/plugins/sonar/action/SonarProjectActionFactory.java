@@ -52,6 +52,11 @@ public class SonarProjectActionFactory extends TransientActionFactory<Job> {
   }
 
   @Override
+  public Class<? extends Action> actionType() {
+    return ProminentProjectAction.class;
+  }
+
+  @Override
   public Class<Job> type() {
     return Job.class;
   }
@@ -66,7 +71,7 @@ public class SonarProjectActionFactory extends TransientActionFactory<Job> {
     Run<?, ?> lastBuild = project.getLastCompletedBuild();
 
     if (lastBuild != null) {
-      for (SonarAnalysisAction a : lastBuild.getActions(SonarAnalysisAction.class)) {
+      for (SonarAnalysisAction a : SonarUtils.getPersistentActions(lastBuild, SonarAnalysisAction.class)) {
         if (a.getUrl() != null && !urls.contains(a.getUrl())) {
           urls.add(a.getUrl());
           sonarProjectActions.add(new SonarProjectIconAction(a));

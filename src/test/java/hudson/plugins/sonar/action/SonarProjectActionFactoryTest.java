@@ -133,7 +133,7 @@ public class SonarProjectActionFactoryTest {
     when(project.getLastCompletedBuild()).thenReturn(build);
 
     if (markProject) {
-      when(build.getActions(SonarAnalysisAction.class)).thenReturn(Arrays.asList(buildInfos));
+      when(build.getActions()).thenReturn(Arrays.asList(buildInfos));
       when(project.getActions()).thenReturn(Collections.singletonList(new SonarMarkerAction()));
     }
   }
