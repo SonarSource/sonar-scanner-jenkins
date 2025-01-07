@@ -5,10 +5,24 @@ SonarQube Scanner for Jenkins
 [![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/sonar.svg)](https://plugins.jenkins.io/sonar)
 [![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/sonar.svg?color=blue)](https://plugins.jenkins.io/sonar)
 
-This plugin allows easy integration in Jenkins projects of [SonarQube](https://www.sonarsource.com/products/sonarqube/), the open-source solution for helping developers write [Clean Code](https://www.sonarsource.com/solutions/clean-code/?utm_medium=referral&utm_source=github&utm_campaign=clean-code&utm_content=sonar-scanner-jenkins).
+This plugin allows easy integration in Jenkins projects of SonarQube ([Server](https://www.sonarsource.com/products/sonarqube/), [Cloud](https://www.sonarsource.com/products/sonarcloud/)) and [SonarQube Community Build](https://www.sonarsource.com/open-source-editions/sonarqube-community-edition/).
 
-* [Documentation and changelog](https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/scanners/jenkins-extension-sonarqube/)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./images/SonarQube_dark.png">
+  <img src="./images/SonarQube_light.png">
+</picture>
+
+SonarQube [Server](https://www.sonarsource.com/products/sonarqube/), [Cloud](https://www.sonarsource.com/products/sonarcloud/) and [SonarQube Community Build](https://www.sonarsource.com/open-source-editions/sonarqube-community-edition/) are widely used static analysis solutions for continuous code quality and security inspection.
+
+They help developers detect coding issues in 30+ languages, frameworks, and IaC platforms, including Java, JavaScript, TypeScript, C#, Python, C, C++, and [many more](https://www.sonarsource.com/knowledge/languages/).
+
 * [Issue tracking](https://sonarsource.atlassian.net/jira/software/c/projects/SONARJNKNS/issues)
+
+Documentation and changelog:
+* [SonarQube Server](https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/scanners/jenkins-extension-sonarqube/)
+* [SonarQube Cloud](https://docs.sonarsource.com/sonarqube-cloud/advanced-setup/ci-based-analysis/sonarcloud-extension-for-jenkins/)
+* [SonarQube Community Build](https://docs.sonarsource.com/sonarqube-community-build/analyzing-source-code/scanners/jenkins-extension-sonarqube/)
+
 
 If you want to make changes, please clone the [Git repository](https://github.com/SonarSource/sonar-scanner-jenkins).
 
