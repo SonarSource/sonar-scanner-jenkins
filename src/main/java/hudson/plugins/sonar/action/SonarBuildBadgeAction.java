@@ -62,7 +62,7 @@ public final class SonarBuildBadgeAction implements BuildBadgeAction {
       return "";
     }
 
-    return "/plugin/" + wrapper.getShortName() + "/images/waves_16x16.png";
+    return "/plugin/" + wrapper.getShortName() + "/images/SonarQube_Mark.png";
   }
 
   // non use interface methods
