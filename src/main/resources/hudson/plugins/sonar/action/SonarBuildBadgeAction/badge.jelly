@@ -2,5 +2,5 @@
 <a href="${it.urlName}" target="_blank" rel="noopener noreferrer" >
 <img width="16" height="16"
      title="${it.tooltip}" alt="[sonarqube]"
-     src="${rootURL}${it.icon}"/>
+     src="${it.icon}"/>
 </a>

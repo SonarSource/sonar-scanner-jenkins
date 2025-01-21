@@ -56,19 +56,12 @@ public final class SonarBuildBadgeAction implements BuildBadgeAction {
   }
 
   public String getIcon() {
-    PluginWrapper wrapper = Jenkins.get().getPluginManager()
-      .getPlugin(SonarPlugin.class);
-    if (wrapper == null) {
-      return "";
-    }
-
-    return "/plugin/" + wrapper.getShortName() + "/images/SonarQube_Mark.png";
+    return "symbol-sonarqube-mark plugin-sonar";
   }
 
-  // non use interface methods
   @Override
   public String getIconFileName() {
-    return null;
+    return getIcon();
   }
 
   @Override

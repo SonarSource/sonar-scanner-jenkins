@@ -38,7 +38,7 @@ public class SonarProjectIconActionTest extends SonarTestCase {
     SonarProjectIconAction action = new SonarProjectIconAction(new SonarAnalysisAction("inst", "credId", null));
     when(project.getBuilds()).thenReturn(new RunList());
     assertThat(action.getDisplayName()).isNotNull();
-    assertThat(action.getIconFileName()).isNotNull();
+    assertThat(action.getIconFileName()).isEqualTo("symbol-sonarqube-mark plugin-sonar");
     assertThat(action.getUrlName()).isNull();
   }
 }

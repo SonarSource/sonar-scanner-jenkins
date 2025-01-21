@@ -21,7 +21,6 @@ package hudson.plugins.sonar.action;
 
 import hudson.plugins.sonar.SonarTestCase;
 
-import hudson.plugins.sonar.action.SonarBuildBadgeAction;
 import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,7 +31,7 @@ public class SonarBuildBadgeActionTest extends SonarTestCase {
   @Test
   public void test() throws Exception {
     SonarBuildBadgeAction action = new SonarBuildBadgeAction();
-    assertThat(action.getIconFileName()).isNull();
+    assertThat(action.getIconFileName()).isEqualTo("symbol-sonarqube-mark plugin-sonar");
     assertThat(action.getUrlName()).isNull();
 
     assertThat(action.getDisplayName()).isNotNull();

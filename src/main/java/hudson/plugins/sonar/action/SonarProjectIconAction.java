@@ -44,9 +44,7 @@ public final class SonarProjectIconAction implements ProminentProjectAction {
 
   @Override
   public String getIconFileName() {
-    PluginWrapper wrapper = Jenkins.getInstanceOrNull().getPluginManager()
-      .getPlugin(SonarPlugin.class);
-    return "/plugin/" + wrapper.getShortName() + "/images/SonarQube_Mark.png";
+    return "symbol-sonarqube-mark plugin-sonar";
   }
 
   @Override
