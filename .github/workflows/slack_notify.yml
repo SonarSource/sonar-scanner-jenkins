@@ -10,4 +10,4 @@ jobs:
       id-token: write  # to authenticate via OIDC
     uses: SonarSource/gh-action_build-notify/.github/workflows/main.yaml@v1
     with:
-      slackChannel: squad-dev-team-workflow
+      slackChannel: squad-workflow-standards-build-errors
