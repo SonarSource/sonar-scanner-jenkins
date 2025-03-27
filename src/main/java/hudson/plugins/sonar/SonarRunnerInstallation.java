@@ -42,7 +42,7 @@ import java.util.List;
 import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 /**
  * Represents a SonarQube Scanner installation in a system.
@@ -126,7 +126,7 @@ public class SonarRunnerInstallation extends ToolInstallation implements Environ
     }
 
     @Override
-    public SonarRunnerInstallation newInstance(StaplerRequest req, JSONObject formData) {
+    public SonarRunnerInstallation newInstance(StaplerRequest2 req, JSONObject formData) {
       return (SonarRunnerInstallation) req.bindJSON(clazz, formData);
     }
 

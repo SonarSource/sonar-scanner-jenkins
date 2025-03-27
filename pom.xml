@@ -6,7 +6,7 @@
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
     <!-- See https://github.com/jenkinsci/plugin-pom/releases -->
-    <version>4.88</version>
+    <version>5.9</version>
     <relativePath />
   </parent>
 
@@ -49,7 +49,9 @@
     <sonar.exclusions>target/generated-sources/**/*</sonar.exclusions>
     <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
     <version.artifactory.plugin>3.6.1</version.artifactory.plugin>
-    <jenkins.version>2.462.3</jenkins.version>
+    <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
+    <jenkins.baseline>2.479</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     <version.cyclonedx.plugin>2.7.9</version.cyclonedx.plugin>
     <!-- Disable parallel tests on Travis -->
     <concurrency>1</concurrency>
@@ -72,8 +74,8 @@
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.462.x</artifactId>
-        <version>3387.v0f2773fa_3200</version>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
+        <version>4023.va_eeb_b_4e45f07</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -145,7 +147,6 @@
       <!-- needed for SonarPublisher -->
       <groupId>org.jenkins-ci.main</groupId>
       <artifactId>maven-plugin</artifactId>
-      <version>3.23</version>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -169,12 +170,10 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>script-security</artifactId>
       <optional>true</optional>
-      <version>1368.vb_b_402e3547e7</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>credentials</artifactId>
-      <version>1381.v2c3a_12074da_b_</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>

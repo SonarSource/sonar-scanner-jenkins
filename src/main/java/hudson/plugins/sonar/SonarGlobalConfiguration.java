@@ -45,7 +45,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 /**
  * Since 2.4
@@ -140,7 +140,7 @@ public class SonarGlobalConfiguration extends GlobalConfiguration implements Ser
   }
 
   @Override
-  public boolean configure(StaplerRequest req, JSONObject json) {
+  public boolean configure(StaplerRequest2 req, JSONObject json) {
     List<SonarInstallation> list = req.bindJSONToList(SonarInstallation.class, json.get("inst"));
     boolean enableBuildWrapper = json.getBoolean("enableBuildWrapper");
     setInstallations(list.toArray(new SonarInstallation[list.size()]));
