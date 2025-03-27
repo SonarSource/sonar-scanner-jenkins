@@ -41,7 +41,7 @@ import java.util.List;
 import jenkins.security.MasterToSlaveCallable;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 public class MsBuildSQRunnerInstallation extends ToolInstallation implements EnvironmentSpecific<MsBuildSQRunnerInstallation>, NodeSpecific<MsBuildSQRunnerInstallation> {
   private static final long serialVersionUID = 1L;
@@ -110,7 +110,7 @@ public class MsBuildSQRunnerInstallation extends ToolInstallation implements Env
     }
 
     @Override
-    public MsBuildSQRunnerInstallation newInstance(StaplerRequest req, JSONObject formData) {
+    public MsBuildSQRunnerInstallation newInstance(StaplerRequest2 req, JSONObject formData) {
       return (MsBuildSQRunnerInstallation) req.bindJSON(clazz, formData);
     }
 

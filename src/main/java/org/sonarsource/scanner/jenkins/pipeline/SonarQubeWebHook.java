@@ -34,13 +34,13 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
 @Extension
@@ -68,7 +68,7 @@ public class SonarQubeWebHook implements UnprotectedRootAction {
   }
 
   @RequirePOST
-  public void doIndex(StaplerRequest req, StaplerResponse rsp) throws IOException {
+  public void doIndex(StaplerRequest2 req, StaplerResponse2 rsp) throws IOException {
     String payload = IOUtils.toString(req.getReader());
 
     LOGGER.info("Received POST from " + req.getRemoteHost());
