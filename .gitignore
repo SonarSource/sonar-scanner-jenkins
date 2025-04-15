@@ -16,3 +16,4 @@ work
 
 # Maven wrapper JAR file
 .mvn/wrapper/maven-wrapper.jar
+local-jenkins/
