@@ -22,30 +22,31 @@ package hudson.plugins.sonar.action;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SonarProjectActionFactoryTest {
+class SonarProjectActionFactoryTest {
   private SonarProjectActionFactory factory;
   private AbstractProject project;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     factory = new SonarProjectActionFactory();
     project = mock(AbstractProject.class);
   }
 
   @Test
-  public void testNoBuildInfo() {
+  void testNoBuildInfo() {
     mockProject(true);
     Collection<? extends Action> actions = factory.createFor(project);
     List<SonarProjectIconAction> projectActions = getSonarProjectIconAction(actions);
@@ -56,7 +57,7 @@ public class SonarProjectActionFactoryTest {
   }
 
   @Test
-  public void testNoRepeatedURLs() {
+  void testNoRepeatedURLs() {
     SonarAnalysisAction info1 = createBuildInfo("url1");
     SonarAnalysisAction info2 = createBuildInfo("url1");
     mockProject(true, info1, info2);
@@ -70,7 +71,7 @@ public class SonarProjectActionFactoryTest {
   }
 
   @Test
-  public void testNoLastBuild() {
+  void testNoLastBuild() {
     mockProject(true);
     when(project.getLastBuild()).thenReturn(null);
     Collection<? extends Action> actions = factory.createFor(project);
@@ -82,7 +83,7 @@ public class SonarProjectActionFactoryTest {
   }
 
   @Test
-  public void testSeveralInfos() {
+  void testSeveralInfos() {
     SonarAnalysisAction info1 = createBuildInfo("url1");
     SonarAnalysisAction info2 = createBuildInfo("url2");
     SonarAnalysisAction info3 = createBuildInfo("url3");
@@ -103,7 +104,7 @@ public class SonarProjectActionFactoryTest {
   }
 
   @Test
-  public void testNoMarker() {
+  void testNoMarker() {
     mockProject(false, createBuildInfo("url"));
     Collection<? extends Action> actions = factory.createFor(project);
     assertThat(actions).isEmpty();

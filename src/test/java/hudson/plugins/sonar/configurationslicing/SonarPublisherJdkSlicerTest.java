@@ -21,11 +21,11 @@ package hudson.plugins.sonar.configurationslicing;
 
 import hudson.maven.MavenModuleSet;
 import hudson.plugins.sonar.SonarPublisher;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,13 +34,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author drautureau
  */
-public class SonarPublisherJdkSlicerTest {
+@WithJenkins
+class SonarPublisherJdkSlicerTest {
 
-  @Rule
-  public JenkinsRule j = new JenkinsRule();
+  private JenkinsRule j;
+
+  @BeforeEach
+  void setUp(JenkinsRule rule) {
+    j = rule;
+  }
 
   @Test
-  public void availableMavenProjectsWithSonarPublisher() throws IOException {
+  void availableMavenProjectsWithSonarPublisher() throws Exception {
     final MavenModuleSet project = j.jenkins.createProject(MavenModuleSet.class, "random-name");
     assertThat(new SonarPublisherJdkSlicer().getWorkDomain().size()).isZero();
     project.getPublishersList().add(new SonarPublisher("MySonar", null, null, null, null, null, null, null, null, null, false));
@@ -48,7 +53,7 @@ public class SonarPublisherJdkSlicerTest {
   }
 
   @Test
-  public void changeJobAdditionalProperties() throws Exception {
+  void changeJobAdditionalProperties() throws Exception {
     final MavenModuleSet project = j.jenkins.createProject(MavenModuleSet.class, "random-name");
     final SonarPublisher mySonar = new SonarPublisher("MySonar", null, null, null, null, null, null, "1.7", null, null, false);
     project.getPublishersList().add(mySonar);
