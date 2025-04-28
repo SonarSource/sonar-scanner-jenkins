@@ -21,56 +21,57 @@ package hudson.plugins.sonar.action;
 
 import hudson.model.Action;
 import hudson.model.Run;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import org.junit.Before;
-import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SonarBuildBadgeActionFactoryTest {
+class SonarBuildBadgeActionFactoryTest {
   private SonarBuildBadgeActionFactory factory;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     factory = new SonarBuildBadgeActionFactory();
   }
 
   @Test
-  public void testNoBadgeIfNoSonar() {
+  void testNoBadgeIfNoSonar() {
     Run r = mock(Run.class);
-    when(r.getActions()).thenReturn(Collections.<Action>emptyList());
+    when(r.getActions()).thenReturn(Collections.emptyList());
     Collection<? extends Action> badges = factory.createFor(r);
     assertThat(badges).isEmpty();
   }
 
   @Test
-  public void testUrl() {
+  void testUrl() {
     Run r = mock(Run.class);
-    when(r.getActions()).thenReturn(Collections.<Action>singletonList(createBuildInfo("http://myserver/myproject")));
+    when(r.getActions()).thenReturn(Collections.singletonList(createBuildInfo("http://myserver/myproject")));
     Collection<? extends Action> badges = factory.createFor(r);
     assertBadge(badges, "http://myserver/myproject");
   }
 
   @Test
-  public void testMultipleAnalysis() {
+  void testMultipleAnalysis() {
     Run r = mock(Run.class);
     SonarAnalysisAction[] actions = {
-      createBuildInfo("http://myserver/myproject1"),
-      createBuildInfo("http://myserver/myproject2")
+            createBuildInfo("http://myserver/myproject1"),
+            createBuildInfo("http://myserver/myproject2")
     };
-    when(r.getActions()).thenReturn(Arrays.<Action>asList(actions));
+    when(r.getActions()).thenReturn(Arrays.asList(actions));
     Collection<? extends Action> badges = factory.createFor(r);
     assertBadge(badges, null);
   }
 
   @Test
-  public void testNoUrl() {
+  void testNoUrl() {
     Run r = mock(Run.class);
-    when(r.getActions()).thenReturn(Collections.<Action>singletonList(createBuildInfo(null)));
+    when(r.getActions()).thenReturn(Collections.singletonList(createBuildInfo(null)));
     Collection<? extends Action> badges = factory.createFor(r);
     assertBadge(badges, null);
   }

@@ -22,7 +22,7 @@ package hudson.plugins.sonar.action;
 import hudson.model.AbstractProject;
 import hudson.plugins.sonar.SonarTestCase;
 import hudson.util.RunList;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -31,9 +31,10 @@ import static org.mockito.Mockito.when;
 /**
  * @author Evgeny Mandrikov
  */
-public class SonarProjectIconActionTest extends SonarTestCase {
+class SonarProjectIconActionTest extends SonarTestCase {
+
   @Test
-  public void test() throws Exception {
+  void test() {
     AbstractProject project = mock(AbstractProject.class);
     SonarProjectIconAction action = new SonarProjectIconAction(new SonarAnalysisAction("inst", "credId", null));
     when(project.getBuilds()).thenReturn(new RunList());

@@ -19,16 +19,18 @@
  */
 package hudson.plugins.sonar.utils;
 
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class VersionTest {
+class VersionTest {
+
   @Test
-  public void test1() {
+  void test1() {
     Version a = new Version("1.1");
     Version b = new Version("1.1.1");
     assertThat(a.compareTo(b)).isLessThan(0); // return -1 (a<b)
@@ -37,7 +39,7 @@ public class VersionTest {
   }
 
   @Test
-  public void test2() {
+  void test2() {
     Version a = new Version("2.0");
     Version b = new Version("1.9.9");
     assertThat(a.compareTo(b)).isGreaterThan(0); // return 1 (a>b)
@@ -46,12 +48,12 @@ public class VersionTest {
   }
 
   @Test
-  public void testSnapshot() {
+  void testSnapshot() {
     new Version("2.0-SNAPSHOT");
   }
 
   @Test
-  public void testOnlyMajor() {
+  void testOnlyMajor() {
     Version a = new Version("1.0.0");
     Version b = new Version("1.0");
     assertThat(a.compareTo(b)).isZero(); // return 0 (a=b)
@@ -60,13 +62,13 @@ public class VersionTest {
   }
 
   @Test
-  public void testToString() {
+  void testToString() {
     Version v = new Version("1.2.3");
     assertThat(v.toString()).isEqualTo("1.2.3");
   }
 
   @Test
-  public void testSort() {
+  void testSort() {
     List<Version> versions = new ArrayList<>();
     versions.add(new Version("2.0"));
     versions.add(new Version("1.0.5"));
@@ -78,7 +80,7 @@ public class VersionTest {
   }
 
   @Test
-  public void testDontRound() {
+  void testDontRound() {
     Version a = new Version("2.06");
     Version b = new Version("2.060");
     assertThat(a.equals(b)).isFalse(); // return false

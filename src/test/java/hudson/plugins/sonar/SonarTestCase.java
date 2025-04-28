@@ -41,9 +41,10 @@ import hudson.util.Secret;
 import hudson.util.jna.GNUCLibrary;
 import jenkins.triggers.SCMTriggerItem;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
-import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.SingleFileSCM;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,10 +54,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Evgeny Mandrikov
  */
+@WithJenkins
 public abstract class SonarTestCase {
-
-  @Rule
-  public JenkinsRule j = new JenkinsRule();
 
   /**
    * Setting this to non-existent host, allows us to avoid intersection with exist Sonar.
@@ -66,6 +65,13 @@ public abstract class SonarTestCase {
 
   public static final String ROOT_POM = "sonar-pom.xml";
   public static final String SONAR_INSTALLATION_NAME = "default";
+
+  protected JenkinsRule j;
+
+  @BeforeEach
+  protected void setUp(JenkinsRule rule) throws Exception {
+    j = rule;
+  }
 
   /**
    * Returns Fake Maven Installation.
@@ -171,24 +177,24 @@ public abstract class SonarTestCase {
 
   protected static SonarPublisher newSonarPublisherForFreeStyleProject(String pomName) {
     return new SonarPublisher(
-      SONAR_INSTALLATION_NAME,
-      null,
-      new TriggersConfig(),
-      null,
-      null,
-      "default", // Maven Installation Name
-      pomName, // Root POM
-      null,
-      null,
-      null,
-      false);
+            SONAR_INSTALLATION_NAME,
+            null,
+            new TriggersConfig(),
+            null,
+            null,
+            "default", // Maven Installation Name
+            pomName, // Root POM
+            null,
+            null,
+            null,
+            false);
   }
 
   /**
    * Asserts that Sonar executed with given arguments.
    *
    * @param build build
-   * @param args command line arguments
+   * @param args  command line arguments
    * @throws Exception if something is wrong
    */
   protected void assertSonarExecution(Run<?, ?> build, String args, boolean success) throws Exception {
@@ -206,7 +212,7 @@ public abstract class SonarTestCase {
     // SONARPLUGINS-165: Check that link added to project
     Job<?, ?> parent = build.getParent();
     if (parent instanceof AbstractProject) {
-      assertThat(((AbstractProject<?, ?>) parent).getAction(SonarProjectIconAction.class)).isNotNull();
+      assertThat(parent.getAction(SonarProjectIconAction.class)).isNotNull();
     }
   }
 
@@ -220,7 +226,7 @@ public abstract class SonarTestCase {
     assertThat(build.getAction(SonarBuildBadgeAction.class)).as(SonarBuildBadgeAction.class.getSimpleName() + " found").isNull();
   }
 
-  protected void assertLogContains(String substring, Run<?, ?> run) throws IOException {
+  protected void assertLogContains(String substring, Run<?, ?> run) throws Exception {
     String log = JenkinsRule.getLog(run);
     assertThat(log).contains(substring);
   }
@@ -229,7 +235,7 @@ public abstract class SonarTestCase {
    * Asserts that the console output of the build doesn't contains the given substring.
    *
    * @param substring substring to check
-   * @param run run to check
+   * @param run       run to check
    * @throws Exception if something wrong
    */
   protected void assertLogDoesntContains(String substring, Run<?, ?> run) throws Exception {

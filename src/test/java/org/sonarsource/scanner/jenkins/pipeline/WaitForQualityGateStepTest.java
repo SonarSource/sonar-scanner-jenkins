@@ -25,6 +25,7 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.model.Descriptor;
 import hudson.model.Result;
 import hudson.model.queue.QueueTaskFuture;
@@ -32,7 +33,6 @@ import hudson.plugins.sonar.SonarGlobalConfiguration;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.utils.SonarUtils;
 import hudson.util.Secret;
-import edu.umd.cs.findbugs.annotations.Nullable;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -44,40 +44,22 @@ import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.junit.runners.model.Statement;
-import org.jvnet.hudson.test.BuildWatcher;
-import org.jvnet.hudson.test.RestartableJenkinsRule;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Parameterized.class)
-public class WaitForQualityGateStepTest {
-
-  @Parameters(name = "declarative: {0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-      {true}, {false}
-    });
-  }
-
-  private boolean declarative;
-
-  public WaitForQualityGateStepTest(boolean declarative) {
-    this.declarative = declarative;
-  }
+@WithJenkins
+class WaitForQualityGateStepTest {
 
   private static final String JOB_NAME = "p";
   private static final String FAKE_TASK_ID_1 = "fakeTaskId1";
@@ -89,17 +71,19 @@ public class WaitForQualityGateStepTest {
 
   public static final String SONAR_INSTALLATION_NAME = "default";
 
-  @ClassRule
-  public static BuildWatcher buildWatcher = new BuildWatcher();
-  @Rule
-  public RestartableJenkinsRule story = new RestartableJenkinsRule();
-
   private static int port;
 
   private static MyHandler handler;
 
-  @BeforeClass
-  public static void startFakeSqServer() throws Exception {
+  private JenkinsRule j;
+
+  @BeforeEach
+  void setUp(JenkinsRule rule) {
+    j = rule;
+  }
+
+  @BeforeAll
+  static void setUp() throws Exception {
     port = NetworkUtils.getNextAvailablePort();
     HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
     handler = new MyHandler();
@@ -109,378 +93,301 @@ public class WaitForQualityGateStepTest {
   }
 
   @Test
-  public void getWebhookSecretId() {
+  void getWebhookSecretId() {
     WaitForQualityGateStep waitForQualityGateStep = new WaitForQualityGateStep(true);
     waitForQualityGateStep.setWebhookSecretId("AV4p2424BJY0hh5C8Sya1ZS234234");
     assertThat(waitForQualityGateStep.getWebhookSecretId()).isEqualTo("AV4p2424BJY0hh5C8Sya1ZS234234");
   }
 
   @Test
-  public void failIfNoTaskIdInContext() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        SonarQubeWebHook.get().listeners.clear();
-        WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
-        p.setDefinition(new CpsFlowDefinition("waitForQualityGate()", true));
-        WorkflowRun r = story.j.assertBuildStatus(Result.FAILURE, p.scheduleBuild2(0));
-        story.j.assertLogContains("No previous SonarQube analysis found on this pipeline execution.", r);
-      }
-    });
+  void failIfNoTaskIdInContext() throws Exception {
+    SonarQubeWebHook.get().listeners.clear();
+    WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
+    p.setDefinition(new CpsFlowDefinition("waitForQualityGate()", true));
+    WorkflowRun r = j.assertBuildStatus(Result.FAILURE, p.scheduleBuild2(0));
+    j.assertLogContains("No previous SonarQube analysis found on this pipeline execution.", r);
   }
 
-  @Test
-  public void waitForQualityGateOk() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, false);
-        WorkflowRun b = pipeline.waitForStart();
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGateOk(boolean declarative) throws Exception {
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, true, false);
+    WorkflowRun b = pipeline.waitForStart();
 
-        submitWebHook("another task", "FAILURE", "KO", b);
-        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b);
-        story.j.assertBuildStatusSuccess(pipeline);
-      }
-    });
+    submitWebHook("another task", "FAILURE", "KO", b);
+    submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b);
+    j.assertBuildStatusSuccess(pipeline);
   }
 
-  @Test
-  public void waitForQualityGateOk_webhook_received_before_wait_started() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, false);
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGateOk_webhook_received_before_wait_started(boolean declarative) throws Exception {
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, true, false);
 
-        submitWebHook("another task", "FAILURE", "KO");
-        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK");
+    submitWebHook("another task", "FAILURE", "KO");
+    submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK");
 
-        pipeline.waitForStart();
-        story.j.assertBuildStatusSuccess(pipeline);
-      }
-    });
+    pipeline.waitForStart();
+    j.assertBuildStatusSuccess(pipeline);
   }
 
-  @Test
-  public void waitForQualityGateKo() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
-        WorkflowRun b = pipeline.waitForStart();
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGateKo(boolean declarative) throws Exception {
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, false, false);
+    WorkflowRun b = pipeline.waitForStart();
 
-        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "KO", b);
-        story.j.assertBuildStatus(Result.FAILURE, pipeline);
-      }
-    });
+    submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "KO", b);
+    j.assertBuildStatus(Result.FAILURE, pipeline);
   }
 
-  @Test
-  public void waitForQualityGate_succeeds_when_no_webhook_secret_id_is_set() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, false, null);
-        WorkflowRun b = pipeline.waitForStart();
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGate_succeeds_when_no_webhook_secret_id_is_set(boolean declarative) throws Exception {
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, true, false, null);
+    WorkflowRun b = pipeline.waitForStart();
 
-        submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
-        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
-        story.j.assertBuildStatusSuccess(pipeline);
-      }
-    });
+    submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
+    submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
+    j.assertBuildStatusSuccess(pipeline);
   }
 
-  @Test
-  public void waitForQualityGate_succeeds_when_empty_webhook_secret_id_is_set() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, false, "");
-        WorkflowRun b = pipeline.waitForStart();
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGate_succeeds_when_empty_webhook_secret_id_is_set(boolean declarative) throws Exception {
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, true, false, "");
+    WorkflowRun b = pipeline.waitForStart();
 
-        submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
-        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
-        story.j.assertBuildStatusSuccess(pipeline);
-      }
-    });
+    submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
+    submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
+    j.assertBuildStatusSuccess(pipeline);
   }
 
-  @Test
-  public void waitForQualityGate_fails_when_webhook_secret_id_is_set_but_the_value_is_not_present() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false, WEBHOOK_SECRET_ID);
-        WorkflowRun b = pipeline.waitForStart();
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGate_fails_when_webhook_secret_id_is_set_but_the_value_is_not_present(boolean declarative) throws Exception {
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, false, false, WEBHOOK_SECRET_ID);
+    WorkflowRun b = pipeline.waitForStart();
 
-        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "KO", b, WEBHOOK_SECRET);
-        story.j.assertBuildStatus(Result.FAILURE, pipeline);
-        story.j.assertLogContains("A webhook secret id was configured, but the corresponding credential could not be found", b);
-      }
-    });
+    submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "KO", b, WEBHOOK_SECRET);
+    j.assertBuildStatus(Result.FAILURE, pipeline);
+    j.assertLogContains("A webhook secret id was configured, but the corresponding credential could not be found", b);
   }
 
-  @Test
-  public void waitForQualityGate_succeeds_when_correct_webhook_secret_is_set() {
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGate_succeeds_when_correct_webhook_secret_is_set(boolean declarative) throws Exception {
     addWebhookSecretToCredentials(WEBHOOK_SECRET);
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, false, WEBHOOK_SECRET_ID);
-        WorkflowRun b = pipeline.waitForStart();
 
-        submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
-        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
-        story.j.assertBuildStatusSuccess(pipeline);
-        story.j.assertLogContains("The incoming webhook matched the configured webhook secret", b);
-      }
-    });
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, true, false, WEBHOOK_SECRET_ID);
+    WorkflowRun b = pipeline.waitForStart();
+
+    submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
+    submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
+    j.assertBuildStatusSuccess(pipeline);
+    j.assertLogContains("The incoming webhook matched the configured webhook secret", b);
   }
 
-  @Test
-  public void waitForQualityGate_fails_if_secret_that_is_given_is_different_then_secret_used_to_encode_webhook() {
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGate_fails_if_secret_that_is_given_is_different_then_secret_used_to_encode_webhook(boolean declarative) throws Exception {
     addWebhookSecretToCredentials("other secret value");
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, false, WEBHOOK_SECRET_ID);
-        WorkflowRun b = pipeline.waitForStart();
 
-        submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
-        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
-        story.j.assertBuildStatus(Result.FAILURE, pipeline);
-      }
-    });
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, true, false, WEBHOOK_SECRET_ID);
+    WorkflowRun b = pipeline.waitForStart();
+
+    submitWebHook("another task", "FAILURE", "KO", b, WEBHOOK_SECRET);
+    submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
+    j.assertBuildStatus(Result.FAILURE, pipeline);
   }
 
-  @Test
-  public void waitForQualityGate_TwoAnalysis() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        handler.status2 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(true, true);
-        WorkflowRun b = pipeline.waitForStart();
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGate_TwoAnalysis(boolean declarative) throws Exception {
+    handler.status1 = "PENDING";
+    handler.status2 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, true, true);
+    WorkflowRun b = pipeline.waitForStart();
 
-        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
-        submitWebHook(FAKE_TASK_ID_2, "SUCCESS", "OK", b, WEBHOOK_SECRET);
-        story.j.assertBuildStatusSuccess(pipeline);
-      }
-    });
+    submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
+    submitWebHook(FAKE_TASK_ID_2, "SUCCESS", "OK", b, WEBHOOK_SECRET);
+    j.assertBuildStatusSuccess(pipeline);
   }
 
-  @Test
-  public void waitForQualityGateCancelPipeline() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
-        WorkflowRun b = pipeline.waitForStart();
-        waitForStepToWait(b);
-        b.doStop();
-        story.j.assertBuildStatus(Result.ABORTED, pipeline);
-        assertThat(SonarQubeWebHook.get().listeners).isEmpty();
-      }
-    });
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGateCancelPipeline(boolean declarative) throws Exception {
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, false, false);
+    WorkflowRun b = pipeline.waitForStart();
+    waitForStepToWait(b);
+    b.doStop();
+    j.assertBuildStatus(Result.ABORTED, pipeline);
+    assertThat(SonarQubeWebHook.get().listeners).isEmpty();
   }
 
-  @Test
-  public void waitForQualityGateTaskFailure() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
-        WorkflowRun b = pipeline.waitForStart();
-        waitForStepToWait(b);
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGateTaskFailure(boolean declarative) throws Exception {
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, false, false);
+    WorkflowRun b = pipeline.waitForStart();
+    waitForStepToWait(b);
 
-        submitWebHook(FAKE_TASK_ID_1, "FAILED", null, b, WEBHOOK_SECRET);
-        WorkflowRun r = story.j.assertBuildStatus(Result.FAILURE, pipeline);
-        story.j.assertLogContains("SonarQube analysis '" + FAKE_TASK_ID_1 + "' failed: FAILED", r);
-      }
-    });
+    submitWebHook(FAKE_TASK_ID_1, "FAILED", null, b, WEBHOOK_SECRET);
+    WorkflowRun r = j.assertBuildStatus(Result.FAILURE, pipeline);
+    j.assertLogContains("SonarQube analysis '" + FAKE_TASK_ID_1 + "' failed: FAILED", r);
   }
 
-  @Test
-  public void finishEarlyOk() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "SUCCESS";
-        handler.analysisId1 = FAKE_ANALYSIS_ID_1;
-        handler.qgStatus1 = "OK";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
-        story.j.assertBuildStatusSuccess(pipeline);
-      }
-    });
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void finishEarlyOk(boolean declarative) throws Exception {
+    handler.status1 = "SUCCESS";
+    handler.analysisId1 = FAKE_ANALYSIS_ID_1;
+    handler.qgStatus1 = "OK";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, false, false);
+    j.assertBuildStatusSuccess(pipeline);
   }
 
-  @Test
-  public void finishEarlyKo() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "SUCCESS";
-        handler.analysisId1 = FAKE_ANALYSIS_ID_1;
-        handler.qgStatus1 = "KO";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
-        story.j.assertBuildStatus(Result.FAILURE, pipeline);
-      }
-    });
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void finishEarlyKo(boolean declarative) throws Exception {
+    handler.status1 = "SUCCESS";
+    handler.analysisId1 = FAKE_ANALYSIS_ID_1;
+    handler.qgStatus1 = "KO";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, false, false);
+    j.assertBuildStatus(Result.FAILURE, pipeline);
   }
 
-  @Test
-  public void finishEarlyFail() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "FAILED";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void finishEarlyFail(boolean declarative) throws Exception {
+    handler.status1 = "FAILED";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, false, false);
 
-        WorkflowRun run = story.j.assertBuildStatus(Result.FAILURE, pipeline);
-        story.j.assertLogContains("SonarQube task '" + FAKE_TASK_ID_1 + "' status is 'FAILED'", run);
-      }
-    });
+    WorkflowRun run = j.assertBuildStatus(Result.FAILURE, pipeline);
+    j.assertLogContains("SonarQube task '" + FAKE_TASK_ID_1 + "' status is 'FAILED'", run);
   }
 
-  @Test
-  public void waitForQualityGateOk_survive_restart() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
-        WorkflowRun b = pipeline.waitForStart();
-        waitForStepToWait(b);
-      }
-    });
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        WorkflowJob p = story.j.jenkins.getItemByFullName(JOB_NAME, WorkflowJob.class);
-        WorkflowRun b = p.getLastBuild();
-        submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
-        story.j.assertBuildStatusSuccess(story.j.waitForCompletion(b));
-      }
-    });
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGateOk_survive_restart(boolean declarative) throws Throwable {
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, false, false);
+    WorkflowRun b = pipeline.waitForStart();
+    waitForStepToWait(b);
+
+    j.restart();
+
+    WorkflowJob p = j.jenkins.getItemByFullName(JOB_NAME, WorkflowJob.class);
+    b = p.getLastBuild();
+    submitWebHook(FAKE_TASK_ID_1, "SUCCESS", "OK", b, WEBHOOK_SECRET);
+    j.assertBuildStatusSuccess(j.waitForCompletion(b));
   }
 
-  @Test
-  public void waitForQualityGateOk_recheck_ws_on_restart() {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        handler.status1 = "PENDING";
-        QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(false, false);
-        WorkflowRun b = pipeline.waitForStart();
-        waitForStepToWait(b);
+  @ParameterizedTest(name = "declarative: {0}")
+  @ValueSource(booleans = {true, false})
+  void waitForQualityGateOk_recheck_ws_on_restart(boolean declarative) throws Throwable {
+    handler.status1 = "PENDING";
+    QueueTaskFuture<WorkflowRun> pipeline = submitPipeline(declarative, false, false);
+    WorkflowRun b = pipeline.waitForStart();
+    waitForStepToWait(b);
 
-        handler.status1 = "SUCCESS";
-        handler.analysisId1 = FAKE_ANALYSIS_ID_1;
-        handler.qgStatus1 = "OK";
-      }
-    });
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        WorkflowJob p = story.j.jenkins.getItemByFullName(JOB_NAME, WorkflowJob.class);
-        WorkflowRun b = p.getLastBuild();
-        story.j.assertBuildStatusSuccess(story.j.waitForCompletion(b));
-      }
-    });
+    handler.status1 = "SUCCESS";
+    handler.analysisId1 = FAKE_ANALYSIS_ID_1;
+    handler.qgStatus1 = "OK";
+
+    j.restart();
+
+    WorkflowJob p = j.jenkins.getItemByFullName(JOB_NAME, WorkflowJob.class);
+    b = p.getLastBuild();
+    j.assertBuildStatusSuccess(j.waitForCompletion(b));
   }
 
-  private void addWebhookSecretToCredentials(String secret) {
-    story.addStep(new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        StringCredentialsImpl c = new StringCredentialsImpl(CredentialsScope.GLOBAL, WEBHOOK_SECRET_ID, "sample", Secret.fromString(secret));
-        CredentialsProvider.lookupStores(story.j.jenkins).iterator().next().addCredentials(Domain.global(), c);
-      }
-    });
+  private void addWebhookSecretToCredentials(String secret) throws Exception {
+    StringCredentialsImpl c = new StringCredentialsImpl(CredentialsScope.GLOBAL, WEBHOOK_SECRET_ID, "sample", Secret.fromString(secret));
+    CredentialsProvider.lookupStores(j.jenkins).iterator().next().addCredentials(Domain.global(), c);
   }
 
-  private void submitWebHook(String taskId, String endTaskStatus, String qgStatus, WorkflowRun b, String secret) throws InterruptedException, IOException {
+  private void submitWebHook(String taskId, String endTaskStatus, String qgStatus, WorkflowRun b, String secret) throws Exception {
     waitForStepToWait(b);
 
     String payload = "{\n" +
-      "\"taskId\":\"" + taskId + "\",\n" +
-      "\"status\":\"" + endTaskStatus + "\",\n" +
-      "\"qualityGate\":{\"status\":\"" + qgStatus + "\"},\n" +
-      "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
-      "}";
+            "\"taskId\":\"" + taskId + "\",\n" +
+            "\"status\":\"" + endTaskStatus + "\",\n" +
+            "\"qualityGate\":{\"status\":\"" + qgStatus + "\"},\n" +
+            "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
+            "}";
     OkHttpClient client = new OkHttpClient();
     Request req = new Request.Builder()
-      .url(story.j.getURL().toExternalForm() + "sonarqube-webhook/")
-      .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), payload))
-      .addHeader("X-Sonar-Webhook-HMAC-SHA256", new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secret).hmacHex(payload))
-      .build();
+            .url(j.getURL().toExternalForm() + "sonarqube-webhook/")
+            .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), payload))
+            .addHeader("X-Sonar-Webhook-HMAC-SHA256", new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secret).hmacHex(payload))
+            .build();
     client.newCall(req).execute();
   }
 
-  private void submitWebHook(String taskId, String endTaskStatus, String qgStatus, WorkflowRun b) throws InterruptedException, IOException {
+  private void submitWebHook(String taskId, String endTaskStatus, String qgStatus, WorkflowRun b) throws Exception {
     waitForStepToWait(b);
 
     submitWebHook(taskId, endTaskStatus, qgStatus);
   }
 
-  private void submitWebHook(String taskId, String endTaskStatus, String qgStatus) throws IOException {
+  private void submitWebHook(String taskId, String endTaskStatus, String qgStatus) throws Exception {
     String payload = "{\n" +
-      "\"taskId\":\"" + taskId + "\",\n" +
-      "\"status\":\"" + endTaskStatus + "\",\n" +
-      "\"qualityGate\":{\"status\":\"" + qgStatus + "\"},\n" +
-      "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
-      "}";
+            "\"taskId\":\"" + taskId + "\",\n" +
+            "\"status\":\"" + endTaskStatus + "\",\n" +
+            "\"qualityGate\":{\"status\":\"" + qgStatus + "\"},\n" +
+            "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
+            "}";
 
     Request req = new Request.Builder()
-      .url(story.j.getURL().toExternalForm() + "sonarqube-webhook/")
-      .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), payload))
-      .build();
+            .url(j.getURL().toExternalForm() + "sonarqube-webhook/")
+            .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), payload))
+            .build();
     OkHttpClient client = new OkHttpClient();
     client.newCall(req).execute();
   }
 
-
-  private void waitForStepToWait(WorkflowRun b) throws InterruptedException {
+  private void waitForStepToWait(WorkflowRun b) throws Exception {
     // Wait for the step to register to the webhook listener
     while (SonarQubeWebHook.get().listeners.isEmpty() && b.isBuilding()) {
       Thread.sleep(500);
     }
   }
 
-  private QueueTaskFuture<WorkflowRun> submitPipeline(boolean specifyServer, boolean twoProjects) throws IOException, Descriptor.FormException {
-    return submitPipeline(specifyServer, twoProjects, null);
+  private QueueTaskFuture<WorkflowRun> submitPipeline(boolean declarative, boolean specifyServer, boolean twoProjects) throws IOException, Descriptor.FormException {
+    return submitPipeline(declarative, specifyServer, twoProjects, null);
   }
 
-  private QueueTaskFuture<WorkflowRun> submitPipeline(boolean specifyServer, boolean twoProjects, @Nullable String webhookSecretId) throws IOException, Descriptor.FormException {
+  private QueueTaskFuture<WorkflowRun> submitPipeline(boolean declarative, boolean specifyServer, boolean twoProjects, @Nullable String webhookSecretId) throws IOException, Descriptor.FormException {
     SonarQubeWebHook.get().listeners.clear();
-    story.j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class)
-      .setInstallations(
-        new SonarInstallation(SONAR_INSTALLATION_NAME, "http://localhost:" + port + "/sonarqube", null, null, null, null, null, null, null));
-    WorkflowJob p = story.j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
+    j.jenkins.getDescriptorByType(SonarGlobalConfiguration.class)
+            .setInstallations(
+                    new SonarInstallation(SONAR_INSTALLATION_NAME, "http://localhost:" + port + "/sonarqube", null, null, null, null, null, null, null));
+    WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, JOB_NAME);
     // Use a fake serverUrl to validate that the installation url is used by the wait step
     String serverUrl = "http://sonarqube.example.com";
     String reportTaskContent1 = "dashboardUrl=" + serverUrl + "/dashboard\\n"
-      + "ceTaskId=" + FAKE_TASK_ID_1 + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
+            + "ceTaskId=" + FAKE_TASK_ID_1 + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
     String reportTaskContent2 = "dashboardUrl=" + serverUrl + "/dashboard\\n"
-      + "ceTaskId=" + FAKE_TASK_ID_2 + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
+            + "ceTaskId=" + FAKE_TASK_ID_2 + "\\nserverUrl=" + serverUrl + "\\nprojectKey=foo";
     p.setDefinition(new CpsFlowDefinition(
-      script(reportTaskContent1, reportTaskContent2, specifyServer, twoProjects, webhookSecretId),
-      true));
+            script(declarative, reportTaskContent1, reportTaskContent2, specifyServer, twoProjects, webhookSecretId),
+            true));
     return p.scheduleBuild2(0);
   }
 
-  private String script(String reportTaskContent1, String reportTaskContent2, boolean specifyServer, boolean twoProjects, @Nullable String webhookSecretId) {
-    if (this.declarative) {
+  private String script(boolean declarative, String reportTaskContent1, String reportTaskContent2, boolean specifyServer, boolean twoProjects, @Nullable String webhookSecretId) {
+    if (declarative) {
       StringBuilder pipeline = new StringBuilder();
       pipeline.append("pipeline {\n");
       pipeline.append("  agent none\n");
@@ -553,7 +460,7 @@ public class WaitForQualityGateStepTest {
     if (webhookSecretId == null) {
       pipeline.append("def qg" + id + " = waitForQualityGate();\n");
     } else {
-      pipeline.append("def qg" + id + " = waitForQualityGate(webhookSecretId: '"+ webhookSecretId + "');\n");
+      pipeline.append("def qg" + id + " = waitForQualityGate(webhookSecretId: '" + webhookSecretId + "');\n");
     }
     pipeline.append("if (qg" + id + ".status != 'OK') {\n");
     pipeline.append("  error 'QG" + id + " failure'\n");
@@ -566,8 +473,8 @@ public class WaitForQualityGateStepTest {
     String analysisId1 = null;
     String qgStatus1 = null;
     String status2 = "PENDING";
-    String analysisId2 = null;
-    String qgStatus2 = null;
+    final String analysisId2 = null;
+    final String qgStatus2 = null;
 
     @Override
     public void handle(HttpExchange t) throws IOException {
@@ -578,16 +485,16 @@ public class WaitForQualityGateStepTest {
       if (t.getRequestURI().getPath().equals("/sonarqube/api/ce/task")) {
         if (t.getRequestURI().getQuery().equals("id=" + FAKE_TASK_ID_1)) {
           response(t, 200, "{ task: {\"componentKey\": \"project_1\","
-            + "\"componentName\": \"Project One\","
-            + (analysisId1 != null ? ("\"analysisId\": \"" + analysisId1 + "\",") : "")
-            + "\"status\": \"" + status1 + "\"}}");
+                  + "\"componentName\": \"Project One\","
+                  + (analysisId1 != null ? ("\"analysisId\": \"" + analysisId1 + "\",") : "")
+                  + "\"status\": \"" + status1 + "\"}}");
           return;
         }
         if (t.getRequestURI().getQuery().equals("id=" + FAKE_TASK_ID_2)) {
           response(t, 200, "{ task: {\"componentKey\": \"project_2\","
-            + "\"componentName\": \"Project Two\","
-            + (analysisId2 != null ? ("\"analysisId\": \"" + analysisId2 + "\",") : "")
-            + "\"status\": \"" + status2 + "\"}}");
+                  + "\"componentName\": \"Project Two\","
+                  + (analysisId2 != null ? ("\"analysisId\": \"" + analysisId2 + "\",") : "")
+                  + "\"status\": \"" + status2 + "\"}}");
           return;
         }
       }

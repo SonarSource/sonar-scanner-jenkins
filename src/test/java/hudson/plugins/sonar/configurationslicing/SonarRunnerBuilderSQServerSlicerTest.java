@@ -21,9 +21,10 @@ package hudson.plugins.sonar.configurationslicing;
 
 import hudson.model.FreeStyleProject;
 import hudson.plugins.sonar.SonarRunnerBuilder;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,13 +32,18 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SonarRunnerBuilderSQServerSlicerTest {
+@WithJenkins
+class SonarRunnerBuilderSQServerSlicerTest {
 
-  @Rule
-  public JenkinsRule j = new JenkinsRule();
+  private JenkinsRule j;
+
+  @BeforeEach
+  void setUp(JenkinsRule rule) {
+    j = rule;
+  }
 
   @Test
-  public void availableProjectsWithSonarBuildStep() throws IOException {
+  void availableProjectsWithSonarBuildStep() throws IOException {
     final FreeStyleProject project = j.createFreeStyleProject();
     assertThat(new SonarRunnerBuilderSQServerSlicer().getWorkDomain().size()).isZero();
     project.getBuildersList().add(new SonarRunnerBuilder());
@@ -45,7 +51,7 @@ public class SonarRunnerBuilderSQServerSlicerTest {
   }
 
   @Test
-  public void changeJobAdditionalProperties() throws Exception {
+  void changeJobAdditionalProperties() throws Exception {
     final FreeStyleProject project = j.createFreeStyleProject();
     final SonarRunnerBuilder mySonar = new SonarRunnerBuilder();
     mySonar.setInstallationName("MySonar");

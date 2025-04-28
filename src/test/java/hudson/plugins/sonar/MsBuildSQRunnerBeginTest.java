@@ -26,16 +26,18 @@ import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.sonar.AbstractMsBuildSQRunner.SonarQubeScannerMsBuildParams;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 
-public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
+@WithJenkins
+class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
 
   @Test
-  public void testNormalExec() throws Exception {
+  void testNormalExec() throws Exception {
     configureDefaultSonar();
     configureMsBuildScanner(false);
 
@@ -48,7 +50,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
   }
 
   @Test
-  public void testNormalExecWithEnvVar() throws Exception {
+  void testNormalExecWithEnvVar() throws Exception {
     configureDefaultSonar();
     configureMsBuildScanner(false);
     addEnvVar("CUSTOM_KEY", "customKey");
@@ -62,7 +64,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
   }
 
   @Test
-  public void failExe() throws Exception {
+  void failExe() throws Exception {
     configureDefaultSonar();
     configureMsBuildScanner(true);
 
@@ -74,9 +76,9 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
   }
 
   @Test
-  public void additionalArgs() throws Exception {
+  void additionalArgs() throws Exception {
     SonarInstallation inst = new SonarInstallation("default", null,
-      null, null, null, null, "/x:a=b", "key=value", null);
+            null, null, null, null, "/x:a=b", "key=value", null);
     configureSonar(inst);
     configureMsBuildScanner(true);
 
@@ -88,9 +90,9 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
   }
 
   @Test
-  public void testSonarProps() throws Exception {
+  void testSonarProps() throws Exception {
     SonarInstallation inst = spy(new SonarInstallation("default", "http://dummy-server:9090", "credentialsId", null,
-      null, null, null, null, null));
+            null, null, null, null, null));
     configureSonar(inst);
     addCredential("credentialsId", "any-token");
     configureMsBuildScanner(false);
@@ -98,13 +100,13 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
     FreeStyleProject proj = createFreeStyleProjectWithMSBuild("default", "default");
     Run<?, ?> r = build(proj, Result.SUCCESS);
     assertLogContains(getTestExeName() + " begin /k:key /n:name /v:1.0"
-      + " /d:sonar.host.url=http://dummy-server:9090 ********", r);
+            + " /d:sonar.host.url=http://dummy-server:9090 ********", r);
     assertLogContains("This is a fake MS Build Scanner", r);
     assertLogDoesntContains("mypass", r);
   }
 
   @Test
-  public void testNoMsBuildInst() throws Exception {
+  void testNoMsBuildInst() throws Exception {
     configureDefaultSonar();
     configureMsBuildScanner(false);
 
@@ -114,7 +116,7 @@ public class MsBuildSQRunnerBeginTest extends MsBuildSQRunnerTest {
   }
 
   @Test
-  public void testDotNetCoreScanner() throws Exception {
+  void testDotNetCoreScanner() throws Exception {
     configureDefaultSonar();
     configureMsBuildScanner(false);
 

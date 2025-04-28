@@ -29,6 +29,9 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.WsClient;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,14 +40,10 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.io.FileUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
 
 import static hudson.plugins.sonar.utils.SonarUtils.REPORT_TASK_FILE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -54,32 +53,30 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SonarUtilsTest {
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
-  @Rule
-  public TemporaryFolder workspaceFolder = new TemporaryFolder();
+class SonarUtilsTest {
+  @TempDir
+  private File workspaceFolder;
 
   @Test
-  public void testMajorMinor() {
+  void testMajorMinor() {
     assertThat(SonarUtils.extractMajorMinor("3.0")).isEqualTo(3.0f);
     assertThat(SonarUtils.extractMajorMinor("3.0.3")).isEqualTo(3.0f);
     assertThat(SonarUtils.extractMajorMinor("3.0-SNAPSHOT")).isEqualTo(3.0f);
-    assertThat(SonarUtils.extractMajorMinor("30")).isEqualTo(null);
-    assertThat(SonarUtils.extractMajorMinor("sdf")).isEqualTo(null);
+    assertThat(SonarUtils.extractMajorMinor("30")).isNull();
+    assertThat(SonarUtils.extractMajorMinor("sdf")).isNull();
   }
 
   @Test
-  public void testMavenGoal() {
-    assertThat(SonarUtils.getMavenGoal("3.0")).isEqualTo("org.sonarsource.scanner.maven:sonar-maven-plugin:3.0:sonar");
-    assertThat(SonarUtils.getMavenGoal("2.5")).isEqualTo("org.codehaus.mojo:sonar-maven-plugin:2.5:sonar");
-
-    exception.expect(NullPointerException.class);
-    SonarUtils.getMavenGoal(null);
+  void testMavenGoal() {
+    assertThrows(NullPointerException.class, () -> {
+      assertThat(SonarUtils.getMavenGoal("3.0")).isEqualTo("org.sonarsource.scanner.maven:sonar-maven-plugin:3.0:sonar");
+      assertThat(SonarUtils.getMavenGoal("2.5")).isEqualTo("org.codehaus.mojo:sonar-maven-plugin:2.5:sonar");
+      SonarUtils.getMavenGoal(null);
+    });
   }
 
   @Test
-  public void testAddBuildInfoFromLastBuild() throws Exception {
+  void testAddBuildInfoFromLastBuild() throws Exception {
     SonarAnalysisAction a1 = new SonarAnalysisAction("inst", "credId", null);
     a1.setSkipped(true);
     a1.setUrl("url1");
@@ -99,20 +96,20 @@ public class SonarUtilsTest {
   }
 
   @Test
-  public void testAddBuildInfoTo() throws Exception {
+  void testAddBuildInfoTo() throws Exception {
     AbstractBuild<?, ?> build = mockedBuild("log");
 
-    File scannerFolder = workspaceFolder.newFolder("scanner");
+    File scannerFolder = newFolder(workspaceFolder, "scanner");
     FileUtils.writeLines(new File(scannerFolder, REPORT_TASK_FILE_NAME), List.of(
-      "serverUrl=http://url",
-      "dashboardUrl=http://url/dashboard?id=test",
-      "ceTaskId=AYzPsI8CN2oYarIFiK6r"
+            "serverUrl=http://url",
+            "dashboardUrl=http://url/dashboard?id=test",
+            "ceTaskId=AYzPsI8CN2oYarIFiK6r"
     ));
 
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", "credentialsId", null, null, null, null, null,
-      null);
-    SonarAnalysisAction action = SonarUtils.addBuildInfoTo(build, mock(TaskListener.class), new FilePath(workspaceFolder.getRoot()),
-      sonarInstallation, "credId", false);
+            null);
+    SonarAnalysisAction action = SonarUtils.addBuildInfoTo(build, mock(TaskListener.class), new FilePath(workspaceFolder),
+            sonarInstallation, "credId", false);
 
     assertThat(action.getInstallationName()).isEqualTo("inst");
     assertThat(action.getInstallationUrl()).isEqualTo("https://url.com");
@@ -126,7 +123,7 @@ public class SonarUtilsTest {
   }
 
   @Test
-  public void should_mark_build_as_unstable_when_java_warning_is_logged() throws Exception {
+  void should_mark_build_as_unstable_when_java_warning_is_logged() throws Exception {
     Run r = mockedBuild("The version of Java (1.8.0_101) you have used to run this analysis is deprecated and we will stop accepting it from October 2020. Please update to at least Java 11.");
     FilePath workspace = new FilePath(new File("non_existing_file"));
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", "credentialsId", null, null, null, null, null, null);
@@ -141,7 +138,7 @@ public class SonarUtilsTest {
   }
 
   @Test
-  public void should_not_mark_build_as_unstable_when_result_is_already_failed() throws Exception {
+  void should_not_mark_build_as_unstable_when_result_is_already_failed() throws Exception {
     Run r = mockedBuild("The version of Java (1.8.0_101) you have used to run this analysis is deprecated and we will stop accepting it from October 2020. Please update to at least Java 11.");
     FilePath workspace = new FilePath(new File("non_existing_file"));
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", "credentialsId", null, null, null, null, null, null);
@@ -157,7 +154,7 @@ public class SonarUtilsTest {
   }
 
   @Test
-  public void getTokenProperty_whenSQVersionHigherThan10_shouldReturnSonarToken() {
+  void getTokenProperty_whenSQVersionHigherThan10_shouldReturnSonarToken() {
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", null, null, null, null, null, null, null);
     HttpClient client = mock(HttpClient.class);
     when(client.getHttp(sonarInstallation.getServerUrl() + WsClient.API_VERSION, null)).thenReturn("10.0");
@@ -165,7 +162,7 @@ public class SonarUtilsTest {
   }
 
   @Test
-  public void getTokenProperty_whenSQVersionLowerThan10_shouldReturnSonarLogin() {
+  void getTokenProperty_whenSQVersionLowerThan10_shouldReturnSonarLogin() {
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", null, null, null, null, null, null, null);
     HttpClient client = mock(HttpClient.class);
     when(client.getHttp(sonarInstallation.getServerUrl() + WsClient.API_VERSION, null)).thenReturn("9.9");
@@ -173,7 +170,7 @@ public class SonarUtilsTest {
   }
 
   @Test
-  public void getTokenProperty_whenSQVersionFetchFails_shouldReturnSonarLogin() {
+  void getTokenProperty_whenSQVersionFetchFails_shouldReturnSonarLogin() {
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", null, null, null, null, null, null, null);
     HttpClient client = mock(HttpClient.class);
     when(client.getHttp(sonarInstallation.getServerUrl() + WsClient.API_VERSION, null)).thenThrow();
@@ -181,19 +178,19 @@ public class SonarUtilsTest {
   }
 
   @Test
-  public void getTokenProperty_whenIsSonarCloud_shouldReturnSonarToken() {
+  void getTokenProperty_whenIsSonarCloud_shouldReturnSonarToken() {
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://sonarcloud.io", null, null, null, null, null, null, null);
     assertThat(SonarUtils.getTokenProperty(sonarInstallation, mock(HttpClient.class))).isEqualTo(SonarUtils.PROPERTY_SONAR_TOKEN);
   }
 
   @Test
-  public void isSonarCloud_whenServerUrlIsNotSonarCloud_shouldReturnFalse() {
+  void isSonarCloud_whenServerUrlIsNotSonarCloud_shouldReturnFalse() {
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://url.com", null, null, null, null, null, null, null);
     assertThat(SonarUtils.isSonarCloud(sonarInstallation)).isFalse();
   }
 
   @Test
-  public void isSonarCloud_whenServerUrlIsSonarCloud_shouldReturnTrue() {
+  void isSonarCloud_whenServerUrlIsSonarCloud_shouldReturnTrue() {
     SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://sonarcloud.io", null, null, null, null, null, null, null);
     assertThat(SonarUtils.isSonarCloud(sonarInstallation)).isTrue();
   }
@@ -205,13 +202,22 @@ public class SonarUtilsTest {
     return r;
   }
 
-  private static AbstractBuild<?, ?> mockedBuild(String log) throws IOException, InterruptedException {
+  private static AbstractBuild<?, ?> mockedBuild(String log) throws Exception {
     AbstractBuild<?, ?> build = mock(AbstractBuild.class);
     when(build.getLogReader()).thenReturn(new StringReader(log));
     when(build.getLog(anyInt())).thenReturn(Collections.singletonList(log));
     when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
     when(build.getEnvironment(any())).thenReturn(new EnvVars());
     return build;
+  }
+
+  private static File newFolder(File root, String... subDirs) throws Exception {
+    String subFolder = String.join("/", subDirs);
+    File result = new File(root, subFolder);
+    if (!result.mkdirs()) {
+      throw new IOException("Couldn't create folders " + root);
+    }
+    return result;
   }
 
 }
