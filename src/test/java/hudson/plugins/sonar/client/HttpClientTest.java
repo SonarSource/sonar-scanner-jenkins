@@ -19,8 +19,6 @@
  */
 package hudson.plugins.sonar.client;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import okhttp3.Call;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
@@ -29,10 +27,13 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.BufferedSource;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.sonarqube.ws.client.HttpException;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,18 +42,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class HttpClientTest {
+class HttpClientTest {
   private static final String URL = "http://sonarqube.org";
-  Call call = mock(Call.class);
-  ResponseBody body = mock(ResponseBody.class);
-  OkHttpClient okHttpClient = mock(OkHttpClient.class);
-  BufferedSource source = mock(BufferedSource.class);
-  HttpClient underTest = new HttpClient(okHttpClient);
-  Request request = new Request.Builder().url(URL).build();
-  Response response = new Response.Builder().code(200).body(body).protocol(Protocol.HTTP_2).message("message").request(request).build();
+  private final Call call = mock(Call.class);
+  private final ResponseBody body = mock(ResponseBody.class);
+  private final OkHttpClient okHttpClient = mock(OkHttpClient.class);
+  private final BufferedSource source = mock(BufferedSource.class);
+  private final HttpClient underTest = new HttpClient(okHttpClient);
+  private final Request request = new Request.Builder().url(URL).build();
+  private final Response response = new Response.Builder().code(200).body(body).protocol(Protocol.HTTP_2).message("message").request(request).build();
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     when(source.readString(any())).thenReturn("body");
     when(okHttpClient.newCall(any())).thenReturn(call);
     when(call.execute()).thenReturn(response);
@@ -61,7 +62,7 @@ public class HttpClientTest {
   }
 
   @Test
-  public void request_successful_should_return_content() throws IOException {
+  void request_successful_should_return_content() {
     ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
 
     String content = underTest.getHttp(URL, "token");
@@ -72,31 +73,31 @@ public class HttpClientTest {
   }
 
   @Test
-  public void request_fail_should_throw_http_exception() throws IOException {
+  void request_fail_should_throw_http_exception() throws Exception {
     Response failedResponse = new Response.Builder().code(401).body(body).protocol(Protocol.HTTP_2).message("message").request(request).build();
     when(call.execute()).thenReturn(failedResponse);
 
     assertThatThrownBy(() -> underTest.getHttp(URL, null))
-      .isInstanceOf(HttpException.class)
-      .hasMessage("Error 401 on http://sonarqube.org : body");
+            .isInstanceOf(HttpException.class)
+            .hasMessage("Error 401 on http://sonarqube.org : body");
   }
 
   @Test
-  public void network_error_should_throw_illegal_state_exception() throws IOException {
+  void network_error_should_throw_illegal_state_exception() throws Exception {
     when(call.execute()).thenThrow(new IOException());
 
     assertThatThrownBy(() -> underTest.getHttp(URL, null))
-      .isInstanceOf(IllegalStateException.class)
-      .hasMessage("Fail to request http://sonarqube.org/");
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Fail to request http://sonarqube.org/");
   }
 
   @Test
-  public void fail_to_read_response_should_throw_illegal_state_exception() throws IOException {
+  void fail_to_read_response_should_throw_illegal_state_exception() throws Exception {
     when(source.readString(any())).thenThrow(new IOException());
 
     assertThatThrownBy(() -> underTest.getHttp(URL, null))
-      .isInstanceOf(IllegalStateException.class)
-      .hasMessage("Fail to read response of http://sonarqube.org/");
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Fail to read response of http://sonarqube.org/");
   }
 
 }
