@@ -39,7 +39,7 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>5699.v27deb_ef5796c</version>
+      <version>5894.v038dda_e3161c</version>
     </dependency>
 
     <dependency>
