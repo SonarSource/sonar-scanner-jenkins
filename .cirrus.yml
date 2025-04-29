@@ -72,14 +72,17 @@ linux_qa_task:
   env:
     BROWSER: chrome
     matrix:
-      # If updating the JENKINS_VERSION, make sure that all installed plugins are compatible. See com.sonar.it.jenkins.SonarPluginTest
+      # If updating the JENKINS_VERSION, make sure that all installed plugins are compatible.
       # https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
+      # RECORDER allows us to store a video of the tests in target/diagnostics/. Value should be one of "off", "always", or "failuresOnly"
       - SQ_VERSION: LATEST_RELEASE[9.9]
         JENKINS_VERSION: 2.462.3
         VERSION_OVERRIDES: git-server=99.va_0826a_b_cdfa_d,sshd=3.312.v1c601b_c83b_0e
+        RECORDER: failuresOnly
       - SQ_VERSION: DEV
         JENKINS_VERSION: 2.462.3
         VERSION_OVERRIDES: git-server=99.va_0826a_b_cdfa_d,sshd=3.312.v1c601b_c83b_0e
+        RECORDER: failuresOnly
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:
@@ -88,7 +91,7 @@ linux_qa_task:
     - cleanup_maven_repository
   on_failure:
     reports_artifacts:
-      path: "**/target/**/logs/*"
+      path: "**/target/**/*"
     test_reports_artifacts:
       path: "**/target/surefire-reports/*"
     junit_artifacts:
