@@ -31,7 +31,7 @@
   <repositories>
     <repository>
       <id>repo.jenkins-ci.org</id>
-      <url>https://repo.jenkins-ci.org/public/</url>
+        <url>https://repo.jenkins-ci.org/public/</url>
     </repository>
   </repositories>
 
@@ -39,7 +39,7 @@
     <dependency>
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
-      <version>5699.v27deb_ef5796c</version>
+      <version>6222.vb_ec234e3d81e</version>
     </dependency>
 
     <dependency>
