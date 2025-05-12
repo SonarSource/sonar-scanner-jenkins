@@ -89,6 +89,8 @@ linux_qa_task:
       path: "**/target/**/logs/*"
     test_reports_artifacts:
       path: "**/target/surefire-reports/*"
+    diagnotics_artifacts:
+      path: "**/target/diagnotics/*"
     junit_artifacts:
       path: "**/target/surefire-reports/*.xml"
       format: junit
