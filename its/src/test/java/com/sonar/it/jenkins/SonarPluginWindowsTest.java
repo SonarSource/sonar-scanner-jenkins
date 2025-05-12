@@ -41,7 +41,7 @@ public class SonarPluginWindowsTest extends SonarPluginTestSuite {
   @WithPlugins({"workflow-aggregator", "msbuild"})
   public void msbuild_pipeline() {
     MSBuildScannerInstallation.install(jenkins, OLDEST_INSTALLABLE_MSBUILD_VERSION, false);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator());
 
     String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') {\n"
       + "  bat 'xcopy " + Paths.get("projects/csharp").toAbsolutePath().toString().replaceAll("\\\\", quoteReplacement("\\\\")) + " . /s /e /y'\n"
@@ -58,8 +58,8 @@ public class SonarPluginWindowsTest extends SonarPluginTestSuite {
   public void freestyle_job_with_scanner_for_ms_build_2_3_2() {
     MSBuildScannerInstallation.install(jenkins, "2.3.2.573", false);
     MSBuildScannerInstallation.install(jenkins, OLDEST_INSTALLABLE_MSBUILD_VERSION, false);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
-      .configureMSBuild(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator())
+      .configureMSBuild(ORCHESTRATOR.getOrchestrator());
 
     String jobName = "msbuild-sq-runner-2_3_2";
     String projectKey = "msbuild-sq-runner-2_3_2";
@@ -80,8 +80,8 @@ public class SonarPluginWindowsTest extends SonarPluginTestSuite {
   public void freestyle_job_with_scanner_for_ms_build_3_0() {
     MSBuildScannerInstallation.install(jenkins, "2.3.2.573", false);
     MSBuildScannerInstallation.install(jenkins, OLDEST_INSTALLABLE_MSBUILD_VERSION, false);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
-      .configureMSBuild(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator())
+      .configureMSBuild(ORCHESTRATOR.getOrchestrator());
 
     String jobName = "msbuild-sq-runner-3_0";
     String projectKey = "msbuild-sq-runner-3_0";
@@ -102,8 +102,8 @@ public class SonarPluginWindowsTest extends SonarPluginTestSuite {
   @WithPlugins({"msbuild"})
   public void freestyle_job_with_scanner_for_ms_build() throws FailedExecutionException {
     MSBuildScannerInstallation.install(jenkins, LATEST_INSTALLABLE_MSBUILD_VERSION, false);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
-      .configureMSBuild(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator())
+      .configureMSBuild(ORCHESTRATOR.getOrchestrator());
 
     String jobName = "csharp";
     String projectKey = "csharp";

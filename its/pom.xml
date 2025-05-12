@@ -45,7 +45,7 @@
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <version>3.12.1</version>
+      <version>3.27.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -56,8 +56,8 @@
     </dependency>
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
-      <artifactId>sonar-orchestrator</artifactId>
-      <version>3.40.0.183</version>
+      <artifactId>sonar-orchestrator-junit4</artifactId>
+      <version>5.5.0.2535</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>

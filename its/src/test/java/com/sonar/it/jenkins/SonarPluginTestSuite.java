@@ -27,6 +27,8 @@ import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.container.Server;
 import com.sonar.orchestrator.http.HttpMethod;
+import com.sonar.orchestrator.junit4.OrchestratorRule;
+import com.sonar.orchestrator.junit4.OrchestratorRuleBuilder;
 import com.sonar.orchestrator.locator.FileLocation;
 import java.io.File;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +67,7 @@ public class SonarPluginTestSuite extends AbstractJUnitTest {
   protected final File jsFolder = new File("projects", "js");
 
   @ClassRule
-  public static final Orchestrator ORCHESTRATOR = Orchestrator.builderEnv()
+  public static final OrchestratorRule ORCHESTRATOR = OrchestratorRule.builderEnv()
     .setSonarVersion(requireNonNull(System.getProperty("sonar.runtimeVersion"), "Please set system property sonar.runtimeVersion"))
     // Disable webhook url validation
     .setServerProperty("sonar.validateWebhooks", Boolean.FALSE.toString())
@@ -92,7 +94,7 @@ public class SonarPluginTestSuite extends AbstractJUnitTest {
   public void setUp() {
     setDefaultQualityGate(DEFAULT_QUALITY_GATE_NAME);
     jenkinsOrch = new JenkinsUtils(jenkins, driver);
-    jenkinsOrch.configureDefaultQG(ORCHESTRATOR);
+    jenkinsOrch.configureDefaultQG(ORCHESTRATOR.getOrchestrator());
     jenkins.open();
     enableWebhook();
   }

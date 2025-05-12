@@ -47,7 +47,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
   @Test
   public void scan_project_sonarqube_scanner_v_3_3() {
     SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator());
 
     String jobName = "js-runner-sq-3.3";
     String projectKey = "js-runner-3.3";
@@ -80,7 +80,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     checkState(!OLDEST_INSTALLABLE_MSBUILD_VERSION.equals(LATEST_INSTALLABLE_MSBUILD_VERSION), "The test aims to install 2 different versions of the Scanner MSBuild, but they are not.");
     MSBuildScannerInstallation.install(jenkins, OLDEST_INSTALLABLE_MSBUILD_VERSION, false);
     MSBuildScannerInstallation.install(jenkins, LATEST_INSTALLABLE_MSBUILD_VERSION, true);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator());
 
     String jobName = "csharp-core";
     String projectKey = "csharp-core";
@@ -97,8 +97,8 @@ public class SonarPluginTest extends SonarPluginTestSuite {
   @Test
   @WithPlugins({"maven-plugin"})
   public void scan_project_using_maven_plugin() {
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
-      .configureMaven(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator())
+      .configureMaven(ORCHESTRATOR.getOrchestrator());
 
     String jobName = "abacus-maven";
     assertThat(getProject(MVN_PROJECT_KEY)).isNull();
@@ -117,8 +117,8 @@ public class SonarPluginTest extends SonarPluginTestSuite {
   @Test
   @WithPlugins({"maven-plugin"})
   public void scan_project_using_maven_plugin_passed_quality_gate() {
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
-      .configureMaven(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator())
+      .configureMaven(ORCHESTRATOR.getOrchestrator());
 
     String jobName = "abacus-freestyle";
     assertThat(getProject(MVN_PROJECT_KEY)).isNull();
@@ -139,8 +139,8 @@ public class SonarPluginTest extends SonarPluginTestSuite {
   @Test
   @WithPlugins({"maven-plugin"})
   public void scan_project_using_maven_plugin_with_variable_injection() throws FailedExecutionException {
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR)
-      .configureMaven(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator())
+      .configureMaven(ORCHESTRATOR.getOrchestrator());
 
     String jobName = "abacus-freestyle-vars";
     assertThat(getProject(MVN_PROJECT_KEY)).isNull();
@@ -149,7 +149,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
       .newFreestyleJobConfig(jobName, new File("projects", "abacus"))
       .configureSonarBuildWrapper()
       .addMavenBuildStep("clean package")
-      .addSonarMavenBuildStep(ORCHESTRATOR)
+      .addSonarMavenBuildStep(ORCHESTRATOR.getOrchestrator())
       .save();
 
     jenkinsOrch.executeJob(jobName);
@@ -174,7 +174,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
   @Test
   @WithPlugins("workflow-aggregator")
   public void env_wrapper_without_params_should_inject_sq_vars() {
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator());
 
     String script = "withSonarQubeEnv { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifySonarqubeEnvVarsExist("withSonarQubeEnv-parameterless", script);
@@ -183,7 +183,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
   @Test
   @WithPlugins("workflow-aggregator")
   public void env_wrapper_with_specific_sq_should_inject_sq_vars() {
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator());
 
     String script = "withSonarQubeEnv('" + DEFAULT_SONARQUBE_INSTALLATION + "') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifySonarqubeEnvVarsExist("withSonarQubeEnv-SonarQube", script);
@@ -192,7 +192,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
   @Test(expected = JenkinsUtils.FailedExecutionException.class)
   @WithPlugins("workflow-aggregator")
   public void env_wrapper_with_nonexistent_sq_should_fail() {
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator());
 
     String script = "withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
     runAndVerifySonarqubeEnvVarsExist("withSonarQubeEnv-nonexistent", script);
@@ -202,7 +202,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
   @WithPlugins("workflow-aggregator")
   public void quality_gate_pipeline_result_passed() {
     SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator());
 
     String script = SonarQubeScriptBuilder.newScript()
       .sonarQubeScannerVersion(SONARQUBE_SCANNER_VERSION)
@@ -217,7 +217,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
   @WithPlugins("workflow-aggregator")
   public void quality_gate_pipeline_result_failed() {
     SonarScannerInstallation.install(jenkins, SONARQUBE_SCANNER_VERSION);
-    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR);
+    jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator());
 
     String previousDefault = getDefaultQualityGateName();
     Qualitygates.CreateResponse simple = wsClient.qualitygates().create(new org.sonarqube.ws.client.qualitygates.CreateRequest().setName("AlwaysFail"));
