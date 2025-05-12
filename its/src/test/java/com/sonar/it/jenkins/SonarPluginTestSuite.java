@@ -84,7 +84,7 @@ public class SonarPluginTestSuite extends AbstractJUnitTest {
     DEFAULT_QUALITY_GATE_NAME = getDefaultQualityGateName();
 
     InstallableScannerVersionsProvider installableScannerVersionsProvider = new InstallableScannerVersionsProvider();
-    InstallableScannerVersions installableMSBuildScannerVersions = installableScannerVersionsProvider.getScannerInstallableVersions("sonar-scanner-msbuild");
+    InstallableScannerVersions installableMSBuildScannerVersions = installableScannerVersionsProvider.getScannerInstallableVersions(ORCHESTRATOR.getOrchestrator(), "sonar-scanner-msbuild");
 
     OLDEST_INSTALLABLE_MSBUILD_VERSION = installableMSBuildScannerVersions.getOldestVersion();
     LATEST_INSTALLABLE_MSBUILD_VERSION = installableMSBuildScannerVersions.getLatestVersion();
