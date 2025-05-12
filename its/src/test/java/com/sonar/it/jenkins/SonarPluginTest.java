@@ -29,12 +29,12 @@ import org.jenkinsci.test.acceptance.po.Build;
 import org.junit.Test;
 import org.sonarqube.ws.Qualitygates;
 import org.sonarqube.ws.client.PostRequest;
-import org.sonarqube.ws.client.qualitygates.CreateConditionRequest;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.sonar.it.jenkins.utility.JenkinsUtils.DEFAULT_SONARQUBE_INSTALLATION;
 import static com.sonar.it.jenkins.utility.JenkinsUtils.FailedExecutionException;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 
 public class SonarPluginTest extends SonarPluginTestSuite {
@@ -77,7 +77,8 @@ public class SonarPluginTest extends SonarPluginTestSuite {
 
   @Test
   public void scan_project_ms_build_net_core_scanner() {
-    checkState(!OLDEST_INSTALLABLE_MSBUILD_VERSION.equals(LATEST_INSTALLABLE_MSBUILD_VERSION), "The test aims to install 2 different versions of the Scanner MSBuild, but they are not.");
+    checkState(!OLDEST_INSTALLABLE_MSBUILD_VERSION.equals(LATEST_INSTALLABLE_MSBUILD_VERSION),
+      "The test aims to install 2 different versions of the Scanner MSBuild, but they are not.");
     MSBuildScannerInstallation.install(jenkins, OLDEST_INSTALLABLE_MSBUILD_VERSION, false);
     MSBuildScannerInstallation.install(jenkins, LATEST_INSTALLABLE_MSBUILD_VERSION, true);
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator());
@@ -86,7 +87,8 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     String projectKey = "csharp-core";
     assertThat(getProject(projectKey)).isNull();
     jenkinsOrch
-      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", LATEST_INSTALLABLE_MSBUILD_VERSION, "NetCoreConsoleApp.sln", true)
+      .newFreestyleJobWithScannerForMsBuild(jobName, null, consoleNetCoreFolder, projectKey, "CSharp NetCore", "1.0", LATEST_INSTALLABLE_MSBUILD_VERSION, "NetCoreConsoleApp.sln",
+        true)
       .executeJob(jobName);
 
     waitForComputationOnSQServer();
@@ -189,13 +191,14 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     runAndVerifySonarqubeEnvVarsExist("withSonarQubeEnv-SonarQube", script);
   }
 
-  @Test(expected = JenkinsUtils.FailedExecutionException.class)
+  @Test
   @WithPlugins("workflow-aggregator")
   public void env_wrapper_with_nonexistent_sq_should_fail() {
     jenkinsOrch.configureSonarInstallation(ORCHESTRATOR.getOrchestrator());
 
     String script = "withSonarQubeEnv('nonexistent') { " + DUMP_ENV_VARS_PIPELINE_CMD + " }";
-    runAndVerifySonarqubeEnvVarsExist("withSonarQubeEnv-nonexistent", script);
+    assertThatThrownBy(() -> runAndVerifySonarqubeEnvVarsExist("withSonarQubeEnv-nonexistent", script))
+      .isInstanceOf(JenkinsUtils.FailedExecutionException.class);
   }
 
   @Test
@@ -227,8 +230,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
         .setParam("gateName", simple.getName())
         .setParam("metric", "lines")
         .setParam("op", "GT")
-        .setParam("error", "0")
-    );
+        .setParam("error", "0"));
 
     try {
       String script = SonarQubeScriptBuilder.newScript()
@@ -242,8 +244,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
     } finally {
       setDefaultQualityGate(previousDefault);
       wsClient.wsConnector().call(
-        new PostRequest("api/qualitygates/destroy").setParam("name", simple.getName())
-      );
+        new PostRequest("api/qualitygates/destroy").setParam("name", simple.getName()));
     }
   }
 
