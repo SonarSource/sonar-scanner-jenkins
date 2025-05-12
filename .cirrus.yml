@@ -76,10 +76,12 @@ linux_qa_task:
       # https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
       - SQ_VERSION: LATEST_RELEASE[9.9]
         JENKINS_VERSION: 2.479.3
-        VERSION_OVERRIDES: git-server=99.va_0826a_b_cdfa_d,sshd=3.312.v1c601b_c83b_0e
+        # https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/SUT-VERSIONS.md#use-custom-plugin-version
+        VERSION_OVERRIDES:
       - SQ_VERSION: DEV
-        JENKINS_VERSION: 2.479.3
-        VERSION_OVERRIDES: git-server=99.va_0826a_b_cdfa_d,sshd=3.312.v1c601b_c83b_0e
+        JENKINS_VERSION: 2.504.1
+        # https://github.com/jenkinsci/acceptance-test-harness/blob/master/docs/SUT-VERSIONS.md#use-custom-plugin-version
+        VERSION_OVERRIDES:
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:
