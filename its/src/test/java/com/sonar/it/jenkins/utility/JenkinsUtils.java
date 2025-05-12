@@ -53,6 +53,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.SearchContext;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -310,7 +311,11 @@ public class JenkinsUtils {
     cred.scope.select("GLOBAL");
     cred.secret.set(value);
     cred.setId(id);
-    mc.create();
+    try {
+      mc.create();
+    } catch (StaleElementReferenceException ignore) {
+      // Ignore
+    }
   }
 
   public static class SonarQubeServer extends PageAreaImpl {
