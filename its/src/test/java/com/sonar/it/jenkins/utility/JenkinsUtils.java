@@ -56,6 +56,7 @@ import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -313,8 +314,12 @@ public class JenkinsUtils {
     cred.setId(id);
     try {
       mc.create();
-    } catch (StaleElementReferenceException ignore) {
-      // Ignore
+    } catch (StaleElementReferenceException e) {
+      // See SONARJNKNS-387
+      System.out.println("Ignore a stale element exception when adding a new credential: " + e.getMessage());
+    } catch (WebDriverException e) {
+      // See SONARJNKNS-387
+      System.out.println("Ignore 'Node with given id does not belong to the document' exception when adding a new credential: " + e.getMessage());
     }
   }
 
