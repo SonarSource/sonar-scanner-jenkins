@@ -76,8 +76,10 @@ linux_qa_task:
       # https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
       - SQ_VERSION: LATEST_RELEASE[9.9]
         JENKINS_VERSION: 2.479.3
+        VERSION_OVERRIDES: credentials=1344.v5a_3f65a_1e173,plain-credentials=183.va_de8f1dd5a_2b_,ssh-credentials=349.vb_8b_6b_9709f5b_
       - SQ_VERSION: DEV
         JENKINS_VERSION: 2.504.1
+        VERSION_OVERRIDES: credentials=1344.v5a_3f65a_1e173,plain-credentials=183.va_de8f1dd5a_2b_,ssh-credentials=349.vb_8b_6b_9709f5b_
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:
