@@ -76,14 +76,14 @@ public class JenkinsUtils {
   public static final String DEFAULT_SONARQUBE_INSTALLATION = "SonarQube";
 
   private static final String CODE_MIRROR_SCRIPT = "cmElem = document.evaluate(" +
-                                                   "        arguments[0], document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null" +
-                                                   ").singleNodeValue;" +
-                                                   "codemirror = cmElem.CodeMirror;" +
-                                                   "if (codemirror == null) {" +
-                                                   "    console.log('CodeMirror object not found!');" +
-                                                   "}" +
-                                                   "codemirror.setValue(arguments[1]);" +
-                                                   "codemirror.save();";
+    "        arguments[0], document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null" +
+    ").singleNodeValue;" +
+    "codemirror = cmElem.CodeMirror;" +
+    "if (codemirror == null) {" +
+    "    console.log('CodeMirror object not found!');" +
+    "}" +
+    "codemirror.setValue(arguments[1]);" +
+    "codemirror.save();";
 
   private final Jenkins jenkins;
   private final WebDriver driver;
@@ -146,9 +146,7 @@ public class JenkinsUtils {
     findElement(buttonByText("Add build step")).click();
     findElement(buttonByText("Execute SonarQube Scanner")).click();
     StringBuilder builder = new StringBuilder();
-    for (int i = 0;
-         i < properties.length / 2;
-         i++) {
+    for (int i = 0; i < properties.length / 2; i++) {
       String key = properties[2 * i];
       String value = properties[2 * i + 1];
       builder.append(key).append("=").append(value).append("\n");
@@ -220,7 +218,6 @@ public class JenkinsUtils {
     return this;
   }
 
-
   public JenkinsUtils activateSonarPostBuildMaven() {
     return activateSonarPostBuildMaven(null);
   }
@@ -264,7 +261,7 @@ public class JenkinsUtils {
     jenkins.configure();
 
     WebElement checkbox = findElement(By.name("enableBuildWrapper"));
-    //get parent of current element as it is clickable
+    // get parent of current element as it is clickable
     WebElement clickable = checkbox.findElement(By.xpath(".."));
     if (checkbox.isSelected() != enable) {
       clickable.click();
@@ -278,10 +275,10 @@ public class JenkinsUtils {
   }
 
   public JenkinsUtils configureSonarInstallation(Orchestrator orchestrator, String serverUrl) {
-    CredentialsPage mc = new CredentialsPage(jenkins, ManagedCredentials.DEFAULT_DOMAIN);
-    addCredential(mc, "sonarqube-token", generateToken(orchestrator));
-    addCredential(mc, "global_webhook_secret", "very_secret_secret");
-    addCredential(mc, "local_webhook_secret", "super_secret_secret");
+
+    addCredential("sonarqube-token", generateToken(orchestrator));
+    addCredential("global_webhook_secret", "very_secret_secret");
+    addCredential("local_webhook_secret", "super_secret_secret");
     JenkinsConfig config = jenkins.getConfigPage();
     config.open();
 
@@ -306,7 +303,8 @@ public class JenkinsUtils {
     return this;
   }
 
-  private void addCredential(CredentialsPage mc, String id, String value) {
+  private void addCredential(String id, String value) {
+    CredentialsPage mc = new CredentialsPage(jenkins, ManagedCredentials.DEFAULT_DOMAIN);
     mc.open();
     StringCredentials cred = mc.add(StringCredentials.class);
     cred.scope.select("GLOBAL");
@@ -336,8 +334,7 @@ public class JenkinsUtils {
 
     String name = qualityGates.getQualitygates(0).getName();
     wsClient.wsConnector().call(
-      new PostRequest("api/qualitygates/set_as_default").setParam("name", name)
-    );
+      new PostRequest("api/qualitygates/set_as_default").setParam("name", name));
 
     System.out.println("Set default QG: " + name);
   }
@@ -375,7 +372,7 @@ public class JenkinsUtils {
       return "$SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_AUTH_TOKEN";
     } else {
       return "$SONAR_MAVEN_GOAL -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN -Dsonar.password=$SONAR_PASSWORD"
-             + " -Dsonar.jdbc.url=$SONAR_JDBC_URL -Dsonar.jdbc.username=$SONAR_JDBC_USERNAME -Dsonar.jdbc.password=$SONAR_JDBC_PASSWORD";
+        + " -Dsonar.jdbc.url=$SONAR_JDBC_URL -Dsonar.jdbc.username=$SONAR_JDBC_USERNAME -Dsonar.jdbc.password=$SONAR_JDBC_PASSWORD";
     }
   }
 
