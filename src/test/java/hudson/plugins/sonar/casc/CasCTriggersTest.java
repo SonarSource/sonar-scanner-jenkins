@@ -21,11 +21,13 @@ package hudson.plugins.sonar.casc;
 
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.model.TriggersConfig;
-import org.jvnet.hudson.test.RestartableJenkinsRule;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CasCTriggersTest extends CasCMinimalTest {
+@WithJenkins
+class CasCTriggersTest extends CasCMinimalTest {
 
   @Override
   protected String configResource() {
@@ -33,7 +35,7 @@ public class CasCTriggersTest extends CasCMinimalTest {
   }
 
   @Override
-  protected void assertConfiguredAsExpected(RestartableJenkinsRule restartableJenkinsRule, String s) {
+  protected void assertConfiguredAsExpected(JenkinsRule rule, String s) {
     SonarInstallation sonarInstallation = getSonarInstallation();
     assertThat(sonarInstallation).isNotNull();
 

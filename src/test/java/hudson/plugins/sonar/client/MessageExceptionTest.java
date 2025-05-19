@@ -19,13 +19,14 @@
  */
 package hudson.plugins.sonar.client;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MessageExceptionTest {
+class MessageExceptionTest {
+
   @Test
-  public void testGetters() {
+  void testGetters() {
     NullPointerException npe = new NullPointerException();
     MessageException ex = new MessageException("message", npe);
     assertThat(ex.getMessage()).isEqualTo("message");

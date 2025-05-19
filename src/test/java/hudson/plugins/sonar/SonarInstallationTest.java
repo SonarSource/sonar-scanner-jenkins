@@ -28,40 +28,39 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.sonar.model.TriggersConfig;
 import hudson.util.Secret;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutionException;
-
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 
 /**
  * @author Evgeny Mandrikov
  */
-public class SonarInstallationTest extends SonarTestCase {
+@WithJenkins
+class SonarInstallationTest extends SonarTestCase {
 
   @Test
-  public void testRoundtrip() throws IOException, ExecutionException, InterruptedException {
+  void testRoundtrip() throws Exception {
     TriggersConfig triggers = new TriggersConfig();
     SonarGlobalConfiguration d = new SonarGlobalConfiguration();
     String credentialsId = "credentialsId";
     SonarInstallation inst = spy(new SonarInstallation(
-      "Name",
-      "server.url",
-      credentialsId,
-      null,
-      "secretId",
-      "mojoVersion",
-      "props",
-      "key=value",
-      triggers));
+            "Name",
+            "server.url",
+            credentialsId,
+            null,
+            "secretId",
+            "mojoVersion",
+            "props",
+            "key=value",
+            triggers));
     StringCredentials cred = new StringCredentialsImpl(CredentialsScope.GLOBAL, credentialsId, null, Secret.fromString("token"));
 
     CredentialsStore store = CredentialsProvider.lookupStores(j.jenkins).iterator().next();
@@ -87,16 +86,16 @@ public class SonarInstallationTest extends SonarTestCase {
   }
 
   @Test
-  public void testRoundtripWithoutToken() throws IOException {
+  void testRoundtripWithoutToken() throws Exception {
     TriggersConfig triggers = new TriggersConfig();
     SonarInstallation inst = new SonarInstallation(
-      "Name",
-      "server.url",
-      null,
-      "mojoVersion",
-      "props",
-      triggers,
-      "key=value");
+            "Name",
+            "server.url",
+            null,
+            "mojoVersion",
+            "props",
+            triggers,
+            "key=value");
     SonarGlobalConfiguration d = new SonarGlobalConfiguration();
     d.setInstallations(inst);
     d.save();
@@ -106,7 +105,7 @@ public class SonarInstallationTest extends SonarTestCase {
 
     assertThat(i.getName()).isEqualTo("Name");
     assertThat(i.getServerUrl()).isEqualTo("server.url");
-    assertThat(i.getServerAuthenticationToken(any())).isEqualTo(null);
+    assertThat(i.getServerAuthenticationToken(null)).isNull();
     assertThat(i.getMojoVersion()).isEqualTo("mojoVersion");
     assertThat(i.getAdditionalProperties()).isEqualTo("props");
     assertThat(i.getAdditionalAnalysisProperties()).isEqualTo("key=value");
@@ -116,7 +115,7 @@ public class SonarInstallationTest extends SonarTestCase {
   }
 
   @Test
-  public void testAnalysisPropertiesWindows() {
+  void testAnalysisPropertiesWindows() {
     assertAnalysisPropsWindows("key=value", "/d:key=value");
     assertAnalysisPropsWindows("key=value key2=value2", "/d:key=value", "/d:key2=value2");
     assertAnalysisPropsWindows("-Dkey=value", "/d:-Dkey=value");
@@ -125,7 +124,7 @@ public class SonarInstallationTest extends SonarTestCase {
   }
 
   @Test
-  public void testAnalysisPropertiesUnix() {
+  void testAnalysisPropertiesUnix() {
     assertAnalysisPropsUnix("key=value", "-Dkey=value");
     assertAnalysisPropsUnix("key=value key2=value2", "-Dkey=value", "-Dkey2=value2");
     assertAnalysisPropsUnix("-Dkey=value", "-D-Dkey=value");

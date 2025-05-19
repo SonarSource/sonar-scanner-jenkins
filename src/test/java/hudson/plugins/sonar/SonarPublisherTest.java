@@ -20,14 +20,16 @@
 package hudson.plugins.sonar;
 
 import hudson.tasks.Maven.MavenInstallation;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SonarPublisherTest extends SonarTestCase {
+@WithJenkins
+class SonarPublisherTest extends SonarTestCase {
 
   @Test
-  public void shouldMigrateOldLanguageProperty() {
+  void shouldMigrateOldLanguageProperty() {
     SonarPublisher publisher = new SonarPublisher("Foo", null, null, null, null, null, null, null, null, null, false);
     publisher.language = "js";
     publisher.readResolve();
@@ -40,7 +42,7 @@ public class SonarPublisherTest extends SonarTestCase {
   }
 
   @Test
-  public void getters() throws Exception {
+  void getters() throws Exception {
     SonarInstallation inst = super.configureDefaultSonar();
     MavenInstallation maven = super.configureDefaultMaven();
     SonarPublisher publisher = new SonarPublisher(SONAR_INSTALLATION_NAME, null, null, "-Dx=y", "-X", maven.getName(), "mypom.xml", null, null, null, false);
