@@ -11,6 +11,8 @@ env:
   ARTIFACTORY_DEPLOY_PASSWORD: VAULT[development/artifactory/token/SonarSource-sonar-scanner-jenkins-qa-deployer access_token]
   ARTIFACTORY_DEPLOY_REPO: sonarsource-public-qa
   ARTIFACTORY_PROMOTE_ACCESS_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-promoter access_token]
+  # authenticated GH API calls to avoid rate limits
+  GITHUB_TOKEN: VAULT[development/github/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-ro token]
 
   ### Project variables
   DEPLOY_PULL_REQUEST: true
@@ -60,7 +62,7 @@ build_task:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   script:
     - source cirrus-env BUILD
-    - regular_mvn_build_deploy_analyze
+    - regular_mvn_build_deploy_analyze -DskipTests
   cleanup_before_cache_script:
     - cleanup_maven_repository
 
@@ -75,11 +77,9 @@ linux_qa_task:
       # If updating the JENKINS_VERSION, make sure that all installed plugins are compatible. See com.sonar.it.jenkins.SonarPluginTest
       # https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
       - SQ_VERSION: LATEST_RELEASE[9.9]
-        JENKINS_VERSION: 2.462.3
-        VERSION_OVERRIDES: git-server=99.va_0826a_b_cdfa_d,sshd=3.312.v1c601b_c83b_0e
+        JENKINS_VERSION: 2.479.3
       - SQ_VERSION: DEV
-        JENKINS_VERSION: 2.462.3
-        VERSION_OVERRIDES: git-server=99.va_0826a_b_cdfa_d,sshd=3.312.v1c601b_c83b_0e
+        JENKINS_VERSION: 2.504.1
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:
@@ -91,6 +91,8 @@ linux_qa_task:
       path: "**/target/**/logs/*"
     test_reports_artifacts:
       path: "**/target/surefire-reports/*"
+    diagnotics_artifacts:
+      path: "**/target/diagnostics/**/*"
     junit_artifacts:
       path: "**/target/surefire-reports/*.xml"
       format: junit

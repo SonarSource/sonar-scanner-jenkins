@@ -19,6 +19,7 @@
  */
 package com.sonar.it.jenkins.utility;
 
+import com.sonar.orchestrator.Orchestrator;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import okhttp3.HttpUrl;
@@ -28,32 +29,46 @@ import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
+
 public class InstallableScannerVersionsProvider {
+  private static final String TOKEN_PROPERTY = "github.token";
+  private static final String TOKEN_ENV_VARIABLE = "GITHUB_TOKEN";
+
   private final OkHttpClient client = new OkHttpClient().newBuilder()
     .connectTimeout(10, TimeUnit.SECONDS)
     .readTimeout(30, TimeUnit.SECONDS)
     .build();
 
-  public InstallableScannerVersions getScannerInstallableVersions(String scannerNameRepo) {
+  public InstallableScannerVersions getScannerInstallableVersions(Orchestrator orchestrator, String scannerNameRepo) {
     JSONArray versions;
-    HttpUrl.Builder httpBuilder = HttpUrl.parse(String.format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
-    Request request = new Request.Builder().url(httpBuilder.build()).build();
+    HttpUrl.Builder httpBuilder = HttpUrl.parse(format("https://api.github.com/repos/SonarSource/%s/releases", scannerNameRepo)).newBuilder();
+    Request request = new Request.Builder().url(httpBuilder.build())
+      .header("Authorization", "token " + loadGithubToken(orchestrator))
+      .build();
     try (Response response = client.newCall(request).execute()) {
 
       if (response.isSuccessful()) {
         versions = new JSONArray(response.body().string());
       } else {
-        throw new IllegalStateException(String.format("Got error from Github, status: %d, body: %s",
+        throw new IllegalStateException(format("Got error from Github, status: %d, body: %s",
           response.code(), response.body().string()));
       }
 
     } catch (IOException | JSONException e) {
-      throw new IllegalStateException(String.format("Could not fetch earliest supported version of %s", scannerNameRepo), e);
+      throw new IllegalStateException(format("Could not fetch earliest supported version of %s", scannerNameRepo), e);
     }
     return new InstallableScannerVersions(
       versions.getJSONObject(versions.length() - 1).getString("tag_name"),
       versions.getJSONObject(0).getString("tag_name")
     );
+  }
+
+  private String loadGithubToken(Orchestrator orchestrator) {
+    String token = orchestrator.getConfiguration().getString(TOKEN_PROPERTY, orchestrator.getConfiguration().getString(TOKEN_ENV_VARIABLE));
+    requireNonNull(token, () -> format("Please provide your GitHub token with the property %s or the env variable %s", TOKEN_PROPERTY, TOKEN_ENV_VARIABLE));
+    return token;
   }
 
   public static class InstallableScannerVersions {
