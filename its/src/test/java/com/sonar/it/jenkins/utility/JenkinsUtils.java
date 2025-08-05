@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jenkinsci.test.acceptance.plugins.credentials.CredentialsPage;
 import org.jenkinsci.test.acceptance.plugins.credentials.ManagedCredentials;
