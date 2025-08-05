@@ -19,7 +19,7 @@
  */
 package org.sonar.plugins.abacus.chart;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jfree.chart.plot.PiePlot3D;
 import org.jfree.chart.plot.Plot;
 import org.jfree.data.general.DefaultPieDataset;
