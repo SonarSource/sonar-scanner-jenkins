@@ -68,6 +68,7 @@ linux_qa_task:
   depends_on:
     - build
   <<: *ONLY_QA
+  <<: *EXCEPT_ON_NIGHTLY_CRON # To be removed later; kill the noise while we discuss our strategy for Jenkins and the ITs
   eks_container: *CONTAINER_TEMPLATE
   env:
     BROWSER: chrome
