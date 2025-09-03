@@ -50,7 +50,7 @@
     <gitRepositoryName>sonar-scanner-jenkins</gitRepositoryName>
     <version.artifactory.plugin>3.6.1</version.artifactory.plugin>
     <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
-    <jenkins.baseline>2.479</jenkins.baseline>
+    <jenkins.baseline>2.492</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     <version.cyclonedx.plugin>2.7.9</version.cyclonedx.plugin>
     <!-- Disable parallel tests on Travis -->
