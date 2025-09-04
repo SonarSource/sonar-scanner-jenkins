@@ -74,12 +74,14 @@ linux_qa_task:
   env:
     BROWSER: chrome
     matrix:
-      # If updating the JENKINS_VERSION, make sure that all installed plugins are compatible. See com.sonar.it.jenkins.SonarPluginTest
-      # https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/
-      - SQ_VERSION: LATEST_RELEASE[9.9]
-        JENKINS_VERSION: 2.492.3
-      - SQ_VERSION: DEV
+      # We would like to test the oldest version of Jenkins we support, but the ATH framework is only supporting the latest LTS
+      # See https://github.com/jenkinsci/acceptance-test-harness/issues/2002#issuecomment-3250005981
+      - name: SQS 9.9 and Jenkins LTS 2.504
+        SQ_VERSION: LATEST_RELEASE[9.9]
         JENKINS_VERSION: 2.504.3
+      - name: SQS DEV and Jenkins weekly
+        SQ_VERSION: DEV
+        JENKINS_VERSION: 2.526
   maven_cache:
     folder: ${CIRRUS_WORKING_DIR}/.m2/repository
   qa_script:
