@@ -53,10 +53,8 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.SearchContext;
-import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -312,15 +310,7 @@ public class JenkinsUtils {
     cred.scope.select("GLOBAL");
     cred.secret.set(value);
     cred.setId(id);
-    try {
-      mc.create();
-    } catch (StaleElementReferenceException e) {
-      // See SONARJNKNS-387
-      System.out.println("Ignore a stale element exception when adding a new credential: " + e.getMessage());
-    } catch (WebDriverException e) {
-      // See SONARJNKNS-387
-      System.out.println("Ignore 'Node with given id does not belong to the document' exception when adding a new credential: " + e.getMessage());
-    }
+    mc.create();
   }
 
   public static class SonarQubeServer extends PageAreaImpl {
@@ -340,7 +330,7 @@ public class JenkinsUtils {
   public void configureDefaultQG(Orchestrator orchestrator) {
     WsClient wsClient = createWsClient(orchestrator);
     Qualitygates.ListWsResponse qualityGates = wsClient.qualitygates().list(new ListRequest());
-    assertThat(qualityGates.getQualitygatesList().size()).isPositive();
+    assertThat(qualityGates.getQualitygatesList()).isNotEmpty();
 
     String name = qualityGates.getQualitygates(0).getName();
     wsClient.wsConnector().call(
