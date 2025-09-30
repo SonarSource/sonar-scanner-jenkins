@@ -96,32 +96,6 @@ linux_qa_task:
       path: "**/target/surefire-reports/*.xml"
       format: junit
 
-mend_scan_task:
-  depends_on:
-    - build
-  only_if: $CIRRUS_USER_COLLABORATOR == 'true' && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "mend-.*")
-  eks_container:
-    image: ${CIRRUS_AWS_ACCOUNT}.dkr.ecr.eu-central-1.amazonaws.com/base:j21-latest
-    region: eu-central-1
-    cluster_name: ${CIRRUS_CLUSTER_NAME}
-    namespace: default
-    cpu: 4
-    memory: 2G
-  env:
-    WS_APIKEY: VAULT[development/kv/data/mend data.apikey]
-  maven_cache:
-    folder: ${CIRRUS_WORKING_DIR}/.m2/repository
-  mend_script:
-    - source cirrus-env QA
-    - source set_maven_build_version $BUILD_NUMBER
-    - mvn clean install -DskipTests -B
-    - source ws_scan.sh
-  cleanup_before_cache_script: cleanup_maven_repository
-  allow_failures: "true"
-  always:
-    ws_scan_artifacts:
-      path: "whitesource/**/*"
-
 promote_task:
   depends_on:
     - linux_qa
