@@ -1,0 +1,112 @@
+name: QA
+on:
+  workflow_run:
+    workflows: ["Build"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      sq_version:
+        description: 'SonarQube version to test'
+        required: false
+        default: 'LATEST_RELEASE[9.9]'
+      jenkins_version:
+        description: 'Jenkins version to test'
+        required: false
+        default: '2.462.3'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    # Only run if Build workflow succeeded, or if manually dispatched
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: github-ubuntu-latest-s
+    name: QA Tests
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sq_version: LATEST_RELEASE[9.9]
+            jenkins_version: 2.462.3
+            version_overrides: git-server=99.va_0826a_b_cdfa_d,sshd=3.312.v1c601b_c83b_0e
+          - sq_version: DEV
+            jenkins_version: 2.462.3
+            version_overrides: git-server=99.va_0826a_b_cdfa_d,sshd=3.312.v1c601b_c83b_0e
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+        with:
+          version: 2025.7.12
+
+      - name: Verify Chrome and ChromeDriver
+        run: |
+          # Verify Chrome is installed (should be pre-installed on github runners)
+          google-chrome --version || echo "Chrome not found"
+
+          # Verify ChromeDriver is installed (should be pre-installed on github runners)
+          chromedriver --version || echo "ChromeDriver not found"
+
+          echo "Browser verification complete"
+
+      - name: Vault
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username | ARTIFACTORY_USERNAME;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-qa-deployer username | ARTIFACTORY_DEPLOY_USERNAME;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-qa-deployer access_token | ARTIFACTORY_DEPLOY_PASSWORD;
+            development/kv/data/repox url | ARTIFACTORY_URL;
+
+      - name: Setup environment and download HPI
+        env:
+          ARTIFACTORY_URL: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_URL }}
+          ARTIFACTORY_DEPLOY_USERNAME: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_DEPLOY_USERNAME }}
+          ARTIFACTORY_DEPLOY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_DEPLOY_PASSWORD }}
+        run: |
+          # Calculate version from pom.xml
+          REVISION=$(grep '<revision>' pom.xml | head -1 | sed 's/.*<revision>\(.*\)<\/revision>.*/\1/')
+          CHANGELIST=$(grep '<changelist>' pom.xml | head -1 | sed 's/.*<changelist>\(.*\)<\/changelist>.*/\1/')
+          BUILD_NUMBER=${{ github.run_number }}
+
+          # Construct version: revision.buildnumber (e.g., 2.18.1.12345)
+          VERSION="${REVISION}.${BUILD_NUMBER}"
+          echo "Calculated version: $VERSION"
+
+          # Download the built HPI plugin from Artifactory
+          HPI_URL="${ARTIFACTORY_URL}/sonarsource-public-qa/org/jenkins-ci/plugins/sonar/${VERSION}/sonar-${VERSION}.hpi"
+          echo "Downloading HPI from: $HPI_URL"
+
+          wget --user "$ARTIFACTORY_DEPLOY_USERNAME" \
+               --password "$ARTIFACTORY_DEPLOY_PASSWORD" \
+               "$HPI_URL"
+
+          # Set environment variables for the tests
+          echo "LOCAL_JARS=$(pwd)/sonar-${VERSION}.hpi" >> $GITHUB_ENV
+          echo "SQ_VERSION=${{ matrix.sq_version }}" >> $GITHUB_ENV
+          echo "JENKINS_VERSION=${{ matrix.jenkins_version }}" >> $GITHUB_ENV
+          echo "VERSION_OVERRIDES=${{ matrix.version_overrides }}" >> $GITHUB_ENV
+          echo "BROWSER=chrome" >> $GITHUB_ENV
+
+      - name: Run integration tests
+        run: |
+          cd its
+          mvn -B -e -Dsonar.runtimeVersion="$SQ_VERSION" clean verify
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: qa-test-reports-${{ matrix.sq_version }}-${{ matrix.jenkins_version }}
+          path: |
+            **/target/**/logs/*
+            **/target/surefire-reports/*
+          if-no-files-found: ignore
