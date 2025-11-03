@@ -32,9 +32,46 @@ jobs:
           deploy-pull-request: true
           artifactory-reader-role: private-reader
           artifactory-deployer-role: qa-deployer
+          sonarqube-analysis: false
+
+  sonarqube:
+    needs: [build]
+    runs-on: github-ubuntu-latest-s
+    name: SonarQube Analysis
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+        with:
+          version: 2025.7.12
+
+      - name: Vault
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/kv/data/next token | SONAR_TOKEN;
+            development/kv/data/next url | SONAR_HOST_URL;
+
+      - name: SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_HOST_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mvn -B -e verify sonar:sonar \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.token=$SONAR_TOKEN
 
   qa:
     needs: [build]
+    # Only run on PRs and manual triggers, not on scheduled/nightly builds (matches Cirrus CI EXCEPT_ON_NIGHTLY_CRON)
+    if: github.event_name != 'schedule'
     runs-on: github-ubuntu-latest-s
     name: QA Tests
     permissions:
@@ -125,6 +162,8 @@ jobs:
 
   promote:
     needs: [build, qa]
+    # Only run on PRs and master branch, not on scheduled/nightly builds (matches Cirrus CI ONLY_QA + EXCEPT_ON_NIGHTLY_CRON)
+    if: github.event_name != 'schedule'
     runs-on: github-ubuntu-latest-s
     name: Promote
     permissions:
