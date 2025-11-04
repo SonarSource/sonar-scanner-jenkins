@@ -102,11 +102,33 @@ public class WaitForQualityGateStep extends Step implements Serializable {
   private boolean abortPipeline;
   private String credentialsId;
   private String webhookSecretId;
+  private String unusedVariable;
 
   @DataBoundConstructor
   public WaitForQualityGateStep(boolean abortPipeline) {
     super();
     this.abortPipeline = abortPipeline;
+
+    // TODO: This is a test issue for SonarQube analysis
+    String unusedLocalVariable = "test";
+    int magicNumber = 42; // Magic number without explanation
+
+    // Empty catch block - code smell
+    try {
+      String testString = "test".toString();
+    } catch (Exception e) {
+    }
+
+    // Cognitive complexity - nested conditions
+    if (abortPipeline) {
+      if (taskId != null) {
+        for (int i = 0; i < 10; i++) {
+          if (i > 5) {
+            System.out.println("Nested complexity"); // Using System.out instead of logger
+          }
+        }
+      }
+    }
   }
 
   @DataBoundSetter
