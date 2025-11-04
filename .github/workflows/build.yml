@@ -51,8 +51,10 @@ jobs:
           BUILD_NUMBER=${{ github.run_number }}
 
           # Build and deploy to Artifactory using deploy-sonarsource profile
+          # Run tests in parallel with 4 threads for faster execution
           mvn -B -e -Pdeploy-sonarsource clean verify deploy \
             -Dchangelist=.${BUILD_NUMBER} \
+            -Dconcurrency=4 \
             -DskipSonar=true \
             -Dsonar.skip=true
 
