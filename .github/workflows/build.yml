@@ -47,8 +47,12 @@ jobs:
           ARTIFACTORY_DEPLOY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_DEPLOY_PASSWORD }}
           ARTIFACTORY_DEPLOY_REPO: sonarsource-public-qa
         run: |
+          # Set unique version using build number (e.g., 2.18.1.12345)
+          BUILD_NUMBER=${{ github.run_number }}
+
           # Build and deploy to Artifactory using deploy-sonarsource profile
           mvn -B -e -Pdeploy-sonarsource clean verify deploy \
+            -Dchangelist=.${BUILD_NUMBER} \
             -DskipSonar=true \
             -Dsonar.skip=true
 
