@@ -45,9 +45,10 @@ jobs:
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
           ARTIFACTORY_DEPLOY_USERNAME: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_DEPLOY_USERNAME }}
           ARTIFACTORY_DEPLOY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_DEPLOY_PASSWORD }}
+          ARTIFACTORY_DEPLOY_REPO: sonarsource-public-qa
         run: |
-          # Build and deploy without SonarQube analysis
-          mvn -B -e clean verify deploy \
+          # Build and deploy to Artifactory using deploy-sonarsource profile
+          mvn -B -e -Pdeploy-sonarsource clean verify deploy \
             -DskipSonar=true \
             -Dsonar.skip=true
 
