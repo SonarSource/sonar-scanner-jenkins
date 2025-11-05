@@ -46,6 +46,11 @@ jobs:
           ARTIFACTORY_DEPLOY_USERNAME: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_DEPLOY_USERNAME }}
           ARTIFACTORY_DEPLOY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_DEPLOY_PASSWORD }}
           ARTIFACTORY_DEPLOY_REPO: sonarsource-public-qa
+          # Environment variables for Artifactory build info
+          BUILD_ID: ${{ github.run_number }}
+          GIT_COMMIT: ${{ github.sha }}
+          GIT_BRANCH: ${{ github.ref_name }}
+          BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           # Set unique version using build number (e.g., 2.18.1.12345)
           BUILD_NUMBER=${{ github.run_number }}
