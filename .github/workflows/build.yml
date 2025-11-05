@@ -27,41 +27,13 @@ jobs:
       - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
         with:
           version: 2025.7.12
-      - name: Vault
-        id: secrets
-        uses: SonarSource/vault-action-wrapper@v3
+      - uses: SonarSource/ci-github-actions/build-maven@v1
         with:
-          secrets: |
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username | ARTIFACTORY_USERNAME;
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-qa-deployer username | ARTIFACTORY_DEPLOY_USERNAME;
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-qa-deployer access_token | ARTIFACTORY_DEPLOY_PASSWORD;
-            development/kv/data/repox url | ARTIFACTORY_URL;
-
-      - name: Maven Build and Deploy
-        env:
-          ARTIFACTORY_URL: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_URL }}
-          ARTIFACTORY_USERNAME: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USERNAME }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
-          ARTIFACTORY_DEPLOY_USERNAME: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_DEPLOY_USERNAME }}
-          ARTIFACTORY_DEPLOY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_DEPLOY_PASSWORD }}
-          ARTIFACTORY_DEPLOY_REPO: sonarsource-public-qa
-          # Environment variables for Artifactory build info
-          BUILD_ID: ${{ github.run_number }}
-          GIT_COMMIT: ${{ github.sha }}
-          GIT_BRANCH: ${{ github.ref_name }}
-          BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          # Set unique version using build number (e.g., 2.18.1.12345)
-          BUILD_NUMBER=${{ github.run_number }}
-
-          # Build and deploy to Artifactory using deploy-sonarsource profile
-          # Run tests in parallel with 4 threads for faster execution
-          mvn -B -e -Pdeploy-sonarsource clean verify deploy \
-            -Dchangelist=.${BUILD_NUMBER} \
-            -Dconcurrency=4 \
-            -DskipSonar=true \
-            -Dsonar.skip=true
+          deploy-pull-request: true
+          artifactory-reader-role: private-reader
+          artifactory-deployer-role: qa-deployer
+          sonarqube: false
+          maven-args: -Dconcurrency=4
 
       - name: Upload build artifacts for SonarQube
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -118,10 +90,9 @@ jobs:
 
   promote:
     needs: [build]
-    # Only run on PRs and master branch, not on scheduled/nightly builds (matches Cirrus CI ONLY_QA + EXCEPT_ON_NIGHTLY_CRON)
-    if: github.event_name != 'schedule'
     runs-on: github-ubuntu-latest-s
     name: Promote
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
     permissions:
       id-token: write
       contents: write
