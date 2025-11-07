@@ -1,0 +1,107 @@
+name: Build
+on:
+  push:
+    branches:
+      - master
+      - branch-*
+      - dogfood-*
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: github-ubuntu-latest-s
+    name: Build
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+        with:
+          version: 2025.7.12
+      - uses: SonarSource/ci-github-actions/build-maven@v1
+        with:
+          deploy-pull-request: true
+          artifactory-reader-role: private-reader
+          artifactory-deployer-role: qa-deployer
+          sonarqube: false
+          maven-args: -Dconcurrency=4
+
+      - name: Upload build artifacts for SonarQube
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: build-artifacts
+          path: |
+            **/target/classes
+            **/target/test-classes
+            **/target/*.jar
+            **/target/*.hpi
+            **/target/site/jacoco/jacoco.xml
+            **/target/jacoco.exec
+          retention-days: 1
+
+  sonarqube:
+    needs: [build]
+    runs-on: github-ubuntu-latest-s
+    name: SonarQube Analysis
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+        with:
+          version: 2025.7.12
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: build-artifacts
+          path: .
+
+      - name: Vault
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/kv/data/next token | SONAR_TOKEN;
+            development/kv/data/next url | SONAR_HOST_URL;
+
+      - name: SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_HOST_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mvn -B -e sonar:sonar \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.token=$SONAR_TOKEN
+
+  promote:
+    needs: [build]
+    runs-on: github-ubuntu-latest-s
+    name: Promote
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+        with:
+          cache_save: false
+          version: 2025.7.12
+      - uses: SonarSource/ci-github-actions/promote@v1
+        with:
+          promote-pull-request: true
