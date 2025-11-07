@@ -20,7 +20,7 @@
 package hudson.plugins.sonar.utils;
 
 import hudson.util.ArgumentListBuilder;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Evgeny Mandrikov

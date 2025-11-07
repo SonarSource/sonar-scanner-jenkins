@@ -65,7 +65,7 @@ import java.util.Map;
 import java.util.UUID;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildWrapper;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;

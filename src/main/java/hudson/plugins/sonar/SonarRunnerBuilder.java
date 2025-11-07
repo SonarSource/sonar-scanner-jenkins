@@ -53,7 +53,7 @@ import java.io.StringReader;
 import java.util.Map.Entry;
 import java.util.Properties;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
