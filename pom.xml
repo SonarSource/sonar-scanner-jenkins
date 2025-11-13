@@ -62,7 +62,7 @@
 
     <!-- To configure maven-license-plugin to check license headers -->
     <license.name>GNU LGPL v3</license.name>
-    <license.owner>SonarSource SA</license.owner>
+    <license.owner>SonarSource Sàrl</license.owner>
     <license.title>${project.name}</license.title>
     <license.years>${project.inceptionYear}-2025</license.years>
     <license.mailto>mailto:info AT sonarsource DOT com</license.mailto>
