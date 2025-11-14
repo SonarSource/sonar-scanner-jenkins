@@ -25,26 +25,29 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import hudson.util.FormValidation.Kind;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SonarGlobalConfigurationTest extends SonarTestCase {
+@WithJenkins
+class SonarGlobalConfigurationTest extends SonarTestCase {
   private SonarGlobalConfiguration globalConfiguration;
   private SonarInstallation testInstallation;
   private SonarPublisher.DescriptorImpl publisher;
 
-  @Before
-  public void setUp() throws ClassNotFoundException {
+  @Override
+  @BeforeEach
+  protected void setUp(JenkinsRule rule) throws Exception {
+    super.setUp(rule);
     testInstallation = createInstallation("testInst");
     globalConfiguration = new SonarGlobalConfiguration();
     globalConfiguration.dataMigrated = false;
@@ -59,11 +62,11 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   private static SonarInstallation createInstallation(String name) {
-    return new SonarInstallation(name, null, null,null, null, null, null, null, null);
+    return new SonarInstallation(name, null, null, null, null, null, null, null, null);
   }
 
   @Test
-  public void testMigration() {
+  void testMigration() {
     globalConfiguration.migrateData();
     assertThat(globalConfiguration.isBuildWrapperEnabled()).isTrue();
     assertThat(globalConfiguration.getInstallations()).containsOnly(testInstallation);
@@ -72,7 +75,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   @Test
-  public void testDontOverwriteInMigration() {
+  void testDontOverwriteInMigration() {
     SonarInstallation existing = createInstallation("my installation");
     globalConfiguration.setInstallations(existing);
     globalConfiguration.setBuildWrapperEnabled(false);
@@ -85,7 +88,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   @Test
-  public void testNameValidation() {
+  void testNameValidation() {
     assertThat(globalConfiguration.doCheckName("").kind).isEqualTo(Kind.ERROR);
     assertThat(globalConfiguration.doCheckName(null).kind).isEqualTo(Kind.ERROR);
     assertThat(globalConfiguration.doCheckName("   ").kind).isEqualTo(Kind.ERROR);
@@ -93,7 +96,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   @Test
-  public void testDoFillWebhookSecretIdItemsAsNonAdminister() throws IOException {
+  void testDoFillWebhookSecretIdItemsAsNonAdminister() throws Exception {
     mockJenkins(false);
     addCredential("description");
     ListBoxModel boxModel = globalConfiguration.doFillWebhookSecretIdItems("secretId");
@@ -102,19 +105,19 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   @Test
-  public void testDoFillWebhookSecretIdItemsAsAdminister() throws IOException {
+  void testDoFillWebhookSecretIdItemsAsAdminister() throws Exception {
     mockJenkins(true);
     addCredential("description");
 
     ListBoxModel boxModel = globalConfiguration.doFillWebhookSecretIdItems("secretId");
     List<String> optionNames = boxModel.stream()
-      .map(option -> option.name)
-      .collect(Collectors.toList());
+            .map(option -> option.name)
+            .toList();
     assertThat(optionNames).containsExactlyInAnyOrder("description", "- none -");
   }
 
   @Test
-  public void testDoFillCredentialsIdItemsAsNonAdminister() throws IOException {
+  void testDoFillCredentialsIdItemsAsNonAdminister() throws Exception {
     addCredential("description");
     mockJenkins(false);
     ListBoxModel boxModel = globalConfiguration.doFillCredentialsIdItems("credentialId");
@@ -123,14 +126,14 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
   }
 
   @Test
-  public void testDoFillCredentialsIdItemsAsAdminister() throws IOException {
+  void testDoFillCredentialsIdItemsAsAdminister() throws Exception {
     mockJenkins(true);
     addCredential("description");
 
     ListBoxModel boxModel = globalConfiguration.doFillCredentialsIdItems("credentialId");
     List<String> optionNames = boxModel.stream()
-      .map(option -> option.name)
-      .collect(Collectors.toList());
+            .map(option -> option.name)
+            .toList();
     assertThat(optionNames).containsExactlyInAnyOrder("description", "- none -");
   }
 
@@ -140,7 +143,7 @@ public class SonarGlobalConfigurationTest extends SonarTestCase {
     globalConfiguration = new SonarGlobalConfiguration(() -> jenkins);
   }
 
-  private void addCredential(String description) throws IOException {
+  private void addCredential(String description) throws Exception {
     StringCredentialsImpl c = new StringCredentialsImpl(CredentialsScope.USER, "id", description, Secret.fromString("value"));
     CredentialsProvider.lookupStores(j).iterator().next().addCredentials(Domain.global(), c);
   }

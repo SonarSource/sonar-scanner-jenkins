@@ -19,13 +19,16 @@
  */
 package hudson.plugins.sonar;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class MsBuildSonarQubeRunnerInstallerTest extends SonarTestCase {
+import static org.assertj.core.api.Assertions.assertThat;
+
+@WithJenkins
+class MsBuildSonarQubeRunnerInstallerTest extends SonarTestCase {
 
   @Test
-  public void test() {
+  void test() {
     MsBuildSonarQubeRunnerInstaller installer = new MsBuildSonarQubeRunnerInstaller("2.0");
     assertThat(installer.getDescriptor().isApplicable(MsBuildSQRunnerInstallation.class)).isTrue();
   }

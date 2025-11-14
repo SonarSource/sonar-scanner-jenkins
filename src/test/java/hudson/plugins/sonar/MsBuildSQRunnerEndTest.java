@@ -24,16 +24,18 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.plugins.sonar.MsBuildSQRunnerEnd.DescriptorImpl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 
-public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
+@WithJenkins
+class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
 
   @Test
-  public void testToken() throws Exception {
-    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "credentialsId", null,null, null, null, null, null));
+  void testToken() throws Exception {
+    SonarInstallation inst = spy(new SonarInstallation(SONAR_INSTALLATION_NAME, "localhost", "credentialsId", null, null, null, null, null, null));
     addCredential("credentialsId", "token");
     configureSonar(inst);
     configureMsBuildScanner(false);
@@ -49,14 +51,14 @@ public class MsBuildSQRunnerEndTest extends MsBuildSQRunnerTest {
   }
 
   @Test
-  public void testDesc() {
+  void testDesc() {
     DescriptorImpl desc = new MsBuildSQRunnerEnd.DescriptorImpl();
     assertThat(desc.getHelpFile()).isNotNull();
     assertThat(desc.isApplicable(AbstractProject.class)).isTrue();
   }
 
   @Test
-  public void NoBegin() throws Exception {
+  void NoBegin() throws Exception {
     configureDefaultSonar();
     configureMsBuildScanner(false);
 
