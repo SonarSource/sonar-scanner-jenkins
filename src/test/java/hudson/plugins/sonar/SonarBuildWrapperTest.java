@@ -28,12 +28,19 @@ import hudson.model.BuildListener;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Run;
-import hudson.model.Run.RunnerAbortedException;
 import hudson.plugins.sonar.SonarBuildWrapper.DescriptorImpl;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.WsClient;
 import hudson.plugins.sonar.model.TriggersConfig;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.TestBuilder;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -41,10 +48,6 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.jvnet.hudson.test.TestBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -53,7 +56,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-public class SonarBuildWrapperTest extends SonarTestCase {
+@WithJenkins
+class SonarBuildWrapperTest extends SonarTestCase {
 
   private static final String MYTOKEN = "mytoken";
   private static final String CREDENTIALSID = "mycredentialsid";
@@ -61,27 +65,29 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   private SonarInstallation installation;
   private PrintStream stream;
 
-  @Before
-  public void setUp() {
+  @Override
+  @BeforeEach
+  protected void setUp(JenkinsRule rule) throws Exception {
+    super.setUp(rule);
     installation = spy(createTestInstallation());
     wrapper = new SonarBuildWrapper("local");
     stream = mock(PrintStream.class);
   }
 
   @Test
-  public void testInstance() {
+  void testInstance() {
     assertThat(wrapper.getInstallationName()).isEqualTo("local");
     assertThat(wrapper.getDescriptor()).isNotNull();
   }
 
   @Test
-  public void testInstallationNameRoundTrip() {
+  void testInstallationNameRoundTrip() {
     wrapper.setInstallationName("name");
     assertThat(wrapper.getInstallationName()).isEqualTo("name");
   }
 
   @Test
-  public void testDescriptor() {
+  void testDescriptor() {
     DescriptorImpl desc = (DescriptorImpl) wrapper.getDescriptor();
 
     assertThat(desc.getDisplayName()).isEqualTo("Prepare SonarQube Scanner environment");
@@ -90,7 +96,9 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(desc.getSonarInstallations()).isEmpty();
   }
 
-  public void testLogging() throws RunnerAbortedException, IOException, InterruptedException {
+  @Test
+  @Disabled("Needs Fix")
+  void testLogging() throws Exception {
     // no instance activated -> don't activate masking
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     OutputStream os = wrapper.decorateLogger(mock(AbstractBuild.class), bos);
@@ -108,10 +116,10 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void maskAuthToken() throws IOException, InterruptedException {
+  void maskAuthToken() throws Exception {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     SonarInstallation inst = spy(new SonarInstallation("local", "http://localhost:9001", CREDENTIALSID, null, null, null, null,
-      null, new TriggersConfig()));
+            null, new TriggersConfig()));
     addCredential(CREDENTIALSID, MYTOKEN);
     configureSonar(inst);
 
@@ -124,7 +132,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void testEnvironment() {
+  void testEnvironment() {
     installation = spy(createTestInstallationForEnv());
 
     EnvVars initialEnvironment = new EnvVars();
@@ -141,11 +149,11 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=myValue -X");
 
     assertThat(map).containsEntry("SONARQUBE_SCANNER_PARAMS",
-      "{ \"sonar.host.url\" : \"http:\\/\\/myserver:10000\", \"sonar.login\" : \"" + MYTOKEN + "\", \"key\" : \"myValue\"}");
+            "{ \"sonar.host.url\" : \"http:\\/\\/myserver:10000\", \"sonar.login\" : \"" + MYTOKEN + "\", \"key\" : \"myValue\"}");
   }
 
   @Test
-  public void testEnvironmentMojoVersion() {
+  void testEnvironmentMojoVersion() {
     installation = new SonarInstallation(null, null, null, null, null, "2.0", null, null, null);
 
     Map<String, String> map = SonarBuildWrapper.createVars(installation, null, new EnvVars(), mock(Run.class), mock(HttpClient.class));
@@ -154,7 +162,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void failOnInvalidInstallationEnvironment() throws Exception {
+  void failOnInvalidInstallationEnvironment() throws Exception {
     // non existing installation
     BuildListener listener = mock(BuildListener.class);
     when(listener.getLogger()).thenReturn(stream);
@@ -168,7 +176,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void decorateWithoutInstallation() throws IOException, InterruptedException {
+  void decorateWithoutInstallation() throws Exception {
     // no installation
     AbstractBuild<?, ?> build = mock(AbstractBuild.class);
     OutputStream out = wrapper.decorateLogger(build, null);
@@ -178,7 +186,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void testDisableBuildWrapper() {
+  void testDisableBuildWrapper() {
     configureSonar(createTestInstallation());
     enableBuildWrapper(false);
 
@@ -190,7 +198,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void testBuild() throws Exception {
+  void testBuild() throws Exception {
     // set up a free style project with our wrapper that will execute CaptureVarsBuilder
     configureSonar(installation);
     CaptureVarsBuilder b = new CaptureVarsBuilder();
@@ -211,7 +219,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void testBuild_EnvOnly() throws Exception {
+  void testBuild_EnvOnly() throws Exception {
     // set up a free style project with our wrapper that will execute CaptureVarsBuilder
     configureSonar(installation);
     CaptureVarsBuilder b = new CaptureVarsBuilder();
@@ -224,9 +232,9 @@ public class SonarBuildWrapperTest extends SonarTestCase {
 
     // ensure that vars were injected to the job
     assertThat(b.vars)
-      .containsEntry("SONAR_HOST_URL", "http://localhost:9001")
-      .containsEntry("SONAR_AUTH_TOKEN", MYTOKEN)
-      .containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
+            .containsEntry("SONAR_HOST_URL", "http://localhost:9001")
+            .containsEntry("SONAR_AUTH_TOKEN", MYTOKEN)
+            .containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
 
     // job's log should have passwords masked
     assertThat(build.getLog(1000)).contains("the token is: ******");
@@ -234,7 +242,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   @Test
-  public void testFailedBuild() throws Exception {
+  void testFailedBuild() throws Exception {
     // set up a free style project with our wrapper that will execute CaptureVarsBuilder
     configureSonar(installation);
     CaptureVarsBuilder b = new CaptureVarsBuilder(true);
@@ -255,7 +263,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
   }
 
   private static class CaptureVarsBuilder extends TestBuilder {
-    private boolean fail;
+    private final boolean fail;
     private Map<String, String> vars;
 
     CaptureVarsBuilder() {
@@ -286,14 +294,14 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     addCredential(CREDENTIALSID, MYTOKEN);
 
     return new SonarInstallation("local", "http://localhost:9001", CREDENTIALSID, null, null, null,
-      "-X", "key=value", new TriggersConfig());
+            "-X", "key=value", new TriggersConfig());
   }
 
   private SonarInstallation createTestInstallationForEnv() {
     addCredential(CREDENTIALSID, MYTOKEN);
 
     return new SonarInstallation("local", "http://$MY_SERVER:$MY_PORT", CREDENTIALSID, null, null, null,
-      "-X", "key=$MY_VALUE", new TriggersConfig());
+            "-X", "key=$MY_VALUE", new TriggersConfig());
   }
 
 }

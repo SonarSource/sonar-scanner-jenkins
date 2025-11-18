@@ -20,42 +20,37 @@
 package hudson.plugins.sonar.client;
 
 import hudson.plugins.sonar.client.WsClient.CETask;
-import java.io.IOException;
-import java.net.URISyntaxException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class WsClientTest {
-  private final static String SERVER_URL = "http://myserver.org";
-  private final static String TOKEN = "token";
-  private final static String TASK_ID = "AVL5i1TZIrFAZSZNbMcg";
+class WsClientTest {
+  private static final String SERVER_URL = "http://myserver.org";
+  private static final String TOKEN = "token";
+  private static final String TASK_ID = "AVL5i1TZIrFAZSZNbMcg";
 
-  private HttpClient client = mock(HttpClient.class);
+  private final HttpClient client = mock(HttpClient.class);
   private WsClient wsClient;
 
-  @Rule
-  public ExpectedException exception = ExpectedException.none();
-
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     wsClient = new WsClient(client, SERVER_URL, TOKEN);
   }
 
   @Test
-  public void testCETask() throws Exception {
+  void testCETask() throws Exception {
     String ws = "/api/ce/task?id=" + TASK_ID;
     String json = getFile("ce_task.json");
     mockWs(ws, json);
@@ -69,7 +64,7 @@ public class WsClientTest {
   }
 
   @Test
-  public void testGetVersion() throws Exception {
+  void testGetVersion() {
     setSQVersion(5.1f);
 
     assertThat(wsClient.getServerVersion()).isEqualTo("5.1");
@@ -77,32 +72,32 @@ public class WsClientTest {
   }
 
   @Test
-  public void testConnectionError() throws Exception {
-    when(client.getHttp(anyString(), anyString())).thenThrow(RuntimeException.class);
-
-    exception.expect(Exception.class);
-    wsClient.getCETask(TASK_ID);
+  void testConnectionError() {
+    assertThrows(Exception.class, () -> {
+      when(client.getHttp(anyString(), anyString())).thenThrow(RuntimeException.class);
+      wsClient.getCETask(TASK_ID);
+    });
   }
 
   @Test
-  public void testUrlFormat() {
+  void testUrlFormat() {
     new WsClient(client, "http://url.com/", null).getServerVersion();
     verify(client).getHttp("http://url.com" + WsClient.API_VERSION, null);
   }
 
-  private void setSQVersion(float version) throws Exception {
+  private void setSQVersion(float version) {
     when(client.getHttp(SERVER_URL + "/api/server/version", null)).thenReturn(Float.toString(version));
   }
 
-  private void verifyWs(String ws) throws Exception {
+  private void verifyWs(String ws) {
     verify(client).getHttp(SERVER_URL + ws, TOKEN);
   }
 
-  private void mockWs(String ws, String response) throws Exception {
+  private void mockWs(String ws, String response) {
     when(client.getHttp(eq(SERVER_URL + ws), anyString())).thenReturn(response);
   }
 
-  private String getFile(String name) throws IOException, URISyntaxException {
+  private String getFile(String name) throws Exception {
     URL resource = this.getClass().getResource(name);
     Path p = Paths.get(resource.toURI());
     return Files.readString(p);
