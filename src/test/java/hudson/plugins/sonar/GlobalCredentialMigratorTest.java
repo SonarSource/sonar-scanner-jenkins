@@ -21,50 +21,55 @@ package hudson.plugins.sonar;
 
 import hudson.model.FreeStyleProject;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.recipes.LocalData;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class GlobalCredentialMigratorTest extends SonarTestCase {
+@WithJenkins
+class GlobalCredentialMigratorTest extends SonarTestCase {
 
-    private FreeStyleProject project;
+  private FreeStyleProject project;
 
-    @Before
-    public void init() throws Exception {
-        project = j.getInstance().createProject(FreeStyleProject.class, "test-sonar-cloud");
-        project.scheduleBuild2(0).get();
-    }
+  @Override
+  @BeforeEach
+  protected void setUp(JenkinsRule rule) throws Exception {
+    super.setUp(rule);
+    project = j.getInstance().createProject(FreeStyleProject.class, "test-sonar-cloud");
+    project.scheduleBuild2(0).get();
+  }
 
-    @Test
-    @LocalData
-    public void authTokenIsMigratedToCredential() {
-        SonarInstallation sonarInstallation = SonarGlobalConfiguration.get().getInstallations()[0];
-        StringCredentials authenticationToken = sonarInstallation.getCredentials(project.getFirstBuild());
+  @Test
+  @LocalData
+  void authTokenIsMigratedToCredential() {
+    SonarInstallation sonarInstallation = SonarGlobalConfiguration.get().getInstallations()[0];
+    StringCredentials authenticationToken = sonarInstallation.getCredentials(project.getFirstBuild());
 
-        assertThat(authenticationToken.getSecret().getPlainText()).isEqualTo("fake-api-token");
-        assertThat(authenticationToken.getDescription()).isEqualTo("Migrated SonarQube authentication token");
-    }
+    assertThat(authenticationToken.getSecret().getPlainText()).isEqualTo("fake-api-token");
+    assertThat(authenticationToken.getDescription()).isEqualTo("Migrated SonarQube authentication token");
+  }
 
-    @Test
-    @LocalData
-    public void existingCredentialIsReused() {
-        SonarInstallation sonarInstallation = SonarGlobalConfiguration.get().getInstallations()[0];
-        StringCredentials authenticationToken = sonarInstallation.getCredentials(project.getFirstBuild());
+  @Test
+  @LocalData
+  void existingCredentialIsReused() {
+    SonarInstallation sonarInstallation = SonarGlobalConfiguration.get().getInstallations()[0];
+    StringCredentials authenticationToken = sonarInstallation.getCredentials(project.getFirstBuild());
 
-        assertThat(authenticationToken.getSecret().getPlainText()).isEqualTo("fake-api-token");
-        assertThat(authenticationToken.getDescription()).isEqualTo("Pre-existing token");
-        assertThat(authenticationToken.getId()).isEqualTo("test-api-token");
-    }
+    assertThat(authenticationToken.getSecret().getPlainText()).isEqualTo("fake-api-token");
+    assertThat(authenticationToken.getDescription()).isEqualTo("Pre-existing token");
+    assertThat(authenticationToken.getId()).isEqualTo("test-api-token");
+  }
 
-    @Test
-    @LocalData
-    public void authTokenIsMigratedToCredentialWhenSecretIsNull() {
-        SonarInstallation sonarInstallation = SonarGlobalConfiguration.get().getInstallations()[0];
-        StringCredentials authenticationToken = sonarInstallation.getCredentials(project.getFirstBuild());
+  @Test
+  @LocalData
+  void authTokenIsMigratedToCredentialWhenSecretIsNull() {
+    SonarInstallation sonarInstallation = SonarGlobalConfiguration.get().getInstallations()[0];
+    StringCredentials authenticationToken = sonarInstallation.getCredentials(project.getFirstBuild());
 
-        assertThat(authenticationToken.getSecret().getPlainText()).isEqualTo("fake-api-token");
-        assertThat(authenticationToken.getDescription()).isEqualTo("Migrated SonarQube authentication token");
-    }
+    assertThat(authenticationToken.getSecret().getPlainText()).isEqualTo("fake-api-token");
+    assertThat(authenticationToken.getDescription()).isEqualTo("Migrated SonarQube authentication token");
+  }
 }
