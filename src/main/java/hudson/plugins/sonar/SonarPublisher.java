@@ -51,7 +51,7 @@ import jenkins.mvn.DefaultGlobalSettingsProvider;
 import jenkins.mvn.DefaultSettingsProvider;
 import jenkins.mvn.GlobalSettingsProvider;
 import jenkins.mvn.SettingsProvider;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
