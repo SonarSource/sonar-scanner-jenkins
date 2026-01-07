@@ -19,21 +19,21 @@
  */
 package hudson.plugins.sonar.utils;
 
+import org.junit.jupiter.api.Test;
+
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MaskPasswordsOutputStreamTest {
+class MaskPasswordsOutputStreamTest {
   private ByteArrayOutputStream os;
 
   @Test
-  public void test() throws IOException {
+  void test() throws Exception {
     BufferedWriter w = getWriter("pass1", "admin");
     w.write("password=pass1");
     w.newLine();
@@ -49,7 +49,7 @@ public class MaskPasswordsOutputStreamTest {
   }
 
   @Test
-  public void dontMaskUrl() throws IOException {
+  void dontMaskUrl() throws Exception {
     String t = "ANALYSIS SUCCESSFUL, you can browse http://localhost:9000/sonar";
     BufferedWriter w = getWriter("sonar");
     w.write(t);

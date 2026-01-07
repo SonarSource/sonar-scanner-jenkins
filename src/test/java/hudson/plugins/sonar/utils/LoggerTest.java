@@ -19,19 +19,19 @@
  */
 package hudson.plugins.sonar.utils;
 
-import static org.mockito.Mockito.mock;
+import hudson.model.TaskListener;
+import org.junit.jupiter.api.Test;
 
 import java.io.PrintStream;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-
 import static org.mockito.Mockito.when;
-import hudson.model.TaskListener;
-import org.junit.Test;
 
-public class LoggerTest {
+class LoggerTest {
+
   @Test
-  public void testFailureMessage() {
+  void testFailureMessage() {
     TaskListener listener = mock(TaskListener.class);
     PrintStream stream = mock(PrintStream.class);
     when(listener.getLogger()).thenReturn(stream);

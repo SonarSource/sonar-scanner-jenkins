@@ -26,9 +26,10 @@ import hudson.model.TopLevelItem;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.mockito.MockedStatic;
 
 import java.util.UUID;
@@ -38,14 +39,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
-public class SonarBuildWrapperDescriptorImplTest {
+@WithJenkins
+class SonarBuildWrapperDescriptorImplTest {
 
-  @Rule
-  public JenkinsRule jenkinsRule = new JenkinsRule();
+  private JenkinsRule jenkinsRule;
 
+  @BeforeEach
+  void setUp(JenkinsRule rule) {
+    jenkinsRule = rule;
+  }
 
   @Test
-  public void testDoFillCredentialsIdItems_ProjectNull_NoAdminPermission() {
+  void testDoFillCredentialsIdItems_ProjectNull_NoAdminPermission() {
     try (MockedStatic<Jenkins> jenkinsMock = mockStatic(Jenkins.class)) {
       Jenkins jenkins = mock(Jenkins.class);
       jenkinsMock.when(Jenkins::get).thenReturn(jenkins);
@@ -53,13 +58,13 @@ public class SonarBuildWrapperDescriptorImplTest {
 
       ListBoxModel items = SonarBuildWrapper.DescriptorImpl.doFillCredentialsIdItems(null, "mycredentialsid");
       assertThat(items)
-        .extracting(option -> option.value)
-        .contains("mycredentialsid");
+              .extracting(option -> option.value)
+              .contains("mycredentialsid");
     }
   }
 
   @Test
-  public void testDoFillCredentialsIdItems_ProjectNull_HasAdminPermission() {
+  void testDoFillCredentialsIdItems_ProjectNull_HasAdminPermission() {
     try (MockedStatic<Jenkins> jenkinsMock = mockStatic(Jenkins.class)) {
       Jenkins jenkins = mock(Jenkins.class);
       jenkinsMock.when(Jenkins::get).thenReturn(jenkins);
@@ -67,46 +72,46 @@ public class SonarBuildWrapperDescriptorImplTest {
 
       ListBoxModel items = SonarBuildWrapper.DescriptorImpl.doFillCredentialsIdItems(null, "mycredentialsid");
       assertThat(items)
-        .extracting(option -> option.value)
-        .contains("mycredentialsid");
+              .extracting(option -> option.value)
+              .contains("mycredentialsid");
     }
   }
 
   @Test
-  public void testDoFillCredentialsIdItems_ProjectHasExtendedReadPermission() {
+  void testDoFillCredentialsIdItems_ProjectHasExtendedReadPermission() {
     Item project = mock(Item.class);
     when(project.hasPermission(Item.EXTENDED_READ)).thenReturn(true);
 
     ListBoxModel items = SonarBuildWrapper.DescriptorImpl.doFillCredentialsIdItems(project, "mycredentialsid");
     assertThat(items)
-      .extracting(option -> option.value)
-      .contains("mycredentialsid");
+            .extracting(option -> option.value)
+            .contains("mycredentialsid");
   }
 
   @Test
-  public void testDoFillCredentialsIdItems_ProjectNoExtendedReadPermission() {
+  void testDoFillCredentialsIdItems_ProjectNoExtendedReadPermission() {
     Item project = mock(Item.class);
     when(project.hasPermission(Item.EXTENDED_READ)).thenReturn(false);
 
     ListBoxModel items = SonarBuildWrapper.DescriptorImpl.doFillCredentialsIdItems(project, "mycredentialsid");
     assertThat(items)
-      .extracting(option -> option.value)
-      .contains("mycredentialsid");
+            .extracting(option -> option.value)
+            .contains("mycredentialsid");
   }
 
   @Test
-  public void testDoFillCredentialsIdItems_FakeProject() {
+  void testDoFillCredentialsIdItems_FakeProject() {
     ItemGroup<TopLevelItem> itemGroup = mock(ItemGroup.class);
     FreeStyleProject project = new FreeStyleProject(itemGroup, "fake-" + UUID.randomUUID());
 
     ListBoxModel items = SonarBuildWrapper.DescriptorImpl.doFillCredentialsIdItems(project, "mycredentialsid");
     assertThat(items)
-      .extracting(option -> option.value)
-      .contains("mycredentialsid");
+            .extracting(option -> option.value)
+            .contains("mycredentialsid");
   }
 
   @Test
-  public void testDoCheckCredentialsId_ProjectNull_NoAdminPermission() {
+  void testDoCheckCredentialsId_ProjectNull_NoAdminPermission() {
     try (MockedStatic<Jenkins> jenkinsMock = mockStatic(Jenkins.class)) {
       Jenkins jenkins = mock(Jenkins.class);
       jenkinsMock.when(Jenkins::get).thenReturn(jenkins);
@@ -118,7 +123,7 @@ public class SonarBuildWrapperDescriptorImplTest {
   }
 
   @Test
-  public void testDoCheckCredentialsId_ProjectNull_HasAdminPermission() {
+  void testDoCheckCredentialsId_ProjectNull_HasAdminPermission() {
     try (MockedStatic<Jenkins> jenkinsMock = mockStatic(Jenkins.class)) {
       Jenkins jenkins = mock(Jenkins.class);
       jenkinsMock.when(Jenkins::get).thenReturn(jenkins);
@@ -130,7 +135,7 @@ public class SonarBuildWrapperDescriptorImplTest {
   }
 
   @Test
-  public void testDoCheckCredentialsId_ProjectHasExtendedReadPermission() {
+  void testDoCheckCredentialsId_ProjectHasExtendedReadPermission() {
     Item project = mock(Item.class);
     when(project.hasPermission(Item.EXTENDED_READ)).thenReturn(true);
 
@@ -139,7 +144,7 @@ public class SonarBuildWrapperDescriptorImplTest {
   }
 
   @Test
-  public void testDoCheckCredentialsId_ProjectNoExtendedReadPermission() {
+  void testDoCheckCredentialsId_ProjectNoExtendedReadPermission() {
     Item project = mock(Item.class);
     when(project.hasPermission(Item.EXTENDED_READ)).thenReturn(false);
 
@@ -148,7 +153,7 @@ public class SonarBuildWrapperDescriptorImplTest {
   }
 
   @Test
-  public void testDoCheckCredentialsId_InvalidCredentialsId() {
+  void testDoCheckCredentialsId_InvalidCredentialsId() {
     Item project = mock(Item.class);
     when(project.hasPermission(Item.EXTENDED_READ)).thenReturn(true);
 
