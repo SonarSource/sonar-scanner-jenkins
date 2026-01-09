@@ -137,6 +137,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     assertThat(map).containsEntry("SONAR_CONFIG_NAME", "local");
     // variable in the value should be resolved
     assertThat(map).containsEntry("SONAR_AUTH_TOKEN", MYTOKEN);
+    assertThat(map).containsEntry("SONAR_TOKEN", MYTOKEN);
     assertThat(map).containsEntry("SONAR_MAVEN_GOAL", "sonar:sonar");
     assertThat(map).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=myValue -X");
 
@@ -203,6 +204,7 @@ public class SonarBuildWrapperTest extends SonarTestCase {
     // ensure that vars were injected to the job
     assertThat(b.vars).containsEntry("SONAR_HOST_URL", "http://localhost:9001");
     assertThat(b.vars).containsEntry("SONAR_AUTH_TOKEN", MYTOKEN);
+    assertThat(b.vars).containsEntry("SONAR_TOKEN", MYTOKEN);
     assertThat(b.vars).containsEntry("SONAR_EXTRA_PROPS", "-Dkey=value -X");
 
     // job's log should have passwords masked
