@@ -41,7 +41,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import static hudson.plugins.sonar.utils.SonarUtils.PROPERTY_SONAR_LOGIN;
