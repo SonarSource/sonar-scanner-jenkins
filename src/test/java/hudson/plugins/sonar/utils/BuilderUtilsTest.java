@@ -21,21 +21,19 @@ package hudson.plugins.sonar.utils;
 
 import com.google.common.collect.ImmutableMap;
 import hudson.EnvVars;
-import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
-import org.junit.Test;
-
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.entry;
+import hudson.model.TaskListener;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-public class BuilderUtilsTest {
+class BuilderUtilsTest {
+
   @Test
-  public void buildEnv() throws IOException, InterruptedException {
+  void buildEnv() throws Exception {
     TaskListener l = mock(TaskListener.class);
     AbstractBuild<?, ?> r = mock(AbstractBuild.class);
     EnvVars env = new EnvVars("key", "value", "key2", "value2");

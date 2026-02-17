@@ -20,16 +20,15 @@
 package hudson.plugins.sonar.model;
 
 import hudson.EnvVars;
-import hudson.model.BuildListener;
-import hudson.model.Result;
 import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
 import hudson.model.Cause;
+import hudson.model.Result;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.TimerTrigger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TriggersConfigTest {
+class TriggersConfigTest {
 
   private static final Cause UPSTREAM_CAUSE = mock(Cause.UpstreamCause.class);
   private static final Cause SCM_CAUSE = mock(SCMTrigger.SCMTriggerCause.class);
@@ -47,20 +46,20 @@ public class TriggersConfigTest {
   private TriggersConfig triggers;
   private BuildListener listener;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     triggers = new TriggersConfig();
     listener = mock(BuildListener.class);
   }
 
   @Test
-  public void our_internal_cause() throws IOException, InterruptedException {
+  void our_internal_cause() throws Exception {
     AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
   }
 
   @Test
-  public void skip_if_build_fails() throws IOException, InterruptedException {
+  void skip_if_build_fails() throws Exception {
     AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     when(build.getResult()).thenReturn(null, Result.SUCCESS, Result.UNSTABLE, Result.FAILURE, Result.NOT_BUILT, Result.ABORTED);
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
@@ -72,13 +71,13 @@ public class TriggersConfigTest {
   }
 
   @Test
-  public void timer_cause() throws IOException, InterruptedException {
+  void timer_cause() throws Exception {
     AbstractBuild<?, ?> build = mockBuildWithCauses(TIMER_CAUSE);
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
   }
 
   @Test
-  public void scm_change_cause() throws IOException, InterruptedException {
+  void scm_change_cause() throws Exception {
     AbstractBuild<?, ?> build = mockBuildWithCauses(SCM_CAUSE);
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
     triggers.setSkipScmCause(true);
@@ -86,7 +85,7 @@ public class TriggersConfigTest {
   }
 
   @Test
-  public void upstream_cause() throws IOException, InterruptedException {
+  void upstream_cause() throws Exception {
     AbstractBuild<?, ?> build = mockBuildWithCauses(UPSTREAM_CAUSE);
     assertThat(triggers.isSkipSonar(build, listener)).isNull();
     triggers.setSkipUpstreamCause(true);
@@ -94,7 +93,7 @@ public class TriggersConfigTest {
   }
 
   @Test
-  public void multiple_causes() throws IOException, InterruptedException {
+  void multiple_causes() throws Exception {
     triggers.setSkipScmCause(true);
     triggers.setSkipUpstreamCause(true);
     AbstractBuild<?, ?> build = mockBuildWithCauses(SCM_CAUSE, TIMER_CAUSE);
@@ -110,7 +109,7 @@ public class TriggersConfigTest {
    * See SONARPLUGINS-1338
    */
   @Test
-  public void build_parameters() throws IOException, InterruptedException {
+  void build_parameters() throws Exception {
     AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     EnvVars env_vars = new EnvVars();
     when(build.getEnvironment(listener)).thenReturn(env_vars);
@@ -128,7 +127,7 @@ public class TriggersConfigTest {
    * See SONARPLUGINS-1886
    */
   @Test
-  public void env_var() throws IOException, InterruptedException {
+  void env_var() throws Exception {
     AbstractBuild<?, ?> build = mockBuildWithCauses(new TriggersConfig.SonarCause());
     EnvVars env_vars = new EnvVars();
     when(build.getEnvironment(listener)).thenReturn(env_vars);

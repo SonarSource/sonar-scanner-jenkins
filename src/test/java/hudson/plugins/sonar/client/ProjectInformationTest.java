@@ -19,19 +19,16 @@
  */
 package hudson.plugins.sonar.client;
 
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(DataProviderRunner.class)
-public class ProjectInformationTest {
+class ProjectInformationTest {
 
   @Test
-  public void testRoundTrips() {
+  void testRoundTrips() {
     ProjectInformation proj = new ProjectInformation();
     proj.setName("name");
     proj.setStatus("status");
@@ -50,26 +47,25 @@ public class ProjectInformationTest {
     assertThat(proj.getBadgeStatus()).isEqualTo(ProjectInformation.UNKNOWN_MESSAGE);
   }
 
-  @Test
-  @UseDataProvider("qualityGateStatuses")
-  public void testGetBadgeStatus(String status, String badgeStatus) {
+  @ParameterizedTest
+  @MethodSource("qualityGateStatuses")
+  void testGetBadgeStatus(String status, String badgeStatus) {
     ProjectInformation info = new ProjectInformation();
     info.setStatus(status);
 
     assertThat(info.getBadgeStatus()).isEqualTo(badgeStatus);
   }
 
-  @DataProvider
-  public static Object[][] qualityGateStatuses() {
-    return new Object[][] {
-      {"OK", ProjectInformation.OK_MESSAGE},
-      {"ok", ProjectInformation.OK_MESSAGE},
-      {"WARN", ProjectInformation.WARN_MESSAGE},
-      {"warn", ProjectInformation.WARN_MESSAGE},
-      {"ERROR", ProjectInformation.ERROR_MESSAGE},
-      {"error", ProjectInformation.ERROR_MESSAGE},
-      {"Something Else", ProjectInformation.UNKNOWN_MESSAGE},
-      {null, ProjectInformation.UNKNOWN_MESSAGE},
+  static Object[][] qualityGateStatuses() {
+    return new Object[][]{
+            {"OK", ProjectInformation.OK_MESSAGE},
+            {"ok", ProjectInformation.OK_MESSAGE},
+            {"WARN", ProjectInformation.WARN_MESSAGE},
+            {"warn", ProjectInformation.WARN_MESSAGE},
+            {"ERROR", ProjectInformation.ERROR_MESSAGE},
+            {"error", ProjectInformation.ERROR_MESSAGE},
+            {"Something Else", ProjectInformation.UNKNOWN_MESSAGE},
+            {null, ProjectInformation.UNKNOWN_MESSAGE},
     };
   }
 }

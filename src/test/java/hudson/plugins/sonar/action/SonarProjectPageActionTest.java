@@ -20,7 +20,7 @@
 package hudson.plugins.sonar.action;
 
 import hudson.plugins.sonar.client.ProjectInformation;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -28,13 +28,14 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-public class SonarProjectPageActionTest {
+class SonarProjectPageActionTest {
+
   @Test
-  public void test() {
+  void test() {
     List<ProjectInformation> list = new LinkedList<>();
     list.add(mock(ProjectInformation.class));
     list.add(mock(ProjectInformation.class));
-    
+
     SonarProjectPageAction projectPage = new SonarProjectPageAction(list);
     assertThat(projectPage.getProjects()).containsExactlyElementsOf(list);
   }

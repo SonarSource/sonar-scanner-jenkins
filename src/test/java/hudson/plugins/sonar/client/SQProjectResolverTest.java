@@ -22,19 +22,18 @@ package hudson.plugins.sonar.client;
 import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarTestCase;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.mockito.Mockito;
+import org.sonarqube.ws.client.HttpException;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.sonarqube.ws.client.HttpException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -45,31 +44,38 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-public class SQProjectResolverTest extends SonarTestCase {
-  private final static String SERVER_URL = "http://localhost:9000";
-  private final static String PROJECT_KEY = "org.sonarsource.sonarlint:sonarlint-cli";
-  private final static String PROJECT_URL = SERVER_URL + "/dashboard/index/" + PROJECT_KEY;
-  private final static String CE_TASK_ID = "task1";
-  private final static String TOKEN = "token";
-  private final static String CREDENTIAL_ID = "cred-id";
+@WithJenkins
+class SQProjectResolverTest extends SonarTestCase {
+  private static final String SERVER_URL = "http://localhost:9000";
+  private static final String PROJECT_KEY = "org.sonarsource.sonarlint:sonarlint-cli";
+  private static final String PROJECT_URL = SERVER_URL + "/dashboard/index/" + PROJECT_KEY;
+  private static final String CE_TASK_ID = "task1";
+  private static final String TOKEN = "token";
+  private static final String CREDENTIAL_ID = "cred-id";
 
-  @Rule
-  public TestName testName = new TestName();
+  private String testName;
 
   private SQProjectResolver resolver;
   private HttpClient client;
 
-  @Before
-  public void setUp() {
+  @Override
+  @BeforeEach
+  protected void setUp(JenkinsRule rule) throws Exception {
+    super.setUp(rule);
     configureDefaultSonar();
     client = mock(HttpClient.class);
     resolver = new SQProjectResolver(client);
   }
 
+  @BeforeEach
+  void setUp(TestInfo info) {
+    this.testName = info.getTestMethod().orElseThrow().getName();
+  }
+
   @Test
-  public void testSQ() throws Exception {
+  void testSQ() throws Exception {
     mockSQServer();
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, CE_TASK_ID, testName.getMethodName(), mock(Run.class));
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, CE_TASK_ID, testName, mock(Run.class));
     assertThat(proj).isNotNull();
     assertThat(proj.getCeStatus()).isEqualTo("success");
     assertThat(proj.getStatus()).isEqualTo("OK");
@@ -83,44 +89,44 @@ public class SQProjectResolverTest extends SonarTestCase {
   }
 
   @Test
-  public void testInvalidServerUrl() {
-    ProjectInformation proj = resolver.resolve("invalid", PROJECT_URL, CE_TASK_ID, testName.getMethodName(), mock(Run.class));
+  void testInvalidServerUrl() {
+    ProjectInformation proj = resolver.resolve("invalid", PROJECT_URL, CE_TASK_ID, testName, mock(Run.class));
     assertThat(proj).isNull();
   }
 
   @Test
-  public void testWsError() {
+  void testWsError() {
     mockSQServer(new NullPointerException());
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName.getMethodName(), mock(Run.class));
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName, mock(Run.class));
     assertThat(proj).isNull();
   }
 
   @Test
-  public void testWsHttpNotFound() {
-    SonarInstallation inst = spy(new SonarInstallation(testName.getMethodName(), SERVER_URL, CREDENTIAL_ID, null, null, null, null,
-      null, null));
+  void testWsHttpNotFound() {
+    SonarInstallation inst = spy(new SonarInstallation(testName, SERVER_URL, CREDENTIAL_ID, null, null, null, null,
+            null, null));
     addCredential(CREDENTIAL_ID, TOKEN);
     configureSonar(inst);
 
     when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN))).thenThrow(new HttpException(SERVER_URL, 404, "oops"));
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName.getMethodName(), mock(Run.class));
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName, mock(Run.class));
     assertThat(proj).isNull();
   }
 
   @Test
-  public void testWsHttpError() {
-    SonarInstallation inst = spy(new SonarInstallation(testName.getMethodName(), SERVER_URL, CREDENTIAL_ID, null, null, null, null,
-      null, null));
+  void testWsHttpError() {
+    SonarInstallation inst = spy(new SonarInstallation(testName, SERVER_URL, CREDENTIAL_ID, null, null, null, null,
+            null, null));
     addCredential(CREDENTIAL_ID, TOKEN);
     configureSonar(inst);
 
     when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN))).thenThrow(new HttpException(SERVER_URL, 500, "oops"));
-    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName.getMethodName(), mock(Run.class));
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, testName, mock(Run.class));
     assertThat(proj).isNull();
   }
 
   @Test
-  public void testInvalidInstallation() {
+  void testInvalidInstallation() {
     configureDefaultSonar();
     ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, null, "INVALID", mock(Run.class));
     assertThat(proj).isNull();
@@ -128,7 +134,7 @@ public class SQProjectResolverTest extends SonarTestCase {
 
   @Override
   protected SonarInstallation configureDefaultSonar() {
-    return configureSonar(new SonarInstallation(testName.getMethodName(), null, null, null, null, null, null, null, null));
+    return configureSonar(new SonarInstallation(testName, null, null, null, null, null, null, null, null));
   }
 
   private void mockSQServer(Exception toThrow) {
@@ -136,8 +142,8 @@ public class SQProjectResolverTest extends SonarTestCase {
   }
 
   private void mockSQServer() throws Exception {
-    SonarInstallation inst = spy(new SonarInstallation(testName.getMethodName(), SERVER_URL, CREDENTIAL_ID, null, null, null, null,
-        null, null));
+    SonarInstallation inst = spy(new SonarInstallation(testName, SERVER_URL, CREDENTIAL_ID, null, null, null, null,
+            null, null));
     addCredential(CREDENTIAL_ID, TOKEN);
     configureSonar(inst);
 
@@ -145,7 +151,7 @@ public class SQProjectResolverTest extends SonarTestCase {
     when(client.getHttp(startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN))).thenReturn(getFile("ce_task.json"));
   }
 
-  private String getFile(String name) throws IOException, URISyntaxException {
+  private String getFile(String name) throws Exception {
     URL resource = getClass().getResource(name);
     Path p = Paths.get(resource.toURI());
     return Files.readString(p);

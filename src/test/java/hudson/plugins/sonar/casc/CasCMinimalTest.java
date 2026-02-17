@@ -21,13 +21,15 @@ package hudson.plugins.sonar.casc;
 
 import hudson.plugins.sonar.SonarGlobalConfiguration;
 import hudson.plugins.sonar.SonarInstallation;
-import io.jenkins.plugins.casc.misc.RoundTripAbstractTest;
+import io.jenkins.plugins.casc.misc.junit.jupiter.AbstractRoundTripTest;
 import jenkins.model.GlobalConfiguration;
-import org.jvnet.hudson.test.RestartableJenkinsRule;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CasCMinimalTest extends RoundTripAbstractTest {
+@WithJenkins
+class CasCMinimalTest extends AbstractRoundTripTest {
 
   @Override
   protected String configResource() {
@@ -35,7 +37,7 @@ public class CasCMinimalTest extends RoundTripAbstractTest {
   }
 
   @Override
-  protected void assertConfiguredAsExpected(RestartableJenkinsRule restartableJenkinsRule, String s) {
+  protected void assertConfiguredAsExpected(JenkinsRule rule, String s) {
     SonarInstallation installation = getSonarInstallation();
     assertThat(installation).isNotNull();
     assertThat(installation.getName()).isEqualTo("TEST");
@@ -44,7 +46,7 @@ public class CasCMinimalTest extends RoundTripAbstractTest {
 
   SonarInstallation getSonarInstallation() {
     SonarGlobalConfiguration sonarGlobalConfiguration = GlobalConfiguration.all()
-        .get(SonarGlobalConfiguration.class);
+            .get(SonarGlobalConfiguration.class);
     assertThat(sonarGlobalConfiguration).isNotNull();
 
     SonarInstallation[] installations = sonarGlobalConfiguration.getInstallations();

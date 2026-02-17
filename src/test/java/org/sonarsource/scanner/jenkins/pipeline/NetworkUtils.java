@@ -20,6 +20,8 @@
 package org.sonarsource.scanner.jenkins.pipeline;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang.ArrayUtils;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -28,7 +30,6 @@ import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Copied from Orchestrator
- *
  */
 public final class NetworkUtils {
   private static final TravisIncrementalPortFinder TRAVIS_INCREMENTAL_PORT_FINDER = new TravisIncrementalPortFinder();
@@ -75,7 +76,7 @@ public final class NetworkUtils {
       throw new IllegalStateException("Can't find an open network port");
     }
 
-    public int getRandomUnusedPort() throws IOException {
+    public int getRandomUnusedPort() {
       try (ServerSocket socket = new ServerSocket()) {
         socket.bind(new InetSocketAddress("localhost", 0));
         return socket.getLocalPort();
