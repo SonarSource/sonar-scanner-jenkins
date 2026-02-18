@@ -135,6 +135,7 @@ public class SonarBuildWrapper extends SimpleBuildWrapper {
     map.put("SONAR_HOST_URL", hostUrl);
     String token = getOrDefault(SonarUtils.getAuthenticationToken(build, inst, credentialsId), "");
     map.put("SONAR_AUTH_TOKEN", token);
+    map.put("SONAR_TOKEN", token);
 
     String mojoVersion = inst.getMojoVersion();
     if (StringUtils.isEmpty(mojoVersion)) {
