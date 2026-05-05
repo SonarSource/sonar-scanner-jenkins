@@ -67,13 +67,9 @@ class SonarUtilsTest {
   }
 
   @Test
-  void testMavenGoal() {
-    assertThrows(NullPointerException.class, () -> {
-      assertThat(SonarUtils.getMavenGoal("3.0")).isEqualTo("org.sonarsource.scanner.maven:sonar-maven-plugin:3.0:sonar");
-      assertThat(SonarUtils.getMavenGoal("2.5")).isEqualTo("org.codehaus.mojo:sonar-maven-plugin:2.5:sonar");
-      SonarUtils.getMavenGoal(null);
-    });
-  }
+    assertThat(SonarUtils.getMavenGoal("3.0")).isEqualTo("org.sonarsource.scanner.maven:sonar-maven-plugin:3.0:sonar");
+    assertThat(SonarUtils.getMavenGoal("2.5")).isEqualTo("org.codehaus.mojo:sonar-maven-plugin:2.5:sonar");
+    assertThrows(NullPointerException.class, () -> SonarUtils.getMavenGoal(null));
 
   @Test
   void testAddBuildInfoFromLastBuild() throws Exception {
