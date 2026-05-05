@@ -19,11 +19,11 @@
  */
 package hudson.plugins.sonar;
 
+import java.nio.file.Files;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
-import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -81,7 +81,8 @@ class MsBuildSQRunnerInstallationTest {
     MsBuildSQRunnerInstallation.setTestExeName(null);
 
     // Act + Assert
-    assertThat(MsBuildSQRunnerInstallation.getScannerToolPath(newFolder(temp, "junit").getPath()))
+    assertThat(MsBuildSQRunnerInstallation.getScannerToolPath(
+        Files.createDirectories(new File(temp, "junit").toPath()).toString()))
             .isNull();
   }
 
@@ -103,12 +104,4 @@ class MsBuildSQRunnerInstallationTest {
     assertThat(MsBuildSQRunnerInstallation.getScannerName()).isEqualTo(MsBuildSQRunnerInstallation.SCANNER_EXE_NAME);
   }
 
-  private static File newFolder(File root, String... subDirs) throws Exception {
-    String subFolder = String.join("/", subDirs);
-    File result = new File(root, subFolder);
-    if (!result.mkdirs()) {
-      throw new IOException("Couldn't create folders " + root);
-    }
-    return result;
-  }
 }

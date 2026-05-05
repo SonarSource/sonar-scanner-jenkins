@@ -20,7 +20,6 @@
 package org.sonarsource.scanner.jenkins.pipeline;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.ArrayUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

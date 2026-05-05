@@ -29,12 +29,12 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.action.SonarAnalysisAction;
 import hudson.plugins.sonar.client.HttpClient;
 import hudson.plugins.sonar.client.WsClient;
+import java.nio.file.Files;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -97,7 +97,7 @@ class SonarUtilsTest {
   void testAddBuildInfoTo() throws Exception {
     AbstractBuild<?, ?> build = mockedBuild("log");
 
-    File scannerFolder = newFolder(workspaceFolder, "scanner");
+    File scannerFolder = Files.createDirectories(new File(workspaceFolder, "scanner").toPath()).toFile();
     FileUtils.writeLines(new File(scannerFolder, REPORT_TASK_FILE_NAME), List.of(
             "serverUrl=http://url",
             "dashboardUrl=http://url/dashboard?id=test",
@@ -207,15 +207,6 @@ class SonarUtilsTest {
     when(build.getBuildVariables()).thenReturn(Collections.emptyMap());
     when(build.getEnvironment(any())).thenReturn(new EnvVars());
     return build;
-  }
-
-  private static File newFolder(File root, String... subDirs) throws Exception {
-    String subFolder = String.join("/", subDirs);
-    File result = new File(root, subFolder);
-    if (!result.mkdirs()) {
-      throw new IOException("Couldn't create folders " + root);
-    }
-    return result;
   }
 
 }

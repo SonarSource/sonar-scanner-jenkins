@@ -32,6 +32,7 @@ import hudson.plugins.sonar.client.WsClient;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.scm.SCM;
 import hudson.util.ArgumentListBuilder;
+import java.nio.file.Files;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,7 +70,7 @@ class SonarRunnerBuilderTest extends SonarTestCase {
   @BeforeEach
   protected void setUp(JenkinsRule rule) throws Exception {
     super.setUp(rule);
-    workspace = newFolder(temp, "junit");
+    workspace = Files.createDirectories(new File(temp, "junit").toPath()).toFile();
     moduleDir = new File(workspace, "trunk");
     FileUtils.forceMkdir(moduleDir);
     args = new ArgumentListBuilder();
@@ -214,15 +215,6 @@ class SonarRunnerBuilderTest extends SonarTestCase {
 
     }
 
-  }
-
-  private static File newFolder(File root, String... subDirs) throws Exception {
-    String subFolder = String.join("/", subDirs);
-    File result = new File(root, subFolder);
-    if (!result.mkdirs()) {
-      throw new IOException("Couldn't create folders " + root);
-    }
-    return result;
   }
 
 }
