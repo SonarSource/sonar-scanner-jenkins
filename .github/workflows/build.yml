@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: github-ubuntu-latest-s
+    runs-on: warp-custom-ubuntu-24-04
     name: Build
     permissions:
       id-token: write
@@ -50,7 +50,7 @@ jobs:
 
   sonarqube:
     needs: [build]
-    runs-on: github-ubuntu-latest-s
+    runs-on: warp-custom-ubuntu-24-04
     name: SonarQube Analysis
     permissions:
       id-token: write
@@ -90,7 +90,7 @@ jobs:
 
   promote:
     needs: [build]
-    runs-on: github-ubuntu-latest-s
+    runs-on: warp-custom-ubuntu-24-04
     name: Promote
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
     permissions:
