@@ -1,7 +1,7 @@
 SonarQube Scanner for Jenkins
 =============================
 
-Test commit
+Test commit 2
 
 [![Quality Gate](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=org.jenkins-ci.plugins%3Asonar&metric=alert_status)](https://next.sonarqube.com/sonarqube/dashboard?id=org.jenkins-ci.plugins%3Asonar)
 [![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/sonar.svg)](https://plugins.jenkins.io/sonar)
