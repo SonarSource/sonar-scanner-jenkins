@@ -198,6 +198,12 @@ public class SonarUtilsTest {
     assertThat(SonarUtils.isSonarCloud(sonarInstallation)).isTrue();
   }
 
+  @Test
+  public void isSonarCloud_whenServerUrlIsSonarQubeUs_shouldReturnTrue() {
+    SonarInstallation sonarInstallation = new SonarInstallation("inst", "https://sonarqube.us", null, null, null, null, null, null, null);
+    assertThat(SonarUtils.isSonarCloud(sonarInstallation)).isTrue();
+  }
+
   private static Run mockedRun(Run previous, SonarAnalysisAction... actions) {
     Run r = mock(Run.class);
     when(r.getActions(SonarAnalysisAction.class)).thenReturn(Arrays.asList(actions));
