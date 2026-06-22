@@ -19,16 +19,6 @@
  */
 package hudson.plugins.sonar.casc;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-
 import hudson.plugins.sonar.MsBuildSQRunnerInstallation;
 import hudson.plugins.sonar.MsBuildSonarQubeRunnerInstaller;
 import hudson.plugins.sonar.SonarRunnerInstallation;
@@ -39,11 +29,23 @@ import hudson.tools.ToolInstallation;
 import hudson.tools.ToolProperty;
 import hudson.tools.ToolPropertyDescriptor;
 import hudson.util.DescribableList;
-import io.jenkins.plugins.casc.misc.RoundTripAbstractTest;
+import io.jenkins.plugins.casc.misc.junit.jupiter.AbstractRoundTripTest;
 import jenkins.model.Jenkins;
-import org.jvnet.hudson.test.RestartableJenkinsRule;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class CasCToolTest extends RoundTripAbstractTest {
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@WithJenkins
+class CasCToolTest extends AbstractRoundTripTest {
 
   @Override
   protected String configResource() {
@@ -51,34 +53,34 @@ public class CasCToolTest extends RoundTripAbstractTest {
   }
 
   @Override
-  protected void assertConfiguredAsExpected(RestartableJenkinsRule restartableJenkinsRule, String s) {
-    checkMSBuildSQInstallations(restartableJenkinsRule.j.jenkins);
-    checkSQInstallations(restartableJenkinsRule.j.jenkins);
+  protected void assertConfiguredAsExpected(JenkinsRule rule, String s) {
+    checkMSBuildSQInstallations(rule.jenkins);
+    checkSQInstallations(rule.jenkins);
   }
 
   private void checkSQInstallations(Jenkins j) {
-      final ToolDescriptor<SonarRunnerInstallation> descriptor = (ToolDescriptor) j.getDescriptor(SonarRunnerInstallation.class);
-      final ToolInstallation[] installations = descriptor.getInstallations();
-      assertThat(installations, arrayWithSize(2));
+    final ToolDescriptor<SonarRunnerInstallation> descriptor = (ToolDescriptor) j.getDescriptor(SonarRunnerInstallation.class);
+    final ToolInstallation[] installations = descriptor.getInstallations();
+    assertThat(installations, arrayWithSize(2));
 
-      ToolInstallation withInstaller = installations[0];
-      assertEquals("SonarQube Scanner", withInstaller.getName());
+    ToolInstallation withInstaller = installations[0];
+    assertEquals("SonarQube Scanner", withInstaller.getName());
 
-      final DescribableList<ToolProperty<?>, ToolPropertyDescriptor> properties = withInstaller.getProperties();
-      assertThat(properties, hasSize(1));
-      final ToolProperty<?> property = properties.get(0);
+    final DescribableList<ToolProperty<?>, ToolPropertyDescriptor> properties = withInstaller.getProperties();
+    assertThat(properties, hasSize(1));
+    final ToolProperty<?> property = properties.get(0);
 
-      assertThat(((InstallSourceProperty)property).installers,
-        containsInAnyOrder(
-          allOf(instanceOf(SonarRunnerInstaller.class))
-        ));
+    assertThat(((InstallSourceProperty) property).installers,
+            containsInAnyOrder(
+                    allOf(instanceOf(SonarRunnerInstaller.class))
+            ));
 
-      ToolInstallation withoutInstaller = installations[1];
-      assertThat(withoutInstaller,
-        allOf(
-          hasProperty("name", equalTo("local SonarQube Scanner")),
-          hasProperty("home", equalTo("/home/jenkins/agent/tools/sonarscanner")
-        )));
+    ToolInstallation withoutInstaller = installations[1];
+    assertThat(withoutInstaller,
+            allOf(
+                    hasProperty("name", equalTo("local SonarQube Scanner")),
+                    hasProperty("home", equalTo("/home/jenkins/agent/tools/sonarscanner")
+                    )));
   }
 
   private void checkMSBuildSQInstallations(Jenkins j) {
@@ -93,17 +95,17 @@ public class CasCToolTest extends RoundTripAbstractTest {
     assertThat(properties, hasSize(1));
     final ToolProperty<?> property = properties.get(0);
 
-    assertThat(((InstallSourceProperty)property).installers,
-      containsInAnyOrder(
-        allOf(instanceOf(MsBuildSonarQubeRunnerInstaller.class))
-      ));
+    assertThat(((InstallSourceProperty) property).installers,
+            containsInAnyOrder(
+                    allOf(instanceOf(MsBuildSonarQubeRunnerInstaller.class))
+            ));
 
     ToolInstallation withoutInstaller = installations[1];
     assertThat(withoutInstaller,
-      allOf(
-        hasProperty("name", equalTo("local SonarQube MSScanner")),
-        hasProperty("home", equalTo("/home/jenkins/agent/tools/msscanner")
-      )));
+            allOf(
+                    hasProperty("name", equalTo("local SonarQube MSScanner")),
+                    hasProperty("home", equalTo("/home/jenkins/agent/tools/msscanner")
+                    )));
   }
 
   @Override

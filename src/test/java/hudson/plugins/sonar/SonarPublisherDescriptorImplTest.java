@@ -22,9 +22,10 @@ package hudson.plugins.sonar;
 import hudson.model.AbstractProject;
 import hudson.tasks.Maven;
 import jenkins.model.Jenkins;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,43 +33,48 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
-public class SonarPublisherDescriptorImplTest {
+@WithJenkins
+class SonarPublisherDescriptorImplTest {
 
-  @Rule
-  public JenkinsRule jenkinsRule = new JenkinsRule();
+  private JenkinsRule jenkinsRule;
+
+  @BeforeEach
+  void setUp(JenkinsRule rule) {
+    jenkinsRule = rule;
+  }
 
   @Test
-  public void testGetDisplayName() {
+  void testGetDisplayName() {
     SonarPublisher.DescriptorImpl descriptor = new SonarPublisher.DescriptorImpl();
     assertThat(descriptor.getDisplayName()).isEqualTo(Messages.SonarPublisher_DisplayName());
   }
 
   @Test
-  public void testGetDeprecatedInstallations() {
+  void testGetDeprecatedInstallations() {
     SonarPublisher.DescriptorImpl descriptor = new SonarPublisher.DescriptorImpl();
     assertThat(descriptor.getDeprecatedInstallations()).isEmpty();
   }
 
   @Test
-  public void testIsDeprecatedBuildWrapperEnabled() {
+  void testIsDeprecatedBuildWrapperEnabled() {
     SonarPublisher.DescriptorImpl descriptor = new SonarPublisher.DescriptorImpl();
     assertThat(descriptor.isDeprecatedBuildWrapperEnabled()).isFalse();
   }
 
   @Test
-  public void testGetInstallations() {
+  void testGetInstallations() {
     SonarPublisher.DescriptorImpl descriptor = new SonarPublisher.DescriptorImpl();
     assertThat(descriptor.getInstallations()).isNotNull();
   }
 
   @Test
-  public void testGetHelpFile() {
+  void testGetHelpFile() {
     SonarPublisher.DescriptorImpl descriptor = new SonarPublisher.DescriptorImpl();
     assertThat(descriptor.getHelpFile()).isEqualTo("/plugin/sonar/help-sonar-publisher.html");
   }
 
   @Test
-  public void testGetHelpFileForField() {
+  void testGetHelpFileForField() {
     SonarPublisher.DescriptorImpl descriptor = new SonarPublisher.DescriptorImpl();
     try (MockedStatic<Jenkins> jenkinsMock = mockStatic(Jenkins.class)) {
       Jenkins jenkins = mock(Jenkins.class);
@@ -83,7 +89,7 @@ public class SonarPublisherDescriptorImplTest {
   }
 
   @Test
-  public void testDeleteGlobalConfiguration() {
+  void testDeleteGlobalConfiguration() {
     SonarPublisher.DescriptorImpl descriptor = new SonarPublisher.DescriptorImpl();
     descriptor.deleteGlobalConfiguration();
     assertThat(descriptor.getDeprecatedInstallations()).isNull();
@@ -91,7 +97,7 @@ public class SonarPublisherDescriptorImplTest {
   }
 
   @Test
-  public void testGetMavenInstallations() {
+  void testGetMavenInstallations() {
     SonarPublisher.DescriptorImpl descriptor = new SonarPublisher.DescriptorImpl();
     try (MockedStatic<Jenkins> jenkinsMock = mockStatic(Jenkins.class)) {
       Jenkins jenkins = mock(Jenkins.class);
@@ -105,7 +111,7 @@ public class SonarPublisherDescriptorImplTest {
   }
 
   @Test
-  public void testIsApplicable() {
+  void testIsApplicable() {
     SonarPublisher.DescriptorImpl descriptor = new SonarPublisher.DescriptorImpl();
     assertThat(descriptor.isApplicable(AbstractProject.class)).isTrue();
   }

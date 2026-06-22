@@ -22,13 +22,14 @@ package hudson.plugins.sonar.action;
 import hudson.model.Run;
 import hudson.plugins.sonar.client.ProjectInformation;
 import hudson.plugins.sonar.client.SQProjectResolver;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import org.junit.Before;
-import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -36,18 +37,18 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SonarCacheActionTest {
+class SonarCacheActionTest {
   private SonarCacheAction cache;
   private SQProjectResolver resolver;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     resolver = mock(SQProjectResolver.class);
     cache = new SonarCacheAction();
   }
 
   @Test
-  public void testCacheInvalidation() {
+  void testCacheInvalidation() {
     // task done -> always valid
     assertThat(SonarCacheAction.isEntryValid(createProj(0, "success"), 0)).isTrue();
     assertThat(SonarCacheAction.isEntryValid(createProj(0, "failed"), 0)).isTrue();
@@ -66,7 +67,7 @@ public class SonarCacheActionTest {
   }
 
   @Test
-  public void testResolve() {
+  void testResolve() {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId", null);
     analysis.setCeTaskId("taskId");
     analysis.setUrl("projUrl");
@@ -79,7 +80,7 @@ public class SonarCacheActionTest {
   }
 
   @Test
-  public void testResolveUsingInstallationUrl() {
+  void testResolveUsingInstallationUrl() {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId", "installationUrl");
     analysis.setCeTaskId("taskId");
     analysis.setUrl("projUrl");
@@ -92,7 +93,7 @@ public class SonarCacheActionTest {
   }
 
   @Test
-  public void testResponseCached() {
+  void testResponseCached() {
     ProjectInformation mocked1 = createProj(now(), "success");
     ProjectInformation mocked2 = createProj(now(), "error");
     SonarAnalysisAction analysis1 = createAnalysis("serverUrl", "projUrl", "taskId1");
@@ -124,7 +125,7 @@ public class SonarCacheActionTest {
   }
 
   @Test
-  public void testCacheWithCE() {
+  void testCacheWithCE() {
     ProjectInformation proj = createProj(now(), "success");
     SonarAnalysisAction analysis = createAnalysis("serverUrl", "projUrl1", "taskId");
     Run<?, ?> run = mock(Run.class);

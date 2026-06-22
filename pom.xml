@@ -6,7 +6,7 @@
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
     <!-- See https://github.com/jenkinsci/plugin-pom/releases -->
-    <version>5.9</version>
+    <version>5.12</version>
     <relativePath />
   </parent>
 
@@ -75,7 +75,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
-        <version>4023.va_eeb_b_4e45f07</version>
+        <version>4669.v0e99c712a_30e</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -187,12 +187,6 @@
     </dependency>
 
     <!-- Test deps -->
-    <dependency>
-      <groupId>com.tngtech.java</groupId>
-      <artifactId>junit-dataprovider</artifactId>
-      <version>1.13.1</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>

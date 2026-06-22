@@ -20,17 +20,17 @@
 package hudson.plugins.sonar.action;
 
 import hudson.plugins.sonar.SonarTestCase;
+import org.junit.jupiter.api.Test;
 
-import hudson.plugins.sonar.action.SonarBuildBadgeAction;
-import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Evgeny Mandrikov
  */
-public class SonarBuildBadgeActionTest extends SonarTestCase {
+class SonarBuildBadgeActionTest extends SonarTestCase {
+
   @Test
-  public void test() throws Exception {
+  void test() {
     SonarBuildBadgeAction action = new SonarBuildBadgeAction();
     assertThat(action.getIconFileName()).isNull();
     assertThat(action.getUrlName()).isNull();

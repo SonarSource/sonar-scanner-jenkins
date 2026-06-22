@@ -32,17 +32,19 @@ import hudson.plugins.sonar.client.WsClient;
 import hudson.plugins.sonar.utils.ExtendedArgumentListBuilder;
 import hudson.scm.SCM;
 import hudson.util.ArgumentListBuilder;
+import java.nio.file.Files;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
+
 import java.io.File;
 import java.io.IOException;
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,10 +52,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SonarRunnerBuilderTest extends SonarTestCase {
+@WithJenkins
+class SonarRunnerBuilderTest extends SonarTestCase {
 
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
+  @TempDir
+  private File temp;
 
   private File moduleDir;
   private ExtendedArgumentListBuilder argsBuilder;
@@ -63,9 +66,11 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   private File workspace;
   private ArgumentListBuilder args;
 
-  @Before
-  public void prepareMockWorkspace() throws IOException {
-    workspace = temp.newFolder();
+  @Override
+  @BeforeEach
+  protected void setUp(JenkinsRule rule) throws Exception {
+    super.setUp(rule);
+    workspace = Files.createDirectories(new File(temp, "junit").toPath()).toFile();
     moduleDir = new File(workspace, "trunk");
     FileUtils.forceMkdir(moduleDir);
     args = new ArgumentListBuilder();
@@ -81,19 +86,19 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     env = new EnvVars();
   }
 
-  @After
-  public void cleanWorkspace() {
+  @AfterEach
+  void tearDown() {
     FileUtils.deleteQuietly(workspace);
   }
 
   @Test
-  public void shouldBeEmptyInsteadOfNull() {
+  void shouldBeEmptyInsteadOfNull() {
     SonarRunnerBuilder builder = new SonarRunnerBuilder();
     assertEmptyInsteadOfNull(builder);
   }
 
   @Test
-  public void additionalArgs() {
+  void additionalArgs() {
     ArgumentListBuilder args = new ArgumentListBuilder();
     SonarInstallation inst = new SonarInstallation(null, null, null, null, null, null, "-Y", "key=value", null);
     SonarRunnerBuilder builder = new SonarRunnerBuilder();
@@ -120,7 +125,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   }
 
   @Test
-  public void shouldPopulateProjectSettingsParameter() throws IOException, InterruptedException {
+  void shouldPopulateProjectSettingsParameter() throws Exception {
     File projectSettings = new File(moduleDir, "myCustomProjectSettings.properties");
     projectSettings.createNewFile();
 
@@ -129,12 +134,12 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, null, null);
 
     assertThat(args.toStringWithQuote())
-      .contains("-Dsonar.projectBaseDir=" + moduleDir)
-      .contains("-Dproject.settings=" + projectSettings);
+            .contains("-Dsonar.projectBaseDir=" + moduleDir)
+            .contains("-Dproject.settings=" + projectSettings);
   }
 
   @Test
-  public void populateConfiguration_whenSQVersionLowerThan10_shouldPopulateSonarLogin() throws IOException, InterruptedException {
+  void populateConfiguration_whenSQVersionLowerThan10_shouldPopulateSonarLogin() throws Exception {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
     when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
@@ -144,11 +149,11 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation, client);
 
     assertThat(args.toStringWithQuote())
-      .contains("-Dsonar.login=token");
+            .contains("-Dsonar.login=token");
   }
 
   @Test
-  public void populateConfiguration_whenSQVersionHigherThan10_shouldPopulateSonarToken() throws IOException, InterruptedException {
+  void populateConfiguration_whenSQVersionHigherThan10_shouldPopulateSonarToken() throws Exception {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
     when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
@@ -158,11 +163,11 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation, client);
 
     assertThat(args.toStringWithQuote())
-      .contains("-Dsonar.token=token");
+            .contains("-Dsonar.token=token");
   }
 
   @Test
-  public void populateConfiguration_whenInstallationHasNoUrl_shouldPopulateSonarLogin() throws IOException, InterruptedException {
+  void populateConfiguration_whenInstallationHasNoUrl_shouldPopulateSonarLogin() throws Exception {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerAuthenticationToken(any(Run.class))).thenReturn("token");
     HttpClient client = mockServerVersion(installation, "10.0");
@@ -171,7 +176,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     builder.populateConfiguration(argsBuilder, build, build.getWorkspace(), listener, env, installation, client);
 
     assertThat(args.toStringWithQuote())
-      .contains("-Dsonar.login=token");
+            .contains("-Dsonar.login=token");
   }
 
   private static HttpClient mockServerVersion(SonarInstallation installation, String version) {
@@ -183,7 +188,7 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
   /**
    * It is not possible to mock AbstractBuild because interesting methods like getWorkspace are final so I am creating a custom subclass
    */
-  private class MyBuild<P extends AbstractProject<P, R>, R extends AbstractBuild<P, R>> extends AbstractBuild<P, R> {
+  private static class MyBuild<P extends AbstractProject<P, R>, R extends AbstractBuild<P, R>> extends AbstractBuild<P, R> {
 
     protected MyBuild(P job) throws IOException {
       super(job);
@@ -198,11 +203,9 @@ public class SonarRunnerBuilderTest extends SonarTestCase {
     @Override
     public Node getBuiltOn() {
       Node n = mock(Node.class);
-      when(n.createPath(Mockito.anyString())).thenAnswer(new Answer<FilePath>() {
-        public FilePath answer(InvocationOnMock invocation) {
-          Object[] args = invocation.getArguments();
-          return new FilePath(new File(args[0].toString()));
-        }
+      when(n.createPath(Mockito.anyString())).thenAnswer((Answer<FilePath>) invocation -> {
+        Object[] args = invocation.getArguments();
+        return new FilePath(new File(args[0].toString()));
       });
       return n;
     }

@@ -19,14 +19,14 @@
  */
 package hudson.plugins.sonar.client;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OkHttpClientSingletonTest {
+class OkHttpClientSingletonTest {
 
   @Test
-  public void should_be_same_instance_during_different_calls() {
+  void should_be_same_instance_during_different_calls() {
     assertThat(OkHttpClientSingleton.getInstance()).isSameAs(OkHttpClientSingleton.getInstance());
   }
 

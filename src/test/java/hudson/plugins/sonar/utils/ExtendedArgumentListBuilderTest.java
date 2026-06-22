@@ -20,12 +20,8 @@
 package hudson.plugins.sonar.utils;
 
 import hudson.util.ArgumentListBuilder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-import java.util.Arrays;
-import java.util.Collection;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,35 +31,27 @@ import static org.hamcrest.MatcherAssert.assertThat;
  *
  * @author Evgeny Mandrikov
  */
-@RunWith(Parameterized.class)
-public class ExtendedArgumentListBuilderTest {
-  private ArgumentListBuilder original;
-  private ExtendedArgumentListBuilder builder;
-
-  public ExtendedArgumentListBuilderTest(boolean unix) {
-    original = new ArgumentListBuilder();
-    builder = new ExtendedArgumentListBuilder(original, unix);
-  }
-
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-      {true},
-      {false},
-    });
-  }
+class ExtendedArgumentListBuilderTest {
 
   /**
    * See SONARPLUGINS-392
    */
-  @Test
-  public void spaces() {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void spaces(boolean unix) {
+    ArgumentListBuilder original = new ArgumentListBuilder();
+    ExtendedArgumentListBuilder builder = new ExtendedArgumentListBuilder(original, unix);
+
     builder.append("key", " value ");
     assertThat(original.toStringWithQuote(), is("-Dkey=value"));
   }
 
-  @Test
-  public void empty() {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void empty(boolean unix) {
+    ArgumentListBuilder original = new ArgumentListBuilder();
+    ExtendedArgumentListBuilder builder = new ExtendedArgumentListBuilder(original, unix);
+
     builder.append("key1", null);
     builder.append("key2", "");
     builder.appendMasked("key3", null);
@@ -71,8 +59,12 @@ public class ExtendedArgumentListBuilderTest {
     assertThat(original.toStringWithQuote(), is(""));
   }
 
-  @Test
-  public void ampersand() {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void ampersand(boolean unix) {
+    ArgumentListBuilder original = new ArgumentListBuilder();
+    ExtendedArgumentListBuilder builder = new ExtendedArgumentListBuilder(original, unix);
+
     builder.append("key", "&");
     if (builder.isUnix()) {
       assertThat(original.toStringWithQuote(), is("-Dkey=&"));
@@ -81,14 +73,22 @@ public class ExtendedArgumentListBuilderTest {
     }
   }
 
-  @Test
-  public void withoutAmpersand() {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void withoutAmpersand(boolean unix) {
+    ArgumentListBuilder original = new ArgumentListBuilder();
+    ExtendedArgumentListBuilder builder = new ExtendedArgumentListBuilder(original, unix);
+
     builder.append("key", "value");
     assertThat(original.toStringWithQuote(), is("-Dkey=value"));
   }
 
-  @Test
-  public void mixed() {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void mixed(boolean unix) {
+    ArgumentListBuilder original = new ArgumentListBuilder();
+    ExtendedArgumentListBuilder builder = new ExtendedArgumentListBuilder(original, unix);
+
     builder.append("key", "value");
     builder.append("amp", "&");
     if (builder.isUnix()) {

@@ -22,8 +22,8 @@ package org.sonarsource.scanner.jenkins.pipeline;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -32,15 +32,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class SonarQubeWebHookCrumbExclusionTest {
+class SonarQubeWebHookCrumbExclusionTest {
 
   private SonarQubeWebHookCrumbExclusion exclusion;
   private HttpServletRequest req;
   private HttpServletResponse resp;
   private FilterChain chain;
 
-  @Before
-  public void before() {
+  @BeforeEach
+  void setUp() {
     exclusion = new SonarQubeWebHookCrumbExclusion();
     req = mock(HttpServletRequest.class);
     resp = mock(HttpServletResponse.class);
@@ -48,35 +48,35 @@ public class SonarQubeWebHookCrumbExclusionTest {
   }
 
   @Test
-  public void testFullPath() throws Exception {
+  void testFullPath() throws Exception {
     when(req.getPathInfo()).thenReturn("/sonarqube-webhook/");
     assertThat(exclusion.process(req, resp, chain)).isTrue();
     verify(chain, times(1)).doFilter(req, resp);
   }
 
   @Test
-  public void testFullPathWithoutSlash() throws Exception {
+  void testFullPathWithoutSlash() throws Exception {
     when(req.getPathInfo()).thenReturn("/sonarqube-webhook");
     assertThat(exclusion.process(req, resp, chain)).isTrue();
     verify(chain, times(1)).doFilter(req, resp);
   }
 
   @Test
-  public void testInvalidPath() throws Exception {
+  void testInvalidPath() throws Exception {
     when(req.getPathInfo()).thenReturn("/some-other-url/");
     assertThat(exclusion.process(req, resp, chain)).isFalse();
     verify(chain, never()).doFilter(req, resp);
   }
 
   @Test
-  public void testNullPath() throws Exception {
+  void testNullPath() throws Exception {
     when(req.getPathInfo()).thenReturn(null);
     assertThat(exclusion.process(req, resp, chain)).isFalse();
     verify(chain, never()).doFilter(req, resp);
   }
 
   @Test
-  public void testEmptyPath() throws Exception {
+  void testEmptyPath() throws Exception {
     when(req.getPathInfo()).thenReturn("");
     assertThat(exclusion.process(req, resp, chain)).isFalse();
     verify(chain, never()).doFilter(req, resp);

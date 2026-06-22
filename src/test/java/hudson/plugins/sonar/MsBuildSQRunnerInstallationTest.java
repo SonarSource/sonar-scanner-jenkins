@@ -19,71 +19,75 @@
  */
 package hudson.plugins.sonar;
 
+import java.nio.file.Files;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
 import java.io.File;
-import java.io.IOException;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MsBuildSQRunnerInstallationTest {
+class MsBuildSQRunnerInstallationTest {
 
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
+  @TempDir
+  private File temp;
 
   @Test
-  public void getScannerToolPath_when_testExeName_not_null() {
+  void getScannerToolPath_when_testExeName_not_null() {
     MsBuildSQRunnerInstallation.setTestExeName("foo.exe");
 
     assertThat(MsBuildSQRunnerInstallation.getScannerToolPath("foo")).isEqualTo("foo" + File.separator + "foo.exe");
   }
 
   @Test
-  public void getScannerToolPath_when_scannerNet46_path_exists() throws IOException {
+  void getScannerToolPath_when_scannerNet46_path_exists() throws Exception {
     // Arrange
     MsBuildSQRunnerInstallation.setTestExeName(null);
-    File tempFile = temp.newFile(MsBuildSQRunnerInstallation.SCANNER_EXE_NAME);
+    File tempFile = new File(temp, MsBuildSQRunnerInstallation.SCANNER_EXE_NAME);
+    assertThat(tempFile.createNewFile()).isTrue();
 
     // Act + Assert
-    assertThat(MsBuildSQRunnerInstallation.getScannerToolPath(temp.getRoot().getPath()))
-      .isEqualTo(tempFile.getPath());
+    assertThat(MsBuildSQRunnerInstallation.getScannerToolPath(temp.getPath()))
+            .isEqualTo(tempFile.getPath());
   }
 
   @Test
-  public void getScannerToolPath_when_scannerNetCore_path_exists() throws IOException {
+  void getScannerToolPath_when_scannerNetCore_path_exists() throws Exception {
     // Arrange
     MsBuildSQRunnerInstallation.setTestExeName(null);
-    File tempFile = temp.newFile(MsBuildSQRunnerInstallation.SCANNER_DLL_NAME);
+    File tempFile = new File(temp, MsBuildSQRunnerInstallation.SCANNER_DLL_NAME);
+    assertThat(tempFile.createNewFile()).isTrue();
 
     // Act + Assert
-    assertThat(MsBuildSQRunnerInstallation.getScannerToolPath(temp.getRoot().getPath()))
-      .isEqualTo(tempFile.getPath());
+    assertThat(MsBuildSQRunnerInstallation.getScannerToolPath(temp.getPath()))
+            .isEqualTo(tempFile.getPath());
   }
 
   @Test
-  public void getScannerToolPath_when_oldScanner_path_exists() throws IOException {
+  void getScannerToolPath_when_oldScanner_path_exists() throws Exception {
     // Arrange
     MsBuildSQRunnerInstallation.setTestExeName(null);
-    File tempFile = temp.newFile(MsBuildSQRunnerInstallation.OLD_SCANNER_EXE_NAME);
+    File tempFile = new File(temp, MsBuildSQRunnerInstallation.OLD_SCANNER_EXE_NAME);
+    assertThat(tempFile.createNewFile()).isTrue();
 
     // Act + Assert
-    assertThat(MsBuildSQRunnerInstallation.getScannerToolPath(temp.getRoot().getPath()))
-      .isEqualTo(tempFile.getPath());
+    assertThat(MsBuildSQRunnerInstallation.getScannerToolPath(temp.getPath()))
+            .isEqualTo(tempFile.getPath());
   }
 
   @Test
-  public void getScannerToolPath_when_no_path_exists() throws IOException {
+  void getScannerToolPath_when_no_path_exists() throws Exception {
     // Arrange
     MsBuildSQRunnerInstallation.setTestExeName(null);
 
     // Act + Assert
-    assertThat(MsBuildSQRunnerInstallation.getScannerToolPath(temp.newFolder().getPath()))
-      .isEqualTo(null);
+    assertThat(MsBuildSQRunnerInstallation.getScannerToolPath(
+        Files.createDirectories(new File(temp, "junit").toPath()).toString()))
+            .isNull();
   }
 
   @Test
-  public void getScannerName_when_testExeName_not_null() {
+  void getScannerName_when_testExeName_not_null() {
     // Arrange
     MsBuildSQRunnerInstallation.setTestExeName("foo");
 
@@ -92,11 +96,12 @@ public class MsBuildSQRunnerInstallationTest {
   }
 
   @Test
-  public void getScannerName_when_testExeName_null() {
+  void getScannerName_when_testExeName_null() {
     // Arrange
     MsBuildSQRunnerInstallation.setTestExeName(null);
 
     // Act + Assert
     assertThat(MsBuildSQRunnerInstallation.getScannerName()).isEqualTo(MsBuildSQRunnerInstallation.SCANNER_EXE_NAME);
   }
+
 }

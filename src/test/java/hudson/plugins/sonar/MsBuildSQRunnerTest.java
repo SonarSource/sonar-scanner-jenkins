@@ -21,11 +21,13 @@ package hudson.plugins.sonar;
 
 import hudson.Functions;
 import hudson.util.jna.GNUCLibrary;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import java.io.File;
-import java.net.URISyntaxException;
 
-public abstract class MsBuildSQRunnerTest extends SonarTestCase {
+@WithJenkins
+abstract class MsBuildSQRunnerTest extends SonarTestCase {
+
   protected String getTestExeName() {
     if (isWindows()) {
       return "FakeWindowsMSBuildScanner.bat";
@@ -38,7 +40,7 @@ public abstract class MsBuildSQRunnerTest extends SonarTestCase {
     return Functions.isWindows() || System.getProperty("os.name").startsWith("Windows");
   }
 
-  protected MsBuildSQRunnerInstallation configureMsBuildScanner(boolean fail) throws URISyntaxException {
+  protected MsBuildSQRunnerInstallation configureMsBuildScanner(boolean fail) throws Exception {
     String res = "SonarTestCase/ms-build-scanner";
     if (fail) {
       res += "-broken";

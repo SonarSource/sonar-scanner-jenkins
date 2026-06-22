@@ -19,14 +19,14 @@
  */
 package hudson.plugins.sonar.action;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SonarAnalysisActionTest {
+class SonarAnalysisActionTest {
 
   @Test
-  public void testRoundTrips() {
+  void testRoundTrips() {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId", "instUrl");
     analysis.setUrl("url1");
     analysis.setNew(false);
@@ -43,7 +43,7 @@ public class SonarAnalysisActionTest {
   }
 
   @Test
-  public void testRoundTrips_NoInstUrl() {
+  void testRoundTrips_NoInstUrl() {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId", null);
     analysis.setServerUrl("serverUrl");
     analysis.setUrl("url1");
@@ -62,7 +62,7 @@ public class SonarAnalysisActionTest {
   }
 
   @Test
-  public void testCopyConstructor() {
+  void testCopyConstructor() {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId", "instUrl");
     analysis.setUrl("url1");
     analysis.setNew(true);

@@ -28,23 +28,30 @@ import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.SonarPublisher;
 import hudson.tasks.Maven;
 import hudson.util.ArgumentListBuilder;
-import java.util.List;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SonarMavenTest {
+@WithJenkins
+class SonarMavenTest {
 
-  @Rule
-  public JenkinsRule j = new JenkinsRule();
+  private JenkinsRule j;
+
+  @BeforeEach
+  void setUp(JenkinsRule rule) {
+    j = rule;
+  }
 
   @Test
-  public void shouldWrapUpArguments() throws Exception {
+  void shouldWrapUpArguments() throws Exception {
     SonarPublisher publisher = mock(SonarPublisher.class);
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getServerUrl()).thenReturn("hostUrl");
@@ -54,7 +61,7 @@ public class SonarMavenTest {
 
     ArgumentListBuilder args = new ArgumentListBuilder();
     SonarMaven sonarMaven = new SonarMaven("-Dprop=value", "Default Maven", "pom.xml", "", new DefaultLocalRepositoryLocator(), publisher,
-      mock(BuildListener.class), null, null, null);
+            mock(BuildListener.class), null, null, null);
     sonarMaven.wrapUpArguments(args, "sonar:sonar", mock(AbstractBuild.class), mock(Launcher.class), mock(BuildListener.class));
 
     List<String> result = args.toList();
@@ -65,21 +72,21 @@ public class SonarMavenTest {
   }
 
   @Test
-  public void shouldReturnTarget() {
+  void shouldReturnTarget() {
     SonarInstallation installation = mock(SonarInstallation.class);
     when(installation.getMojoVersion())
-      .thenReturn("")
-      .thenReturn("1.0-beta-2");
+            .thenReturn("")
+            .thenReturn("1.0-beta-2");
     assertThat(SonarMaven.getTarget(installation)).isEqualTo("-e -B sonar:sonar");
     assertThat(SonarMaven.getTarget(installation)).isEqualTo("-e -B org.codehaus.mojo:sonar-maven-plugin:1.0-beta-2:sonar");
   }
 
   @Test
-  public void testGetDescriptor() {
+  void testGetDescriptor() {
     SonarPublisher publisher = mock(SonarPublisher.class);
     when(publisher.getInstallation()).thenReturn(mock(SonarInstallation.class));
     SonarMaven sonarMaven = new SonarMaven("", "Default Maven", "pom.xml", "", new DefaultLocalRepositoryLocator(), publisher,
-      mock(BuildListener.class), null, null, null);
+            mock(BuildListener.class), null, null, null);
     Maven.DescriptorImpl descriptor = sonarMaven.getDescriptor();
     assertThat(descriptor).isNotNull();
     assertThat(descriptor).isInstanceOf(Maven.DescriptorImpl.class);

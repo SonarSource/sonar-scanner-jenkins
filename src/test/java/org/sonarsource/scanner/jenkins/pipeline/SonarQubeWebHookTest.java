@@ -19,73 +19,84 @@
  */
 package org.sonarsource.scanner.jenkins.pipeline;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class SonarQubeWebHookTest {
+@WithJenkins
+class SonarQubeWebHookTest {
 
-  @Rule
-  public JenkinsRule jenkins = new JenkinsRule();
+  private JenkinsRule jenkins;
+
+  @BeforeEach
+  void setUp(JenkinsRule rule) {
+    jenkins = rule;
+  }
 
   @WithoutJenkins
   @Test
-  public void improveCoverage() {
+  void improveCoverage() {
     SonarQubeWebHook aut = new SonarQubeWebHook();
     assertThat(aut.getDisplayName()).isNull();
     assertThat(aut.getIconFileName()).isNull();
     assertThat(aut.getUrlName()).isNotNull();
   }
 
-  @Test(expected = Exception.class)
-  public void invalidPayload() throws Exception {
-    jenkins.postJSON("sonarqube-webhook/", "foo");
+  @Test
+  void invalidPayload() {
+    assertThrows(Exception.class, () ->
+            jenkins.postJSON("sonarqube-webhook/", "foo"));
   }
 
   @Test
-  public void testListener() throws Exception {
-
+  void testListener() throws Exception {
     Map<String, String> eventsPerListener = new HashMap<>();
 
-    jenkins.postJSON("sonarqube-webhook/", "{\n" +
-      "\"taskId\":\"AVpBJY0hh5C8Sya1ZSgH\",\n" +
-      "\"status\":\"SUCCESS\",\n" +
-      "\"qualityGate\":{\"status\":\"OK\"},\n" +
-      "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
-      "}");
+    jenkins.postJSON("sonarqube-webhook/", """
+            {
+            "taskId":"AVpBJY0hh5C8Sya1ZSgH",
+            "status":"SUCCESS",
+            "qualityGate":{"status":"OK"},
+            "project": {"name": "foo", "url": "http://localhost:9000/dashboard?id=foo"}
+            }""");
 
     SonarQubeWebHook.get().addListener(
-      event -> eventsPerListener.put("ListenerA", event.getPayload().getTaskId() + event.getPayload().getTaskStatus() + event.getPayload().getQualityGateStatus()));
+            event -> eventsPerListener.put("ListenerA", event.getPayload().getTaskId() + event.getPayload().getTaskStatus() + event.getPayload().getQualityGateStatus()));
     SonarQubeWebHook.get().addListener(
-      event -> eventsPerListener.put("ListenerB", event.getPayload().getTaskId() + event.getPayload().getTaskStatus() + event.getPayload().getQualityGateStatus()));
+            event -> eventsPerListener.put("ListenerB", event.getPayload().getTaskId() + event.getPayload().getTaskStatus() + event.getPayload().getQualityGateStatus()));
 
-    jenkins.postJSON("sonarqube-webhook/", "{\n" +
-      "\"taskId\":\"AVpBJY0hh5C8Sya1ZSgH\",\n" +
-      "\"status\":\"SUCCESS\",\n" +
-      "\"qualityGate\":{\"status\":\"OK\"},\n" +
-      "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
-      "}");
+    jenkins.postJSON("sonarqube-webhook/", """
+            {
+            "taskId":"AVpBJY0hh5C8Sya1ZSgH",
+            "status":"SUCCESS",
+            "qualityGate":{"status":"OK"},
+            "project": {"name": "foo", "url": "http://localhost:9000/dashboard?id=foo"}
+            }""");
 
     assertThat(eventsPerListener).containsOnly(entry("ListenerA", "AVpBJY0hh5C8Sya1ZSgHSUCCESSOK"),
-      entry("ListenerB", "AVpBJY0hh5C8Sya1ZSgHSUCCESSOK"));
+            entry("ListenerB", "AVpBJY0hh5C8Sya1ZSgHSUCCESSOK"));
 
     eventsPerListener.clear();
 
     // No quality gate defined
-    jenkins.postJSON("sonarqube-webhook/", "{\n" +
-      "\"taskId\":\"AVpBJY0hh5C8Sya1ZSgH\",\n" +
-      "\"status\":\"SUCCESS\",\n" +
-     "\"project\": {\"name\": \"foo\", \"url\": \"http://localhost:9000/dashboard?id=foo\"}\n" +
-      "}");
+    jenkins.postJSON("sonarqube-webhook/", """
+            {
+            "taskId":"AVpBJY0hh5C8Sya1ZSgH",
+            "status":"SUCCESS",
+            "project": {"name": "foo", "url": "http://localhost:9000/dashboard?id=foo"}
+            }""");
 
     assertThat(eventsPerListener).containsOnly(entry("ListenerA", "AVpBJY0hh5C8Sya1ZSgHSUCCESSNONE"),
-      entry("ListenerB", "AVpBJY0hh5C8Sya1ZSgHSUCCESSNONE"));
+            entry("ListenerB", "AVpBJY0hh5C8Sya1ZSgHSUCCESSNONE"));
   }
 
 }

@@ -26,22 +26,25 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Project;
 import hudson.model.Result;
 import hudson.model.Run;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.MockBuilder;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import static org.mockito.Mockito.spy;
 
 /**
  * @author Evgeny Mandrikov
  */
-public class BaseTest extends SonarTestCase {
+@WithJenkins
+class BaseTest extends SonarTestCase {
+
   /**
    * No sonar installations defined.
    *
    * @throws Exception if something is wrong
    */
   @Test
-  public void testNoSonarInstallation() throws Exception {
+  void testNoSonarInstallation() throws Exception {
     FreeStyleProject project = setupFreeStyleProjectWithSonarRunner();
     project.getPublishersList().add(newSonarPublisherForFreeStyleProject(ROOT_POM));
     Run<?, ?> build = build(project);
@@ -63,7 +66,7 @@ public class BaseTest extends SonarTestCase {
    * @throws Exception if something is wrong
    */
   @Test
-  public void testMavenProject() throws Exception {
+  void testMavenProject() throws Exception {
     configureDefaultMaven();
     configureDefaultSonar();
     String pomName = "space test/root-pom.xml";
@@ -74,7 +77,7 @@ public class BaseTest extends SonarTestCase {
   }
 
   @Test
-  public void testFreeStyleProjectWithSonarRunnerStep() throws Exception {
+  void testFreeStyleProjectWithSonarRunnerStep() throws Exception {
     configureDefaultSonarRunner(false);
     configureDefaultSonar();
     FreeStyleProject project = setupFreeStyleProjectWithSonarRunner();
@@ -84,7 +87,7 @@ public class BaseTest extends SonarTestCase {
   }
 
   @Test
-  public void testFreeStyleProjectWithBrokenSonarRunnerStep() throws Exception {
+  void testFreeStyleProjectWithBrokenSonarRunnerStep() throws Exception {
     configureDefaultSonarRunner(true);
     configureDefaultSonar();
     FreeStyleProject project = setupFreeStyleProjectWithSonarRunner();
@@ -93,7 +96,7 @@ public class BaseTest extends SonarTestCase {
     assertSonarExecution(build, "This is a fake Runner", false);
   }
 
-  protected void setBuildResult(Project<?, ?> project, Result result) throws Exception {
+  protected void setBuildResult(Project<?, ?> project, Result result) {
     project.getBuildersList().clear();
     project.getBuildersList().add(new MockBuilder(result));
   }
@@ -107,7 +110,7 @@ public class BaseTest extends SonarTestCase {
    * @throws Exception if something wrong
    */
   @Test
-  public void testPassword() throws Exception {
+  void testPassword() throws Exception {
     configureDefaultSonarRunner(false);
     configureSecuredSonar();
 
