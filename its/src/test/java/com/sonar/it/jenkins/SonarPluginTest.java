@@ -254,6 +254,7 @@ public class SonarPluginTest extends SonarPluginTestSuite {
 
   private void verifySonarqubeEnvVarsExist(String logs) {
     assertThat(logs).contains("SONAR_AUTH_TOKEN=");
+    assertThat(logs).contains("SONAR_TOKEN=");
     assertThat(logs).contains("SONAR_CONFIG_NAME=" + DEFAULT_SONARQUBE_INSTALLATION);
     assertThat(logs).contains("SONAR_HOST_URL=" + ORCHESTRATOR.getServer().getUrl());
     assertThat(logs).contains("SONAR_MAVEN_GOAL=sonar:sonar");
