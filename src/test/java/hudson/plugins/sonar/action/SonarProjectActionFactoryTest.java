@@ -57,8 +57,8 @@ public class SonarProjectActionFactoryTest {
 
   @Test
   public void testNoRepeatedURLs() {
-    SonarAnalysisAction info1 = createBuildInfo("url1");
-    SonarAnalysisAction info2 = createBuildInfo("url1");
+    SonarAnalysisAction info1 = createBuildInfo("https://sonar.example/dashboard?id=url1");
+    SonarAnalysisAction info2 = createBuildInfo("https://sonar.example/dashboard?id=url1");
     mockProject(true, info1, info2);
 
     when(project.getLastBuild()).thenReturn(null);
@@ -66,7 +66,7 @@ public class SonarProjectActionFactoryTest {
     List<SonarProjectIconAction> projectActions = getSonarProjectIconAction(actions);
     assertThat(projectActions).hasSize(1);
     assertThat(projectActions.get(0).getBuildInfo()).isEqualTo(info1);
-    assertThat(projectActions.get(0).getUrlName()).isEqualTo("url1");
+    assertThat(projectActions.get(0).getUrlName()).isEqualTo("https://sonar.example/dashboard?id=url1");
   }
 
   @Test
@@ -83,9 +83,9 @@ public class SonarProjectActionFactoryTest {
 
   @Test
   public void testSeveralInfos() {
-    SonarAnalysisAction info1 = createBuildInfo("url1");
-    SonarAnalysisAction info2 = createBuildInfo("url2");
-    SonarAnalysisAction info3 = createBuildInfo("url3");
+    SonarAnalysisAction info1 = createBuildInfo("https://sonar.example/dashboard?id=url1");
+    SonarAnalysisAction info2 = createBuildInfo("https://sonar.example/dashboard?id=url2");
+    SonarAnalysisAction info3 = createBuildInfo("https://sonar.example/dashboard?id=url3");
 
     mockProject(true, info1, info2, info3);
     Collection<? extends Action> actions = factory.createFor(project);
@@ -95,16 +95,16 @@ public class SonarProjectActionFactoryTest {
     assertThat(projectActions).hasSize(3);
 
     assertThat(projectActions.get(0).getBuildInfo()).isEqualTo(info1);
-    assertThat(projectActions.get(0).getUrlName()).isEqualTo("url1");
+    assertThat(projectActions.get(0).getUrlName()).isEqualTo("https://sonar.example/dashboard?id=url1");
     assertThat(projectActions.get(1).getBuildInfo()).isEqualTo(info2);
-    assertThat(projectActions.get(1).getUrlName()).isEqualTo("url2");
+    assertThat(projectActions.get(1).getUrlName()).isEqualTo("https://sonar.example/dashboard?id=url2");
     assertThat(projectActions.get(2).getBuildInfo()).isEqualTo(info3);
-    assertThat(projectActions.get(2).getUrlName()).isEqualTo("url3");
+    assertThat(projectActions.get(2).getUrlName()).isEqualTo("https://sonar.example/dashboard?id=url3");
   }
 
   @Test
   public void testNoMarker() {
-    mockProject(false, createBuildInfo("url"));
+    mockProject(false, createBuildInfo("https://sonar.example/dashboard?id=url"));
     Collection<? extends Action> actions = factory.createFor(project);
     assertThat(actions).isEmpty();
   }

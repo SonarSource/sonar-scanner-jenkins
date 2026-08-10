@@ -82,7 +82,7 @@ public class SonarUtilsTest {
   public void testAddBuildInfoFromLastBuild() throws Exception {
     SonarAnalysisAction a1 = new SonarAnalysisAction("inst", "credId", null);
     a1.setSkipped(true);
-    a1.setUrl("url1");
+    a1.setUrl("https://sonar.example/dashboard?id=test");
     a1.setCeTaskId("task1");
 
     Run last = mockedRun(null, a1);
@@ -95,7 +95,7 @@ public class SonarUtilsTest {
     assertThat(action.getCredentialsId()).isEqualTo("credId");
     assertThat(action.isSkipped()).isFalse();
     assertThat(action.getCeTaskId()).isNull();
-    assertThat(action.getUrl()).isEqualTo("url1");
+    assertThat(action.getUrl()).isEqualTo("https://sonar.example/dashboard?id=test");
   }
 
   @Test

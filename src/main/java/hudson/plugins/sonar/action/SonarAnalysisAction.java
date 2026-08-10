@@ -22,6 +22,10 @@ package hudson.plugins.sonar.action;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.model.InvisibleAction;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Locale;
+import java.util.Set;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
@@ -30,6 +34,8 @@ import org.kohsuke.stapler.export.ExportedBean;
  */
 @ExportedBean(defaultVisibility = 2)
 public class SonarAnalysisAction extends InvisibleAction {
+  private static final Set<String> ALLOWED_URL_SCHEMES = Set.of("http", "https");
+
   private String installationName;
   private String installationUrl;
   private String credentialsId;
@@ -107,7 +113,24 @@ public class SonarAnalysisAction extends InvisibleAction {
   @CheckForNull
   @Exported(name = "sonarqubeDashboardUrl")
   public String getUrl() {
-    return url;
+    return sanitizeDashboardUrl(url);
+  }
+
+  @CheckForNull
+  private static String sanitizeDashboardUrl(@Nullable String url) {
+    if (url == null || url.isBlank()) {
+      return null;
+    }
+    try {
+      URI parsed = new URI(url);
+      String scheme = parsed.getScheme();
+      if (parsed.isAbsolute() && scheme != null && ALLOWED_URL_SCHEMES.contains(scheme.toLowerCase(Locale.ROOT))) {
+        return url;
+      }
+    } catch (URISyntaxException e) {
+      // fall through to rejection
+    }
+    return null;
   }
 
   @Exported

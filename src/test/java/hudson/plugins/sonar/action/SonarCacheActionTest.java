@@ -69,26 +69,26 @@ public class SonarCacheActionTest {
   public void testResolve() {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId", null);
     analysis.setCeTaskId("taskId");
-    analysis.setUrl("projUrl");
+    analysis.setUrl("https://sonar.example/dashboard?id=projUrl");
     analysis.setServerUrl("serverUrl");
-    analysis.setUrl("projUrl");
+    analysis.setUrl("https://sonar.example/dashboard?id=projUrl");
     Run<?, ?> run = mock(Run.class);
 
     cache.get(resolver, 0, Collections.singletonList(analysis), run);
-    verify(resolver).resolve("serverUrl", "projUrl", "taskId", "inst", run);
+    verify(resolver).resolve("serverUrl", "https://sonar.example/dashboard?id=projUrl", "taskId", "inst", run);
   }
 
   @Test
   public void testResolveUsingInstallationUrl() {
     SonarAnalysisAction analysis = new SonarAnalysisAction("inst", "credId", "installationUrl");
     analysis.setCeTaskId("taskId");
-    analysis.setUrl("projUrl");
+    analysis.setUrl("https://sonar.example/dashboard?id=projUrl");
     analysis.setServerUrl("serverUrl");
-    analysis.setUrl("projUrl");
+    analysis.setUrl("https://sonar.example/dashboard?id=projUrl");
     Run<?, ?> run = mock(Run.class);
 
     cache.get(resolver, 0, Collections.singletonList(analysis), run);
-    verify(resolver).resolve("installationUrl", "projUrl", "taskId", "inst", run);
+    verify(resolver).resolve("installationUrl", "https://sonar.example/dashboard?id=projUrl", "taskId", "inst", run);
   }
 
   @Test
@@ -126,9 +126,9 @@ public class SonarCacheActionTest {
   @Test
   public void testCacheWithCE() {
     ProjectInformation proj = createProj(now(), "success");
-    SonarAnalysisAction analysis = createAnalysis("serverUrl", "projUrl1", "taskId");
+    SonarAnalysisAction analysis = createAnalysis("serverUrl", "https://sonar.example/dashboard?id=projUrl1", "taskId");
     Run<?, ?> run = mock(Run.class);
-    when(resolver.resolve("serverUrl", "projUrl1", "taskId", "inst", run)).thenReturn(proj);
+    when(resolver.resolve("serverUrl", "https://sonar.example/dashboard?id=projUrl1", "taskId", "inst", run)).thenReturn(proj);
 
     ProjectInformation info1 = cache.get(resolver, 0, analysis, run);
     assertThat(info1).isNotNull();
@@ -138,7 +138,7 @@ public class SonarCacheActionTest {
     ProjectInformation info2 = cache.get(resolver, 0, analysis, run);
 
     assertThat(info1).isEqualTo(info2);
-    verify(resolver, times(1)).resolve("serverUrl", "projUrl1", "taskId", "inst", run);
+    verify(resolver, times(1)).resolve("serverUrl", "https://sonar.example/dashboard?id=projUrl1", "taskId", "inst", run);
   }
 
   private SonarAnalysisAction createAnalysis(String serverUrl, String url, String taskId) {
