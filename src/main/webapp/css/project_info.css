@@ -1,33 +1,26 @@
-.sonar-status {
-	color: white;
-	display: inline-block;
-	padding-left: 5px;
-	padding-right: 5px;
-	margin-left: 5px;
-	border: none;
-}
-
 .badge {
 	display: inline-block;
 	min-width: 10px;
 	padding: 2px 7px;
 	letter-spacing: .03em;
-	color: #fff;
 	vertical-align: baseline;
 	white-space: nowrap;
 	text-align: center;
 }
 
 .badge-failing {
-	background-color: red;
+	background-color: var(--alert-danger-bg-color);
+	color: var(--alert-danger-text-color);
 }
 
 .badge-warning {
-	background-color: orange;
+	background-color: var(--alert-warning-bg-color);
+	color: var(--alert-warning-text-color);
 }
 
 .badge-success {
-	background-color: #85bb43;
+	background-color: var(--alert-success-bg-color);
+	color: var(--alert-success-text-color);
 }
 
 table.sonar-projects {
@@ -36,7 +29,7 @@ table.sonar-projects {
 
 /* QUALITY GATE */
 .sonar-qg {
-	font-size: 16px;
+	font-size: var(--font-size-base);
 	font-weight: 600;
 }
 
@@ -47,17 +40,14 @@ table.sonar-projects {
 .sonar-qg-status {
 	display: inline-block;
 	margin-left: 10px;
-	background-color: #4b9fd5;
 }
 
 /* CE TASK */
 .sonar-ce {
-	color: black;
-	font-size: 12px;
 	font-weight: 300;
-	margin-top: 3px; font-size : 14px;
+	margin-top: 3px;
 	padding: 2px;
-	font-size: 14px;
+	font-size: var(--font-size-sm);
 }
 
 .sonar-ce-label {
@@ -69,5 +59,4 @@ table.sonar-projects {
 	text-transform: capitalize;
 	margin-left: 10px;
 	font-weight: 600;
-	background-color: #A3A3A3;
 }
