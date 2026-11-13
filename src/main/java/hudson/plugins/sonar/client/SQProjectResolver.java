@@ -25,6 +25,7 @@ import hudson.model.Run;
 import hudson.plugins.sonar.SonarInstallation;
 import hudson.plugins.sonar.client.WsClient.CETask;
 import hudson.plugins.sonar.utils.Logger;
+import java.util.List;
 import java.util.logging.Level;
 import org.sonarqube.ws.client.HttpException;
 
@@ -52,8 +53,8 @@ public class SQProjectResolver {
       return null;
     }
 
-    // provided by SonarQubeWebHook
-    ProjectInformation action = build.getAction(ProjectInformation.class);
+    // provided by waitForQualityGate, one per analysis it waited for
+    ProjectInformation action = findProjectInformation(build, projectDashboardUrl);
     if (action != null) {
       return action;
     }
@@ -83,6 +84,28 @@ public class SQProjectResolver {
       Logger.LOG.log(Level.WARNING, "Error fetching project information", e);
       return null;
     }
+  }
+
+  /**
+   * A build that analyses several projects carries one {@link ProjectInformation} per analysis, so the one belonging
+   * to this analysis is picked by its dashboard URL. A single one without a URL to compare is taken as before.
+   * Returns null if none matches, so the information is requested from the server instead.
+   */
+  @CheckForNull
+  private static ProjectInformation findProjectInformation(Run<?, ?> build, @Nullable String projectDashboardUrl) {
+    List<ProjectInformation> actions = build.getActions(ProjectInformation.class);
+    for (ProjectInformation action : actions) {
+      if (projectDashboardUrl != null && projectDashboardUrl.equals(action.getUrl())) {
+        return action;
+      }
+    }
+    if (actions.size() == 1) {
+      ProjectInformation only = actions.get(0);
+      if (projectDashboardUrl == null || only.getUrl() == null) {
+        return only;
+      }
+    }
+    return null;
   }
 
   @CheckForNull

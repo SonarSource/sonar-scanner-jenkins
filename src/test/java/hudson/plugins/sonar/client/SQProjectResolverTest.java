@@ -34,6 +34,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import org.sonarqube.ws.client.HttpException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +43,7 @@ import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -80,6 +82,42 @@ public class SQProjectResolverTest extends SonarTestCase {
     verify(client).getHttp(Mockito.startsWith(SERVER_URL + WsClient.API_CE_TASK), eq(TOKEN));
 
     verifyNoMoreInteractions(client);
+  }
+
+  @Test
+  public void testPicksProjectInformationOfThisAnalysis() {
+    ProjectInformation first = projectInformation(SERVER_URL + "/dashboard?id=first", "First");
+    ProjectInformation second = projectInformation(PROJECT_URL, "Second");
+    Run<?, ?> build = buildWith(first, second);
+
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, CE_TASK_ID, testName.getMethodName(), build);
+
+    assertThat(proj).isSameAs(second);
+    verifyNoInteractions(client);
+  }
+
+  @Test
+  public void testSingleProjectInformationWithoutUrlIsUsed() {
+    ProjectInformation only = projectInformation(null, "Only");
+    Run<?, ?> build = buildWith(only);
+
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, CE_TASK_ID, testName.getMethodName(), build);
+
+    assertThat(proj).isSameAs(only);
+    verifyNoInteractions(client);
+  }
+
+  @Test
+  public void testProjectInformationOfAnotherProjectIsIgnored() throws Exception {
+    mockSQServer();
+    ProjectInformation other = projectInformation(SERVER_URL + "/dashboard?id=other", "Other");
+    Run<?, ?> build = buildWith(other);
+
+    ProjectInformation proj = resolver.resolve(SERVER_URL, PROJECT_URL, CE_TASK_ID, testName.getMethodName(), build);
+
+    assertThat(proj).isNotNull().isNotSameAs(other);
+    assertThat(proj.getProjectName()).isEqualTo("SonarLint CLI");
+    assertThat(proj.getUrl()).isEqualTo(PROJECT_URL);
   }
 
   @Test
@@ -129,6 +167,21 @@ public class SQProjectResolverTest extends SonarTestCase {
   @Override
   protected SonarInstallation configureDefaultSonar() {
     return configureSonar(new SonarInstallation(testName.getMethodName(), null, null, null, null, null, null, null, null));
+  }
+
+  private static ProjectInformation projectInformation(String url, String name) {
+    ProjectInformation info = new ProjectInformation();
+    info.setUrl(url);
+    info.setName(name);
+    info.setStatus("OK");
+    return info;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Run<?, ?> buildWith(ProjectInformation... infos) {
+    Run<?, ?> build = mock(Run.class);
+    when(build.getActions(ProjectInformation.class)).thenReturn(List.of(infos));
+    return build;
   }
 
   private void mockSQServer(Exception toThrow) {
