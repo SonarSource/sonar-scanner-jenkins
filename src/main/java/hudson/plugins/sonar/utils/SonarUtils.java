@@ -61,8 +61,10 @@ public final class SonarUtils {
   public static final String REPORT_TASK_FILE_NAME = "report-task.txt";
   public static final String PROPERTY_SONAR_LOGIN = "sonar.login";
   public static final String PROPERTY_SONAR_TOKEN = "sonar.token";
-  private static final String SONARCLOUD_URL = "https://sonarcloud.io";
-  private static final String SONARCLOUD_US_URL = "https://sonarqube.us";
+  private static final List<String> SONARQUBE_CLOUD_URLS = List.of(
+    "https://sonarcloud.io",
+    "https://sonarqube.us",
+    "https://sonarqube.au");
 
   /**
    * Hide utility-class constructor.
@@ -293,7 +295,7 @@ public final class SonarUtils {
   }
 
   public static boolean isSonarCloud(SonarInstallation inst) {
-    return inst.getServerUrl() != null
-      && (inst.getServerUrl().startsWith(SONARCLOUD_URL) || inst.getServerUrl().startsWith(SONARCLOUD_US_URL));
+    String serverUrl = inst.getServerUrl();
+    return serverUrl != null && SONARQUBE_CLOUD_URLS.stream().anyMatch(serverUrl::startsWith);
   }
 }
