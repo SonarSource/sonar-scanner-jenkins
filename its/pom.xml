@@ -40,6 +40,13 @@
       <groupId>org.jenkins-ci</groupId>
       <artifactId>acceptance-test-harness</artifactId>
       <version>5699.v27deb_ef5796c</version>
+      <exclusions>
+        <exclusion>
+          <!-- vulnerable (CVE-2026-90436) and unused: only needed by the Jira tests of the harness -->
+          <groupId>org.jenkins-ci</groupId>
+          <artifactId>jira-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -97,6 +104,20 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <!-- fixes jackson-databind CVE-2026-91776 / CVE-2026-91777 brought by acceptance-test-harness -->
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>2.22.4</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <!-- fixes CVE-2026-59171 brought by acceptance-test-harness -->
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>20260814</version>
+      </dependency>
       <dependency>
         <groupId>com.browserup</groupId>
         <artifactId>browserup-proxy-core</artifactId>
