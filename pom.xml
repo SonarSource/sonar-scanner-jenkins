@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>sonar</artifactId>
-  <version>2.19.1</version>
+  <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
 
   <name>SonarQube Scanner for Jenkins</name>
@@ -41,7 +41,7 @@
   </issueManagement>
 
   <properties>
-    <revision>2.19.1</revision>
+    <revision>2.19.2</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/sonarqube-plugin</gitHubRepo>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
